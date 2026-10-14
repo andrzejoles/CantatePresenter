@@ -48,6 +48,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         window.makeKeyAndOrderFront(nil)
         
         self.mainWindow = window
+        AppInstallerService.shared.promptToInstallIfNecessary()
     }
     
     private var manualWindow: NSWindow?
@@ -122,6 +123,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let appMenu = NSMenu()
         appMenu.addItem(NSMenuItem(title: "O programie CantatePresenter", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: ""))
         appMenu.addItem(NSMenuItem.separator())
+        if !AppInstallerService.shared.isInstalledInApplications {
+            appMenu.addItem(NSMenuItem(title: "Zainstaluj w folderze Programy (/Applications)...", action: #selector(installToApplicationsAction), keyEquivalent: ""))
+            appMenu.addItem(NSMenuItem.separator())
+        }
         appMenu.addItem(NSMenuItem(title: "Zakończ CantatePresenter", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         appMenuItem.submenu = appMenu
         mainMenu.addItem(appMenuItem)
@@ -231,6 +236,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc private func quickTextAction() {
         NotificationCenter.default.post(name: NSNotification.Name("OpenQuickTextSheet"), object: nil)
+    }
+    
+    @objc private func installToApplicationsAction() {
+        AppInstallerService.shared.installToApplications()
     }
     
     public func applicationWillTerminate(_ notification: Notification) {
