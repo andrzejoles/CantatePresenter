@@ -285,14 +285,22 @@ namespace CantatePresenter.Views
             if (ofd.ShowDialog() == true)
             {
                 var imported = new List<Song>();
-                foreach (var file in ofd.FileNames)
+                Mouse.OverrideCursor = Cursors.Wait;
+                try
                 {
-                    try
+                    foreach (var file in ofd.FileNames)
                     {
-                        var songs = TextImporter.ImportFromFile(file);
-                        imported.AddRange(songs);
+                        try
+                        {
+                            var songs = TextImporter.ImportFromFile(file);
+                            imported.AddRange(songs);
+                        }
+                        catch { }
                     }
-                    catch { }
+                }
+                finally
+                {
+                    Mouse.OverrideCursor = null;
                 }
 
                 if (imported.Count > 0)
