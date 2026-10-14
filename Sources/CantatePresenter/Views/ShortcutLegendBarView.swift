@@ -155,7 +155,12 @@ public struct ShortcutLegendBarView: View {
                         label: loc(.standby),
                         scale: scale,
                         heightFactor: heightFactor,
-                        action: { store.stopLive() }
+                        action: {
+                            if NSScreen.screens.count == 1 && ScreenManager.shared.isPresentationActive {
+                                ScreenManager.shared.stopPresentation()
+                            }
+                            store.stopLive()
+                        }
                     )
                 }
                 .padding(.horizontal, 12)

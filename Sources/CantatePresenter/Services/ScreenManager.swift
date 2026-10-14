@@ -19,7 +19,7 @@ public final class ScreenManager: ObservableObject {
     @Published public var isPresentationActive: Bool = false
     @Published public var isWindowedPreviewActive: Bool = false
     
-    private var presentationWindow: NSWindow?
+    public private(set) var presentationWindow: NSWindow?
     private var windowedPreviewWindow: NSWindow?
     private var keyMonitor: Any?
     private var cancellables = Set<AnyCancellable>()
@@ -136,14 +136,20 @@ public final class ScreenManager: ObservableObject {
             keyMonitor = nil
         }
         
-        presentationWindow?.orderOut(nil)
-        presentationWindow?.contentViewController = nil
+        if let window = presentationWindow {
+            window.level = .normal
+            window.orderOut(nil)
+            window.contentViewController = nil
+            window.close()
+        }
         presentationWindow = nil
         isPresentationActive = false
         
         // Restore focus to the main app window
         NSApp.activate(ignoringOtherApps: true)
-        if let mainWindow = NSApp.windows.first(where: { $0.isVisible && $0 != self.presentationWindow && $0 != self.windowedPreviewWindow }) {
+        if let main = AppDelegate.shared?.mainWindow {
+            main.makeKeyAndOrderFront(nil)
+        } else if let mainWindow = NSApp.windows.first(where: { $0.isVisible && $0 != self.windowedPreviewWindow }) {
             mainWindow.makeKeyAndOrderFront(nil)
         }
     }
@@ -223,6 +229,22 @@ public final class ScreenManager: ObservableObject {
 public final class PresentationWindow: NSWindow {
     public override var canBecomeKey: Bool { true }
     public override var canBecomeMain: Bool { true }
+    
+    public override func cancelOperation(_ sender: Any?) {
+        Task { @MainActor in
+            ScreenManager.shared.stopPresentation()
+        }
+    }
+    
+    public override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        if event.keyCode == 53 { // ESC key
+            Task { @MainActor in
+                ScreenManager.shared.stopPresentation()
+            }
+            return true
+        }
+        return super.performKeyEquivalent(with: event)
+    }
     
     public override func keyDown(with event: NSEvent) {
         if event.keyCode == 53 { // ESC key

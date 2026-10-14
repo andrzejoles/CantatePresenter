@@ -257,9 +257,20 @@ public struct MainView: View {
                     store.present(song: song, slideIndex: 0)
                 }
                 return nil
-            } else if code == shortcuts.stopPresentationKey {
-                store.stopLive()
-                return nil
+            } else if code == shortcuts.stopPresentationKey || code == 53 {
+                if screenManager.isPresentationActive {
+                    if NSScreen.screens.count == 1 || NSApp.keyWindow == screenManager.presentationWindow {
+                        screenManager.stopPresentation()
+                        store.stopLive()
+                        return nil
+                    } else {
+                        store.stopLive()
+                        return nil
+                    }
+                } else {
+                    store.stopLive()
+                    return nil
+                }
             } else if code == shortcuts.blackScreenKey {
                 store.toggleBlackScreen()
                 return nil
