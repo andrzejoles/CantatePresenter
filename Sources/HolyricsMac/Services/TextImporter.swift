@@ -43,18 +43,15 @@ public struct TextImporter {
         // 2. Check for JSON
         if ext == "json" {
             if let data = try? Data(contentsOf: url) {
-                let decoder = JSONDecoder()
-                decoder.dateDecodingStrategy = .iso8601
-                if let songArray = try? decoder.decode([Song].self, from: data) {
-                    return songArray
-                } else if let singleSong = try? decoder.decode(Song.self, from: data) {
-                    return [singleSong]
-                } else {
-                    // Try Holyrics JSON format
-                    let holyricsSongs = HolyricsImporter.importFromURL(url)
-                    if !holyricsSongs.isEmpty {
-                        return holyricsSongs
-                    }
+                let decoded = decodeSongsFromJSON(data: data)
+                if !decoded.isEmpty {
+                    return decoded
+                }
+                
+                // Fallback to Holyrics JSON format
+                let holyricsSongs = HolyricsImporter.importFromURL(url)
+                if !holyricsSongs.isEmpty {
+                    return holyricsSongs
                 }
             }
         }
@@ -164,6 +161,94 @@ public struct TextImporter {
         
         guard let finalString = decodedString else { return nil }
         return PolishEncodingService.shared.repairMojibake(finalString)
+    }
+    
+    /// Decodes songs from JSON Data supporting multiple date strategies, single song, arrays, and wrapper objects
+    public static func decodeSongsFromJSON(data: Data) -> [Song] {
+        // Strategy 1: ISO-8601 [Song]
+        let isoDecoder = JSONDecoder()
+        isoDecoder.dateDecodingStrategy = .iso8601
+        if let songs = try? isoDecoder.decode([Song].self, from: data), !songs.isEmpty {
+            return songs
+        }
+        
+        // Strategy 2: Default DeferredToDate [Song] (native DataStore format)
+        let defDecoder = JSONDecoder()
+        if let songs = try? defDecoder.decode([Song].self, from: data), !songs.isEmpty {
+            return songs
+        }
+        
+        // Strategy 3: Flexible Date Decoder [Song]
+        let flexDecoder = JSONDecoder()
+        flexDecoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            if let seconds = try? container.decode(Double.self) {
+                return Date(timeIntervalSinceReferenceDate: seconds)
+            }
+            if let str = try? container.decode(String.self) {
+                let formatter = ISO8601DateFormatter()
+                if let d = formatter.date(from: str) { return d }
+                let df = DateFormatter()
+                df.locale = Locale(identifier: "pl_PL")
+                df.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+                if let d = df.date(from: str) { return d }
+                df.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                if let d = df.date(from: str) { return d }
+                df.dateFormat = "yyyy-MM-dd"
+                if let d = df.date(from: str) { return d }
+            }
+            return Date()
+        }
+        if let songs = try? flexDecoder.decode([Song].self, from: data), !songs.isEmpty {
+            return songs
+        }
+        
+        // Strategy 4: Single Song object
+        if let single = try? isoDecoder.decode(Song.self, from: data) {
+            return [single]
+        }
+        if let single = try? defDecoder.decode(Song.self, from: data) {
+            return [single]
+        }
+        if let single = try? flexDecoder.decode(Song.self, from: data) {
+            return [single]
+        }
+        
+        // Strategy 5: Wrapper object { "songs": [...], "items": [...] }
+        struct SongsWrapper: Decodable {
+            let songs: [Song]?
+            let items: [Song]?
+            let piesni: [Song]?
+            let library: [Song]?
+        }
+        if let wrapper = try? flexDecoder.decode(SongsWrapper.self, from: data) {
+            if let list = wrapper.songs, !list.isEmpty { return list }
+            if let list = wrapper.items, !list.isEmpty { return list }
+            if let list = wrapper.piesni, !list.isEmpty { return list }
+            if let list = wrapper.library, !list.isEmpty { return list }
+        }
+        
+        // Strategy 6: Generic JSON array of dictionaries with loose keys
+        if let jsonObject = try? JSONSerialization.jsonObject(with: data, options: []),
+           let array = jsonObject as? [[String: Any]] {
+            var extracted: [Song] = []
+            for item in array {
+                let title = (item["title"] as? String) ?? (item["tytul"] as? String) ?? (item["tytuł"] as? String) ?? (item["name"] as? String) ?? "Bez tytułu"
+                let author = (item["author"] as? String) ?? (item["autor"] as? String) ?? ""
+                let key = (item["key"] as? String) ?? (item["tonacja"] as? String) ?? ""
+                let tags = (item["tags"] as? [String]) ?? (item["tagi"] as? [String]) ?? []
+                let chords = item["chords"] as? String
+                let lyrics = (item["rawLyrics"] as? String) ?? (item["lyrics"] as? String) ?? (item["text"] as? String) ?? (item["tekst"] as? String) ?? ""
+                if !title.isEmpty || !lyrics.isEmpty {
+                    extracted.append(Song(title: title, author: author, key: key, tags: tags, rawLyrics: lyrics, chords: chords))
+                }
+            }
+            if !extracted.isEmpty {
+                return extracted
+            }
+        }
+        
+        return []
     }
     
     /// Prompts native file dialog to pick .txt or .json files or a folder
