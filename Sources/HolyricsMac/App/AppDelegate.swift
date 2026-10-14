@@ -67,6 +67,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         fileMenu.addItem(NSMenuItem(title: "Eksportuj całą bazę (JSON)...", action: #selector(exportJSONAction), keyEquivalent: "e"))
         fileMenu.addItem(NSMenuItem(title: "Eksportuj pieśni do folderu (.txt)...", action: #selector(exportFolderAction), keyEquivalent: ""))
         fileMenu.addItem(NSMenuItem.separator())
+        fileMenu.addItem(NSMenuItem(title: "Utwórz pełną kopię zapasową (.holyricsbackup)...", action: #selector(createBackupAction), keyEquivalent: "b"))
+        fileMenu.addItem(NSMenuItem(title: "Przywróć z kopii zapasowej...", action: #selector(restoreBackupAction), keyEquivalent: ""))
+        fileMenu.addItem(NSMenuItem.separator())
         fileMenu.addItem(NSMenuItem(title: "Zamknij okno", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w"))
         fileMenuItem.submenu = fileMenu
         mainMenu.addItem(fileMenuItem)
@@ -132,6 +135,33 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func exportFolderAction() {
         Task { @MainActor in
             _ = SongExporter.exportSongsToFolder(DataStore.shared.songs)
+        }
+    }
+    
+    @objc private func createBackupAction() {
+        Task { @MainActor in
+            _ = BackupService.shared.exportBackupWithSavePanel()
+        }
+    }
+    
+    @objc private func restoreBackupAction() {
+        Task { @MainActor in
+            _ = BackupService.shared.restoreBackupWithOpenPanel()
+        }
+    }
+    
+    public func applicationWillTerminate(_ notification: Notification) {
+        let store = DataStore.shared
+        if store.settings.googleDrive.isEnabled && store.settings.googleDrive.autoBackupOnExit {
+            let semaphore = DispatchSemaphore(value: 0)
+            Task {
+                if let (archiveURL, _) = try? BackupService.shared.createBackupArchive(comment: "Automatyczny backup przy zamykaniu Holyrics Mac") {
+                    _ = try? await GoogleDriveService.shared.uploadBackupToDrive(archiveURL: archiveURL)
+                    try? FileManager.default.removeItem(at: archiveURL)
+                }
+                semaphore.signal()
+            }
+            _ = semaphore.wait(timeout: .now() + 4.0)
         }
     }
 }

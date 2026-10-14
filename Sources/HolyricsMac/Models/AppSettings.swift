@@ -90,6 +90,7 @@ public struct AppSettings: Codable, Equatable {
     public var appLanguage: String // "pl", "en", "de", "es", "uk"
     public var dictationLanguage: String // "pl-PL", "en-US", "de-DE", "es-ES", "uk-UA"
     public var activeLogoId: String // "light_of_glory", etc.
+    public var googleDrive: GoogleDriveSettings
     
     public init(
         selectedScreenIndex: Int = 1,
@@ -110,7 +111,8 @@ public struct AppSettings: Codable, Equatable {
         bottomBarHeight: Double = 72.0,
         appLanguage: String = "pl",
         dictationLanguage: String = "pl-PL",
-        activeLogoId: String = "light_of_glory"
+        activeLogoId: String = "light_of_glory",
+        googleDrive: GoogleDriveSettings = GoogleDriveSettings()
     ) {
         self.selectedScreenIndex = selectedScreenIndex
         self.fontFamily = fontFamily
@@ -131,6 +133,7 @@ public struct AppSettings: Codable, Equatable {
         self.appLanguage = appLanguage
         self.dictationLanguage = dictationLanguage
         self.activeLogoId = activeLogoId
+        self.googleDrive = googleDrive
     }
     
     public init(from decoder: Decoder) throws {
@@ -154,6 +157,41 @@ public struct AppSettings: Codable, Equatable {
         self.appLanguage = try container.decodeIfPresent(String.self, forKey: .appLanguage) ?? "pl"
         self.dictationLanguage = try container.decodeIfPresent(String.self, forKey: .dictationLanguage) ?? "pl-PL"
         self.activeLogoId = try container.decodeIfPresent(String.self, forKey: .activeLogoId) ?? "light_of_glory"
+        self.googleDrive = try container.decodeIfPresent(GoogleDriveSettings.self, forKey: .googleDrive) ?? GoogleDriveSettings()
+    }
+}
+
+public struct GoogleDriveSettings: Codable, Equatable {
+    public var isEnabled: Bool
+    public var accountEmail: String
+    public var clientId: String
+    public var clientSecret: String
+    public var accessToken: String
+    public var refreshToken: String
+    public var targetFolder: String
+    public var autoBackupOnExit: Bool
+    public var lastBackupDate: Date?
+    
+    public init(
+        isEnabled: Bool = false,
+        accountEmail: String = "",
+        clientId: String = "",
+        clientSecret: String = "",
+        accessToken: String = "",
+        refreshToken: String = "",
+        targetFolder: String = "HolyricsMac_Backups",
+        autoBackupOnExit: Bool = false,
+        lastBackupDate: Date? = nil
+    ) {
+        self.isEnabled = isEnabled
+        self.accountEmail = accountEmail
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+        self.accessToken = accessToken
+        self.refreshToken = refreshToken
+        self.targetFolder = targetFolder
+        self.autoBackupOnExit = autoBackupOnExit
+        self.lastBackupDate = lastBackupDate
     }
 }
 
