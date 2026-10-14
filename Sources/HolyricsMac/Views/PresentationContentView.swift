@@ -6,6 +6,8 @@ public struct PresentationContentView: View {
     @ObservedObject var store = DataStore.shared
     public var isPreviewWindow: Bool = false
     
+    @State private var showEscHint: Bool = false
+    
     public init(isPreviewWindow: Bool = false) {
         self.isPreviewWindow = isPreviewWindow
     }
@@ -23,8 +25,8 @@ public struct PresentationContentView: View {
                     Color.black
                         .ignoresSafeArea()
                 } else if !store.isLive {
-                    // Display configured HTML Standby Screen
-                    StandbyWebView(htmlPath: settings.standbyHtmlPath)
+                    // Display configured HTML Standby Screen with dynamically injected active logo
+                    StandbyWebView(htmlPath: settings.standbyHtmlPath, activeLogoId: settings.activeLogoId)
                         .ignoresSafeArea()
                 } else {
                     bgColor
@@ -84,6 +86,43 @@ public struct PresentationContentView: View {
                         }
                         .padding(8)
                         Spacer()
+                    }
+                }
+                
+                // Auto-fading ESC hint when running on single screen
+                if !isPreviewWindow && showEscHint {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            HStack(spacing: 6) {
+                                Image(systemName: "keyboard")
+                                Text("Naciśnij ESC, aby wyjść z pełnego ekranu")
+                            }
+                            .font(.system(size: 11, weight: .semibold))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 7)
+                            .background(Color.black.opacity(0.75))
+                            .foregroundColor(.white.opacity(0.9))
+                            .cornerRadius(16)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.white.opacity(0.25), lineWidth: 1)
+                            )
+                            Spacer()
+                        }
+                        .padding(.top, 18)
+                        Spacer()
+                    }
+                    .transition(.opacity)
+                }
+            }
+        }
+        .onAppear {
+            if !isPreviewWindow && NSScreen.screens.count == 1 {
+                showEscHint = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+                    withAnimation(.easeInOut(duration: 0.6)) {
+                        showEscHint = false
                     }
                 }
             }
