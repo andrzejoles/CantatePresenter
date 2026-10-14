@@ -73,7 +73,7 @@ public struct LiveOutputView: View {
                                 Text("PLANSZA STARTOWA")
                                     .font(.scaled(11, weight: .bold, scale: scale))
                                     .foregroundColor(.white)
-                                Text("Holyrics Mac v1.0.0 • Standby")
+                                Text("CantatePresenter v1.0.0 • Standby")
                                     .font(.scaled(9, scale: scale))
                                     .foregroundColor(.white.opacity(0.6))
                             }

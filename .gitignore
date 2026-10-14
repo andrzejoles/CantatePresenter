@@ -1,6 +1,8 @@
 .build/
 .swiftpm/
 HolyricsMac.app/
+CantatePresenter.app/
+*.app/
 *.xcodeproj
 *.xcworkspace
 xcuserdata/

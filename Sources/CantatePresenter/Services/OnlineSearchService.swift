@@ -282,7 +282,7 @@ public final class OnlineSearchService {
         }
         
         var request = URLRequest(url: url)
-        request.setValue("HolyricsMac/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("CantatePresenter/1.0", forHTTPHeaderField: "User-Agent")
         request.timeoutInterval = 6.0
         
         do {

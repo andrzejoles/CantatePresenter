@@ -412,7 +412,7 @@ public struct SettingsSheet: View {
                                                     Text("Folder w chmurze:")
                                                         .font(.scaled(10, scale: scale))
                                                         .frame(width: 90, alignment: .leading)
-                                                    TextField("HolyricsMac_Backups", text: $store.settings.googleDrive.targetFolder)
+                                                    TextField("CantatePresenter_Backups", text: $store.settings.googleDrive.targetFolder)
                                                         .textFieldStyle(RoundedBorderTextFieldStyle())
                                                         .font(.scaled(10, scale: scale))
                                                 }

@@ -189,7 +189,7 @@ public final class LocalizationService: ObservableObject {
     
     private let builtInTranslations: [String: [Key: String]] = [
         "pl": [
-            .appTitle: "Prezenter Pieśni",
+            .appTitle: "CantatePresenter",
             .libraryTab: "Biblioteka pieśni",
             .planTab: "Plan nabożeństwa",
             .searchPlaceholder: "Szukaj w tytule, autorze i tekście...",
@@ -229,7 +229,7 @@ public final class LocalizationService: ObservableObject {
             .cancel: "Anuluj"
         ],
         "en": [
-            .appTitle: "Holyrics Presenter",
+            .appTitle: "CantatePresenter",
             .libraryTab: "Song Library",
             .planTab: "Service Plan",
             .searchPlaceholder: "Search in title, author and lyrics...",
