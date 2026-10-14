@@ -263,6 +263,28 @@ namespace CantatePresenter.Services
             }
         }
 
+        public void PresentQuickText(string text, string? title = null)
+        {
+            var trimmed = text?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(trimmed)) return;
+
+            var songTitle = string.IsNullOrWhiteSpace(title) ? "Szybki tekst" : title.Trim();
+            var quickSong = new Song
+            {
+                Id = Guid.NewGuid(),
+                Title = songTitle,
+                Author = "Tymczasowy",
+                RawLyrics = trimmed,
+                Slides = Song.ParseLyrics(trimmed)
+            };
+
+            CurrentSong = quickSong;
+            CurrentSlideIndex = 0;
+            IsLive = true;
+            IsBlackScreen = false;
+            IsClearText = false;
+        }
+
         public void ToggleBlackScreen()
         {
             IsBlackScreen = !IsBlackScreen;

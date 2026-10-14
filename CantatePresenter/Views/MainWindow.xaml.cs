@@ -264,6 +264,18 @@ namespace CantatePresenter.Views
             }
         }
 
+        private void QuickText_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new QuickTextDialog { Owner = this };
+            if (dlg.ShowDialog() == true && !string.IsNullOrWhiteSpace(dlg.ResultText))
+            {
+                _store.PresentQuickText(dlg.ResultText, dlg.ResultTitle);
+                _screenManager.StartPresentation();
+                UpdateCurrentSongView();
+                UpdateLiveMonitor();
+            }
+        }
+
         private void EditCurrentSong_Click(object sender, RoutedEventArgs e)
         {
             if (_store.CurrentSong == null) return;
@@ -389,6 +401,13 @@ namespace CantatePresenter.Views
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.OriginalSource is TextBox) return;
+
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.T)
+            {
+                QuickText_Click(this, new RoutedEventArgs());
+                e.Handled = true;
+                return;
+            }
 
             if (e.Key == Key.Space || e.Key == Key.Right || e.Key == Key.Down)
             {

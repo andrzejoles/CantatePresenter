@@ -47,6 +47,7 @@
                     </StackPanel>
 
                     <Button Content="+ Nowa pieśń" Click="NewSong_Click" Margin="0,0,8,0" Background="{StaticResource AccentBlueBrush}" FontWeight="Bold"/>
+                    <Button Content="⚡ Szybki tekst" Click="QuickText_Click" Margin="0,0,8,0" Background="#f59e0b" Foreground="#ffffff" FontWeight="Bold" ToolTip="Wyświetl natychmiast tekst/ogłoszenie bez zapisywania w bazie (Ctrl+T)"/>
                     <Button Content="Importuj..." Click="Import_Click" Margin="0,0,8,0"/>
                     <Button Content="Eksportuj..." Click="Export_Click" Margin="0,0,8,0"/>
                     <Button Content="Chwyty" Click="Chords_Click" Margin="0,0,8,0"/>
