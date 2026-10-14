@@ -549,7 +549,7 @@ public final class LocalizationService: ObservableObject {
         }
     }
     
-    private func loadCustomLanguages() {
+    public func loadCustomLanguages() {
         guard FileManager.default.fileExists(atPath: customLanguagesURL.path),
               let data = try? Data(contentsOf: customLanguagesURL) else { return }
         let decoder = JSONDecoder()

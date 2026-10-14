@@ -11,6 +11,13 @@ public struct SettingsSheet: View {
     @State private var testDictationText: String = ""
     @State private var isShowingLogoGallery: Bool = false
     @State private var translationNotice: String? = nil
+    @State private var isShowingGoogleDriveBackups: Bool = false
+    @State private var isUploadingToDrive: Bool = false
+    @State private var isAuthorizingDrive: Bool = false
+    @State private var driveAuthCodeInput: String = ""
+    @State private var backupStatusMessage: String? = nil
+    @State private var isBackupSuccess: Bool = true
+    @State private var showDriveCredentials: Bool = false
     
     public init(isPresented: Binding<Bool>) {
         self._isPresented = isPresented
@@ -249,6 +256,213 @@ public struct SettingsSheet: View {
                                 .buttonStyle(PlainButtonStyle())
                                 .foregroundColor(.blue)
                                 .font(.scaled(11, scale: scale))
+                            }
+                        }
+                        .padding(8)
+                    }
+                    
+                    // MARK: - Backup & Google Drive
+                    GroupBox(label: Label("Kopia zapasowa i Dysk Google", systemImage: "externaldrive.badge.icloud")) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            // Summary info
+                            HStack(alignment: .top, spacing: 10) {
+                                Image(systemName: "checkmark.shield.fill")
+                                    .font(.scaled(20, scale: scale))
+                                    .foregroundColor(.green)
+                                
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text("Kompletna ochrona danych aplikacji")
+                                        .font(.scaled(12, weight: .bold, scale: scale))
+                                    Text("Kopia zapasowa (.holyricsbackup) zawiera: całą bazę pieśni (\(store.songs.count)), plany nabożeństw (\(store.plans.count)), chwyty gitarowe, wszystkie ustawienia programu, stronę początkową Standby, języki tłumaczeń oraz oficjalne loga.")
+                                        .font(.scaled(11, scale: scale))
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .padding(8)
+                            .background(Color.green.opacity(0.08))
+                            .cornerRadius(8)
+                            
+                            // Local Backup Buttons
+                            HStack(spacing: 10) {
+                                Button(action: createLocalBackupAction) {
+                                    Label("Utwórz pełną kopię zapasową (.holyricsbackup)...", systemImage: "square.and.arrow.up.fill")
+                                        .font(.scaled(11, weight: .semibold, scale: scale))
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.small)
+                                
+                                Button(action: restoreLocalBackupAction) {
+                                    Label("Przywróć z pliku kopii zapasowej...", systemImage: "arrow.counterclockwise.circle")
+                                        .font(.scaled(11, scale: scale))
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                            }
+                            
+                            Divider()
+                            
+                            // Google Drive Integration Section
+                            VStack(alignment: .leading, spacing: 10) {
+                                HStack {
+                                    Toggle(isOn: $store.settings.googleDrive.isEnabled) {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "icloud.and.arrow.up")
+                                                .foregroundColor(store.settings.googleDrive.isEnabled ? .blue : .secondary)
+                                            Text("Synchronizacja i kopie na koncie Dysk Google (Google Drive)")
+                                                .font(.scaled(12, weight: .semibold, scale: scale))
+                                        }
+                                    }
+                                    .toggleStyle(CheckboxToggleStyle())
+                                    
+                                    Spacer()
+                                    
+                                    if store.settings.googleDrive.isEnabled {
+                                        Text(store.settings.googleDrive.accountEmail.isEmpty ? "andrzej.oles.tel@gmail.com" : store.settings.googleDrive.accountEmail)
+                                            .font(.scaled(10, weight: .bold, scale: scale))
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 3)
+                                            .background(Color.blue.opacity(0.12))
+                                            .foregroundColor(.blue)
+                                            .cornerRadius(6)
+                                    }
+                                }
+                                
+                                if store.settings.googleDrive.isEnabled {
+                                    VStack(alignment: .leading, spacing: 10) {
+                                        // Account Email
+                                        HStack {
+                                            Text("Konto Google:")
+                                                .font(.scaled(11, weight: .medium, scale: scale))
+                                                .frame(width: 140, alignment: .leading)
+                                            TextField("np. andrzej.oles.tel@gmail.com", text: $store.settings.googleDrive.accountEmail)
+                                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                                .font(.scaled(11, scale: scale))
+                                        }
+                                        
+                                        // Action buttons for Google Drive
+                                        HStack(spacing: 10) {
+                                            if isUploadingToDrive {
+                                                ProgressView()
+                                                    .controlSize(.small)
+                                                Text("Wysyłanie kopii do chmury Google...")
+                                                    .font(.scaled(11, scale: scale))
+                                                    .foregroundColor(.secondary)
+                                            } else {
+                                                Button(action: uploadToGoogleDriveAction) {
+                                                    Label("Wyślij bieżący backup na Dysk Google", systemImage: "arrow.up.to.line.circle.fill")
+                                                        .font(.scaled(11, weight: .semibold, scale: scale))
+                                                }
+                                                .buttonStyle(.borderedProminent)
+                                                .controlSize(.small)
+                                            }
+                                            
+                                            Button(action: {
+                                                isShowingGoogleDriveBackups = true
+                                            }) {
+                                                Label("Przeglądaj i przywróć kopie z Dysku Google...", systemImage: "clock.arrow.circlepath")
+                                                    .font(.scaled(11, scale: scale))
+                                            }
+                                            .buttonStyle(.bordered)
+                                            .controlSize(.small)
+                                        }
+                                        
+                                        // Auto Backup Checkbox
+                                        Toggle(isOn: $store.settings.googleDrive.autoBackupOnExit) {
+                                            Text("Twórz i wysyłaj kopię na Dysk Google automatycznie przy zamykaniu aplikacji")
+                                                .font(.scaled(11, scale: scale))
+                                                .foregroundColor(.secondary)
+                                        }
+                                        .toggleStyle(CheckboxToggleStyle())
+                                        
+                                        // Credentials Disclosure
+                                        DisclosureGroup(isExpanded: $showDriveCredentials) {
+                                            VStack(alignment: .leading, spacing: 8) {
+                                                Text("Dane dostępowe Google Drive API (opcjonalne, dla własnego projektu w Google Cloud Console):")
+                                                    .font(.scaled(10, scale: scale))
+                                                    .foregroundColor(.secondary)
+                                                
+                                                HStack {
+                                                    Text("Client ID:")
+                                                        .font(.scaled(10, scale: scale))
+                                                        .frame(width: 90, alignment: .leading)
+                                                    TextField("Client ID z Google Cloud Console", text: $store.settings.googleDrive.clientId)
+                                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                                        .font(.scaled(10, scale: scale))
+                                                }
+                                                
+                                                HStack {
+                                                    Text("Client Secret:")
+                                                        .font(.scaled(10, scale: scale))
+                                                        .frame(width: 90, alignment: .leading)
+                                                    SecureField("Client Secret", text: $store.settings.googleDrive.clientSecret)
+                                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                                        .font(.scaled(10, scale: scale))
+                                                }
+                                                
+                                                HStack {
+                                                    Text("Token dostępowy:")
+                                                        .font(.scaled(10, scale: scale))
+                                                        .frame(width: 90, alignment: .leading)
+                                                    SecureField("Access Token / OAuth Token", text: $store.settings.googleDrive.accessToken)
+                                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                                        .font(.scaled(10, scale: scale))
+                                                }
+                                                
+                                                HStack {
+                                                    Text("Folder w chmurze:")
+                                                        .font(.scaled(10, scale: scale))
+                                                        .frame(width: 90, alignment: .leading)
+                                                    TextField("HolyricsMac_Backups", text: $store.settings.googleDrive.targetFolder)
+                                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                                        .font(.scaled(10, scale: scale))
+                                                }
+                                                
+                                                HStack(spacing: 8) {
+                                                    Button(action: authorizeGoogleOAuthInBrowser) {
+                                                        Label("Autoryzuj w przeglądarce (Google OAuth)...", systemImage: "globe")
+                                                            .font(.scaled(10, scale: scale))
+                                                    }
+                                                    .buttonStyle(.bordered)
+                                                    .controlSize(.mini)
+                                                    
+                                                    if isAuthorizingDrive {
+                                                        TextField("Wklej kod autoryzacji z Google", text: $driveAuthCodeInput)
+                                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                                            .font(.scaled(10, scale: scale))
+                                                        Button("Zatwierdź kod") {
+                                                            submitDriveAuthCode()
+                                                        }
+                                                        .buttonStyle(.borderedProminent)
+                                                        .controlSize(.mini)
+                                                    }
+                                                }
+                                            }
+                                            .padding(8)
+                                            .background(Color(NSColor.controlBackgroundColor).opacity(0.3))
+                                            .cornerRadius(6)
+                                        } label: {
+                                            Text("Zaawansowane dane logowania Google API (Client ID / Token)...")
+                                                .font(.scaled(10, weight: .medium, scale: scale))
+                                                .foregroundColor(.blue)
+                                        }
+                                    }
+                                    .padding(.leading, 18)
+                                }
+                            }
+                            
+                            // Status feedback message
+                            if let msg = backupStatusMessage {
+                                HStack(spacing: 6) {
+                                    Image(systemName: isBackupSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                        .foregroundColor(isBackupSuccess ? .green : .red)
+                                    Text(msg)
+                                        .font(.scaled(11, weight: .medium, scale: scale))
+                                        .foregroundColor(isBackupSuccess ? .green : .red)
+                                    Spacer()
+                                }
+                                .padding(8)
+                                .background((isBackupSuccess ? Color.green : Color.red).opacity(0.1))
+                                .cornerRadius(6)
                             }
                         }
                         .padding(8)
@@ -516,8 +730,103 @@ public struct SettingsSheet: View {
         .sheet(isPresented: $isShowingLogoGallery) {
             LogoGallerySheet(isPresented: $isShowingLogoGallery)
         }
+        .sheet(isPresented: $isShowingGoogleDriveBackups) {
+            GoogleDriveBackupsSheet(isPresented: $isShowingGoogleDriveBackups)
+        }
         .onAppear {
             self.availableFonts = AutoFitEngine.availableSystemFonts()
+        }
+    }
+    
+    // MARK: - Backup & Google Drive Actions
+    
+    private func createLocalBackupAction() {
+        backupStatusMessage = nil
+        let success = BackupService.shared.exportBackupWithSavePanel()
+        if success {
+            isBackupSuccess = true
+            backupStatusMessage = "Pomyślnie utworzono i zapisano pełną kopię zapasową (.holyricsbackup)!"
+        }
+    }
+    
+    private func restoreLocalBackupAction() {
+        backupStatusMessage = nil
+        let res = BackupService.shared.restoreBackupWithOpenPanel()
+        isBackupSuccess = res.success
+        backupStatusMessage = res.message
+    }
+    
+    private func uploadToGoogleDriveAction() {
+        backupStatusMessage = nil
+        isUploadingToDrive = true
+        
+        Task {
+            do {
+                let (archiveURL, _) = try BackupService.shared.createBackupArchive(comment: "Ręczny backup z Ustawień")
+                let item = try await GoogleDriveService.shared.uploadBackupToDrive(archiveURL: archiveURL)
+                try? FileManager.default.removeItem(at: archiveURL)
+                
+                await MainActor.run {
+                    self.isUploadingToDrive = false
+                    self.isBackupSuccess = true
+                    self.backupStatusMessage = "Pomyślnie przesłano kopię '\(item.name)' na Dysk Google (\(item.formattedSize)) do folderu '\(store.settings.googleDrive.targetFolder)'!"
+                }
+            } catch {
+                await MainActor.run {
+                    self.isUploadingToDrive = false
+                    self.isBackupSuccess = false
+                    self.backupStatusMessage = "Błąd wysyłania na Dysk Google: \(error.localizedDescription)"
+                }
+            }
+        }
+    }
+    
+    private func authorizeGoogleOAuthInBrowser() {
+        let clientId = store.settings.googleDrive.clientId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !clientId.isEmpty else {
+            backupStatusMessage = "Wpisz swój Client ID z Google Cloud Console przed uruchomieniem przeglądarki."
+            isBackupSuccess = false
+            return
+        }
+        
+        if let authURL = GoogleDriveService.shared.generateOAuthURL(clientId: clientId) {
+            isAuthorizingDrive = true
+            NSWorkspace.shared.open(authURL)
+            backupStatusMessage = "Otwarto okno logowania Google w przeglądarce. Po zatwierdzeniu skopiuj wygenerowany kod i wklej w polu poniżej."
+            isBackupSuccess = true
+        }
+    }
+    
+    private func submitDriveAuthCode() {
+        let code = driveAuthCodeInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !code.isEmpty else { return }
+        
+        Task {
+            do {
+                let res = try await GoogleDriveService.shared.exchangeCodeForTokens(
+                    code: code,
+                    clientId: store.settings.googleDrive.clientId,
+                    clientSecret: store.settings.googleDrive.clientSecret
+                )
+                
+                await MainActor.run {
+                    self.store.settings.googleDrive.accessToken = res.accessToken
+                    self.store.settings.googleDrive.refreshToken = res.refreshToken
+                    if !res.email.isEmpty {
+                        self.store.settings.googleDrive.accountEmail = res.email
+                    }
+                    self.store.saveSettings()
+                    self.isAuthorizingDrive = false
+                    self.driveAuthCodeInput = ""
+                    self.isBackupSuccess = true
+                    self.backupStatusMessage = "Pomyślnie połączono z kontem Google: \(store.settings.googleDrive.accountEmail)!"
+                }
+            } catch {
+                await MainActor.run {
+                    self.isBackupSuccess = false
+                    self.backupStatusMessage = "Błąd autoryzacji kodu Google: \(error.localizedDescription)"
+                }
+            }
         }
     }
     

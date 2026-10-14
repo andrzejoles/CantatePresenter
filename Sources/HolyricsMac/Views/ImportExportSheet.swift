@@ -14,6 +14,8 @@ public struct ImportExportSheet: View {
     
     @State private var pendingImportReport: ImportProcessingResult?
     @State private var isShowingReviewSheet: Bool = false
+    @State private var isShowingGoogleDriveBackups: Bool = false
+    @State private var isUploadingToDrive: Bool = false
     
     private let sampleMuflPath = "/Users/aoles/dev_gem/2026-10-14_16-19-00.mufl"
     
@@ -35,7 +37,7 @@ public struct ImportExportSheet: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Text("Import i Eksport pieśni")
+                Text("Import, Eksport i Kopia Zapasowa")
                     .font(.scaled(16, weight: .bold, scale: scale))
                 Spacer()
                 Button("Zamknij") {
@@ -52,6 +54,7 @@ public struct ImportExportSheet: View {
             Picker("", selection: $selectedTab) {
                 Text("Eksport pieśni").tag(0)
                 Text("Import pieśni").tag(1)
+                Text("Pełny backup & Dysk Google").tag(2)
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding(14)
@@ -105,7 +108,7 @@ public struct ImportExportSheet: View {
                             .controlSize(.regular)
                         }
                         
-                    } else {
+                    } else if selectedTab == 1 {
                         // MARK: - IMPORT
                         
                         // Highlighted Banner for sample .mufl file if available
@@ -190,6 +193,70 @@ public struct ImportExportSheet: View {
                             }
                             .padding(8)
                         }
+                    } else {
+                        // MARK: - FULL BACKUP & GOOGLE DRIVE
+                        GroupBox(label: Label("Lokalna kopia zapasowa (.holyricsbackup)", systemImage: "archivebox.fill")) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Pełna kopia zapasowa zabezpiecza wszystkie elementy aplikacji: bazę pieśni wraz z chwytami, plany nabożeństw, pełne ustawienia, ekran początkowy Standby, zainstalowane języki tłumaczeń oraz bibliotekę oficjalnych logotypów.")
+                                    .font(.scaled(11, scale: scale))
+                                    .foregroundColor(.secondary)
+                                
+                                HStack(spacing: 12) {
+                                    Button(action: createLocalBackupAction) {
+                                        Label("Utwórz pełną kopię zapasową (.holyricsbackup)...", systemImage: "square.and.arrow.up.fill")
+                                            .font(.scaled(11, weight: .semibold, scale: scale))
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    
+                                    Button(action: restoreLocalBackupAction) {
+                                        Label("Przywróć z pliku kopii zapasowej...", systemImage: "arrow.counterclockwise.circle")
+                                            .font(.scaled(11, scale: scale))
+                                    }
+                                    .buttonStyle(.bordered)
+                                }
+                            }
+                            .padding(8)
+                        }
+                        
+                        GroupBox(label: Label("Kopia w chmurze Google Drive", systemImage: "externaldrive.badge.icloud")) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text("Integracja z kontem Dysku Google:")
+                                            .font(.scaled(12, weight: .semibold, scale: scale))
+                                        Text(store.settings.googleDrive.isEnabled ? "Włączona dla konta: \(store.settings.googleDrive.accountEmail.isEmpty ? "andrzej.oles.tel@gmail.com" : store.settings.googleDrive.accountEmail)" : "Wyłączona (możesz skonfigurować logowanie w Ustawieniach)")
+                                            .font(.scaled(11, scale: scale))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                }
+                                
+                                HStack(spacing: 12) {
+                                    if isUploadingToDrive {
+                                        ProgressView()
+                                            .controlSize(.small)
+                                        Text("Przesyłanie kopii do chmury...")
+                                            .font(.scaled(11, scale: scale))
+                                            .foregroundColor(.secondary)
+                                    } else {
+                                        Button(action: uploadToGoogleDriveAction) {
+                                            Label("Wyślij bieżący backup na Dysk Google", systemImage: "arrow.up.to.line.circle.fill")
+                                                .font(.scaled(11, weight: .semibold, scale: scale))
+                                        }
+                                        .buttonStyle(.borderedProminent)
+                                    }
+                                    
+                                    Button(action: {
+                                        isShowingGoogleDriveBackups = true
+                                    }) {
+                                        Label("Przeglądaj i przywróć kopie z Dysku Google...", systemImage: "clock.arrow.circlepath")
+                                            .font(.scaled(11, scale: scale))
+                                    }
+                                    .buttonStyle(.bordered)
+                                }
+                            }
+                            .padding(8)
+                        }
                     }
                     
                     // Status alert if present
@@ -225,6 +292,9 @@ public struct ImportExportSheet: View {
                     }
                 )
             }
+        }
+        .sheet(isPresented: $isShowingGoogleDriveBackups) {
+            GoogleDriveBackupsSheet(isPresented: $isShowingGoogleDriveBackups)
         }
     }
     
@@ -293,6 +363,49 @@ public struct ImportExportSheet: View {
             let report = SongDeduplicationService.shared.processAndDeduplicate(incoming: rawSongs, existingLibrary: store.songs)
             self.pendingImportReport = report
             self.isShowingReviewSheet = true
+        }
+    }
+    
+    // MARK: - Backup Actions
+    
+    private func createLocalBackupAction() {
+        statusMessage = nil
+        let success = BackupService.shared.exportBackupWithSavePanel()
+        if success {
+            isSuccessStatus = true
+            statusMessage = "Pomyślnie utworzono i wyeksportowano pełną kopię zapasową (.holyricsbackup)!"
+        }
+    }
+    
+    private func restoreLocalBackupAction() {
+        statusMessage = nil
+        let res = BackupService.shared.restoreBackupWithOpenPanel()
+        isSuccessStatus = res.success
+        statusMessage = res.message
+    }
+    
+    private func uploadToGoogleDriveAction() {
+        statusMessage = nil
+        isUploadingToDrive = true
+        
+        Task {
+            do {
+                let (archiveURL, _) = try BackupService.shared.createBackupArchive(comment: "Backup z okna Import/Eksport")
+                let item = try await GoogleDriveService.shared.uploadBackupToDrive(archiveURL: archiveURL)
+                try? FileManager.default.removeItem(at: archiveURL)
+                
+                await MainActor.run {
+                    self.isUploadingToDrive = false
+                    self.isSuccessStatus = true
+                    self.statusMessage = "Pomyślnie przesłano kopię '\(item.name)' na Dysk Google (\(item.formattedSize))!"
+                }
+            } catch {
+                await MainActor.run {
+                    self.isUploadingToDrive = false
+                    self.isSuccessStatus = false
+                    self.statusMessage = "Błąd wysyłania na Dysk Google: \(error.localizedDescription)"
+                }
+            }
         }
     }
 }
