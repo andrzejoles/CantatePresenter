@@ -1,0 +1,10 @@
+## Visual Studio & .NET .gitignore
+[Bb]in/
+[Oo]bj/
+[Pp]ublish/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.log

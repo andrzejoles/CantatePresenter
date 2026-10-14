@@ -1,0 +1,12 @@
+<Window x:Class="CantatePresenter.Views.PresentationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="CantatePresenter — Projekcja"
+        Background="#000000"
+        KeyDown="Window_KeyDown"
+        Focusable="True">
+    <Grid>
+        <wv2:WebView2 x:Name="BrowserControl" />
+    </Grid>
+</Window>

@@ -1,0 +1,215 @@
+<Window x:Class="CantatePresenter.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CantatePresenter — Prezenter Pieśni &amp; Słowa"
+        Width="1280" Height="820"
+        MinWidth="960" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        KeyDown="Window_KeyDown">
+    <Grid>
+        <Grid.LayoutTransform>
+            <ScaleTransform x:Name="UiScaleTransform" ScaleX="1.0" ScaleY="1.0"/>
+        </Grid.LayoutTransform>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Top Toolbar -->
+            <RowDefinition Height="*"/>    <!-- 3-Panel Grid -->
+            <RowDefinition Height="Auto"/> <!-- Bottom Shortcuts Bar -->
+        </Grid.RowDefinitions>
+
+        <!-- TOP GLOBAL TOOLBAR -->
+        <Border Grid.Row="0" Background="{StaticResource SurfaceBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="12,8">
+            <DockPanel>
+                <!-- App Branding -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <TextBlock Text="🎵" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="CantatePresenter" FontWeight="Bold" FontSize="16" Foreground="{StaticResource AccentCyanBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="v1.0.0" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="6,0,12,0"/>
+
+                    <!-- Screen Status Badge -->
+                    <Border x:Name="StatusBadge" CornerRadius="4" Padding="8,3" Background="#064e3b" Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8" Height="8" Fill="#10b981" Margin="0,0,6,0"/>
+                            <TextBlock x:Name="StatusBadgeText" Text="RZUTNIK AKTYWNY" FontWeight="Bold" FontSize="10" Foreground="#6ee7b7"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Right Actions -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <!-- Zoom Controls -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
+                        <TextBlock Text="Skala UI:" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <Button Content="-" Width="24" Height="24" Click="ZoomOut_Click" Margin="0,0,4,0"/>
+                        <TextBlock x:Name="ZoomText" Text="100%" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="4,0,4,0"/>
+                        <Button Content="+" Width="24" Height="24" Click="ZoomIn_Click" Margin="0,0,4,0"/>
+                        <Button Content="Reset" Click="ZoomReset_Click" Padding="6,2" FontSize="10"/>
+                    </StackPanel>
+
+                    <Button Content="+ Nowa pieśń" Click="NewSong_Click" Margin="0,0,8,0" Background="{StaticResource AccentBlueBrush}" FontWeight="Bold"/>
+                    <Button Content="Importuj..." Click="Import_Click" Margin="0,0,8,0"/>
+                    <Button Content="Eksportuj..." Click="Export_Click" Margin="0,0,8,0"/>
+                    <Button Content="Chwyty" Click="Chords_Click" Margin="0,0,8,0"/>
+                    <Button Content="⚙ Ustawienia" Click="Settings_Click" Margin="0,0,8,0"/>
+                    <Button Content="❓ Instrukcja" Click="Help_Click" FontWeight="SemiBold"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 3-PANEL RESIZABLE LAYOUT -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="320" MinWidth="220"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="*" MinWidth="340"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="360" MinWidth="260"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- PANEL 1: LEFT (Song Library & Plans) -->
+            <Border Grid.Column="0" Background="{StaticResource AppBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+                <DockPanel Margin="8">
+                    <!-- Search Box -->
+                    <Border DockPanel.Dock="Top" Background="{StaticResource SurfaceBackgroundBrush}" CornerRadius="6" Padding="6" Margin="0,0,0,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="🔍" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBox x:Name="SongSearchBox" Grid.Column="1" Background="Transparent" Foreground="#ffffff" BorderThickness="0"
+                                     FontSize="13" TextChanged="SongSearchBox_TextChanged"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Songs List -->
+                    <ListBox x:Name="SongsListBox" Background="Transparent" BorderThickness="0"
+                             SelectionChanged="SongsListBox_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="8,6" BorderThickness="0,0,0,1" BorderBrush="#334155">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="13" Foreground="#ffffff"/>
+                                            <TextBlock Text="{Binding Author}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding Key}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentCyanBrush}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="{StaticResource BorderBrush}"/>
+
+            <!-- PANEL 2: MIDDLE (Current Song & Slide Cards) -->
+            <Border Grid.Column="2" Background="{StaticResource SurfaceBackgroundBrush}">
+                <DockPanel Margin="14">
+                    <!-- Song Header Bar -->
+                    <Border DockPanel.Dock="Top" Background="{StaticResource CardBackgroundBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,12">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock x:Name="CurrentSongTitleText" Text="Wybierz pieśń z listy" FontWeight="Bold" FontSize="18" Foreground="#ffffff"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                    <TextBlock x:Name="CurrentSongAuthorText" Text="" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,12,0"/>
+                                    <TextBlock x:Name="CurrentSongKeyText" Text="" FontSize="12" FontWeight="Bold" Foreground="{StaticResource AccentCyanBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button Content="Edytuj pieśń (Cmd E)" Click="EditCurrentSong_Click" Margin="0,0,8,0" Padding="8,4"/>
+                                <Button Content="Szukaj chwytów" Click="Chords_Click" Padding="8,4"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Chords Sheet Preview (if present) -->
+                    <Border x:Name="ChordsContainer" DockPanel.Dock="Top" Background="#1e1e24" CornerRadius="6" Padding="8" Margin="0,0,0,10" Visibility="Collapsed">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="Chwyty gitarowe dla zespołu:" FontWeight="Bold" FontSize="11" Foreground="#fef08a" Margin="0,0,0,4"/>
+                            <TextBlock x:Name="ChordsPreviewText" Text="" FontFamily="Consolas, Courier New" FontSize="12" Foreground="#fef08a" TextWrapping="Wrap"/>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Scrollable Slide Cards -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="SlideCardsContainer" />
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch" Background="{StaticResource BorderBrush}"/>
+
+            <!-- PANEL 3: RIGHT (Live Output Monitor & Presentation Controls) -->
+            <Border Grid.Column="4" Background="{StaticResource AppBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0">
+                <DockPanel Margin="12">
+                    <TextBlock DockPanel.Dock="Top" Text="PODGLĄD NA ŻYWO (LIVE MONITOR)" FontWeight="Bold" FontSize="11" Foreground="{StaticResource AccentCyanBrush}" Margin="0,0,0,8"/>
+
+                    <!-- Controls at Bottom of Panel 3 -->
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+                        <Button x:Name="StartPresentationBtn" Content="▶ Prezentuj na pełnym ekranie (F5)" Click="StartPresentation_Click" Height="36" Margin="0,0,0,8" Background="{StaticResource AccentBlueBrush}" FontWeight="Bold"/>
+                        <Button Content="Okno testowe (Cmd T)" Click="TestWindow_Click" Height="30" Margin="0,0,0,8"/>
+
+                        <UniformGrid Columns="2" Margin="0,0,0,8">
+                            <Button x:Name="BlackScreenBtn" Content="Czarny ekran (B)" Click="BlackScreen_Click" Margin="0,0,4,0"/>
+                            <Button x:Name="ClearTextBtn" Content="Ukryj tekst (C)" Click="ClearText_Click" Margin="4,0,0,0"/>
+                        </UniformGrid>
+
+                        <Button Content="Zatrzymaj projekcję (ESC)" Click="StopPresentation_Click" Height="30" Background="#991b1b" Foreground="#ffffff"/>
+                    </StackPanel>
+
+                    <!-- Next Slide Preview Card -->
+                    <Border DockPanel.Dock="Bottom" Background="{StaticResource SurfaceBackgroundBrush}" CornerRadius="6" Padding="10" Margin="0,12,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Następny slajd:" FontWeight="Bold" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                            <TextBlock x:Name="NextSlideText" Text="— Koniec pieśni —" FontSize="12" Foreground="#e2e8f0" TextWrapping="Wrap" MaxHeight="60"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Live Screen Preview Box -->
+                    <Border x:Name="LiveMonitorCard" Background="#0b0f19" CornerRadius="8" BorderBrush="#38bdf8" BorderThickness="1.5" Padding="16">
+                        <Grid>
+                            <!-- Standby Content (When not live) -->
+                            <StackPanel x:Name="StandbyMonitorPanel" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock x:Name="StandbyLogoIcon" Text="✝️" FontSize="36" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                <TextBlock Text="CantatePresenter" FontWeight="Bold" FontSize="16" Foreground="#ffffff" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Wersja 1.0.0" FontSize="11" Foreground="#94a3b8" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <!-- Live Slide Content -->
+                            <TextBlock x:Name="LiveSlideText" Text="" FontWeight="Bold" FontSize="14" Foreground="#ffffff"
+                                       TextAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" Visibility="Collapsed"/>
+
+                            <!-- Black Screen / Clear Text Overlay -->
+                            <TextBlock x:Name="OverlayStatusText" Text="" FontWeight="Bold" FontSize="14" Foreground="#f59e0b"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+                        </Grid>
+                    </Border>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- BOTTOM SHORTCUTS BAR -->
+        <Border Grid.Row="2" Background="{StaticResource SurfaceBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12,6">
+            <WrapPanel HorizontalAlignment="Center">
+                <TextBlock Text="[Spacja / → / ↓]: Następny slajd" FontSize="11" Foreground="#38bdf8" Margin="8,2"/>
+                <TextBlock Text="•" Foreground="{StaticResource BorderBrush}" Margin="4,2"/>
+                <TextBlock Text="[← / ↑]: Poprzedni slajd" FontSize="11" Foreground="#38bdf8" Margin="8,2"/>
+                <TextBlock Text="•" Foreground="{StaticResource BorderBrush}" Margin="4,2"/>
+                <TextBlock Text="[ [ / ] ]: Poprzednia / Następna pieśń" FontSize="11" Foreground="#38bdf8" Margin="8,2"/>
+                <TextBlock Text="•" Foreground="{StaticResource BorderBrush}" Margin="4,2"/>
+                <TextBlock Text="[B]: Czarny ekran" FontSize="11" Foreground="#f59e0b" Margin="8,2"/>
+                <TextBlock Text="•" Foreground="{StaticResource BorderBrush}" Margin="4,2"/>
+                <TextBlock Text="[C]: Ukryj tekst" FontSize="11" Foreground="#f59e0b" Margin="8,2"/>
+                <TextBlock Text="•" Foreground="{StaticResource BorderBrush}" Margin="4,2"/>
+                <TextBlock Text="[ESC]: Wyjście z pełnego ekranu" FontSize="11" Foreground="#ef4444" Margin="8,2"/>
+            </WrapPanel>
+        </Border>
+    </Grid>
+</Window>

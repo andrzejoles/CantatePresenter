@@ -1,0 +1,59 @@
+<Application x:Class="CantatePresenter.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="Views/MainWindow.xaml">
+    <Application.Resources>
+        <!-- Windows 11 Fluent Dark Palette -->
+        <Color x:Key="AppBackground">#0f172a</Color>
+        <Color x:Key="SurfaceBackground">#1e293b</Color>
+        <Color x:Key="CardBackground">#334155</Color>
+        <Color x:Key="AccentBlue">#2563eb</Color>
+        <Color x:Key="AccentCyan">#38bdf8</Color>
+        <Color x:Key="TextPrimary">#f8fafc</Color>
+        <Color x:Key="TextSecondary">#94a3b8</Color>
+        <Color x:Key="BorderColor">#475569</Color>
+
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackground}"/>
+        <SolidColorBrush x:Key="SurfaceBackgroundBrush" Color="{StaticResource SurfaceBackground}"/>
+        <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackground}"/>
+        <SolidColorBrush x:Key="AccentBlueBrush" Color="{StaticResource AccentBlue}"/>
+        <SolidColorBrush x:Key="AccentCyanBrush" Color="{StaticResource AccentCyan}"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+
+        <!-- Default Control Styles -->
+        <Style TargetType="Window">
+            <Setter Property="Background" Value="{StaticResource AppBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="FontFamily" Value="Segoe UI, Tahoma, sans-serif"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource SurfaceBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#475569"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Application.Resources>
+</Application>
