@@ -1,0 +1,321 @@
+[
+  {
+    "title" : "Barka",
+    "updatedAt" : "2026-10-14T15:12:16Z",
+    "author" : "Cesáreo Gabaráin (tłum. ks. Stanisław Szmidt)",
+    "key" : "D",
+    "id" : "F7EEF4A3-9EBD-4040-AF89-206DF94E09D7",
+    "slides" : [
+      {
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 1",
+        "id" : "1DC0BE38-C16C-4B82-ABEB-15122FD7F44D",
+        "text" : "Pan kiedyś stanął nad brzegiem,\nSzukał ludzi gotowych pójść za Nim,\nBy łowić serca słów Bożych prawdą."
+      },
+      {
+        "type" : "Refren",
+        "label" : "Refren",
+        "id" : "7882182D-BD59-4BAB-990C-8C201E59DBA5",
+        "text" : "O Panie, to Ty na mnie spojrzałeś,\nTwoje usta dziś wyrzekły me imię.\nSwoją barkę pozostawiam na brzegu,\nRazem z Tobą nowy zacznę dziś łów."
+      },
+      {
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 2",
+        "id" : "68B1041B-3F79-4ECC-BA15-8CA5BE2A078A",
+        "text" : "Jestem ubogim człowiekiem,\nMoim skarbem są ręce gotowe\nDo pracy z Tobą i czyste serce."
+      },
+      {
+        "type" : "Refren",
+        "label" : "Refren 2",
+        "id" : "EA2A2F26-BD0F-48C0-B05E-500D7BA48085",
+        "text" : "O Panie, to Ty na mnie spojrzałeś,\nTwoje usta dziś wyrzekły me imię.\nSwoją barkę pozostawiam na brzegu,\nRazem z Tobą nowy zacznę dziś łów."
+      },
+      {
+        "text" : "Ty potrzebujesz mych dłoni,\nMego serca młodego zapałem,\nMych kropli potu i samotności.",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 3",
+        "id" : "273C6C96-B9D7-44FB-B363-3F8755B506B5"
+      },
+      {
+        "text" : "O Panie, to Ty na mnie spojrzałeś,\nTwoje usta dziś wyrzekły me imię.\nSwoją barkę pozostawiam na brzegu,\nRazem z Tobą nowy zacznę dziś łów.",
+        "type" : "Refren",
+        "label" : "Refren 3",
+        "id" : "D6BAC10E-C46E-4197-90D9-54D77787A8A4"
+      },
+      {
+        "text" : "Dziś wypływamy już razem\nŁowić serca na morzach dusz ludzkich,\nTwej prawdy siecią i słowem życia.",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 4",
+        "id" : "704077B2-3729-462A-80B4-22253A6D3E55"
+      },
+      {
+        "text" : "O Panie, to Ty na mnie spojrzałeś,\nTwoje usta dziś wyrzekły me imię.\nSwoją barkę pozostawiam na brzegu,\nRazem z Tobą nowy zacznę dziś łów.",
+        "type" : "Refren",
+        "label" : "Refren 4",
+        "id" : "7E213C9F-05D2-4858-91DE-E9B9F24FD002"
+      }
+    ],
+    "tags" : [
+      "Oazowe",
+      "Powołaniowe",
+      "Tradycyjne"
+    ],
+    "createdAt" : "2026-10-14T15:12:16Z",
+    "rawLyrics" : "[Zwrotka 1]\nPan kiedyś stanął nad brzegiem,\nSzukał ludzi gotowych pójść za Nim,\nBy łowić serca słów Bożych prawdą.\n\n[Refren]\nO Panie, to Ty na mnie spojrzałeś,\nTwoje usta dziś wyrzekły me imię.\nSwoją barkę pozostawiam na brzegu,\nRazem z Tobą nowy zacznę dziś łów.\n\n[Zwrotka 2]\nJestem ubogim człowiekiem,\nMoim skarbem są ręce gotowe\nDo pracy z Tobą i czyste serce.\n\n[Refren]\nO Panie, to Ty na mnie spojrzałeś,\nTwoje usta dziś wyrzekły me imię.\nSwoją barkę pozostawiam na brzegu,\nRazem z Tobą nowy zacznę dziś łów.\n\n[Zwrotka 3]\nTy potrzebujesz mych dłoni,\nMego serca młodego zapałem,\nMych kropli potu i samotności.\n\n[Refren]\nO Panie, to Ty na mnie spojrzałeś,\nTwoje usta dziś wyrzekły me imię.\nSwoją barkę pozostawiam na brzegu,\nRazem z Tobą nowy zacznę dziś łów.\n\n[Zwrotka 4]\nDziś wypływamy już razem\nŁowić serca na morzach dusz ludzkich,\nTwej prawdy siecią i słowem życia.\n\n[Refren]\nO Panie, to Ty na mnie spojrzałeś,\nTwoje usta dziś wyrzekły me imię.\nSwoją barkę pozostawiam na brzegu,\nRazem z Tobą nowy zacznę dziś łów."
+  },
+  {
+    "title" : "Oceany (Duchu prowadź)",
+    "updatedAt" : "2026-10-14T15:12:16Z",
+    "author" : "Hillsong United (tłum. polskie)",
+    "key" : "D",
+    "id" : "C4174FA7-FC4B-4CAA-975A-D476621D7181",
+    "slides" : [
+      {
+        "id" : "91817F61-67DB-42A2-B1D4-DC04F14A5372",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 1",
+        "text" : "Na głębię wzywasz dzisiaj wiarę mą,\nGdzie tylko Twoja łaska sięga.\nTam znajdę Cię pośród szalejących fal,\nGdy grunt pod stopami znika mi."
+      },
+      {
+        "id" : "5D3BF15B-0E05-41A4-A867-4D4BAE5C3C42",
+        "type" : "Refren",
+        "label" : "Refren",
+        "text" : "Więc imię Twoje wołać chcę,\nPonad falami wzrok mój trzymać.\nGdy wzburzy się ocean burz,\nW ramionach Twych odpocznę ja,\nBo należę do Ciebie, a Ty do mnie."
+      },
+      {
+        "id" : "18050F8C-4C12-43AD-AAEF-8FEEDE6A9017",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 2",
+        "text" : "Twe łaski skarb w otchłani wielkich wód,\nTwa dłoń potężna mnie ochrania.\nI chociaż lęk próbuje znowu zgnębić mnie,\nNie zachwieję się, bo Ty nie zawiedziesz."
+      },
+      {
+        "id" : "B59C67F1-C784-4EDE-8D59-C4E828CA15FF",
+        "type" : "Bridge",
+        "label" : "Bridge",
+        "text" : "Duchu, prowadź mnie tam, gdzie wiara nie ma granic,\nPozwól chodzić po wodach,\nDokądkolwiek mnie wezwiesz.\nGłębiej zabierz mnie niż stopy mogą stanąć,\nBy ma wiara wzrosła w obecności Zbawcy."
+      }
+    ],
+    "tags" : [
+      "Uwielbienie",
+      "Współczesne"
+    ],
+    "createdAt" : "2026-10-14T15:12:16Z",
+    "rawLyrics" : "[Zwrotka 1]\nNa głębię wzywasz dzisiaj wiarę mą,\nGdzie tylko Twoja łaska sięga.\nTam znajdę Cię pośród szalejących fal,\nGdy grunt pod stopami znika mi.\n\n[Refren]\nWięc imię Twoje wołać chcę,\nPonad falami wzrok mój trzymać.\nGdy wzburzy się ocean burz,\nW ramionach Twych odpocznę ja,\nBo należę do Ciebie, a Ty do mnie.\n\n[Zwrotka 2]\nTwe łaski skarb w otchłani wielkich wód,\nTwa dłoń potężna mnie ochrania.\nI chociaż lęk próbuje znowu zgnębić mnie,\nNie zachwieję się, bo Ty nie zawiedziesz.\n\n[Bridge]\nDuchu, prowadź mnie tam, gdzie wiara nie ma granic,\nPozwól chodzić po wodach,\nDokądkolwiek mnie wezwiesz.\nGłębiej zabierz mnie niż stopy mogą stanąć,\nBy ma wiara wzrosła w obecności Zbawcy."
+  },
+  {
+    "title" : "Dzięki Jezu",
+    "updatedAt" : "2026-10-14T15:12:16Z",
+    "author" : "Tradycyjna",
+    "key" : "G",
+    "id" : "53734577-2A6C-4920-B331-FFE18F0229CA",
+    "slides" : [
+      {
+        "id" : "E3573853-06FB-4572-A413-DD4D27C271CE",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 1",
+        "text" : "Dzięki Jezu, dzięki Jezu,\nDzięki Ci, że kochasz mnie!\nDzięki Jezu, dzięki Jezu,\nDzięki Ci, że kochasz mnie!"
+      },
+      {
+        "id" : "415CE651-E59C-498F-A88D-4988727F0E38",
+        "type" : "Refren",
+        "label" : "Refren",
+        "text" : "Na Golgocie umarłeś,\nNowe życie mi dałeś!\nDzięki Jezu, dzięki Jezu,\nDzięki Ci, że kochasz mnie!"
+      },
+      {
+        "id" : "7AC71BD1-A954-457B-AABA-EBE044F923D2",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 2",
+        "text" : "Twoja krew mnie obmyła,\nTwoja łaska zbawiła!\nDzięki Jezu, dzięki Jezu,\nDzięki Ci, że kochasz mnie!"
+      }
+    ],
+    "tags" : [
+      "Dziękczynienie",
+      "Uwielbienie"
+    ],
+    "createdAt" : "2026-10-14T15:12:16Z",
+    "rawLyrics" : "[Zwrotka 1]\nDzięki Jezu, dzięki Jezu,\nDzięki Ci, że kochasz mnie!\nDzięki Jezu, dzięki Jezu,\nDzięki Ci, że kochasz mnie!\n\n[Refren]\nNa Golgocie umarłeś,\nNowe życie mi dałeś!\nDzięki Jezu, dzięki Jezu,\nDzięki Ci, że kochasz mnie!\n\n[Zwrotka 2]\nTwoja krew mnie obmyła,\nTwoja łaska zbawiła!\nDzięki Jezu, dzięki Jezu,\nDzięki Ci, że kochasz mnie!"
+  },
+  {
+    "title" : "Schowaj mnie",
+    "updatedAt" : "2026-10-14T15:12:16Z",
+    "author" : "Reuben Morgan",
+    "key" : "C",
+    "id" : "5EB721AF-952B-4724-AC70-D869B65ACC8D",
+    "slides" : [
+      {
+        "id" : "DB6CAE2A-7C33-4192-B2BD-BFE327AB4DD7",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 1",
+        "text" : "Schowaj mnie pod skrzydła Twe,\nUkryj mnie w silnej dłoni Twej."
+      },
+      {
+        "id" : "CBEA87E5-3929-49EF-8F3D-1E25D627956A",
+        "type" : "Refren",
+        "label" : "Refren",
+        "text" : "Gdy fale mórz chcą porwać mnie,\nZ Tobą wzniosę się ponad deszcz.\nKrólem jesteś nad wodami burz,\nI ufam Ci, bo jesteś Bóg!"
+      },
+      {
+        "id" : "864FBC00-B202-405D-84A2-5D01B7754B06",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 2",
+        "text" : "Odpocznij duszo w Nim,\nJego moc w ciszy ukoi cię."
+      },
+      {
+        "id" : "D8AC0DFB-9410-41C6-9312-9824BD05215D",
+        "type" : "Refren",
+        "label" : "Refren 2",
+        "text" : "Gdy fale mórz chcą porwać mnie,\nZ Tobą wzniosę się ponad deszcz.\nKrólem jesteś nad wodami burz,\nI ufam Ci, bo jesteś Bóg!"
+      }
+    ],
+    "tags" : [
+      "Uwielbienie",
+      "Spokojne"
+    ],
+    "createdAt" : "2026-10-14T15:12:16Z",
+    "rawLyrics" : "[Zwrotka 1]\nSchowaj mnie pod skrzydła Twe,\nUkryj mnie w silnej dłoni Twej.\n\n[Refren]\nGdy fale mórz chcą porwać mnie,\nZ Tobą wzniosę się ponad deszcz.\nKrólem jesteś nad wodami burz,\nI ufam Ci, bo jesteś Bóg!\n\n[Zwrotka 2]\nOdpocznij duszo w Nim,\nJego moc w ciszy ukoi cię.\n\n[Refren]\nGdy fale mórz chcą porwać mnie,\nZ Tobą wzniosę się ponad deszcz.\nKrólem jesteś nad wodami burz,\nI ufam Ci, bo jesteś Bóg!"
+  },
+  {
+    "title" : "10 000 Powodów (Błogosław duszo moja Pana)",
+    "updatedAt" : "2026-10-14T15:12:16Z",
+    "author" : "Matt Redman (tłum. polskie)",
+    "key" : "G",
+    "id" : "F1E5CFA2-E3A0-4D5C-9B29-BC984BDEB509",
+    "slides" : [
+      {
+        "id" : "5540271C-2D00-42CE-969C-D20C1E89A4B3",
+        "type" : "Refren",
+        "label" : "Refren",
+        "text" : "Błogosław, duszo moja, Pana,\nO, duszo ma, Jego święte Imię czcij!\nŚpiewaj Mu, jak nigdy dotąd dotąd,\nO, duszo ma, czcij święte Imię Twe!"
+      },
+      {
+        "id" : "4F88016F-12E8-4735-A358-9285C5B9E8D2",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 1",
+        "text" : "Wschodzi słońce, nowy dzień nastaje,\nCzas, by śpiewać Twoją pieśń na nowo.\nCokolwiek minęło i co przede mną leży,\nNiech śpiewam znów, gdy nadejdzie zmierzch."
+      },
+      {
+        "id" : "E7ADAD59-E981-48B7-A095-6C415411E825",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 2",
+        "text" : "Bogaty w miłość, nieskory do gniewu,\nTwe Imię wielkie, Twe serce dobre.\nDla całej Twej dobroci będę śpiewał,\nMam dziesięć tysięcy powodów, by czcić."
+      },
+      {
+        "id" : "DE52BD82-9155-48C3-927D-895BD6F114E4",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 3",
+        "text" : "I w owym dniu, gdy sił mi już zabraknie,\nMój koniec zbliży się i czas mój minie,\nWciąż moja dusza śpiewać będzie chwałę,\nPrzez dziesięć tysięcy lat i na zawsze!"
+      }
+    ],
+    "tags" : [
+      "Uwielbienie",
+      "Chwała"
+    ],
+    "createdAt" : "2026-10-14T15:12:16Z",
+    "rawLyrics" : "[Refren]\nBłogosław, duszo moja, Pana,\nO, duszo ma, Jego święte Imię czcij!\nŚpiewaj Mu, jak nigdy dotąd dotąd,\nO, duszo ma, czcij święte Imię Twe!\n\n[Zwrotka 1]\nWschodzi słońce, nowy dzień nastaje,\nCzas, by śpiewać Twoją pieśń na nowo.\nCokolwiek minęło i co przede mną leży,\nNiech śpiewam znów, gdy nadejdzie zmierzch.\n\n[Zwrotka 2]\nBogaty w miłość, nieskory do gniewu,\nTwe Imię wielkie, Twe serce dobre.\nDla całej Twej dobroci będę śpiewał,\nMam dziesięć tysięcy powodów, by czcić.\n\n[Zwrotka 3]\nI w owym dniu, gdy sił mi już zabraknie,\nMój koniec zbliży się i czas mój minie,\nWciąż moja dusza śpiewać będzie chwałę,\nPrzez dziesięć tysięcy lat i na zawsze!"
+  },
+  {
+    "title" : "Jezus Siłą Mą",
+    "updatedAt" : "2026-10-14T15:12:16Z",
+    "author" : "Współczesna",
+    "key" : "E",
+    "id" : "FF2F189F-463C-40F8-85AD-56A8B51060A3",
+    "slides" : [
+      {
+        "id" : "EB36E75A-83E1-4212-BAEB-62E2DFD797F5",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 1",
+        "text" : "Jezus siłą mą, Jezus siłą mą,\nJezus siłą mą i zbawieniem!\nJezus siłą mą, Jezus siłą mą,\nJezus siłą mą i zbawieniem!"
+      },
+      {
+        "id" : "5F945BA9-B470-4511-9D5A-4F523F52A891",
+        "type" : "Refren",
+        "label" : "Refren",
+        "text" : "On moim Panem jest,\nI moim Królem jest!\nNie zlęknę się, bo ze mną Pan!\nOn moim Panem jest,\nI moim Królem jest!\nNie zlęknę się, bo ze mną Pan!"
+      }
+    ],
+    "tags" : [
+      "Uwielbienie",
+      "Radosne"
+    ],
+    "createdAt" : "2026-10-14T15:12:16Z",
+    "rawLyrics" : "[Zwrotka 1]\nJezus siłą mą, Jezus siłą mą,\nJezus siłą mą i zbawieniem!\nJezus siłą mą, Jezus siłą mą,\nJezus siłą mą i zbawieniem!\n\n[Refren]\nOn moim Panem jest,\nI moim Królem jest!\nNie zlęknę się, bo ze mną Pan!\nOn moim Panem jest,\nI moim Królem jest!\nNie zlęknę się, bo ze mną Pan!"
+  },
+  {
+    "title" : "Abba Ojcze",
+    "updatedAt" : "2026-10-14T15:12:16Z",
+    "author" : "O. Jan Góra OP",
+    "key" : "D",
+    "id" : "04981DF8-84F4-4B4B-B749-197999A26E27",
+    "slides" : [
+      {
+        "id" : "148DAB7B-1839-4142-8132-70BF268CADC3",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 1",
+        "text" : "Ty wyzwoliłeś nas Panie\nZ kajdanów i z niemocy,\nŚwiatło Twe rozproszyło\nMroki naszej nocy."
+      },
+      {
+        "id" : "C3BF560C-DFD4-4A30-854C-8465DBE8DB39",
+        "type" : "Refren",
+        "label" : "Refren",
+        "text" : "Abba, Ojcze! Abba, Ojcze!\nAbba, Ojcze!"
+      },
+      {
+        "id" : "61BEBA5A-ED4B-4683-A8A3-767A87A674B6",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 2",
+        "text" : "Kościół jak drzewo życia\nW wieczności zapuszcza korzenie,\nPrzenika naszą codzienność\nI przynosi ocalenie."
+      },
+      {
+        "id" : "DAFD89E3-CB50-4213-81AE-AA721AAF4281",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 3",
+        "text" : "Bóg stał się naszym Ojcem,\nA my Jego dziećmi,\nBraćmi dla siebie wzajemnie\nW Chrystusie na zawsze."
+      }
+    ],
+    "tags" : [
+      "Hymn ŚDM",
+      "Tradycyjne"
+    ],
+    "createdAt" : "2026-10-14T15:12:16Z",
+    "rawLyrics" : "[Zwrotka 1]\nTy wyzwoliłeś nas Panie\nZ kajdanów i z niemocy,\nŚwiatło Twe rozproszyło\nMroki naszej nocy.\n\n[Refren]\nAbba, Ojcze! Abba, Ojcze!\nAbba, Ojcze!\n\n[Zwrotka 2]\nKościół jak drzewo życia\nW wieczności zapuszcza korzenie,\nPrzenika naszą codzienność\nI przynosi ocalenie.\n\n[Zwrotka 3]\nBóg stał się naszym Ojcem,\nA my Jego dziećmi,\nBraćmi dla siebie wzajemnie\nW Chrystusie na zawsze."
+  },
+  {
+    "title" : "Amazing Grace (Cudowna Boża Łaska)",
+    "updatedAt" : "2026-10-14T15:12:16Z",
+    "author" : "John Newton",
+    "key" : "G",
+    "id" : "FFB4DBA9-8A5F-499B-AE7E-C7D2C9FD0691",
+    "slides" : [
+      {
+        "id" : "E421CBDB-B4E5-42FA-8531-D57619A2ED7E",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 1",
+        "text" : "Amazing grace! How sweet the sound\nThat saved a wretch like me!\nI once was lost, but now am found;\nWas blind, but now I see."
+      },
+      {
+        "id" : "090AFB09-7263-4D22-AE6E-0162B6025AD0",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 2",
+        "text" : "'Twas grace that taught my heart to fear,\nAnd grace my fears relieved;\nHow precious did that grace appear\nThe hour I first believed!"
+      },
+      {
+        "id" : "35E00759-C3E0-4B89-B1A8-9E1ED0080826",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 3",
+        "text" : "Through many dangers, toils and snares,\nI have already come;\n'Tis grace hath brought me safe thus far,\nAnd grace will lead me home."
+      },
+      {
+        "id" : "D2D8B054-96DB-4F5C-9A71-5A36B660BED5",
+        "type" : "Zwrotka",
+        "label" : "Zwrotka 4",
+        "text" : "When we've been there ten thousand years,\nBright shining as the sun,\nWe've no less days to sing God's praise\nThan when we'd first begun."
+      }
+    ],
+    "tags" : [
+      "Hymn",
+      "Klasyczne"
+    ],
+    "createdAt" : "2026-10-14T15:12:16Z",
+    "rawLyrics" : "[Zwrotka 1]\nAmazing grace! How sweet the sound\nThat saved a wretch like me!\nI once was lost, but now am found;\nWas blind, but now I see.\n\n[Zwrotka 2]\n'Twas grace that taught my heart to fear,\nAnd grace my fears relieved;\nHow precious did that grace appear\nThe hour I first believed!\n\n[Zwrotka 3]\nThrough many dangers, toils and snares,\nI have already come;\n'Tis grace hath brought me safe thus far,\nAnd grace will lead me home.\n\n[Zwrotka 4]\nWhen we've been there ten thousand years,\nBright shining as the sun,\nWe've no less days to sing God's praise\nThan when we'd first begun."
+  }
+]
