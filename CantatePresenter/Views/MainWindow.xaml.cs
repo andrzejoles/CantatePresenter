@@ -39,7 +39,10 @@ namespace CantatePresenter.Views
         private void RefreshSongsList()
         {
             var q = SongSearchBox.Text.Trim();
-            _filteredSongs = _store.Songs.Where(s => s.Matches(q)).ToList();
+            var culture = new System.Globalization.CultureInfo("pl-PL");
+            _filteredSongs = _store.Songs.Where(s => s.Matches(q))
+                .OrderBy(s => s.Title ?? string.Empty, StringComparer.Create(culture, true))
+                .ToList();
             SongsListBox.ItemsSource = _filteredSongs;
 
             if (_store.CurrentSong != null && _filteredSongs.Contains(_store.CurrentSong))
