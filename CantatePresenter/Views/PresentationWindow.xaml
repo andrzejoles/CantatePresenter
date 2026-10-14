@@ -4,9 +4,24 @@
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="CantatePresenter — Projekcja"
         Background="#000000"
+        PreviewKeyDown="Window_PreviewKeyDown"
         KeyDown="Window_KeyDown"
         Focusable="True">
     <Grid>
         <wv2:WebView2 x:Name="BrowserControl" />
+        <Button x:Name="ExitButton"
+                Content="✕ Wyjdź z pełnego ekranu (ESC)"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0,14,18,0"
+                Padding="12,5"
+                Background="#B0000000"
+                Foreground="#FFFFFF"
+                BorderBrush="#40FFFFFF"
+                FontSize="11"
+                FontWeight="SemiBold"
+                Cursor="Hand"
+                Click="ExitButton_Click"
+                Opacity="0.75" />
     </Grid>
 </Window>

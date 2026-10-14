@@ -109,6 +109,11 @@ namespace CantatePresenter.Services
                 _presentationWindow = null;
                 NotifyState();
             }
+            if (Application.Current?.MainWindow != null)
+            {
+                Application.Current.MainWindow.Activate();
+                Application.Current.MainWindow.Focus();
+            }
         }
 
         public void TogglePresentation()

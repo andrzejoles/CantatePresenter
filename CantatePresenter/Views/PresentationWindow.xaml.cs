@@ -28,6 +28,7 @@ namespace CantatePresenter.Views
             try
             {
                 await BrowserControl.EnsureCoreWebView2Async(null);
+                BrowserControl.CoreWebView2.AcceleratorKeyPressed += CoreWebView2_AcceleratorKeyPressed;
                 _isInitialized = true;
                 UpdateContent();
             }
@@ -40,6 +41,15 @@ namespace CantatePresenter.Views
         private void PresentationWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             DataStore.Shared.PresentationStateChanged -= OnPresentationStateChanged;
+            if (_isLiveProjector)
+            {
+                DataStore.Shared.IsLive = false;
+            }
+            if (Application.Current?.MainWindow != null)
+            {
+                Application.Current.MainWindow.Activate();
+                Application.Current.MainWindow.Focus();
+            }
         }
 
         private void OnPresentationStateChanged()
@@ -184,7 +194,69 @@ namespace CantatePresenter.Views
             BrowserControl.NavigateToString(slideHtml);
         }
 
+        private void CoreWebView2_AcceleratorKeyPressed(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2AcceleratorKeyPressedEventArgs e)
+        {
+            if (e.KeyEventKind == Microsoft.Web.WebView2.Core.CoreWebView2KeyEventKind.KeyDown ||
+                e.KeyEventKind == Microsoft.Web.WebView2.Core.CoreWebView2KeyEventKind.SystemKeyDown)
+            {
+                var store = DataStore.Shared;
+
+                // Escape (27)
+                if (e.VirtualKey == 27)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        Close();
+                    });
+                    e.Handled = true;
+                    return;
+                }
+
+                // Space (32), Right (39), Down (40), Enter (13), PageDown (34)
+                if (e.VirtualKey == 32 || e.VirtualKey == 39 || e.VirtualKey == 40 || e.VirtualKey == 13 || e.VirtualKey == 34)
+                {
+                    Dispatcher.Invoke(() => store.NextSlideAction());
+                    e.Handled = true;
+                    return;
+                }
+
+                // Left (37), Up (38), PageUp (33)
+                if (e.VirtualKey == 37 || e.VirtualKey == 38 || e.VirtualKey == 33)
+                {
+                    Dispatcher.Invoke(() => store.PrevSlideAction());
+                    e.Handled = true;
+                    return;
+                }
+
+                // 'B' (66) -> Toggle Black Screen
+                if (e.VirtualKey == 66)
+                {
+                    Dispatcher.Invoke(() => store.ToggleBlackScreen());
+                    e.Handled = true;
+                    return;
+                }
+
+                // 'C' (67) -> Toggle Clear Text
+                if (e.VirtualKey == 67)
+                {
+                    Dispatcher.Invoke(() => store.ToggleClearText());
+                    e.Handled = true;
+                    return;
+                }
+            }
+        }
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            HandleKeyInput(e);
+        }
+
         private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            HandleKeyInput(e);
+        }
+
+        private void HandleKeyInput(KeyEventArgs e)
         {
             var store = DataStore.Shared;
 
@@ -195,12 +267,12 @@ namespace CantatePresenter.Views
                 return;
             }
 
-            if (e.Key == Key.Space || e.Key == Key.Right || e.Key == Key.Down)
+            if (e.Key == Key.Space || e.Key == Key.Right || e.Key == Key.Down || e.Key == Key.PageDown || e.Key == Key.Enter)
             {
                 store.NextSlideAction();
                 e.Handled = true;
             }
-            else if (e.Key == Key.Left || e.Key == Key.Up)
+            else if (e.Key == Key.Left || e.Key == Key.Up || e.Key == Key.PageUp)
             {
                 store.PrevSlideAction();
                 e.Handled = true;
@@ -215,6 +287,11 @@ namespace CantatePresenter.Views
                 store.ToggleClearText();
                 e.Handled = true;
             }
+        }
+
+        private void ExitButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }
