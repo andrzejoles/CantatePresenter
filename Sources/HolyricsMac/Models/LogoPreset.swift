@@ -658,44 +658,25 @@ public struct LogoCatalog {
         LogoPreset(
             id: "equipes_notre_dame",
             name: "22. Oficjalne Logo Equipes Notre-Dame",
-            subtitle: "Oryginalny znak ruchu END: Ryba (esquif/Chrystus) i splecione obrączki przymierza",
+            subtitle: "Oryginalny oficjalny znak ruchu END (pobrany z end.org.pl): Ryba i obrączki przymierza",
             category: "Ruchy & Wspólnoty",
             svgContent: """
-            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="fishBlue" x1="40" y1="95" x2="165" y2="95" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#3B82F6"/>
-                        <stop offset="50%" stop-color="#2563EB"/>
-                        <stop offset="100%" stop-color="#1D4ED8"/>
-                    </linearGradient>
-                    <linearGradient id="ringGold" x1="60" y1="70" x2="100" y2="120" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#FDE047"/>
-                        <stop offset="50%" stop-color="#F59E0B"/>
-                        <stop offset="100%" stop-color="#D97706"/>
-                    </linearGradient>
-                    <linearGradient id="ringRed" x1="100" y1="70" x2="140" y2="120" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#FDA4AF"/>
-                        <stop offset="50%" stop-color="#E11D48"/>
-                        <stop offset="100%" stop-color="#9F1239"/>
-                    </linearGradient>
-                </defs>
-                <rect x="15" y="15" width="170" height="170" rx="44" fill="#0D1B2A" stroke="#E0E1DD" stroke-width="1.5" stroke-opacity="0.3"/>
-                <!-- Left Wedding Ring (Gold - Divine Glory) -->
-                <circle cx="82" cy="95" r="23" stroke="url(#ringGold)" stroke-width="4.5" fill="none"/>
-                <!-- Right Wedding Ring (Crimson - Human Love) -->
-                <circle cx="118" cy="95" r="23" stroke="url(#ringRed)" stroke-width="4.5" fill="none"/>
-                <!-- Iconic Ichthys / Esquif Outline (Fish of Christ) -->
-                <!-- Upper arc crossing to lower tail -->
-                <path d="M 38 95 C 65 52, 130 52, 155 95 L 172 118" stroke="url(#fishBlue)" stroke-width="5" stroke-linecap="round" fill="none"/>
-                <!-- Lower arc crossing to upper tail -->
-                <path d="M 38 95 C 65 138, 130 138, 155 95 L 172 72" stroke="url(#fishBlue)" stroke-width="5" stroke-linecap="round" fill="none"/>
-                <!-- Fish eye -->
-                <circle cx="56" cy="95" r="3" fill="#60A5FA"/>
-                <!-- Interlacing highlights on the rings to show 3D interlocking -->
-                <path d="M 95 80 A 23 23 0 0 1 105 95" stroke="url(#ringGold)" stroke-width="4.5" fill="none"/>
-                <path d="M 95 110 A 23 23 0 0 0 105 95" stroke="url(#ringRed)" stroke-width="4.5" fill="none"/>
-                <!-- Inscription -->
-                <text x="100" y="162" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="9" font-weight="800" fill="#E2E8F0" letter-spacing="1">ÉQUIPES NOTRE-DAME</text>
+            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                <rect x="15" y="15" width="170" height="170" rx="44" fill="#0D111D" stroke="#3B82F6" stroke-width="2" stroke-opacity="0.4"/>
+                <image href="data:image/png;base64,\(ENDLogoAsset.base64PNG)" x="24" y="45" width="152" height="110" preserveAspectRatio="xMidYMid meet"/>
+            </svg>
+            """
+        ),
+        
+        // 23. Oficjalne Logo Equipes Notre-Dame (Transparentne)
+        LogoPreset(
+            id: "equipes_notre_dame_transparent",
+            name: "23. Oficjalne Logo Equipes Notre-Dame (Transparentne)",
+            subtitle: "Czysty pobrany oficjalny znak END z przezroczystym tłem na rzutnik lub standby",
+            category: "Ruchy & Wspólnoty",
+            svgContent: """
+            <svg viewBox="0 0 864 508" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                <image href="data:image/png;base64,\(ENDLogoAsset.base64PNG)" x="0" y="0" width="864" height="508"/>
             </svg>
             """
         )
