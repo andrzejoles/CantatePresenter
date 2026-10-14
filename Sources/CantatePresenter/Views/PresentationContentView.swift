@@ -94,20 +94,25 @@ public struct PresentationContentView: View {
                     VStack {
                         HStack {
                             Spacer()
-                            HStack(spacing: 6) {
-                                Image(systemName: "keyboard")
-                                Text("Naciśnij ESC, aby wyjść z pełnego ekranu")
+                            Button(action: {
+                                ScreenManager.shared.stopPresentation()
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "keyboard")
+                                    Text("Naciśnij ESC, aby wyjść z pełnego ekranu")
+                                }
+                                .font(.system(size: 11, weight: .semibold))
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 7)
+                                .background(Color.black.opacity(0.75))
+                                .foregroundColor(.white.opacity(0.9))
+                                .cornerRadius(16)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.white.opacity(0.25), lineWidth: 1)
+                                )
                             }
-                            .font(.system(size: 11, weight: .semibold))
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 7)
-                            .background(Color.black.opacity(0.75))
-                            .foregroundColor(.white.opacity(0.9))
-                            .cornerRadius(16)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color.white.opacity(0.25), lineWidth: 1)
-                            )
+                            .buttonStyle(PlainButtonStyle())
                             Spacer()
                         }
                         .padding(.top, 18)

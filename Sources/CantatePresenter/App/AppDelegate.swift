@@ -3,9 +3,11 @@ import AppKit
 import SwiftUI
 
 public final class AppDelegate: NSObject, NSApplicationDelegate {
+    public static private(set) var shared: AppDelegate?
     public var mainWindow: NSWindow?
     
     public func applicationDidFinishLaunching(_ notification: Notification) {
+        AppDelegate.shared = self
         NSApp.setActivationPolicy(.regular)
         
         setupMainMenu()
