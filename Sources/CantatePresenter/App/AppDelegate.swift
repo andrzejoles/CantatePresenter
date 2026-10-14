@@ -39,7 +39,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             defer: false
         )
         
-        window.title = "Holyrics Mac — Prezenter Pieśni"
+        window.title = "CantatePresenter — Prezenter Pieśni & Słowa"
         window.minSize = NSSize(width: 950, height: 600)
         window.contentViewController = hostingController
         window.center()
@@ -48,15 +48,79 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         self.mainWindow = window
     }
     
+    private var manualWindow: NSWindow?
+    
+    @objc public func openUserManualAction() {
+        Task { @MainActor in
+            if let window = self.manualWindow, window.isVisible {
+                window.makeKeyAndOrderFront(nil)
+                return
+            }
+            
+            let manualView = UserManualView()
+            let hostingController = NSHostingController(rootView: manualView)
+            
+            let screenRect = NSScreen.main?.visibleFrame ?? NSRect(x: 100, y: 100, width: 1000, height: 750)
+            let windowWidth: CGFloat = min(980, screenRect.width * 0.82)
+            let windowHeight: CGFloat = min(740, screenRect.height * 0.85)
+            let initialRect = NSRect(
+                x: screenRect.midX - windowWidth / 2 + 30,
+                y: screenRect.midY - windowHeight / 2 - 30,
+                width: windowWidth,
+                height: windowHeight
+            )
+            
+            let window = NSWindow(
+                contentRect: initialRect,
+                styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                backing: .buffered,
+                defer: false
+            )
+            
+            window.title = "Instrukcja obsługi — CantatePresenter"
+            window.minSize = NSSize(width: 800, height: 550)
+            window.contentViewController = hostingController
+            window.isReleasedWhenClosed = false
+            window.center()
+            window.makeKeyAndOrderFront(nil)
+            
+            self.manualWindow = window
+        }
+    }
+    
+    @objc public func openInstructionMarkdownAction() {
+        let fileManager = FileManager.default
+        let bundleURL = Bundle.main.bundleURL
+        let projectFolder = bundleURL.pathExtension == "app"
+            ? bundleURL.deletingLastPathComponent()
+            : URL(fileURLWithPath: fileManager.currentDirectoryPath)
+        
+        let docURL = projectFolder.appendingPathComponent("INSTRUKCJA.md")
+        if fileManager.fileExists(atPath: docURL.path) {
+            NSWorkspace.shared.open(docURL)
+        } else {
+            let localURL = URL(fileURLWithPath: "/Users/aoles/dev_gem/INSTRUKCJA.md")
+            if fileManager.fileExists(atPath: localURL.path) {
+                NSWorkspace.shared.open(localURL)
+            }
+        }
+    }
+    
+    @objc public func openGitHubProjectAction() {
+        if let url = URL(string: "https://github.com/andrzejoles/CantatePresenter") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+    
     private func setupMainMenu() {
         let mainMenu = NSMenu()
         
         // App Menu
         let appMenuItem = NSMenuItem()
         let appMenu = NSMenu()
-        appMenu.addItem(NSMenuItem(title: "O programie Holyrics Mac", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: ""))
+        appMenu.addItem(NSMenuItem(title: "O programie CantatePresenter", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: ""))
         appMenu.addItem(NSMenuItem.separator())
-        appMenu.addItem(NSMenuItem(title: "Zakończ Holyrics Mac", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        appMenu.addItem(NSMenuItem(title: "Zakończ CantatePresenter", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         appMenuItem.submenu = appMenu
         mainMenu.addItem(appMenuItem)
         
@@ -67,7 +131,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         fileMenu.addItem(NSMenuItem(title: "Eksportuj całą bazę (JSON)...", action: #selector(exportJSONAction), keyEquivalent: "e"))
         fileMenu.addItem(NSMenuItem(title: "Eksportuj pieśni do folderu (.txt)...", action: #selector(exportFolderAction), keyEquivalent: ""))
         fileMenu.addItem(NSMenuItem.separator())
-        fileMenu.addItem(NSMenuItem(title: "Utwórz pełną kopię zapasową (.holyricsbackup)...", action: #selector(createBackupAction), keyEquivalent: "b"))
+        fileMenu.addItem(NSMenuItem(title: "Utwórz pełną kopię zapasową (.cantatebackup)...", action: #selector(createBackupAction), keyEquivalent: "b"))
         fileMenu.addItem(NSMenuItem(title: "Przywróć z kopii zapasowej...", action: #selector(restoreBackupAction), keyEquivalent: ""))
         fileMenu.addItem(NSMenuItem.separator())
         fileMenu.addItem(NSMenuItem(title: "Zamknij okno", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w"))
@@ -96,7 +160,18 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         windowMenuItem.submenu = windowMenu
         mainMenu.addItem(windowMenuItem)
         
+        // Help Menu
+        let helpMenuItem = NSMenuItem()
+        let helpMenu = NSMenu(title: "Pomoc")
+        helpMenu.addItem(NSMenuItem(title: "Instrukcja obsługi CantatePresenter...", action: #selector(openUserManualAction), keyEquivalent: "?"))
+        helpMenu.addItem(NSMenuItem(title: "Otwórz plik INSTRUKCJA.md...", action: #selector(openInstructionMarkdownAction), keyEquivalent: ""))
+        helpMenu.addItem(NSMenuItem.separator())
+        helpMenu.addItem(NSMenuItem(title: "Strona projektu na GitHub...", action: #selector(openGitHubProjectAction), keyEquivalent: ""))
+        helpMenuItem.submenu = helpMenu
+        mainMenu.addItem(helpMenuItem)
+        
         NSApp.mainMenu = mainMenu
+        NSApp.helpMenu = helpMenu
     }
     
     @objc private func zoomInAction() {
@@ -155,7 +230,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         if store.settings.googleDrive.isEnabled && store.settings.googleDrive.autoBackupOnExit {
             let semaphore = DispatchSemaphore(value: 0)
             Task {
-                if let (archiveURL, _) = try? BackupService.shared.createBackupArchive(comment: "Automatyczny backup przy zamykaniu Holyrics Mac") {
+                if let (archiveURL, _) = try? BackupService.shared.createBackupArchive(comment: "Automatyczny backup przy zamykaniu CantatePresenter") {
                     _ = try? await GoogleDriveService.shared.uploadBackupToDrive(archiveURL: archiveURL)
                     try? FileManager.default.removeItem(at: archiveURL)
                 }
