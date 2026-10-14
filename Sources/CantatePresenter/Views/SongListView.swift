@@ -1,10 +1,29 @@
 import Foundation
 import SwiftUI
 
+public enum SongSortOrder: String, CaseIterable, Identifiable {
+    case titleAsc = "Tytuł (A-Z)"
+    case titleDesc = "Tytuł (Z-A)"
+    case authorAsc = "Autor (A-Z)"
+    case newest = "Najnowsze"
+    
+    public var id: String { rawValue }
+    
+    public var icon: String {
+        switch self {
+        case .titleAsc: return "arrow.up"
+        case .titleDesc: return "arrow.down"
+        case .authorAsc: return "person"
+        case .newest: return "clock"
+        }
+    }
+}
+
 public struct SongListView: View {
     @ObservedObject var store = DataStore.shared
     @State private var searchText: String = ""
     @State private var searchScope: Song.SearchScope = .all
+    @AppStorage("song_list_sort_order") private var sortOrder: SongSortOrder = .titleAsc
     @Binding var isShowingEditor: Bool
     @Binding var isShowingOnlineSearch: Bool
     @Binding var isShowingImportExport: Bool
@@ -29,10 +48,38 @@ public struct SongListView: View {
     }
     
     private var filteredSongs: [Song] {
-        if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
-            return store.songs
+        let baseList: [Song]
+        let query = searchText.trimmingCharacters(in: .whitespaces)
+        if query.isEmpty {
+            baseList = store.songs
+        } else {
+            baseList = store.songs.filter { $0.matches(query: query, scope: searchScope) }
         }
-        return store.songs.filter { $0.matches(query: searchText, scope: searchScope) }
+        
+        let plLocale = Locale(identifier: "pl_PL")
+        return baseList.sorted { a, b in
+            let titleA = a.title.trimmingCharacters(in: .whitespacesAndNewlines)
+            let titleB = b.title.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            switch sortOrder {
+            case .titleAsc:
+                return titleA.compare(titleB, options: [.caseInsensitive, .numeric], locale: plLocale) == .orderedAscending
+            case .titleDesc:
+                return titleA.compare(titleB, options: [.caseInsensitive, .numeric], locale: plLocale) == .orderedDescending
+            case .authorAsc:
+                let authorA = a.author.trimmingCharacters(in: .whitespacesAndNewlines)
+                let authorB = b.author.trimmingCharacters(in: .whitespacesAndNewlines)
+                if authorA.isEmpty && !authorB.isEmpty { return false }
+                if !authorA.isEmpty && authorB.isEmpty { return true }
+                let comp = authorA.compare(authorB, options: [.caseInsensitive, .numeric], locale: plLocale)
+                if comp == .orderedSame {
+                    return titleA.compare(titleB, options: [.caseInsensitive, .numeric], locale: plLocale) == .orderedAscending
+                }
+                return comp == .orderedAscending
+            case .newest:
+                return a.createdAt > b.createdAt
+            }
+        }
     }
     
     public var body: some View {
@@ -132,6 +179,44 @@ public struct SongListView: View {
             }
             .padding(10)
             .background(Color(NSColor.windowBackgroundColor))
+            
+            Divider()
+            
+            // Sub-header: Count and Sort selector
+            HStack {
+                if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+                    Text("\(filteredSongs.count) pieśni")
+                        .font(.scaled(10.5, weight: .medium, scale: scale))
+                        .foregroundColor(.secondary)
+                } else {
+                    Text("\(filteredSongs.count) z \(store.songs.count) pieśni")
+                        .font(.scaled(10.5, weight: .medium, scale: scale))
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Menu {
+                    Picker("Sortowanie", selection: $sortOrder) {
+                        ForEach(SongSortOrder.allCases) { order in
+                            Label(order.rawValue, systemImage: order.icon).tag(order)
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 3) {
+                        Image(systemName: "arrow.up.arrow.down")
+                            .font(.system(size: 9))
+                        Text(sortOrder.rawValue)
+                            .font(.scaled(10, scale: scale))
+                    }
+                    .foregroundColor(.secondary)
+                }
+                .menuStyle(BorderlessButtonMenuStyle())
+                .help("Zmień kolejność sortowania pieśni w bibliotece")
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 3)
+            .background(Color(NSColor.controlBackgroundColor).opacity(0.4))
             
             Divider()
             
