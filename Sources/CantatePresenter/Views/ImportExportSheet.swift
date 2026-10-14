@@ -195,7 +195,7 @@ public struct ImportExportSheet: View {
                         }
                     } else {
                         // MARK: - FULL BACKUP & GOOGLE DRIVE
-                        GroupBox(label: Label("Lokalna kopia zapasowa (.holyricsbackup)", systemImage: "archivebox.fill")) {
+                        GroupBox(label: Label("Lokalna kopia zapasowa (.cantatebackup)", systemImage: "archivebox.fill")) {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Pełna kopia zapasowa zabezpiecza wszystkie elementy aplikacji: bazę pieśni wraz z chwytami, plany nabożeństw, pełne ustawienia, ekran początkowy Standby, zainstalowane języki tłumaczeń oraz bibliotekę oficjalnych logotypów.")
                                     .font(.scaled(11, scale: scale))
@@ -203,7 +203,7 @@ public struct ImportExportSheet: View {
                                 
                                 HStack(spacing: 12) {
                                     Button(action: createLocalBackupAction) {
-                                        Label("Utwórz pełną kopię zapasową (.holyricsbackup)...", systemImage: "square.and.arrow.up.fill")
+                                        Label("Utwórz pełną kopię zapasową (.cantatebackup)...", systemImage: "square.and.arrow.up.fill")
                                             .font(.scaled(11, weight: .semibold, scale: scale))
                                     }
                                     .buttonStyle(.borderedProminent)

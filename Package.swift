@@ -2,18 +2,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "HolyricsMac",
+    name: "CantatePresenter",
     platforms: [
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "HolyricsMac", targets: ["HolyricsMac"])
+        .executable(name: "CantatePresenter", targets: ["CantatePresenter"])
     ],
     dependencies: [],
     targets: [
         .executableTarget(
-            name: "HolyricsMac",
-            path: "Sources/HolyricsMac"
+            name: "CantatePresenter",
+            path: "Sources/CantatePresenter"
         )
     ]
 )

@@ -179,7 +179,7 @@ public struct GoogleDriveSettings: Codable, Equatable {
         clientSecret: String = "",
         accessToken: String = "",
         refreshToken: String = "",
-        targetFolder: String = "HolyricsMac_Backups",
+        targetFolder: String = "CantatePresenter_Backups",
         autoBackupOnExit: Bool = false,
         lastBackupDate: Date? = nil
     ) {

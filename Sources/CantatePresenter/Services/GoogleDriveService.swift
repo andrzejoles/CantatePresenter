@@ -158,7 +158,7 @@ public final class GoogleDriveService {
     
     // MARK: - Folder Management
     
-    public func getOrCreateBackupsFolder(accessToken: String, folderName: String = "HolyricsMac_Backups") async throws -> String {
+    public func getOrCreateBackupsFolder(accessToken: String, folderName: String = "CantatePresenter_Backups") async throws -> String {
         // 1. Search for existing folder
         let query = "name = '\(folderName)' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
         guard let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
@@ -190,7 +190,7 @@ public final class GoogleDriveService {
         let folderMeta: [String: Any] = [
             "name": folderName,
             "mimeType": "application/vnd.google-apps.folder",
-            "description": "Kopie zapasowe bazy pieśni i ustawień aplikacji Holyrics Mac"
+            "description": "Kopie zapasowe bazy pieśni i ustawień aplikacji CantatePresenter"
         ]
         createReq.httpBody = try JSONSerialization.data(withJSONObject: folderMeta)
         
@@ -209,14 +209,14 @@ public final class GoogleDriveService {
     public func uploadBackupToDrive(archiveURL: URL) async throws -> RemoteBackupItem {
         let token = try await getValidAccessToken()
         let store = await MainActor.run { DataStore.shared }
-        let folderName = await MainActor.run { store.settings.googleDrive.targetFolder.isEmpty ? "HolyricsMac_Backups" : store.settings.googleDrive.targetFolder }
+        let folderName = await MainActor.run { store.settings.googleDrive.targetFolder.isEmpty ? "CantatePresenter_Backups" : store.settings.googleDrive.targetFolder }
         let folderId = try await getOrCreateBackupsFolder(accessToken: token, folderName: folderName)
         
         guard let uploadURL = URL(string: driveUploadEndpoint) else {
             throw NSError(domain: "GoogleDrive", code: 10, userInfo: [NSLocalizedDescriptionKey: "Błąd URL wysyłki"])
         }
         
-        let boundary = "-------HolyricsBackupBoundary\(UUID().uuidString)"
+        let boundary = "-------CantateBackupBoundary\(UUID().uuidString)"
         var request = URLRequest(url: uploadURL)
         request.httpMethod = "POST"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -227,7 +227,7 @@ public final class GoogleDriveService {
             "name": archiveURL.lastPathComponent,
             "parents": [folderId],
             "mimeType": "application/zip",
-            "description": "Holyrics Mac Pełny Backup (baza pieśni, chwyty, ustawienia, standby, języki, loga)"
+            "description": "CantatePresenter Pełny Backup (baza pieśni, chwyty, ustawienia, standby, języki, loga)"
         ]
         let metadataData = try JSONSerialization.data(withJSONObject: metadata)
         
@@ -276,7 +276,7 @@ public final class GoogleDriveService {
     public func listBackupsFromDrive() async throws -> [RemoteBackupItem] {
         let token = try await getValidAccessToken()
         let store = await MainActor.run { DataStore.shared }
-        let folderName = await MainActor.run { store.settings.googleDrive.targetFolder.isEmpty ? "HolyricsMac_Backups" : store.settings.googleDrive.targetFolder }
+        let folderName = await MainActor.run { store.settings.googleDrive.targetFolder.isEmpty ? "CantatePresenter_Backups" : store.settings.googleDrive.targetFolder }
         let folderId = try await getOrCreateBackupsFolder(accessToken: token, folderName: folderName)
         
         let query = "'\(folderId)' in parents and trashed = false"

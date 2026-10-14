@@ -1,8 +1,8 @@
-# Holyrics Mac — Prezenter Pieśni i Tekstów
+# CantatePresenter — Prezenter Pieśni & Słowa dla macOS
 
-Natywna, wysoce zoptymalizowana aplikacja na system **macOS** (procesory **Apple Silicon: M1–M5 Pro**, kompilowana natywnie dla `arm64`, bez użycia bibliotek Rosetta).
+Natywna, wysoce zoptymalizowana aplikacja na system **macOS** (procesory **Apple Silicon: M1–M5 Pro**, kompilowana natywnie dla `arm64`, bez użycia Rosetta).
 
-Aplikacja została zaprojektowana według filozofii programu **Holyrics**, oferując zaawansowane możliwości projekcji tekstów pieśni na zewnętrznych ekranach/projektorach z zachowaniem prostoty i szybkości obsługi przez operatora.
+Aplikacja oferuje zaawansowane możliwości projekcji tekstów pieśni na zewnętrznych ekranach/projektorach oraz pojedynczym ekranie z zachowaniem natychmiastowej prostoty obsługi przez operatora, obsługą chwytów gitarowych, dyktowaniem głosem, pełnym backupem na Dysku Google oraz importem baz z Holyrics, OpenLyrics i plików tekstowych.
 
 ---
 
@@ -15,7 +15,7 @@ Możesz uruchomić aplikację na dwa sposoby:
    ./run.sh
    ```
 2. **Bezpośrednio z Findera**:
-   Kliknij dwukrotnie w plik aplikacji **`HolyricsMac.app`** w folderze `dev_gem`.
+   Kliknij dwukrotnie w plik aplikacji **`CantatePresenter.app`** w folderze projektu.
 
 Jeżeli chcesz ponownie przebudować aplikację po edycji kodu:
 ```bash
@@ -144,8 +144,8 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 Wszystkie pliki i dane aplikacji znajdują się w folderze `dev_gem`:
 
 ```
-dev_gem/
-├── HolyricsMac.app/       # Gotowy pakiet aplikacji macOS (arm64)
+CantatePresenter/
+├── CantatePresenter.app/  # Gotowy pakiet aplikacji macOS (arm64)
 ├── Package.swift          # Konfiguracja Swift Package Manager
 ├── build_app.sh           # Skrypt budujący aplikację .app
 ├── run.sh                 # Skrypt uruchamiający
@@ -156,7 +156,7 @@ dev_gem/
 │   ├── standby.html       # Szablon planszy czuwania z aktywnym logo SVG
 │   └── templates/         # Wzorcowe szablony tłumaczeń JSON dla AI
 ├── przykladowe_piesni/    # Przykładowe pliki .txt do importu
-└── Sources/HolyricsMac/   # Kod źródłowy w Swift
+└── Sources/CantatePresenter/ # Kod źródłowy w Swift
     ├── App/               # Cykl życia aplikacji i menu systemowe
     ├── Models/            # Modele danych (Song, SongSlide, ServicePlan, LogoPreset)
     ├── Services/          # Silnik Auto-Fit, Importer Holyrics, Akordy, Tłumaczenia

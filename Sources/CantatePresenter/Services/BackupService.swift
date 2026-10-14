@@ -16,7 +16,7 @@ public struct BackupManifest: Codable {
     
     public init(
         version: String = "1.0.0",
-        appName: String = "HolyricsMac",
+        appName: String = "CantatePresenter",
         createdAt: Date = Date(),
         deviceName: String = Host.current().localizedName ?? "Mac",
         songsCount: Int,
@@ -117,11 +117,11 @@ public final class BackupService {
         let manifestData = try encoder.encode(manifest)
         try manifestData.write(to: tempDir.appendingPathComponent("manifest.json"))
         
-        // 4. Compress staging folder into single .holyricsbackup archive using macOS ditto
+        // 4. Compress staging folder into single .cantatebackup archive using macOS ditto
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
         let timestamp = dateFormatter.string(from: Date())
-        let archiveFileName = "HolyricsMac_Backup_\(timestamp).holyricsbackup"
+        let archiveFileName = "CantatePresenter_Backup_\(timestamp).cantatebackup"
         let archiveURL = fileManager.temporaryDirectory.appendingPathComponent(archiveFileName)
         
         if fileManager.fileExists(atPath: archiveURL.path) {
@@ -135,7 +135,7 @@ public final class BackupService {
         process.waitUntilExit()
         
         guard process.terminationStatus == 0 && fileManager.fileExists(atPath: archiveURL.path) else {
-            throw NSError(domain: "HolyricsMacBackup", code: 1, userInfo: [NSLocalizedDescriptionKey: "Nie udało się skompresować archiwum kopii zapasowej (kod ditto: \(process.terminationStatus))"])
+            throw NSError(domain: "CantateBackup", code: 1, userInfo: [NSLocalizedDescriptionKey: "Nie udało się skompresować archiwum kopii zapasowej (kod ditto: \(process.terminationStatus))"])
         }
         
         return (archiveURL, manifest)
@@ -234,11 +234,12 @@ public final class BackupService {
             let (tempArchiveURL, _) = try createBackupArchive()
             
             let savePanel = NSSavePanel()
-            savePanel.title = "Zapisz pełną kopię zapasową Holyrics Mac"
-            savePanel.message = "Wybierz miejsce zapisu pliku kopii zapasowej (.holyricsbackup)"
+            savePanel.title = "Zapisz pełną kopię zapasową CantatePresenter"
+            savePanel.message = "Wybierz miejsce zapisu pliku kopii zapasowej (.cantatebackup)"
             savePanel.prompt = "Utwórz kopię"
             savePanel.nameFieldStringValue = tempArchiveURL.lastPathComponent
             savePanel.allowedContentTypes = [
+                UTType(filenameExtension: "cantatebackup") ?? .data,
                 UTType(filenameExtension: "holyricsbackup") ?? .data,
                 UTType.zip
             ]
@@ -269,9 +270,10 @@ public final class BackupService {
     public func restoreBackupWithOpenPanel() -> (success: Bool, message: String) {
         let openPanel = NSOpenPanel()
         openPanel.title = "Wybierz plik kopii zapasowej do przywrócenia"
-        openPanel.message = "Wskaż plik .holyricsbackup lub .zip zawierający kopię bazy Holyrics Mac"
+        openPanel.message = "Wskaż plik .cantatebackup, .holyricsbackup lub .zip zawierający kopię bazy CantatePresenter"
         openPanel.prompt = "Przywróć dane"
         openPanel.allowedContentTypes = [
+            UTType(filenameExtension: "cantatebackup") ?? .data,
             UTType(filenameExtension: "holyricsbackup") ?? .data,
             UTType.zip
         ]

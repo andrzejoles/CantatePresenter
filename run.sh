@@ -4,10 +4,10 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
-if [ ! -d "$DIR/HolyricsMac.app" ]; then
-    echo "Pakiet HolyricsMac.app nie istnieje. Budowanie..."
+if [ ! -d "$DIR/CantatePresenter.app" ]; then
+    echo "Pakiet CantatePresenter.app nie istnieje. Budowanie..."
     ./build_app.sh
 fi
 
-echo "Uruchamianie Holyrics Mac..."
-open "$DIR/HolyricsMac.app"
+echo "Uruchamianie CantatePresenter..."
+open "$DIR/CantatePresenter.app"

@@ -4,10 +4,10 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
-echo "=== Budowanie HolyricsMac (Apple Silicon arm64 Native) ==="
+echo "=== Budowanie CantatePresenter (Apple Silicon arm64 Native) ==="
 swift build -c release
 
-APP_NAME="HolyricsMac.app"
+APP_NAME="CantatePresenter.app"
 APP_DIR="$DIR/$APP_NAME"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
@@ -18,8 +18,8 @@ rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR"
 mkdir -p "$RESOURCES_DIR"
 
-cp "$DIR/.build/release/HolyricsMac" "$MACOS_DIR/HolyricsMac"
-chmod +x "$MACOS_DIR/HolyricsMac"
+cp "$DIR/.build/release/CantatePresenter" "$MACOS_DIR/CantatePresenter"
+chmod +x "$MACOS_DIR/CantatePresenter"
 
 cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>
@@ -29,15 +29,15 @@ cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
     <key>CFBundleDevelopmentRegion</key>
     <string>pl</string>
     <key>CFBundleExecutable</key>
-    <string>HolyricsMac</string>
+    <string>CantatePresenter</string>
     <key>CFBundleIdentifier</key>
-    <string>com.antigravity.holyricsmac</string>
+    <string>com.cantate.presenter</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>HolyricsMac</string>
+    <string>CantatePresenter</string>
     <key>CFBundleDisplayName</key>
-    <string>Holyrics Mac — Prezenter Pieśni</string>
+    <string>CantatePresenter — Prezenter Pieśni &amp; Słowa</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
