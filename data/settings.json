@@ -1,0 +1,30 @@
+{
+  "textColorHex" : "#FFFFFF",
+  "dictationLanguage" : "pl-PL",
+  "isWindowedPreviewEnabled" : false,
+  "hasShadow" : true,
+  "onlineSearchLanguage" : "pl",
+  "uiScale" : 1,
+  "selectedScreenIndex" : 1,
+  "fontFamily" : "Helvetica Neue",
+  "marginPercent" : 0.07,
+  "lineSpacingFactor" : 1.15,
+  "standbyHtmlPath" : "",
+  "isBold" : true,
+  "verticalAlignment" : "center",
+  "textAlignment" : "center",
+  "shortcuts" : {
+    "stopPresentationKey" : 53,
+    "clearTextKey" : 8,
+    "startPresentationKey" : 36,
+    "blackScreenKey" : 11,
+    "nextSlideKey" : 49,
+    "prevSlideKey" : 123,
+    "prevSongKey" : 33,
+    "nextSongKey" : 30
+  },
+  "bottomBarHeight" : 52,
+  "appLanguage" : "pl",
+  "activeLogoId" : "equipes_notre_dame",
+  "backgroundColorHex" : "#000000"
+}

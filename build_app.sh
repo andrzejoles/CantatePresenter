@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+set -e
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIR"
+
+echo "=== Budowanie HolyricsMac (Apple Silicon arm64 Native) ==="
+swift build -c release
+
+APP_NAME="HolyricsMac.app"
+APP_DIR="$DIR/$APP_NAME"
+CONTENTS_DIR="$APP_DIR/Contents"
+MACOS_DIR="$CONTENTS_DIR/MacOS"
+RESOURCES_DIR="$CONTENTS_DIR/Resources"
+
+echo "=== Tworzenie pakietu aplikacji $APP_NAME ==="
+rm -rf "$APP_DIR"
+mkdir -p "$MACOS_DIR"
+mkdir -p "$RESOURCES_DIR"
+
+cp "$DIR/.build/release/HolyricsMac" "$MACOS_DIR/HolyricsMac"
+chmod +x "$MACOS_DIR/HolyricsMac"
+
+cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>pl</string>
+    <key>CFBundleExecutable</key>
+    <string>HolyricsMac</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.antigravity.holyricsmac</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>HolyricsMac</string>
+    <key>CFBundleDisplayName</key>
+    <string>Holyrics Mac — Prezenter Pieśni</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSSupportsAutomaticGraphicsSwitching</key>
+    <true/>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright © 2026. Wszelkie prawa zastrzeżone.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Aplikacja wymaga dostępu do mikrofonu, aby umożliwić dyktowanie tekstu nowej pieśni oraz wyszukiwanie głosowe.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Rozpoznawanie mowy jest używane do dyktowania tekstów pieśni oraz wyszukiwania utworów głosem.</string>
+</dict>
+</plist>
+EOF
+
+echo "=== Gotowe! Aplikacja została pomyślnie utworzona: $APP_DIR ==="

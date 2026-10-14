@@ -1,0 +1,285 @@
+import Foundation
+import SwiftUI
+
+public struct SongSlidesView: View {
+    @ObservedObject var store = DataStore.shared
+    @Binding var isShowingEditor: Bool
+    @Binding var songToEdit: Song?
+    
+    @State private var isShowingChordsModal: Bool = false
+    
+    public init(isShowingEditor: Binding<Bool>, songToEdit: Binding<Song?>) {
+        self._isShowingEditor = isShowingEditor
+        self._songToEdit = songToEdit
+    }
+    
+    private var selectedSong: Song? {
+        return store.selectedSong
+    }
+    
+    public var body: some View {
+        let scale = store.settings.uiScale
+        
+        VStack(spacing: 0) {
+            if let song = selectedSong {
+                VStack(spacing: 0) {
+                    // Live Presentation Alert Banner (when viewing/editing another song)
+                    if store.isLive, let liveSong = store.activeSong, liveSong.id != song.id {
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(Color.red)
+                                .frame(width: 8, height: 8)
+                            Text("PROJEKTOR: Trwa projekcja '\(liveSong.title)' (slajd \(store.activeSlideIndex + 1)/\(liveSong.slides.count))")
+                                .font(.scaled(11, weight: .bold, scale: scale))
+                                .foregroundColor(.red)
+                            Spacer()
+                            Button("Wróć do prezentowanej pieśni") {
+                                store.selectedSongId = liveSong.id
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 6)
+                        .background(Color.red.opacity(0.12))
+                        
+                        Divider()
+                    }
+                    
+                    // Header of the selected song
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text(song.title)
+                                        .font(.scaled(18, weight: .bold, scale: scale))
+                                    
+                                    if !song.key.isEmpty {
+                                        Text(song.key)
+                                            .font(.scaled(12, weight: .bold, scale: scale))
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(Color.blue.opacity(0.15))
+                                            .foregroundColor(.blue)
+                                            .cornerRadius(4)
+                                    }
+                                }
+                                
+                                if !song.author.isEmpty {
+                                    Text(song.author)
+                                        .font(.scaled(12, scale: scale))
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            // Control buttons for this song
+                            HStack(spacing: 8) {
+                                Button(action: {
+                                    store.present(song: song, slideIndex: 0)
+                                }) {
+                                    Label("Prezentuj", systemImage: "play.fill")
+                                        .font(.scaled(12, weight: .semibold, scale: scale))
+                                }
+                                .buttonStyle(.borderedProminent)
+                                
+                                Button(action: {
+                                    store.addSongToPlan(songId: song.id)
+                                }) {
+                                    Label("+ Do planu", systemImage: "text.badge.plus")
+                                        .font(.scaled(12, scale: scale))
+                                }
+                                .buttonStyle(.bordered)
+                                
+                                Button(action: {
+                                    isShowingChordsModal = true
+                                }) {
+                                    Label(song.chords != nil ? "Chwyty (✓)" : "Chwyty", systemImage: "guitars")
+                                        .font(.scaled(12, scale: scale))
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(song.chords != nil ? .orange : .secondary)
+                                
+                                Button(action: {
+                                    songToEdit = song
+                                    isShowingEditor = true
+                                }) {
+                                    Label("Edytuj pieśń i chwyty", systemImage: "pencil.line")
+                                        .font(.scaled(12, weight: .medium, scale: scale))
+                                }
+                                .buttonStyle(.bordered)
+                                .keyboardShortcut("e", modifiers: [.command])
+                                .help("Edytuj słowa, sekcje i chwyty wybranej pieśni (⌘E)")
+                            }
+                        }
+                        
+                        if !song.tags.isEmpty {
+                            HStack(spacing: 4) {
+                                ForEach(song.tags, id: \.self) { tag in
+                                    Text(tag)
+                                        .font(.scaled(10, scale: scale))
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(Color.secondary.opacity(0.12))
+                                        .foregroundColor(.secondary)
+                                        .cornerRadius(4)
+                                }
+                            }
+                        }
+                    }
+                    .padding(14)
+                    .background(Color(NSColor.windowBackgroundColor))
+                    
+                    Divider()
+                    
+                    // Slide cards list
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(Array(song.slides.enumerated()), id: \.element.id) { index, slide in
+                                let isCurrentLive = (store.activeSong?.id == song.id) &&
+                                                    (store.activeSlideIndex == index) &&
+                                                    store.isLive
+                                
+                                SlideCardView(
+                                    slide: slide,
+                                    index: index,
+                                    isLive: isCurrentLive,
+                                    scale: scale,
+                                    onSelect: {
+                                        store.present(song: song, slideIndex: index)
+                                    }
+                                )
+                            }
+                        }
+                        .padding(14)
+                    }
+                }
+            } else {
+                VStack(spacing: 12) {
+                    Spacer()
+                    Image(systemName: "music.note.list")
+                        .font(.system(size: 48))
+                        .foregroundColor(.secondary.opacity(0.4))
+                    Text("Wybierz pieśń z biblioteki po lewej stronie")
+                        .font(.scaled(14, weight: .medium, scale: scale))
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+            }
+        }
+        .sheet(isPresented: $isShowingChordsModal) {
+            if let song = selectedSong {
+                ChordsSearchSheet(
+                    song: song,
+                    isPresented: $isShowingChordsModal,
+                    onApply: { newChords, newKey in
+                        var updated = song
+                        updated.chords = newChords
+                        if !newKey.isEmpty && updated.key.isEmpty {
+                            updated.key = newKey
+                        }
+                        store.updateSong(updated)
+                    }
+                )
+            }
+        }
+    }
+}
+
+// MARK: - Slide Card
+private struct SlideCardView: View {
+    let slide: SongSlide
+    let index: Int
+    let isLive: Bool
+    let scale: Double
+    let onSelect: () -> Void
+    
+    @State private var isHovered: Bool = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Card header
+            HStack {
+                // Type Badge
+                HStack(spacing: 4) {
+                    Text(slide.type.shortBadge)
+                        .font(.scaled(10, weight: .bold, scale: scale))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(badgeColorForType(slide.type))
+                        .foregroundColor(.white)
+                        .cornerRadius(3)
+                    
+                    Text(slide.label)
+                        .font(.scaled(12, weight: .bold, scale: scale))
+                        .foregroundColor(isLive ? .green : .primary)
+                }
+                
+                Spacer()
+                
+                // Shortcut badge
+                let hint = shortcutHint(index: index, type: slide.type)
+                Text("[\(hint)]")
+                    .font(.scaled(10, scale: scale, isMonospaced: true))
+                    .foregroundColor(.secondary)
+                
+                if isLive {
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: 8, height: 8)
+                        Text("NA EKRANIE")
+                            .font(.scaled(10, weight: .bold, scale: scale))
+                            .foregroundColor(.red)
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.red.opacity(0.12))
+                    .cornerRadius(4)
+                }
+            }
+            
+            // Text Content
+            Text(slide.text)
+                .font(.scaled(14, scale: scale))
+                .foregroundColor(isLive ? .primary : .primary.opacity(0.9))
+                .lineSpacing(4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(12)
+        .background(isLive ? Color.green.opacity(0.08) : (isHovered ? Color.secondary.opacity(0.08) : Color(NSColor.controlBackgroundColor)))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(isLive ? Color.green : (isHovered ? Color.secondary.opacity(0.3) : Color.clear), lineWidth: isLive ? 2.5 : 1)
+        )
+        .cornerRadius(8)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onSelect()
+        }
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
+    
+    private func badgeColorForType(_ type: SlideType) -> Color {
+        switch type {
+        case .chorus: return .orange
+        case .verse: return .blue
+        case .bridge: return .purple
+        case .preChorus: return .teal
+        case .coda: return .pink
+        case .interlude: return .mint
+        case .ending: return .brown
+        case .intro, .outro: return .gray
+        case .tag: return .yellow
+        default: return .indigo
+        }
+    }
+    
+    private func shortcutHint(index: Int, type: SlideType) -> String {
+        if type == .chorus { return "R" }
+        return "\(index + 1)"
+    }
+}

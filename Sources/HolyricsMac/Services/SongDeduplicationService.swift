@@ -1,0 +1,202 @@
+import Foundation
+
+public struct DuplicateRecord: Identifiable {
+    public let id = UUID()
+    public let primarySong: Song
+    public let duplicateSong: Song
+    public let reason: String
+    public let similarityScore: Int // 0 to 100%
+    public var shouldSkipDuplicate: Bool = true
+}
+
+public struct EnrichmentRecord: Identifiable {
+    public let id = UUID()
+    public let originalTitle: String
+    public let enrichedTitle: String
+    public let originalAuthor: String
+    public let enrichedAuthor: String
+    public let details: String
+}
+
+public struct ImportProcessingResult {
+    public var totalScanned: Int
+    public var uniqueSongs: [Song]
+    public var duplicateRecords: [DuplicateRecord]
+    public var enrichmentRecords: [EnrichmentRecord]
+    public var existingCollisions: [DuplicateRecord]
+    
+    public var netUniqueCount: Int {
+        return uniqueSongs.count
+    }
+}
+
+public final class SongDeduplicationService {
+    public static let shared = SongDeduplicationService()
+    
+    /// Normalizes lyrics to word tokens
+    public static func lyricsTokens(_ foldedLyrics: String) -> Set<String> {
+        let words = foldedLyrics.components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .filter { $0.count >= 3 }
+        return Set(words)
+    }
+    
+    /// Calculates word similarity between two precomputed token sets
+    public static func tokenSimilarity(_ t1: Set<String>, _ t2: Set<String>) -> Int {
+        if t1.isEmpty && t2.isEmpty { return 100 }
+        if t1.isEmpty || t2.isEmpty { return 0 }
+        let intersection = t1.intersection(t2).count
+        let union = t1.union(t2).count
+        guard union > 0 else { return 0 }
+        return Int((Double(intersection) / Double(union)) * 100.0)
+    }
+    
+    /// Processes incoming songs: enriches canonical metadata and detects duplicates with O(1) indexed lookup
+    public func processAndDeduplicate(incoming: [Song], existingLibrary: [Song]) -> ImportProcessingResult {
+        var enrichedList: [Song] = []
+        var enrichments: [EnrichmentRecord] = []
+        
+        // 1. Enrich metadata for all incoming songs
+        for s in incoming {
+            let (enriched, wasEnriched, details) = SongEnrichmentService.shared.enrich(song: s)
+            enrichedList.append(enriched)
+            if wasEnriched {
+                enrichments.append(EnrichmentRecord(
+                    originalTitle: s.title,
+                    enrichedTitle: enriched.title,
+                    originalAuthor: s.author.isEmpty ? "brak" : s.author,
+                    enrichedAuthor: enriched.author,
+                    details: details
+                ))
+            }
+        }
+        
+        // Internal helper to extract prefix key (first 6 words of folded lyrics)
+        func lyricsPrefixKey(_ foldedLyrics: String) -> String {
+            let words = foldedLyrics.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
+            return words.prefix(6).joined(separator: " ")
+        }
+        
+        // 2. Fast Indexed Internal Deduplication
+        var uniqueIncoming: [Song] = []
+        var uniqueTokens: [Set<String>] = []
+        var uniqueFoldedLyrics: [String] = []
+        var duplicates: [DuplicateRecord] = []
+        
+        var titleToIndices: [String: [Int]] = [:]
+        var prefixToIndices: [String: [Int]] = [:]
+        var fullLyricsToIndices: [String: [Int]] = [:]
+        
+        for candidate in enrichedList {
+            let cTitleFolded = Song.foldString(candidate.title)
+            let cLyricsFolded = Song.foldString(candidate.rawLyrics)
+            let cTokens = SongDeduplicationService.lyricsTokens(cLyricsFolded)
+            let cPrefix = lyricsPrefixKey(cLyricsFolded)
+            
+            var matchedIndex: Int? = nil
+            var highestSim = 0
+            var duplicateReason = ""
+            
+            // Check 1: Identical full lyrics
+            if !cLyricsFolded.isEmpty, let idxs = fullLyricsToIndices[cLyricsFolded], let first = idxs.first {
+                matchedIndex = first
+                highestSim = 100
+                duplicateReason = "Identyczny tekst utworu (100% zgodności)"
+            }
+            // Check 2: Same folded title
+            else if let idxs = titleToIndices[cTitleFolded] {
+                for idx in idxs {
+                    let sim = SongDeduplicationService.tokenSimilarity(cTokens, uniqueTokens[idx])
+                    if sim >= 35 || cTokens.isEmpty {
+                        matchedIndex = idx
+                        highestSim = max(highestSim, sim)
+                        duplicateReason = "Ten sam tytuł i zgodność tekstu (\(sim)%)"
+                        break
+                    }
+                }
+            }
+            // Check 3: Identical lyrics opening (first 6 words)
+            if matchedIndex == nil && !cPrefix.isEmpty, let idxs = prefixToIndices[cPrefix] {
+                for idx in idxs {
+                    let sim = SongDeduplicationService.tokenSimilarity(cTokens, uniqueTokens[idx])
+                    if sim >= 70 {
+                        matchedIndex = idx
+                        highestSim = sim
+                        duplicateReason = "Identyczny początek i bardzo wysokie podobieństwo tekstu (\(sim)%)"
+                        break
+                    }
+                }
+            }
+            
+            if let matchIdx = matchedIndex {
+                let primary = uniqueIncoming[matchIdx]
+                let candidateHasAuthor = !SongEnrichmentService.isUnknownAuthor(candidate.author)
+                let primaryHasAuthor = !SongEnrichmentService.isUnknownAuthor(primary.author)
+                
+                // If candidate has better metadata than current primary, swap them
+                if candidateHasAuthor && !primaryHasAuthor {
+                    let replaced = uniqueIncoming[matchIdx]
+                    uniqueIncoming[matchIdx] = candidate
+                    uniqueTokens[matchIdx] = cTokens
+                    uniqueFoldedLyrics[matchIdx] = cLyricsFolded
+                    duplicates.append(DuplicateRecord(
+                        primarySong: candidate,
+                        duplicateSong: replaced,
+                        reason: duplicateReason,
+                        similarityScore: highestSim
+                    ))
+                } else {
+                    duplicates.append(DuplicateRecord(
+                        primarySong: primary,
+                        duplicateSong: candidate,
+                        reason: duplicateReason,
+                        similarityScore: highestSim
+                    ))
+                }
+            } else {
+                let newIdx = uniqueIncoming.count
+                uniqueIncoming.append(candidate)
+                uniqueTokens.append(cTokens)
+                uniqueFoldedLyrics.append(cLyricsFolded)
+                
+                titleToIndices[cTitleFolded, default: []].append(newIdx)
+                if !cPrefix.isEmpty {
+                    prefixToIndices[cPrefix, default: []].append(newIdx)
+                }
+                if !cLyricsFolded.isEmpty {
+                    fullLyricsToIndices[cLyricsFolded, default: []].append(newIdx)
+                }
+            }
+        }
+        
+        // 3. Fast Collision Check against Existing Library
+        var existingCollisions: [DuplicateRecord] = []
+        if !existingLibrary.isEmpty {
+            var libTitleMap: [String: Song] = [:]
+            for libSong in existingLibrary {
+                libTitleMap[Song.foldString(libSong.title)] = libSong
+            }
+            
+            for (i, s) in uniqueIncoming.enumerated() {
+                let sTitleFolded = Song.foldString(s.title)
+                if let libSong = libTitleMap[sTitleFolded] {
+                    let libTokens = SongDeduplicationService.lyricsTokens(Song.foldString(libSong.rawLyrics))
+                    let sim = SongDeduplicationService.tokenSimilarity(uniqueTokens[i], libTokens)
+                    existingCollisions.append(DuplicateRecord(
+                        primarySong: libSong,
+                        duplicateSong: s,
+                        reason: "Utwór o tym tytule istnieje już w bibliotece (\(sim)% zgodności)",
+                        similarityScore: sim
+                    ))
+                }
+            }
+        }
+        
+        return ImportProcessingResult(
+            totalScanned: incoming.count,
+            uniqueSongs: uniqueIncoming,
+            duplicateRecords: duplicates,
+            enrichmentRecords: enrichments,
+            existingCollisions: existingCollisions
+        )
+    }
+}
