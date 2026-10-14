@@ -129,6 +129,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // File Menu
         let fileMenuItem = NSMenuItem()
         let fileMenu = NSMenu(title: "Plik")
+        fileMenu.addItem(NSMenuItem(title: "Szybki tekst na żywo...", action: #selector(quickTextAction), keyEquivalent: "t"))
+        fileMenu.addItem(NSMenuItem.separator())
         fileMenu.addItem(NSMenuItem(title: "Importuj pieśni...", action: #selector(importAction), keyEquivalent: "i"))
         fileMenu.addItem(NSMenuItem(title: "Eksportuj całą bazę (JSON)...", action: #selector(exportJSONAction), keyEquivalent: "e"))
         fileMenu.addItem(NSMenuItem(title: "Eksportuj pieśni do folderu (.txt)...", action: #selector(exportFolderAction), keyEquivalent: ""))
@@ -225,6 +227,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         Task { @MainActor in
             _ = BackupService.shared.restoreBackupWithOpenPanel()
         }
+    }
+    
+    @objc private func quickTextAction() {
+        NotificationCenter.default.post(name: NSNotification.Name("OpenQuickTextSheet"), object: nil)
     }
     
     public func applicationWillTerminate(_ notification: Notification) {

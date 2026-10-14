@@ -147,6 +147,19 @@ public struct ShortcutLegendBarView: View {
                         }
                     )
                     
+                    // Quick text
+                    KeyboardShortcutItemView(
+                        iconName: "bolt.fill",
+                        iconColor: .orange,
+                        keyCapText: "⌘T",
+                        label: "Szybki tekst",
+                        scale: scale,
+                        heightFactor: heightFactor,
+                        action: {
+                            NotificationCenter.default.post(name: NSNotification.Name("OpenQuickTextSheet"), object: nil)
+                        }
+                    )
+                    
                     // Stop presentation (Standby)
                     KeyboardShortcutItemView(
                         iconName: "stop.circle.fill",

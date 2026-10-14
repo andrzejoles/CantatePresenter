@@ -174,6 +174,16 @@ public struct SongListView: View {
                     .buttonStyle(.bordered)
                     .controlSize(.small)
                     
+                    Button(action: {
+                        NotificationCenter.default.post(name: NSNotification.Name("OpenQuickTextSheet"), object: nil)
+                    }) {
+                        Label("Szybki tekst", systemImage: "bolt.fill")
+                            .font(.scaled(11, scale: scale))
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .help("Wyświetl natychmiast dowolny tekst lub ogłoszenie bez zapisywania w bazie (⌘T)")
+                    
                     Spacer()
                 }
             }
