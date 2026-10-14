@@ -19,6 +19,7 @@ public final class DataStore: ObservableObject {
     @Published public var isClearText: Bool = false
     
     @Published public var settings: AppSettings = AppSettings()
+    @Published public var temporarySong: Song?
     
     private let dataDirectory: URL
     private let songsFileURL: URL
@@ -72,6 +73,9 @@ public final class DataStore: ObservableObject {
     }
     
     public var selectedSong: Song? {
+        if let temp = temporarySong, temp.id == selectedSongId {
+            return temp
+        }
         guard let id = selectedSongId else { return songs.first }
         return songs.first(where: { $0.id == id })
     }
@@ -253,6 +257,28 @@ public final class DataStore: ObservableObject {
         self.isLive = true
         self.isBlackScreen = false
         self.isClearText = false
+    }
+    
+    /// Presents ad-hoc text or announcement on screen immediately without saving it to the database
+    public func presentQuickText(text: String, title: String? = nil) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        
+        let customTitle = (title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let songTitle = customTitle.isEmpty ? "Szybki tekst" : customTitle
+        
+        let quickSong = Song(
+            id: UUID(),
+            title: songTitle,
+            author: "Tymczasowy",
+            key: "",
+            tags: ["Szybki tekst"],
+            rawLyrics: trimmed
+        )
+        
+        self.temporarySong = quickSong
+        self.selectedSongId = quickSong.id
+        self.present(song: quickSong, slideIndex: 0)
     }
     
     public func nextSlide() {

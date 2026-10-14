@@ -12,6 +12,7 @@ public struct MainView: View {
     @State private var isShowingImportExport: Bool = false
     @State private var isShowingAuthorTitleLookup: Bool = false
     @State private var isShowingSettings: Bool = false
+    @State private var isShowingQuickText: Bool = false
     @State private var songToEdit: Song?
     @State private var lookupTargetSong: Song?
     
@@ -60,6 +61,21 @@ public struct MainView: View {
                     .background(Color.blue.opacity(0.12))
                     .cornerRadius(6)
                 }
+                
+                // Quick Text Presentation Button (Ad-hoc)
+                Button(action: { isShowingQuickText = true }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 11))
+                        Text("Szybki tekst")
+                            .font(.scaled(11, weight: .semibold, scale: scale))
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.orange)
+                .controlSize(.small)
+                .help("Wyświetl natychmiast dowolny tekst lub ogłoszenie bez zapisywania w bazie (⌘T)")
+                .keyboardShortcut("t", modifiers: [.command])
                 
                 Spacer()
                 
@@ -208,6 +224,12 @@ public struct MainView: View {
         .sheet(isPresented: $isShowingSettings) {
             SettingsSheet(isPresented: $isShowingSettings)
         }
+        .sheet(isPresented: $isShowingQuickText) {
+            QuickTextSheet(isPresented: $isShowingQuickText)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenQuickTextSheet"))) { _ in
+            isShowingQuickText = true
+        }
         .onAppear {
             setupGlobalKeyMonitor()
         }
@@ -221,9 +243,12 @@ public struct MainView: View {
                 return event
             }
             
-            // Command key combos for zooming
+            // Command key combos
             if event.modifierFlags.contains(.command) {
-                if event.characters == "=" || event.characters == "+" {
+                if event.charactersIgnoringModifiers == "t" || event.characters == "t" {
+                    isShowingQuickText = true
+                    return nil
+                } else if event.characters == "=" || event.characters == "+" {
                     store.zoomInUI()
                     return nil
                 } else if event.characters == "-" {
