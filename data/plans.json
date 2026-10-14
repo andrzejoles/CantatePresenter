@@ -1,30 +1,30 @@
 [
   {
-    "id" : "A4DE0B58-1D60-4A5C-AA5F-5B620B9E7BDF",
-    "name" : "Niedziela - Zestaw pieśni",
-    "createdAt" : "2026-10-14T18:25:56Z",
-    "updatedAt" : "2026-10-14T18:25:56Z",
     "items" : [
       {
-        "songId" : "3D3D69B4-CB7B-409B-9D0E-9FC37495BEE2",
-        "id" : "C4598F2B-A966-4BCC-8429-5654A9813397",
-        "note" : ""
+        "id" : "608EE6B3-0E99-499E-ADE9-C3EA314400B2",
+        "note" : "",
+        "songId" : "0E434869-A75B-4AAB-A7FA-E3DA51979CAE"
       },
       {
-        "songId" : "78151974-19F3-4AE6-AF4D-42AF8849A3F6",
-        "id" : "A8ECF7A2-022E-4A97-A426-4385F998F957",
-        "note" : ""
+        "id" : "B5259A91-B86D-433A-A6EB-93D184C7ADB8",
+        "note" : "",
+        "songId" : "10DCAA39-E6D7-4BE2-B2AE-203756C2DC5C"
       },
       {
-        "songId" : "15215390-BA6F-4A0D-8BBF-5319473CDF53",
-        "id" : "11C73339-019C-46D1-A7D8-18449F5E2D87",
-        "note" : ""
+        "id" : "DDE0627A-1BC5-431E-B42E-9B44AD3301DD",
+        "note" : "",
+        "songId" : "DDA31CCE-71BA-418B-B3C8-B2A5CC415C45"
       },
       {
-        "songId" : "5A513B2F-D50B-4381-963C-C5269D031D69",
-        "id" : "8142FFE9-DEFF-4C19-A816-1EB41DC61CA9",
-        "note" : ""
+        "id" : "41D3B7C2-B0E7-4D77-B572-E841E82170AA",
+        "note" : "",
+        "songId" : "FC9E36FE-290D-4D16-ACC6-E9876F84DA7E"
       }
-    ]
+    ],
+    "updatedAt" : "2026-10-14T18:57:36Z",
+    "id" : "EE346A3B-FFFF-4A7C-91FC-78BEE728E1F5",
+    "name" : "Niedziela - Zestaw pieśni",
+    "createdAt" : "2026-10-14T18:57:36Z"
   }
 ]
