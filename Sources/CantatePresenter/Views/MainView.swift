@@ -109,6 +109,17 @@ public struct MainView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .help("Ustawienia wyglądu i prezentacji")
+                
+                // User Manual button
+                Button(action: {
+                    NSApp.sendAction(#selector(AppDelegate.openUserManualAction), to: nil, from: nil)
+                }) {
+                    Image(systemName: "questionmark.circle")
+                        .font(.system(size: 13))
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .help("Instrukcja obsługi CantatePresenter (Cmd ?)")
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)

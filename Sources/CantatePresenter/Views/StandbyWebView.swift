@@ -57,10 +57,13 @@ public struct StandbyWebView: NSViewRepresentable {
             if fileManager.fileExists(atPath: defaultURL.path) {
                 targetURL = defaultURL
             } else {
+                let resolvedLogoId = !activeLogoId.isEmpty ? activeLogoId : DataStore.shared.settings.activeLogoId
+                let logoPreset = LogoCatalog.getById(resolvedLogoId)
                 webView.loadHTMLString("""
                 <!DOCTYPE html><html><body style="background:#0a0e1a;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:-apple-system,sans-serif;">
-                <h1 style="font-size:42px;margin:0;">Worship Presenter</h1>
-                <p style="color:#38bdf8;font-size:18px;">Wersja 1.0.0 — Gotowy do projekcji</p>
+                <div style="width:140px;height:140px;margin-bottom:18px;">\(logoPreset.svgContent)</div>
+                <h1 style="font-size:42px;margin:0;font-weight:700;">CantatePresenter</h1>
+                <p style="color:#94a3b8;font-size:18px;margin-top:8px;">Wersja 1.0.0</p>
                 </body></html>
                 """, baseURL: nil)
                 return

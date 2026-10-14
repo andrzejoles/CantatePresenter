@@ -65,18 +65,22 @@ public struct LiveOutputView: View {
                                 .font(.scaled(11, weight: .bold, scale: scale))
                                 .foregroundColor(.white.opacity(0.5))
                         } else if !store.isLive {
-                            Color(hex: "#0e111d")
-                            VStack(spacing: 6) {
-                                Image(systemName: "sparkles.tv")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(.cyan)
-                                Text("PLANSZA STARTOWA")
-                                    .font(.scaled(11, weight: .bold, scale: scale))
+                            Color(hex: "#0b0f19")
+                            VStack(spacing: 4) {
+                                let activeLogo = LogoCatalog.getById(store.settings.activeLogoId)
+                                SVGThumbnailView(svgString: activeLogo.svgContent)
+                                    .frame(width: 58, height: 58)
+                                    .cornerRadius(6)
+                                
+                                Text("CantatePresenter")
+                                    .font(.scaled(12, weight: .bold, scale: scale))
                                     .foregroundColor(.white)
-                                Text("CantatePresenter v1.0.0 • Standby")
-                                    .font(.scaled(9, scale: scale))
-                                    .foregroundColor(.white.opacity(0.6))
+                                
+                                Text("Wersja 1.0.0")
+                                    .font(.scaled(9, weight: .medium, scale: scale))
+                                    .foregroundColor(.white.opacity(0.75))
                             }
+                            .padding(6)
                         } else if store.isClearText {
                             bgColor
                             Text("TEKST UKRYTY")
