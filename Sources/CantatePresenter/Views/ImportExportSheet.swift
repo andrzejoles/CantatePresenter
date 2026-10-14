@@ -13,9 +13,14 @@ public struct ImportExportSheet: View {
     @State private var isSuccessStatus: Bool = true
     
     @State private var pendingImportReport: ImportProcessingResult?
-    @State private var isShowingReviewSheet: Bool = false
     @State private var isShowingGoogleDriveBackups: Bool = false
     @State private var isUploadingToDrive: Bool = false
+    
+    // Asynchronous background progress state
+    @State private var isProcessingImport: Bool = false
+    @State private var importProgressValue: Double = 0.0
+    @State private var importProgressTitle: String = ""
+    @State private var importProgressDetail: String = ""
     
     private let sampleMuflPath = "/Users/aoles/dev_gem/2026-10-14_16-19-00.mufl"
     
@@ -34,6 +39,33 @@ public struct ImportExportSheet: View {
     public var body: some View {
         let scale = store.settings.uiScale
         
+        Group {
+            if isShowingGoogleDriveBackups {
+                GoogleDriveBackupsSheet(isPresented: $isShowingGoogleDriveBackups)
+                    .frame(minWidth: 700, minHeight: 520)
+            } else if let report = pendingImportReport {
+                ImportReviewSheet(
+                    report: report,
+                    onCommit: { songsToCommit in
+                        store.addSongs(songsToCommit)
+                        pendingImportReport = nil
+                        isSuccessStatus = true
+                        statusMessage = "Pomyślnie zaimportowano \(songsToCommit.count) pieśni do biblioteki! (Wzbogacono \(report.enrichmentRecords.count), pominięto \(report.duplicateRecords.count) duplikatów)"
+                    },
+                    onCancel: {
+                        pendingImportReport = nil
+                    }
+                )
+                .frame(minWidth: 800, minHeight: 600)
+            } else {
+                mainImportExportContent(scale: scale)
+                    .frame(minWidth: 640, minHeight: 520)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func mainImportExportContent(scale: CGFloat) -> some View {
         VStack(spacing: 0) {
             // Header
             HStack {
@@ -58,6 +90,7 @@ public struct ImportExportSheet: View {
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding(14)
+            .disabled(isProcessingImport)
             
             Divider()
             
@@ -111,6 +144,38 @@ public struct ImportExportSheet: View {
                     } else if selectedTab == 1 {
                         // MARK: - IMPORT
                         
+                        // Active Import Progress Card
+                        if isProcessingImport {
+                            VStack(spacing: 14) {
+                                HStack(spacing: 12) {
+                                    ProgressView()
+                                        .controlSize(.regular)
+                                    
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(importProgressTitle)
+                                            .font(.scaled(13, weight: .bold, scale: scale))
+                                            .foregroundColor(.purple)
+                                        
+                                        Text(importProgressDetail)
+                                            .font(.scaled(11, scale: scale))
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(2)
+                                    }
+                                    Spacer()
+                                }
+                                
+                                ProgressView(value: importProgressValue, total: 1.0)
+                                    .progressViewStyle(LinearProgressViewStyle(tint: .purple))
+                            }
+                            .padding(16)
+                            .background(Color.purple.opacity(0.08))
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.purple.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                        
                         // Highlighted Banner for sample .mufl file if available
                         if hasSampleMuflFile {
                             HStack(alignment: .center, spacing: 14) {
@@ -136,6 +201,7 @@ public struct ImportExportSheet: View {
                                 }
                                 .buttonStyle(.borderedProminent)
                                 .tint(.purple)
+                                .disabled(isProcessingImport)
                             }
                             .padding(12)
                             .background(Color.purple.opacity(0.08))
@@ -160,6 +226,7 @@ public struct ImportExportSheet: View {
                                             .font(.scaled(12, scale: scale))
                                     }
                                     .buttonStyle(.borderedProminent)
+                                    .disabled(isProcessingImport)
                                     
                                     Button(action: {
                                         pickAndProcessFiles(chooseDirectories: true)
@@ -168,6 +235,7 @@ public struct ImportExportSheet: View {
                                             .font(.scaled(12, scale: scale))
                                     }
                                     .buttonStyle(.bordered)
+                                    .disabled(isProcessingImport)
                                 }
                             }
                             .padding(8)
@@ -276,26 +344,6 @@ public struct ImportExportSheet: View {
                 .padding(16)
             }
         }
-        .frame(minWidth: 580, minHeight: 480)
-        .sheet(isPresented: $isShowingReviewSheet) {
-            if let report = pendingImportReport {
-                ImportReviewSheet(
-                    report: report,
-                    onCommit: { songsToCommit in
-                        store.addSongs(songsToCommit)
-                        isShowingReviewSheet = false
-                        isSuccessStatus = true
-                        statusMessage = "Pomyślnie zaimportowano \(songsToCommit.count) pieśni do biblioteki! (Wzbogacono \(report.enrichmentRecords.count), pominięto \(report.duplicateRecords.count) duplikatów)"
-                    },
-                    onCancel: {
-                        isShowingReviewSheet = false
-                    }
-                )
-            }
-        }
-        .sheet(isPresented: $isShowingGoogleDriveBackups) {
-            GoogleDriveBackupsSheet(isPresented: $isShowingGoogleDriveBackups)
-        }
     }
     
     private func performExport() {
@@ -332,10 +380,37 @@ public struct ImportExportSheet: View {
     }
     
     private func importFromPath(_ path: String) {
-        let url = URL(fileURLWithPath: path)
-        let (_, report) = HolyricsImporter.importFromURLWithReport(url, existingLibrary: store.songs)
-        self.pendingImportReport = report
-        self.isShowingReviewSheet = true
+        statusMessage = nil
+        isProcessingImport = true
+        importProgressValue = 0.1
+        importProgressTitle = "Wczytywanie bazy Holyrics (.mufl)..."
+        importProgressDetail = "Odczyt i parsowanie bazy danych..."
+        
+        Task.detached(priority: .userInitiated) {
+            let url = URL(fileURLWithPath: path)
+            
+            await MainActor.run {
+                self.importProgressValue = 0.35
+                self.importProgressTitle = "Deserializacja rekordów Holyrics..."
+                self.importProgressDetail = "Parsowanie obiektów pieśni..."
+            }
+            
+            let existing = await MainActor.run { self.store.songs }
+            
+            await MainActor.run {
+                self.importProgressValue = 0.65
+                self.importProgressTitle = "Deduplikacja i wzbogacanie metadanych..."
+                self.importProgressDetail = "Wykrywanie duplikatów, naprawa polskich znaków i dopasowywanie autorów..."
+            }
+            
+            let (_, report) = HolyricsImporter.importFromURLWithReport(url, existingLibrary: existing)
+            
+            await MainActor.run {
+                self.importProgressValue = 1.0
+                self.isProcessingImport = false
+                self.pendingImportReport = report
+            }
+        }
     }
     
     private func pickAndProcessFiles(chooseDirectories: Bool) {
@@ -349,20 +424,53 @@ public struct ImportExportSheet: View {
         panel.message = "Wybierz pliki Holyrics (.mufl), pliki tekstowe lub archiwa"
         
         if panel.runModal() == .OK {
-            var rawSongs: [Song] = []
-            for url in panel.urls {
-                rawSongs.append(contentsOf: TextImporter.importFromURL(url))
-            }
-            guard !rawSongs.isEmpty else {
-                isSuccessStatus = false
-                statusMessage = "Nie znaleziono żadnych pieśni w wybranych plikach."
-                return
-            }
+            let urls = panel.urls
+            guard !urls.isEmpty else { return }
             
-            // Deduplicate and enrich
-            let report = SongDeduplicationService.shared.processAndDeduplicate(incoming: rawSongs, existingLibrary: store.songs)
-            self.pendingImportReport = report
-            self.isShowingReviewSheet = true
+            isProcessingImport = true
+            importProgressValue = 0.05
+            importProgressTitle = "Wczytywanie wybranych plików..."
+            importProgressDetail = "Przygotowywanie do analizy..."
+            
+            Task.detached(priority: .userInitiated) {
+                var rawSongs: [Song] = []
+                let totalFiles = urls.count
+                
+                for (idx, url) in urls.enumerated() {
+                    let progress = 0.1 + (0.5 * Double(idx) / Double(totalFiles))
+                    await MainActor.run {
+                        self.importProgressValue = progress
+                        self.importProgressTitle = "Wczytywanie pliku \(idx + 1) z \(totalFiles)..."
+                        self.importProgressDetail = url.lastPathComponent
+                    }
+                    rawSongs.append(contentsOf: TextImporter.importFromURL(url))
+                }
+                
+                guard !rawSongs.isEmpty else {
+                    await MainActor.run {
+                        self.isProcessingImport = false
+                        self.isSuccessStatus = false
+                        self.statusMessage = "Nie znaleziono żadnych pieśni w wybranych plikach."
+                    }
+                    return
+                }
+                
+                let rawCount = rawSongs.count
+                await MainActor.run {
+                    self.importProgressValue = 0.75
+                    self.importProgressTitle = "Deduplikacja i wzbogacanie (\(rawCount) pieśni)..."
+                    self.importProgressDetail = "Porównywanie tekstów, wykrywanie duplikatów i uzupełnianie autorów..."
+                }
+                
+                let existing = await MainActor.run { self.store.songs }
+                let report = SongDeduplicationService.shared.processAndDeduplicate(incoming: rawSongs, existingLibrary: existing)
+                
+                await MainActor.run {
+                    self.importProgressValue = 1.0
+                    self.isProcessingImport = false
+                    self.pendingImportReport = report
+                }
+            }
         }
     }
     
@@ -373,7 +481,7 @@ public struct ImportExportSheet: View {
         let success = BackupService.shared.exportBackupWithSavePanel()
         if success {
             isSuccessStatus = true
-            statusMessage = "Pomyślnie utworzono i wyeksportowano pełną kopię zapasową (.holyricsbackup)!"
+            statusMessage = "Pomyślnie utworzono i wyeksportowano pełną kopię zapasową (.cantatebackup)!"
         }
     }
     

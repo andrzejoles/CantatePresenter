@@ -67,43 +67,49 @@ public struct HolyricsImporter {
     }
     
     /// Imports songs from any Holyrics file (.muf, .mufl, .hly, .holyrics, .xml, .json, .txt) with basic deduplication
+    /// Reads raw songs from any Holyrics file without deduplication (for batch processing)
+    public static func readRawSongs(from url: URL) -> [Song] {
+        let ext = url.pathExtension.lowercased()
+        
+        // 1. ZIP package
+        if ext == "zip" || ext == "hly" || ext == "holyrics" {
+            if let zipSongs = importFromArchive(at: url), !zipSongs.isEmpty {
+                return zipSongs
+            }
+        }
+        
+        // 2. Java ObjectStream (.mufl / .muf)
+        if let fileData = try? Data(contentsOf: url), HolyricsJavaDeserializer.isJavaSerializedStream(fileData) {
+            let deserializer = HolyricsJavaDeserializer(data: fileData)
+            if let rawRecords = try? deserializer.deserializeMusicRecords(), !rawRecords.isEmpty {
+                return rawRecords.map { convertRawRecordToSong($0) }
+            }
+        }
+        
+        // 3. Text parsing (JSON, XML, or tagged TXT)
+        guard let content = TextImporter.readTextWithBestEncoding(from: url) else {
+            return []
+        }
+        
+        let filename = url.deletingPathExtension().lastPathComponent
+        return parseHolyricsContent(content, fallbackTitle: filename)
+    }
+    
+    /// Imports songs from any Holyrics file (.muf, .mufl, .hly, .holyrics, .xml, .json, .txt) with basic deduplication
     public static func importFromURL(_ url: URL) -> [Song] {
-        let (songs, _) = importFromURLWithReport(url, existingLibrary: [])
-        return songs
+        return readRawSongs(from: url)
     }
     
     /// Imports songs with rich deduplication and metadata enrichment report
     public static func importFromURLWithReport(_ url: URL, existingLibrary: [Song]) -> (songs: [Song], report: ImportProcessingResult) {
-        let ext = url.pathExtension.lowercased()
-        
-        // 1. Check if it's a ZIP package (Holyrics backups or .hly archives)
-        if ext == "zip" || ext == "hly" || ext == "holyrics" {
-            if let zipSongs = importFromArchive(at: url), !zipSongs.isEmpty {
-                let result = SongDeduplicationService.shared.processAndDeduplicate(incoming: zipSongs, existingLibrary: existingLibrary)
-                return (result.uniqueSongs, result)
-            }
+        let rawSongs = readRawSongs(from: url)
+        if !rawSongs.isEmpty {
+            let result = SongDeduplicationService.shared.processAndDeduplicate(incoming: rawSongs, existingLibrary: existingLibrary)
+            return (result.uniqueSongs, result)
         }
         
-        // 2. Read raw binary data to check for Java ObjectStream (.mufl / .muf)
-        if let fileData = try? Data(contentsOf: url), HolyricsJavaDeserializer.isJavaSerializedStream(fileData) {
-            let deserializer = HolyricsJavaDeserializer(data: fileData)
-            if let rawRecords = try? deserializer.deserializeMusicRecords(), !rawRecords.isEmpty {
-                let parsedSongs = rawRecords.map { convertRawRecordToSong($0) }
-                let result = SongDeduplicationService.shared.processAndDeduplicate(incoming: parsedSongs, existingLibrary: existingLibrary)
-                return (result.uniqueSongs, result)
-            }
-        }
-        
-        // 3. Fallback to text parsing (JSON, XML, or tagged TXT)
-        guard let content = TextImporter.readTextWithBestEncoding(from: url) else {
-            let emptyResult = ImportProcessingResult(totalScanned: 0, uniqueSongs: [], duplicateRecords: [], enrichmentRecords: [], existingCollisions: [])
-            return ([], emptyResult)
-        }
-        
-        let filename = url.deletingPathExtension().lastPathComponent
-        let parsedSongs = parseHolyricsContent(content, fallbackTitle: filename)
-        let result = SongDeduplicationService.shared.processAndDeduplicate(incoming: parsedSongs, existingLibrary: existingLibrary)
-        return (result.uniqueSongs, result)
+        let emptyResult = ImportProcessingResult(totalScanned: 0, uniqueSongs: [], duplicateRecords: [], enrichmentRecords: [], existingCollisions: [])
+        return ([], emptyResult)
     }
     
     /// Parses string content formatted as Holyrics Music File (.muf/.mufl), JSON, XML, or tagged TXT
