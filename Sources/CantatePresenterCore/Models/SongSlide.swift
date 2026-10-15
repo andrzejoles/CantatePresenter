@@ -14,6 +14,12 @@ public enum SlideType: String, Codable, CaseIterable {
     case blank = "Pusty"
     case custom = "Własny"
     
+    /// Nieznany typ (np. z nowszej wersji aplikacji) staje się `.custom` zamiast psuć całą bibliotekę.
+    public init(from decoder: Decoder) throws {
+        let rawValue = try decoder.singleValueContainer().decode(String.self)
+        self = SlideType(rawValue: rawValue) ?? .custom
+    }
+    
     public var shortBadge: String {
         switch self {
         case .verse: return "Z"
@@ -43,6 +49,19 @@ public struct SongSlide: Identifiable, Codable, Equatable, Hashable {
         self.type = type
         self.label = label
         self.text = text
+    }
+    
+    // MARK: - Codable
+    private enum CodingKeys: String, CodingKey {
+        case id, type, label, text
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        self.type = try container.decodeIfPresent(SlideType.self, forKey: .type) ?? .verse
+        self.label = try container.decodeIfPresent(String.self, forKey: .label) ?? type.rawValue
+        self.text = try container.decodeIfPresent(String.self, forKey: .text) ?? ""
     }
     
     public var lines: [String] {
