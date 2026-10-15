@@ -15,7 +15,7 @@ public struct BackupManifest: Codable {
     public let comment: String?
     
     public init(
-        version: String = "1.0.0",
+        version: String = AppVersion.current,
         appName: String = "CantatePresenter",
         createdAt: Date = Date(),
         deviceName: String = Host.current().localizedName ?? "Mac",

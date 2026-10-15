@@ -227,7 +227,7 @@ public struct SettingsSheet: View {
                                     .font(.scaled(12, weight: .medium, scale: scale))
                                     .frame(width: 120, alignment: .leading)
                                 
-                                TextField(L("Domyślna plansza (Holyrics Mac v1.0.0)"), text: $store.settings.standbyHtmlPath)
+                                TextField(L("Domyślna plansza"), text: $store.settings.standbyHtmlPath)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .font(.scaled(11, scale: scale))
                                 

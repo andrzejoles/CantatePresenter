@@ -98,7 +98,7 @@ public struct StandbyWebView: NSViewRepresentable {
                 <!DOCTYPE html><html><body style="background:#0a0e1a;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:-apple-system,sans-serif;">
                 <div style="width:140px;height:140px;margin-bottom:18px;">\(logoPreset.svgContent)</div>
                 <h1 style="font-size:42px;margin:0;font-weight:700;">CantatePresenter</h1>
-                <p style="color:#94a3b8;font-size:18px;margin-top:8px;">Wersja 1.0.0</p>
+                <p style="color:#94a3b8;font-size:18px;margin-top:8px;">\(L("Wersja {0}", AppVersion.current))</p>
                 </body></html>
                 """, credits: StandbyCredits.text), baseURL: nil)
                 return
@@ -118,6 +118,8 @@ public struct StandbyWebView: NSViewRepresentable {
                 htmlContent = regex.stringByReplacingMatches(in: htmlContent, options: [], range: range, withTemplate: replacement)
             }
             
+            // Numer wersji w domyślnej planszy z Info.plist, nie wpisany na sztywno (N10).
+            htmlContent = htmlContent.replacingOccurrences(of: "Wersja 1.0.0", with: L("Wersja {0}", AppVersion.current))
             webView.loadHTMLString(StandbyCredits.inject(into: htmlContent, credits: StandbyCredits.text), baseURL: targetURL.deletingLastPathComponent())
         } else {
             webView.loadFileURL(targetURL, allowingReadAccessTo: targetURL.deletingLastPathComponent())

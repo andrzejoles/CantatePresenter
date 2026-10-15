@@ -98,7 +98,15 @@ else
     echo "=== Logowanie Google: brak $GOOGLE_CLIENT_JSON, przycisk logowania będzie nieaktywny ==="
 fi
 
+# Wersja z pliku VERSION, numer kompilacji z liczby commitów (N10)
+VERSION="$(tr -d '[:space:]' < "$DIR/VERSION")"
+BUILD_NUMBER="$(git -C "$DIR" rev-list --count HEAD 2>/dev/null || echo 1)"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$CONTENTS_DIR/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$CONTENTS_DIR/Info.plist"
+
 echo "=== Podpisywanie aplikacji (ad-hoc codesign) ==="
-codesign --force --deep -s - "$APP_DIR" || true
+# Bez `|| true`: nieudany podpis ma przerwać budowanie. Bez odradzanego `--deep`.
+codesign --force --sign - "$APP_DIR"
+codesign --verify --strict "$APP_DIR"
 
 echo "=== Gotowe! Aplikacja została pomyślnie utworzona: $APP_DIR ==="

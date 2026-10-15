@@ -70,7 +70,7 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] **S11** Twarde ścieżki `/Users/aoles/dev_gem/...` w kodzie i README; `INSTRUKCJA.md` i próbka jako zasoby pakietu.
 - [x] **N11** Po „szybkim tekście” następna pieśń to pierwsza z planu zamiast kolejnej.
 - [ ] **N9** Higiena repozytorium (pliki danych i próbki w gicie, `.gitignore`).
-- [ ] **N10** Skrypty budowania ukrywają błędy podpisu; wersja w trzech miejscach.
+- [x] **N10** Skrypty budowania ukrywają błędy podpisu; wersja w trzech miejscach.
 - [ ] **S8** Logo wstawiane regexem i zapisywane do `standby.html` (dwie kopie logiki); przy okazji tłumaczenie tekstów planszy („Wersja”, „GOTOWY DO PROJEKCJI”).
 - [ ] **S9** Wyszukiwanie „online”: fragmenty z DuckDuckGo zapisywane jako tekst pieśni, scrapowanie niezgodne z regulaminem. Wymaga decyzji, co z funkcji zostaje.
 - [ ] **N2** Ustawienia typowane stringami (`"left"`, `"lewo"`) → enumy z tolerancyjnym dekoderem.

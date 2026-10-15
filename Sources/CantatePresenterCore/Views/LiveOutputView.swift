@@ -97,7 +97,7 @@ public struct LiveOutputView: View {
                                         .font(.scaled(max(11.0, size.height * 0.085), weight: .bold, scale: scale))
                                         .foregroundColor(.white)
                                     
-                                    Text(L("Wersja 1.0.0"))
+                                    Text(L("Wersja {0}", AppVersion.current))
                                         .font(.scaled(max(8.5, size.height * 0.06), weight: .medium, scale: scale))
                                         .foregroundColor(.white.opacity(0.75))
                                 }
