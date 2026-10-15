@@ -141,6 +141,34 @@
         }
       }
     },
+    "(usunięta pieśń)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(deleted song)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(gelöschtes Lied)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(canto eliminado)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(видалена пісня)"
+          }
+        }
+      }
+    },
     "(wcześniej: {0})": {
       "localizations": {
         "en": {
@@ -1345,6 +1373,34 @@
         }
       }
     },
+    "Bez tytułu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Titel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin título"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без назви"
+          }
+        }
+      }
+    },
     "Biały": {
       "localizations": {
         "en": {
@@ -1369,6 +1425,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Білий"
+          }
+        }
+      }
+    },
+    "Biblioteka jest pusta. Dodaj pieśń albo zaimportuj pliki.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The library is empty. Add a song or import files."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Bibliothek ist leer. Füge ein Lied hinzu oder importiere Dateien."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La biblioteca está vacía. Añade un canto o importa archivos."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Бібліотека порожня. Додайте пісню або імпортуйте файли."
           }
         }
       }
@@ -2297,6 +2381,34 @@
         }
       }
     },
+    "Błąd serwera ({0}). Spróbuj ponownie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server error ({0}). Please try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serverfehler ({0}). Bitte erneut versuchen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error del servidor ({0}). Inténtalo de nuevo."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помилка сервера ({0}). Спробуйте ще раз."
+          }
+        }
+      }
+    },
     "Błąd sieci": {
       "localizations": {
         "en": {
@@ -2913,6 +3025,34 @@
         }
       }
     },
+    "Cień tekstu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text shadow"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Textschatten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sombra del texto"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тінь тексту"
+          }
+        }
+      }
+    },
     "Coda": {
       "localizations": {
         "en": {
@@ -2993,6 +3133,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Скасувати останнє відновлення..."
+          }
+        }
+      }
+    },
+    "Cofnij ostatnie przywrócenie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo last restore"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte Wiederherstellung rückgängig machen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deshacer la última restauración"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скасувати останнє відновлення"
           }
         }
       }
@@ -3221,6 +3389,34 @@
         }
       }
     },
+    "Czcionka": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Font"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schriftart"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fuente"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шрифт"
+          }
+        }
+      }
+    },
     "Czcionka systemowa:": {
       "localizations": {
         "en": {
@@ -3245,6 +3441,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Системний шрифт:"
+          }
+        }
+      }
+    },
+    "Czy na pewno usunąć pieśń „{0}”?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete the song “{0}”?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Lied „{0}“ wirklich löschen?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Eliminar el canto «{0}»?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити пісню «{0}»?"
           }
         }
       }
@@ -3333,6 +3557,34 @@
         }
       }
     },
+    "Dane są przechowywane na prywatnym serwerze; dostęp wymaga hasła i kodu z aplikacji uwierzytelniającej.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data is stored on a private server; access requires a password and an authenticator app code."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Daten liegen auf einem privaten Server; der Zugriff erfordert ein Passwort und einen Code aus der Authenticator-App."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los datos se guardan en un servidor privado; el acceso requiere contraseña y un código de la aplicación de autenticación."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дані зберігаються на приватному сервері; для доступу потрібні пароль і код із застосунку автентифікації."
+          }
+        }
+      }
+    },
     "Dane wrócą do stanu sprzed ostatniego przywrócenia kopii zapasowej. Dane z przywróconej kopii zostaną usunięte.": {
       "localizations": {
         "en": {
@@ -3357,6 +3609,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Дані повернуться до стану перед останнім відновленням резервної копії. Дані з відновленої копії буде видалено."
+          }
+        }
+      }
+    },
+    "Dane zmieniono na innym urządzeniu. Wczytać najnowszą wersję? Ostatnia zmiana na tym komputerze nie zostanie zapisana.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The data was changed on another device. Load the latest version? The last change on this computer will not be saved."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Daten wurden auf einem anderen Gerät geändert. Neueste Version laden? Die letzte Änderung auf diesem Computer wird nicht gespeichert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los datos se cambiaron en otro dispositivo. ¿Cargar la versión más reciente? El último cambio en este ordenador no se guardará."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дані змінено на іншому пристрої. Завантажити найновішу версію? Остання зміна на цьому комп’ютері не буде збережена."
           }
         }
       }
@@ -3585,6 +3865,34 @@
         }
       }
     },
+    "Do środka": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Center"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zentriert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Centrado"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По центру"
+          }
+        }
+      }
+    },
     "Docelowy ekran:": {
       "localizations": {
         "en": {
@@ -3637,6 +3945,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Додати до активного плану"
+          }
+        }
+      }
+    },
+    "Dodaj do planu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to plan"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Ablauf hinzufügen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir al plan"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додати до плану"
+          }
+        }
+      }
+    },
+    "Dodano do planu „{0}”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to plan “{0}”"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Ablauf „{0}“ hinzugefügt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadido al plan «{0}»"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додано до плану «{0}»"
           }
         }
       }
@@ -4365,6 +4729,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Екрани та проєктор"
+          }
+        }
+      }
+    },
+    "Eksport": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Експорт"
           }
         }
       }
@@ -5321,6 +5713,34 @@
         }
       }
     },
+    "Hasło": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passwort"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пароль"
+          }
+        }
+      }
+    },
     "Hiszpański / Español": {
       "localizations": {
         "en": {
@@ -6021,6 +6441,34 @@
         }
       }
     },
+    "Język interfejsu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interface language"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprache der Oberfläche"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idioma de la interfaz"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мова інтерфейсу"
+          }
+        }
+      }
+    },
     "Język rozpoznawania mowy (domyślnie polski pl-PL) można ustawić w Ustawieniach.": {
       "localizations": {
         "en": {
@@ -6609,6 +7057,34 @@
         }
       }
     },
+    "Kliknij dwukrotnie albo naciśnij F, aby włączyć pełny ekran.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-click or press F for full screen."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doppelklicken oder F drücken für Vollbild."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haz doble clic o pulsa F para pantalla completa."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Двічі клацніть або натисніть F для повноекранного режиму."
+          }
+        }
+      }
+    },
     "Kliknij ikonę mikrofonu w edytorze lub obok paska szukania, aby podyktować słowa pieśni lub wyszukać utwór głosem.": {
       "localizations": {
         "en": {
@@ -6777,6 +7253,90 @@
         }
       }
     },
+    "Kod": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Код"
+          }
+        }
+      }
+    },
+    "Kod z aplikacji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code from the app"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code aus der App"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código de la aplicación"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Код із застосунку"
+          }
+        }
+      }
+    },
+    "Kody zapasowe": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup codes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup-Codes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Códigos de respaldo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резервні коди"
+          }
+        }
+      }
+    },
     "Kolizje z bazą ({0})": {
       "localizations": {
         "en": {
@@ -6805,6 +7365,34 @@
         }
       }
     },
+    "Kolor tekstu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text color"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Textfarbe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color del texto"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Колір тексту"
+          }
+        }
+      }
+    },
     "Kolor tekstu:": {
       "localizations": {
         "en": {
@@ -6829,6 +7417,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Колір тексту:"
+          }
+        }
+      }
+    },
+    "Kolor tła": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Background color"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hintergrundfarbe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color de fondo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Колір тла"
           }
         }
       }
@@ -6917,6 +7533,62 @@
         }
       }
     },
+    "Konfiguracja weryfikacji dwuetapowej": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up two-step verification"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zwei-Schritt-Verifizierung einrichten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurar la verificación en dos pasos"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Налаштування двоетапної перевірки"
+          }
+        }
+      }
+    },
+    "Koniec planu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End of plan"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ende des Ablaufs"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fin del plan"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кінець плану"
+          }
+        }
+      }
+    },
     "Konto Google:": {
       "localizations": {
         "en": {
@@ -7001,6 +7673,34 @@
         }
       }
     },
+    "Kopia zapasowa": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia de seguridad"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резервна копія"
+          }
+        }
+      }
+    },
     "Kopia zapasowa (.holyricsbackup) zawiera: całą bazę pieśni ({0}), plany nabożeństw ({1}), chwyty gitarowe, wszystkie ustawienia programu, stronę początkową Standby, języki tłumaczeń oraz oficjalne loga.": {
       "localizations": {
         "en": {
@@ -7081,6 +7781,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Резервна копія та Google Диск"
+          }
+        }
+      }
+    },
+    "Kopia zapasowa jest uszkodzona: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The backup is damaged: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Sicherung ist beschädigt: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copia de seguridad está dañada: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резервна копія пошкоджена: {0}"
           }
         }
       }
@@ -7333,6 +8061,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ліцензія: дивіться сторінку джерела"
+          }
+        }
+      }
+    },
+    "Logowanie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmelden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar sesión"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вхід"
           }
         }
       }
@@ -7645,6 +8401,34 @@
         }
       }
     },
+    "NA ŻYWO": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LIVE"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LIVE"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EN VIVO"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "НАЖИВО"
+          }
+        }
+      }
+    },
     "NASTĘPNY": {
       "localizations": {
         "en": {
@@ -7753,6 +8537,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "На першому слайді"
+          }
+        }
+      }
+    },
+    "Na serwerze są nieczytelne pliki danych ({0}). Zapis do nich jest zablokowany; kopia uszkodzonego pliku jest w katalogu danych.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server has unreadable data files ({0}). Saving to them is blocked; a copy of the damaged file is in the data folder."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf dem Server gibt es unlesbare Datendateien ({0}). Das Speichern ist gesperrt; eine Kopie der beschädigten Datei liegt im Datenordner."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El servidor tiene archivos de datos ilegibles ({0}). El guardado está bloqueado; hay una copia del archivo dañado en la carpeta de datos."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На сервері є нечитабельні файли даних ({0}). Запис до них заблоковано; копія пошкодженого файлу є в каталозі даних."
           }
         }
       }
@@ -8149,6 +8961,34 @@
         }
       }
     },
+    "Nazwa planu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name des Ablaufs"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre del plan"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назва плану"
+          }
+        }
+      }
+    },
     "Nazwa planu (np. Niedziela 10:00)": {
       "localizations": {
         "en": {
@@ -8173,6 +9013,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Назва плану (напр. Неділя 10:00)"
+          }
+        }
+      }
+    },
+    "Nie masz dostępu do aplikacji? Wpisz jeden z kodów zapasowych.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No access to the app? Enter one of your backup codes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Zugriff auf die App? Gib einen deiner Backup-Codes ein."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿No tienes acceso a la aplicación? Introduce uno de tus códigos de respaldo."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає доступу до застосунку? Введіть один із резервних кодів."
+          }
+        }
+      }
+    },
+    "Nie możesz zeskanować? Wpisz klucz ręcznie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can't scan? Enter the key manually"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scannen nicht möglich? Schlüssel manuell eingeben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿No puedes escanear? Introduce la clave manualmente"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдається відсканувати? Введіть ключ вручну"
           }
         }
       }
@@ -8681,6 +9577,34 @@
         }
       }
     },
+    "Nie udało się zapisać danych ({0}). Sprawdź połączenie z serwerem.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save data ({0}). Check the connection to the server."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten konnten nicht gespeichert werden ({0}). Prüfe die Verbindung zum Server."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron guardar los datos ({0}). Comprueba la conexión con el servidor."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося зберегти дані ({0}). Перевірте з’єднання із сервером."
+          }
+        }
+      }
+    },
     "Nie udzielono dostępu do Dysku Google. Połącz ponownie i na ekranie zgody zaznacz dostęp do plików na Dysku.": {
       "localizations": {
         "en": {
@@ -8705,6 +9629,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Доступ до Google Диска не надано. Під’єднайте знову й на екрані згоди дозвольте доступ до файлів на Диску."
+          }
+        }
+      }
+    },
+    "Nie znaleziono pieśni": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No songs found"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Lieder gefunden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encontraron cantos"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пісень не знайдено"
           }
         }
       }
@@ -8849,6 +9801,34 @@
         }
       }
     },
+    "Nieprawidłowe dane logowania.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid sign-in details."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültige Anmeldedaten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos de inicio de sesión no válidos."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неправильні дані для входу."
+          }
+        }
+      }
+    },
     "Nieprawidłowy format pliku JSON tłumaczenia": {
       "localizations": {
         "en": {
@@ -8901,6 +9881,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Неправильний формат входу мікрофона."
+          }
+        }
+      }
+    },
+    "Nieprawidłowy kod.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid code."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültiger Code."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código no válido."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неправильний код."
+          }
+        }
+      }
+    },
+    "Nieprawidłowy kod. Sprawdź, czy czas w telefonie jest ustawiony automatycznie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid code. Check that the phone's time is set automatically."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültiger Code. Prüfe, ob die Uhrzeit des Telefons automatisch eingestellt ist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código no válido. Comprueba que la hora del teléfono se ajusta automáticamente."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неправильний код. Перевірте, чи час у телефоні встановлюється автоматично."
           }
         }
       }
@@ -9017,6 +10053,34 @@
         }
       }
     },
+    "Nowy plan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New plan"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Ablauf"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo plan"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новий план"
+          }
+        }
+      }
+    },
     "Numer CCLI": {
       "localizations": {
         "en": {
@@ -9069,6 +10133,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Номер ліцензії CCLI парафії:"
+          }
+        }
+      }
+    },
+    "O programie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acerca de"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Про програму"
           }
         }
       }
@@ -9521,6 +10613,34 @@
         }
       }
     },
+    "Opracowano we współpracy z Claude (Anthropic).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Developed in collaboration with Claude (Anthropic)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwickelt in Zusammenarbeit mit Claude (Anthropic)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desarrollado en colaboración con Claude (Anthropic)."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Розроблено у співпраці з Claude (Anthropic)."
+          }
+        }
+      }
+    },
     "Ostatnie zmiany mogą nie zostać zachowane.\n\nSzczegóły: {0}": {
       "localizations": {
         "en": {
@@ -9573,6 +10693,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Відкриває пошук CCLI SongSelect у браузері. Завантажений файл (.txt або ChordPro) імпортуйте через Імпорт/Експорт."
+          }
+        }
+      }
+    },
+    "Otwórz okno projekcji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open projection window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projektionsfenster öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir ventana de proyección"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відкрити вікно проєкції"
           }
         }
       }
@@ -10109,6 +11257,34 @@
         }
       }
     },
+    "Plan jest pusty. Wybierz pieśń w bibliotece i kliknij „Dodaj do planu”.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The plan is empty. Choose a song in the library and click “Add to plan”."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Ablauf ist leer. Wähle ein Lied in der Bibliothek und klicke „Zum Ablauf hinzufügen“."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El plan está vacío. Elige un canto en la biblioteca y pulsa «Añadir al plan»."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "План порожній. Виберіть пісню в бібліотеці й натисніть «Додати до плану»."
+          }
+        }
+      }
+    },
     "Plan nabożeństwa": {
       "localizations": {
         "en": {
@@ -10333,6 +11509,34 @@
         }
       }
     },
+    "Plik .cantatebackup działa tak samo w wersji macOS i webowej: zawiera bibliotekę, plany i ustawienia.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A .cantatebackup file works the same in the macOS and web versions: it contains the library, plans and settings."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine .cantatebackup-Datei funktioniert in der macOS- und der Web-Version gleich: Sie enthält Bibliothek, Abläufe und Einstellungen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un archivo .cantatebackup funciona igual en las versiones de macOS y web: contiene la biblioteca, los planes y la configuración."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл .cantatebackup однаково працює у версіях для macOS і вебверсії: містить бібліотеку, плани й налаштування."
+          }
+        }
+      }
+    },
     "Plik JSON (.json)": {
       "localizations": {
         "en": {
@@ -10473,6 +11677,34 @@
         }
       }
     },
+    "Pliki tekstowe (.txt, dowolne kodowanie), JSON z wersji macOS oraz pliki z CCLI SongSelect (.txt, .usr, ChordPro .pro). Bazy Holyrics importuj w wersji macOS.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text files (.txt, any encoding), JSON from the macOS version and CCLI SongSelect files (.txt, .usr, ChordPro .pro). Import Holyrics databases in the macOS version."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Textdateien (.txt, beliebige Kodierung), JSON aus der macOS-Version und CCLI-SongSelect-Dateien (.txt, .usr, ChordPro .pro). Holyrics-Datenbanken in der macOS-Version importieren."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivos de texto (.txt, cualquier codificación), JSON de la versión de macOS y archivos de CCLI SongSelect (.txt, .usr, ChordPro .pro). Importa las bases de Holyrics en la versión de macOS."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текстові файли (.txt, будь-яке кодування), JSON із версії для macOS і файли CCLI SongSelect (.txt, .usr, ChordPro .pro). Бази Holyrics імпортуйте у версії для macOS."
+          }
+        }
+      }
+    },
     "Po autoryzacji Google OAuth w Ustawieniach, kopie są automatycznie przesyłane do dedykowanego folderu CantatePresenter_Backups w chmurze.": {
       "localizations": {
         "en": {
@@ -10525,6 +11757,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Завантаження акордів з інтернету"
+          }
+        }
+      }
+    },
+    "Pobierz jako plik": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download as file"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Datei herunterladen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargar como archivo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завантажити як файл"
           }
         }
       }
@@ -10669,6 +11929,62 @@
         }
       }
     },
+    "Podwójny klik: edycja": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-click: edit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doppelklick: bearbeiten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doble clic: editar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подвійне клацання: редагування"
+          }
+        }
+      }
+    },
+    "Pogrubienie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bold"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fett"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Negrita"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Жирний"
+          }
+        }
+      }
+    },
     "Pogrubienie tekstu (Bold)": {
       "localizations": {
         "en": {
@@ -10693,6 +12009,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Жирний текст"
+          }
+        }
+      }
+    },
+    "Pokaż na ekranie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show on screen"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf dem Bildschirm zeigen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar en pantalla"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показати на екрані"
           }
         }
       }
@@ -11397,6 +12741,34 @@
         }
       }
     },
+    "Poprzedni slajd": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous slide"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorherige Folie"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diapositiva anterior"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Попередній слайд"
+          }
+        }
+      }
+    },
     "Poprzedni slajd (↑ na liście pieśni: poprzednia pieśń)": {
       "localizations": {
         "en": {
@@ -11589,6 +12961,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Порівняння текстів, виявлення дублікатів і доповнення авторів..."
+          }
+        }
+      }
+    },
+    "Potwierdź": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestätigen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Підтвердити"
           }
         }
       }
@@ -12265,6 +13665,34 @@
         }
       }
     },
+    "Przeciągnij, aby zmienić kolejność": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag to reorder"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Umsortieren ziehen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrastra para reordenar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перетягніть, щоб змінити порядок"
+          }
+        }
+      }
+    },
     "Przeglądaj i przywróć kopie z Dysku Google...": {
       "localizations": {
         "en": {
@@ -12289,6 +13717,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Переглянути й відновити копії з Google Диска..."
+          }
+        }
+      }
+    },
+    "Przeglądarka zablokowała okno projekcji. Zezwól na wyskakujące okna dla tej strony.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The browser blocked the projection window. Allow pop-ups for this site."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Browser hat das Projektionsfenster blockiert. Erlaube Pop-ups für diese Seite."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El navegador bloqueó la ventana de proyección. Permite las ventanas emergentes para este sitio."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Браузер заблокував вікно проєкції. Дозвольте спливні вікна для цього сайту."
+          }
+        }
+      }
+    },
+    "Przejdź do aplikacji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue to the app"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter zur App"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ir a la aplicación"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перейти до застосунку"
           }
         }
       }
@@ -12657,6 +14141,34 @@
         }
       }
     },
+    "Przywrócić kopię? Obecna biblioteka ({0} pieśni) zostanie zastąpiona przez {1} pieśni z kopii. Poprzedni stan można przywrócić przyciskiem „Cofnij ostatnie przywrócenie”.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore the backup? The current library ({0} songs) will be replaced by {1} songs from the backup. You can bring back the previous state with “Undo last restore”."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherung wiederherstellen? Die aktuelle Bibliothek ({0} Lieder) wird durch {1} Lieder aus der Sicherung ersetzt. Mit „Letzte Wiederherstellung rückgängig machen“ kehrst du zum vorherigen Stand zurück."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Restaurar la copia? La biblioteca actual ({0} cantos) se sustituirá por {1} cantos de la copia. Puedes volver al estado anterior con «Deshacer la última restauración»."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відновити копію? Поточну бібліотеку ({0} пісень) буде замінено {1} піснями з копії. Попередній стан можна повернути кнопкою «Скасувати останнє відновлення»."
+          }
+        }
+      }
+    },
     "Przywrócono dane sprzed ostatniego przywrócenia kopii.": {
       "localizations": {
         "en": {
@@ -12709,6 +14221,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Резервну копію відновлено"
+          }
+        }
+      }
+    },
+    "Przywrócono kopię: {0} pieśni, {1} planów.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup restored: {0} songs, {1} plans."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherung wiederhergestellt: {0} Lieder, {1} Abläufe."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia restaurada: {0} cantos, {1} planes."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Копію відновлено: {0} пісень, {1} планів."
           }
         }
       }
@@ -12849,6 +14389,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Відновити з резервної копії..."
+          }
+        }
+      }
+    },
+    "Przywróć z kopii...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore from backup..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus Sicherung wiederherstellen..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar desde copia..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відновити з копії..."
           }
         }
       }
@@ -13409,6 +14977,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Клавіатурні скорочення:"
+          }
+        }
+      }
+    },
+    "Skróty są wspólne z wersją macOS (zapisywane w kopii zapasowej). Stałe klawisze: strzałki, Page Up/Down, Esc, R (refren), 1–9 (zwrotka).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shortcuts are shared with the macOS version (saved in the backup). Fixed keys: arrows, Page Up/Down, Esc, R (chorus), 1–9 (verse)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tastenkürzel sind mit der macOS-Version gemeinsam (in der Sicherung gespeichert). Feste Tasten: Pfeile, Bild auf/ab, Esc, R (Refrain), 1–9 (Strophe)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los atajos se comparten con la versión de macOS (se guardan en la copia). Teclas fijas: flechas, RePág/AvPág, Esc, R (estribillo), 1–9 (estrofa)."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скорочення спільні з версією для macOS (зберігаються в копії). Сталі клавіші: стрілки, Page Up/Down, Esc, R (приспів), 1–9 (куплет)."
           }
         }
       }
@@ -14281,6 +15877,34 @@
         }
       }
     },
+    "Ta pieśń nie ma chwytów. Dodaj je w edytorze.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This song has no chords. Add them in the editor."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Lied hat keine Akkorde. Füge sie im Editor hinzu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este canto no tiene acordes. Añádelos en el editor."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У цій пісні немає акордів. Додайте їх у редакторі."
+          }
+        }
+      }
+    },
     "Ta wersja aplikacji nie ma skonfigurowanego logowania Google.": {
       "localizations": {
         "en": {
@@ -14365,6 +15989,34 @@
         }
       }
     },
+    "Tekst": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Texto"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текст"
+          }
+        }
+      }
+    },
     "Tekst i Slajdy": {
       "localizations": {
         "en": {
@@ -14389,6 +16041,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Текст і слайди"
+          }
+        }
+      }
+    },
+    "Tekst nie trafia do biblioteki.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The text is not added to the library."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Text wird nicht in die Bibliothek aufgenommen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El texto no se añade a la biblioteca."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текст не додається до бібліотеки."
+          }
+        }
+      }
+    },
+    "Tekst pieśni (pusta linia oddziela slajdy; nagłówki np. [Refren], [Zwrotka 2])": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lyrics (a blank line separates slides; headers such as [Refren], [Zwrotka 2])"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liedtext (eine Leerzeile trennt Folien; Überschriften z. B. [Refren], [Zwrotka 2])"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letra (una línea vacía separa diapositivas; encabezados como [Refren], [Zwrotka 2])"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текст пісні (порожній рядок розділяє слайди; заголовки, напр. [Refren], [Zwrotka 2])"
           }
         }
       }
@@ -14473,6 +16181,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Та сама назва й збіг тексту ({0}%)"
+          }
+        }
+      }
+    },
+    "To konto wymaga weryfikacji dwuetapowej. Zeskanuj kod QR aplikacją uwierzytelniającą (np. Google Authenticator, Microsoft Authenticator, 1Password).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account requires two-step verification. Scan the QR code with an authenticator app (e.g. Google Authenticator, Microsoft Authenticator, 1Password)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Konto erfordert eine Zwei-Schritt-Verifizierung. Scanne den QR-Code mit einer Authenticator-App (z. B. Google Authenticator, Microsoft Authenticator, 1Password)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta cuenta requiere verificación en dos pasos. Escanea el código QR con una aplicación de autenticación (p. ej. Google Authenticator, Microsoft Authenticator, 1Password)."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цей обліковий запис потребує двоетапної перевірки. Відскануйте QR-код застосунком автентифікації (напр. Google Authenticator, Microsoft Authenticator, 1Password)."
+          }
+        }
+      }
+    },
+    "To nie jest plik kopii zapasowej (.cantatebackup lub .zip).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is not a backup file (.cantatebackup or .zip)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dies ist keine Sicherungsdatei (.cantatebackup oder .zip)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No es un archivo de copia de seguridad (.cantatebackup o .zip)."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Це не файл резервної копії (.cantatebackup або .zip)."
           }
         }
       }
@@ -14613,6 +16377,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Транспонування:"
+          }
+        }
+      }
+    },
+    "Transpozycja: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transpose: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transponieren: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transposición: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Транспозиція: {0}"
           }
         }
       }
@@ -14949,6 +16741,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Назва (Я-А)"
+          }
+        }
+      }
+    },
+    "Tytuł (opcjonalnie)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title (optional)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel (optional)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Título (opcional)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назва (необов’язково)"
           }
         }
       }
@@ -15401,6 +17221,34 @@
         }
       }
     },
+    "Ustawienia": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuración"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Налаштування"
+          }
+        }
+      }
+    },
     "Ustawienia prezentacji i wyglądu": {
       "localizations": {
         "en": {
@@ -15485,6 +17333,34 @@
         }
       }
     },
+    "Usunąć plan „{0}”?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete the plan “{0}”?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ablauf „{0}“ löschen?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Eliminar el plan «{0}»?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити план «{0}»?"
+          }
+        }
+      }
+    },
     "Usuń": {
       "localizations": {
         "en": {
@@ -15509,6 +17385,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Видалити"
+          }
+        }
+      }
+    },
+    "Usuń plan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete plan"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ablauf löschen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar plan"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити план"
           }
         }
       }
@@ -15681,6 +17585,34 @@
         }
       }
     },
+    "Utwórz kopię zapasową": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create backup"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherung erstellen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear copia de seguridad"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Створити резервну копію"
+          }
+        }
+      }
+    },
     "Utwórz nowy plan": {
       "localizations": {
         "en": {
@@ -15821,6 +17753,34 @@
         }
       }
     },
+    "Utwórz plan przyciskiem +.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a plan with the + button."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstelle einen Ablauf mit der Schaltfläche +."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea un plan con el botón +."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Створіть план кнопкою +."
+          }
+        }
+      }
+    },
     "Uzupełniaj tylko puste pola": {
       "localizations": {
         "en": {
@@ -15845,6 +17805,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Доповнювати лише порожні поля"
+          }
+        }
+      }
+    },
+    "Użytkownik": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Username"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benutzername"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuario"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Користувач"
           }
         }
       }
@@ -16213,6 +18201,34 @@
         }
       }
     },
+    "Weryfikacja dwuetapowa": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two-step verification"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zwei-Schritt-Verifizierung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificación en dos pasos"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Двоетапна перевірка"
+          }
+        }
+      }
+    },
     "Widok": {
       "localizations": {
         "en": {
@@ -16381,6 +18397,34 @@
         }
       }
     },
+    "Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej (np. Google Authenticator, Microsoft Authenticator, 1Password).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the 6-digit code from your authenticator app (e.g. Google Authenticator, Microsoft Authenticator, 1Password)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib den 6-stelligen Code aus deiner Authenticator-App ein (z. B. Google Authenticator, Microsoft Authenticator, 1Password)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduce el código de 6 dígitos de tu aplicación de autenticación (p. ej. Google Authenticator, Microsoft Authenticator, 1Password)."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Введіть 6-значний код із застосунку автентифікації (напр. Google Authenticator, Microsoft Authenticator, 1Password)."
+          }
+        }
+      }
+    },
     "Wpisz fragment tekstu lub tytuł...": {
       "localizations": {
         "en": {
@@ -16461,6 +18505,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Введіть текст або оголошення — його буде показано на проєкторі без збереження в базі."
+          }
+        }
+      }
+    },
+    "Wpisz tekst ogłoszenia lub modlitwy. Pusta linia oddziela slajdy.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type an announcement or prayer. A blank line separates slides."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib eine Ankündigung oder ein Gebet ein. Eine Leerzeile trennt Folien."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribe un anuncio o una oración. Una línea vacía separa diapositivas."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Введіть оголошення або молитву. Порожній рядок розділяє слайди."
           }
         }
       }
@@ -17221,6 +19293,34 @@
         }
       }
     },
+    "Wybierz pieśń z biblioteki": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a song from the library"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle ein Lied aus der Bibliothek"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige un canto de la biblioteca"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Виберіть пісню з бібліотеки"
+          }
+        }
+      }
+    },
     "Wybierz pieśń z biblioteki po lewej stronie": {
       "localizations": {
         "en": {
@@ -17473,6 +19573,34 @@
         }
       }
     },
+    "Wybierz pliki...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose files..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateien auswählen..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir archivos..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вибрати файли..."
+          }
+        }
+      }
+    },
     "Wybierz to logo": {
       "localizations": {
         "en": {
@@ -17665,6 +19793,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Виявлення дублікатів, виправлення польських літер і підбір авторів..."
+          }
+        }
+      }
+    },
+    "Wyloguj": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abmelden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar sesión"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вийти"
+          }
+        }
+      }
+    },
+    "Wyrównanie pionowe": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical alignment"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertikale Ausrichtung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alineación vertical"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вертикальне вирівнювання"
+          }
+        }
+      }
+    },
+    "Wyrównanie poziome": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horizontal alignment"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horizontale Ausrichtung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alineación horizontal"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Горизонтальне вирівнювання"
           }
         }
       }
@@ -18229,6 +20441,34 @@
         }
       }
     },
+    "Włącz weryfikację dwuetapową": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on two-step verification"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zwei-Schritt-Verifizierung aktivieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar la verificación en dos pasos"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Увімкнути двоетапну перевірку"
+          }
+        }
+      }
+    },
     "Włącz/Wyłącz czarny ekran": {
       "localizations": {
         "en": {
@@ -18309,6 +20549,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Увімкнено для облікового запису: {0}"
+          }
+        }
+      }
+    },
+    "Zaimportowano {0} pieśni, pominięto {1} plików.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported {0} songs, skipped {1} files."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{0} Lieder importiert, {1} Dateien übersprungen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se importaron {0} cantos y se omitieron {1} archivos."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Імпортовано {0} пісень, пропущено {1} файлів."
+          }
+        }
+      }
+    },
+    "Zaimportowano {0} pieśni.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported {0} songs."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{0} Lieder importiert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se importaron {0} cantos."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Імпортовано {0} пісень."
           }
         }
       }
@@ -18649,6 +20945,62 @@
         }
       }
     },
+    "Zalogowany użytkownik": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed-in user"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angemeldeter Benutzer"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuario conectado"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Користувач, що увійшов"
+          }
+        }
+      }
+    },
+    "Zaloguj": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmelden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar sesión"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Увійти"
+          }
+        }
+      }
+    },
     "Zamknij": {
       "localizations": {
         "en": {
@@ -18701,6 +21053,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Закрити вікно"
+          }
+        }
+      }
+    },
+    "Zamknij okno projekcji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close projection window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projektionsfenster schließen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar ventana de proyección"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Закрити вікно проєкції"
           }
         }
       }
@@ -18785,6 +21165,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Збережених планів"
+          }
+        }
+      }
+    },
+    "Zapisałem kody zapasowe": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have saved the backup codes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich habe die Backup-Codes gespeichert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "He guardado los códigos de respaldo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Я зберіг резервні коди"
           }
         }
       }
@@ -18897,6 +21305,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Зберегти повну резервну копію CantatePresenter"
+          }
+        }
+      }
+    },
+    "Zapisz te kody w bezpiecznym miejscu. Każdy działa raz, gdy nie masz dostępu do aplikacji uwierzytelniającej. Nie zostaną pokazane ponownie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep these codes in a safe place. Each works once when you cannot use your authenticator app. They will not be shown again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bewahre diese Codes sicher auf. Jeder funktioniert einmal, wenn du keinen Zugriff auf die Authenticator-App hast. Sie werden nicht erneut angezeigt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guarda estos códigos en un lugar seguro. Cada uno funciona una vez cuando no puedes usar la aplicación de autenticación. No se volverán a mostrar."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Збережіть ці коди в безпечному місці. Кожен спрацьовує один раз, коли немає доступу до застосунку автентифікації. Їх не буде показано повторно."
+          }
+        }
+      }
+    },
+    "Zapisz wybraną pieśń jako .txt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the selected song as .txt"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgewähltes Lied als .txt speichern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar el canto seleccionado como .txt"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зберегти вибрану пісню як .txt"
           }
         }
       }
@@ -19153,6 +21617,34 @@
         }
       }
     },
+    "Zbyt wiele nieudanych prób. Spróbuj ponownie za 15 minut.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many failed attempts. Try again in 15 minutes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu viele fehlgeschlagene Versuche. Versuche es in 15 Minuten erneut."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demasiados intentos fallidos. Inténtalo de nuevo dentro de 15 minutos."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Забагато невдалих спроб. Спробуйте ще раз через 15 хвилин."
+          }
+        }
+      }
+    },
     "Zeskanuj kod aparatem telefonu albo wpisz adres w przeglądarce:": {
       "localizations": {
         "en": {
@@ -19261,6 +21753,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Змінити порядок сортування пісень у бібліотеці"
+          }
+        }
+      }
+    },
+    "Zmień nazwę": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbenennen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar nombre"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перейменувати"
           }
         }
       }
@@ -19485,6 +22005,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Куплет з цим номером"
+          }
+        }
+      }
+    },
+    "kody zapasowe": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "backup codes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup-Codes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "códigos de respaldo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "резервні коди"
           }
         }
       }

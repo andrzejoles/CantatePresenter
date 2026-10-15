@@ -1,0 +1,9 @@
+# HTTPS przed serwerem CantatePresenter (Caddy sam pobiera certyfikat Let's Encrypt).
+# Zamień domenę na własną; serwer aplikacji słucha tylko na 127.0.0.1:8443.
+cantate.example.org {
+	encode gzip
+	reverse_proxy 127.0.0.1:8443 {
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Host {host}
+	}
+}

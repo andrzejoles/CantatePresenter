@@ -320,8 +320,11 @@ export class Store {
     this.saveSettings();
   }
 
-  /** Podmienia wszystkie dane (przywrócenie kopii). @param {{songs: Song[], plans: ServicePlan[], settings: Settings}} data */
-  replaceAll(data) {
+  /**
+   * Podmienia wszystkie dane (przywrócenie kopii). Bez `persist`, gdy serwer zapisał je już sam.
+   * @param {{songs: Song[], plans: ServicePlan[], settings: Settings}} data @param {{persist?: boolean}} [options]
+   */
+  replaceAll(data, options = {}) {
     this.stopLive();
     this.songs = data.songs;
     this.plans = data.plans;
@@ -330,9 +333,11 @@ export class Store {
     this.selectedSongId = this.songs[0]?.id ?? null;
     this.activeSong = null;
     this.temporarySong = null;
-    this.persist("songs", this.songs);
-    this.persist("plans", this.plans);
-    this.persist("settings", this.settings);
+    if (options.persist !== false) {
+      this.persist("songs", this.songs);
+      this.persist("plans", this.plans);
+      this.persist("settings", this.settings);
+    }
     this.changed("all");
   }
 }
