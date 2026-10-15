@@ -2,6 +2,7 @@ import Foundation
 import Speech
 import AVFoundation
 import Combine
+import os
 
 @MainActor
 public final class DictationService: ObservableObject {
@@ -46,11 +47,23 @@ public final class DictationService: ObservableObject {
         }
     }
     
+    private var usedOnDeviceRecognition = false
+    /// Numer sesji: zdarzenia z anulowanej wcześniejszej próby nie mogą zatrzymać bieżącej.
+    private var sessionID = 0
+    private var retriedWithServer = false
+    private var forceServerRecognition = false
+    private var lastLocaleIdentifier = ""
+    private static let logger = Logger(subsystem: "com.cantate.presenter", category: "dictation")
+    
     public func startDictation(
         localeIdentifier: String,
         onPartial: @escaping (String) -> Void,
         onFinal: @escaping (String) -> Void
     ) {
+        lastLocaleIdentifier = localeIdentifier
+        if !forceServerRecognition {
+            retriedWithServer = false
+        }
         if isRecording {
             stopDictation()
             return
@@ -112,8 +125,10 @@ public final class DictationService: ObservableObject {
         request.shouldReportPartialResults = true
         // Wybór z Ustawień (N4): tylko na tym Macu, jeśli system ma model mowy dla tego języka.
         // Bez modelu lokalnego (albo gdy opcja jest wyłączona) rozpoznawanie idzie przez serwery Apple.
-        let onDeviceOnly = DataStore.shared.settings.dictationOnDeviceOnly
+        let onDeviceOnly = DataStore.shared.settings.dictationOnDeviceOnly && !forceServerRecognition
         request.requiresOnDeviceRecognition = onDeviceOnly && recognizer.supportsOnDeviceRecognition
+        usedOnDeviceRecognition = request.requiresOnDeviceRecognition
+        forceServerRecognition = false
         
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
@@ -140,9 +155,11 @@ public final class DictationService: ObservableObject {
             return
         }
         
+        sessionID += 1
+        let session = sessionID
         recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
             Task { @MainActor in
-                guard let self = self else { return }
+                guard let self = self, session == self.sessionID else { return }
                 
                 if let result = result {
                     let transcribed = result.bestTranscription.formattedString
@@ -156,8 +173,20 @@ public final class DictationService: ObservableObject {
                 }
                 
                 if let error = error {
-                    // Ignore cancelation error
                     let nsError = error as NSError
+                    Self.logger.error("Rozpoznawanie mowy: \(nsError.domain, privacy: .public) \(nsError.code) (lokalnie: \(self.usedOnDeviceRecognition))")
+                    // macOS potrafi zgłaszać obsługę lokalną bez pobranego modelu mowy: wtedy jedno ponowienie
+                    // przez serwery Apple, zgodnie z opisem przy opcji w Ustawieniach (N4).
+                    if DictationFallback.shouldRetryWithServer(
+                        usedOnDevice: self.usedOnDeviceRecognition,
+                        recognizedText: self.currentRecognizedText,
+                        alreadyRetried: self.retriedWithServer
+                    ), let onPartial = self.partialHandler, let onFinal = self.finalHandler {
+                        self.retriedWithServer = true
+                        self.restartWithServerRecognition(onPartial: onPartial, onFinal: onFinal)
+                        return
+                    }
+                    // Ignore cancelation error
                     if nsError.domain != "kAFAssistantErrorDomain" || (nsError.code != 203 && nsError.code != 216) {
                         if !self.transcribedTextWasEmitted {
                             self.errorMessage = error.localizedDescription
@@ -174,6 +203,22 @@ public final class DictationService: ObservableObject {
     }
     
     private var finalDelivery = DictationFinalDelivery()
+    
+    /// Zatrzymuje bieżącą próbę bez oddawania wyniku i zaczyna od nowa z rozpoznawaniem na serwerach Apple.
+    private func restartWithServerRecognition(onPartial: @escaping (String) -> Void, onFinal: @escaping (String) -> Void) {
+        sessionID += 1 // spóźnione zdarzenia anulowanej próby są od teraz ignorowane
+        if audioEngine.isRunning {
+            audioEngine.stop()
+            audioEngine.inputNode.removeTap(onBus: 0)
+        }
+        recognitionRequest?.endAudio()
+        recognitionRequest = nil
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        isRecording = false
+        forceServerRecognition = true
+        startDictation(localeIdentifier: lastLocaleIdentifier, onPartial: onPartial, onFinal: onFinal)
+    }
     
     public func stopDictation() {
         if audioEngine.isRunning {
@@ -218,5 +263,14 @@ struct DictationFinalDelivery {
         guard !delivered, !text.isEmpty else { return }
         delivered = true
         handler(text)
+    }
+}
+
+// MARK: - Fallback
+
+enum DictationFallback {
+    /// Ponowienie przez serwer tylko, gdy wymuszone lokalne rozpoznawanie zawiodło, zanim padło jakiekolwiek słowo.
+    static func shouldRetryWithServer(usedOnDevice: Bool, recognizedText: String, alreadyRetried: Bool) -> Bool {
+        usedOnDevice && recognizedText.isEmpty && !alreadyRetried
     }
 }

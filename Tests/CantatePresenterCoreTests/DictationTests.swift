@@ -31,10 +31,25 @@ struct DictationTests {
         #expect(delivered == ["Alleluja", "Amen"])
     }
 
-    @Test("Domyślnie rozpoznawanie tylko na tym Macu; stare ustawienia bez pola też")
+    @Test("Domyślnie rozpoznawanie jak przed N4 (z serwerem Apple); stare ustawienia bez pola też")
     func onDeviceDefault() throws {
-        #expect(AppSettings().dictationOnDeviceOnly)
+        #expect(!AppSettings().dictationOnDeviceOnly)
         let old = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"dictationLanguage":"pl-PL"}"#.utf8))
-        #expect(old.dictationOnDeviceOnly)
+        #expect(!old.dictationOnDeviceOnly)
+    }
+}
+
+@Suite("Dyktowanie: powrót do serwera Apple (N4)")
+struct DictationFallbackTests {
+    @Test("Lokalne rozpoznawanie zawiodło przed pierwszym słowem: ponowienie przez serwer")
+    func retriesWhenOnDeviceFailsEarly() {
+        #expect(DictationFallback.shouldRetryWithServer(usedOnDevice: true, recognizedText: "", alreadyRetried: false))
+    }
+
+    @Test("Bez ponowienia: tekst już rozpoznany, tryb serwerowy albo drugie podejście")
+    func noRetry() {
+        #expect(!DictationFallback.shouldRetryWithServer(usedOnDevice: true, recognizedText: "Pan", alreadyRetried: false))
+        #expect(!DictationFallback.shouldRetryWithServer(usedOnDevice: false, recognizedText: "", alreadyRetried: false))
+        #expect(!DictationFallback.shouldRetryWithServer(usedOnDevice: true, recognizedText: "", alreadyRetried: true))
     }
 }
