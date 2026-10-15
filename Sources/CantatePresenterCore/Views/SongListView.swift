@@ -87,11 +87,11 @@ public struct SongListView: View {
         let scale = store.settings.uiScale
         
         VStack(spacing: 0) {
-            // Search & Action Header
-            VStack(spacing: 8) {
+            // Search Header: pole w osobnej linii, pod nim dyktowanie i zakres wyszukiwania
+            VStack(spacing: 6) {
                 HStack(spacing: 6) {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(isSearchFocused ? .green : .secondary)
                     
                     TextField(searchScope == .all ? L("Szukaj w tytule, autorze i tekście...") : L("Szukaj ({0})...", L(searchScope.rawValue).lowercased()), text: $searchText)
                         .textFieldStyle(PlainTextFieldStyle())
@@ -99,6 +99,13 @@ public struct SongListView: View {
                         .focused($isSearchFocused)
                         .onReceive(NotificationCenter.default.publisher(for: .focusSongSearchField)) { _ in
                             isSearchFocused = true
+                        }
+                        .onChange(of: isSearchFocused) { _, focused in
+                            // Po aktywacji cały tekst zaznaczony: pisanie od razu zastępuje poprzednie zapytanie.
+                            guard focused else { return }
+                            DispatchQueue.main.async {
+                                NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
+                            }
                         }
                         .onSubmit {
                             // Enter: zaznacz pierwszy wynik i wyjdź z pola, żeby klawisze znów sterowały slajdami.
@@ -115,7 +122,21 @@ public struct SongListView: View {
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
-                    
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                // Zielone: pole aktywne, można pisać. Czerwone: nieaktywne, klawisze sterują slajdami.
+                .background((isSearchFocused ? Color.green : Color.red).opacity(0.07))
+                .background(Color(NSColor.controlBackgroundColor))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke((isSearchFocused ? Color.green : Color.red).opacity(isSearchFocused ? 0.7 : 0.35), lineWidth: isSearchFocused ? 1.5 : 1)
+                )
+                .cornerRadius(8)
+                .contentShape(Rectangle())
+                .onTapGesture { isSearchFocused = true }
+                
+                HStack(spacing: 6) {
                     // Voice dictation button for search
                     DictationButtonView(text: $searchText, mode: .replace, size: 12)
                     
@@ -125,76 +146,7 @@ public struct SongListView: View {
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
-                    .frame(width: 105)
-                }
-                .padding(6)
-                .background(Color(NSColor.controlBackgroundColor))
-                .cornerRadius(8)
-                
-                // Quick Action Buttons
-                HStack(spacing: 5) {
-                    Button(action: {
-                        songToEdit = nil
-                        isShowingEditor = true
-                    }) {
-                        Label(L("Nowa pieśń"), systemImage: "plus")
-                            .font(.scaled(11, weight: .medium, scale: scale))
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
-                    
-                    Button(action: {
-                        if let selected = store.selectedSong {
-                            songToEdit = selected
-                            isShowingEditor = true
-                        }
-                    }) {
-                        Label(L("Edytuj"), systemImage: "pencil")
-                            .font(.scaled(11, weight: .medium, scale: scale))
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .disabled(store.selectedSong == nil)
-                    .help(L("Edytuj wybraną pieśń (podwójny klik lub ⌘E)"))
-                    
-                    Button(action: {
-                        isShowingImportExport = true
-                    }) {
-                        Label(L("Import/Eksport"), systemImage: "arrow.up.arrow.down")
-                            .font(.scaled(11, scale: scale))
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    
-                    Button(action: {
-                        lookupTargetSong = store.selectedSong
-                        isShowingAuthorTitleLookup = true
-                    }) {
-                        Label(L("Tytuł/Autor"), systemImage: "person.text.rectangle")
-                            .font(.scaled(11, scale: scale))
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .help(L("Wyszukiwarka tytułu i autora (dla zaznaczonej lub dla wszystkich)"))
-                    
-                    Button(action: {
-                        isShowingOnlineSearch = true
-                    }) {
-                        Label(L("Online"), systemImage: "globe")
-                            .font(.scaled(11, scale: scale))
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    
-                    Button(action: {
-                        NotificationCenter.default.post(name: NSNotification.Name("OpenQuickTextSheet"), object: nil)
-                    }) {
-                        Label(L("Szybki tekst"), systemImage: "bolt.fill")
-                            .font(.scaled(11, scale: scale))
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .help(L("Wyświetl natychmiast dowolny tekst lub ogłoszenie bez zapisywania w bazie (⌘T)"))
+                    .fixedSize()
                     
                     Spacer()
                 }
