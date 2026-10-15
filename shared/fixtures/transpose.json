@@ -1,0 +1,62 @@
+[
+  {
+    "expected" : "D       A       h\nPan kiedyś stanął nad brzegiem",
+    "semitones" : 2,
+    "sheet" : "C       G       a\nPan kiedyś stanął nad brzegiem"
+  },
+  {
+    "expected" : "Es  g     c   As  B",
+    "semitones" : 1,
+    "sheet" : "D   fis   h   G   A"
+  },
+  {
+    "expected" : "F   C  d  B",
+    "semitones" : 2,
+    "sheet" : "Es  B  c  As"
+  },
+  {
+    "expected" : "d  A7  d  g/B",
+    "semitones" : -2,
+    "sheet" : "e  H7  e  a/C"
+  },
+  {
+    "expected" : "Cm  Ab Eb B | x2",
+    "semitones" : 3,
+    "sheet" : "Am  F  C  G | x2"
+  },
+  {
+    "expected" : "A to jest tekst, nie akord\nC  G  a  F",
+    "semitones" : 5,
+    "sheet" : "A to jest tekst, nie akord\nG  D  e  C"
+  },
+  {
+    "expected" : "Pan kiedyś [E]stanął nad [H]brzegiem (A H)",
+    "semitones" : 2,
+    "sheet" : "Pan kiedyś [D]stanął nad [A]brzegiem (G A)"
+  },
+  {
+    "expected" : "[Refren]\nG  C  D7  G",
+    "semitones" : 7,
+    "sheet" : "[Refren]\nC  F  G7  C"
+  },
+  {
+    "expected" : "Dbmaj7 Ebm7 Ab7sus4 Dbadd9",
+    "semitones" : 1,
+    "sheet" : "Cmaj7  Dm7  G7sus4  Cadd9"
+  },
+  {
+    "expected" : "Gm   D7   H   Em",
+    "semitones" : 1,
+    "sheet" : "F#m  C#7  Bb  Ebm"
+  },
+  {
+    "expected" : "d  g  C  F",
+    "semitones" : 0,
+    "sheet" : "d  g  C  F"
+  },
+  {
+    "expected" : "D/Fis G A/Cis  h",
+    "semitones" : -5,
+    "sheet" : "G/H  C  D/Fis  e"
+  }
+]

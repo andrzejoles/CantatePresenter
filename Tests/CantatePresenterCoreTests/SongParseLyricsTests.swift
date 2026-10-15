@@ -75,3 +75,30 @@ struct SongSectionHeaderTests {
         #expect(slides.last?.label == "Refren 2")
     }
 }
+
+@Suite("Nagłówek sekcji z tekstem w tej samej linii")
+struct InlineSectionHeaderTests {
+    @Test("„Ref: Chwała Panu” zachowuje tekst za dwukropkiem")
+    func keepsTextAfterColon() throws {
+        let slides = Song.parseLyrics("Ref: Chwała Panu\nNa wysokościach\n\nCoda: Amen")
+        try #require(slides.count == 2)
+        #expect(slides[0].type == .chorus)
+        #expect(slides[0].text == "Chwała Panu\nNa wysokościach")
+        #expect(slides[1].type == .coda)
+        #expect(slides[1].text == "Amen")
+    }
+
+    @Test("„[Refren] Chwała” w jednej linii")
+    func bracketWithText() throws {
+        let slides = Song.parseLyrics("[Refren] Chwała Panu\nNa wysokościach")
+        let slide = try #require(slides.first)
+        #expect(slide.type == .chorus && slide.label == "Refren")
+        #expect(slide.text == "Chwała Panu\nNa wysokościach")
+    }
+
+    @Test("Sam nagłówek bez tekstu nadal znika z treści slajdu")
+    func headerOnly() throws {
+        let slide = try #require(Song.parseLyrics("Refren:\nŚpiewaj").first)
+        #expect(slide.text == "Śpiewaj")
+    }
+}
