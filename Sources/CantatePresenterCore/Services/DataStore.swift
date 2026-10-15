@@ -81,6 +81,8 @@ public final class DataStore {
     private let fileStore = JSONFileStore()
     /// Pliki, których nie udało się odczytać; zapis do nich jest wstrzymany, żeby ich nie nadpisać.
     @ObservationIgnored private var lockedFileNames: Set<String> = []
+    /// Ostatnia pieśń z aktywnego planu; po „szybkim tekście” poprzednia/następna pieśń liczy się od niej (N11).
+    @ObservationIgnored private var lastPlanSongId: UUID?
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "persistence")
     
     private let dataDirectory: URL
@@ -386,6 +388,9 @@ public final class DataStore {
     
     // MARK: - Presentation Navigation & Controls
     public func present(song: Song, slideIndex: Int = 0) {
+        if activePlan?.items.contains(where: { $0.songId == song.id }) == true {
+            lastPlanSongId = song.id
+        }
         self.activeSong = song
         self.activeSlideIndex = min(max(0, slideIndex), max(0, song.slides.count - 1))
         self.isLive = true
@@ -476,10 +481,15 @@ public final class DataStore {
         isClearText = false
     }
     
+    /// Pozycja w planie: bieżącej pieśni, a gdy na ekranie jest coś spoza planu (szybki tekst), ostatniej pieśni z planu.
+    private func currentPlanIndex(in plan: ServicePlan) -> Int? {
+        let anchor = activeSong.flatMap { song in plan.items.contains(where: { $0.songId == song.id }) ? song.id : nil } ?? lastPlanSongId
+        return anchor.flatMap { id in plan.items.firstIndex(where: { $0.songId == id }) }
+    }
+    
     public func nextSongInPlan() {
         guard let plan = activePlan, !plan.items.isEmpty else { return }
-        guard let currentSong = activeSong,
-              let currentIndex = plan.items.firstIndex(where: { $0.songId == currentSong.id }) else {
+        guard let currentIndex = currentPlanIndex(in: plan) else {
             if let firstId = plan.items.first?.songId,
                let song = songs.first(where: { $0.id == firstId }) {
                 present(song: song, slideIndex: 0)
@@ -499,8 +509,7 @@ public final class DataStore {
     
     public func prevSongInPlan() {
         guard let plan = activePlan, !plan.items.isEmpty else { return }
-        guard let currentSong = activeSong,
-              let currentIndex = plan.items.firstIndex(where: { $0.songId == currentSong.id }) else { return }
+        guard let currentIndex = currentPlanIndex(in: plan) else { return }
         
         let prevIndex = currentIndex - 1
         if prevIndex >= 0 {
