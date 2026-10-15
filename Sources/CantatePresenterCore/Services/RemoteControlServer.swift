@@ -18,19 +18,21 @@ public final class RemoteControlServer {
     public private(set) var isRunning = false
     public private(set) var port: UInt16?
     public private(set) var token = RemoteRouter.makeToken()
+    /// Token dla muzyków: tylko podgląd slajdu z chwytami.
+    public private(set) var stageToken = RemoteRouter.makeToken()
     public private(set) var errorMessage: String?
     public private(set) var lastSeen: [String: Date] = [:]
     
     /// Obsługa żądania z bieżącym tokenem; w testach podmieniana, żeby nie dotykać `DataStore.shared`.
-    var route: @MainActor (RemoteHTTPRequest, String) -> RemoteHTTPResponse
+    var route: @MainActor (RemoteHTTPRequest, String, String) -> RemoteHTTPResponse
     
     @ObservationIgnored private var listener: NWListener?
     @ObservationIgnored private let queue = DispatchQueue(label: "com.cantate.presenter.remote")
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "remote")
     
-    init(route: (@MainActor (RemoteHTTPRequest, String) -> RemoteHTTPResponse)? = nil) {
-        self.route = route ?? { request, token in
-            RemoteControlBridge.response(for: request, token: token, store: DataStore.shared)
+    init(route: (@MainActor (RemoteHTTPRequest, String, String) -> RemoteHTTPResponse)? = nil) {
+        self.route = route ?? { request, token, stageToken in
+            RemoteControlBridge.response(for: request, token: token, stageToken: stageToken, store: DataStore.shared)
         }
     }
     
@@ -68,6 +70,7 @@ public final class RemoteControlServer {
     /// Nowy token: dotychczasowe telefony tracą dostęp i muszą zeskanować nowy kod.
     public func regenerateToken() {
         token = RemoteRouter.makeToken()
+        stageToken = RemoteRouter.makeToken()
         lastSeen = [:]
     }
     
@@ -110,6 +113,12 @@ public final class RemoteControlServer {
         guard isRunning, let port, let host = Self.localIPv4Address() else { return nil }
         return URL(string: "http://\(host):\(port)/?t=\(token)")
     }
+
+    /// Adres podglądu dla muzyków (tylko odczyt).
+    public var stageAddress: URL? {
+        guard isRunning, let port, let host = Self.localIPv4Address() else { return nil }
+        return URL(string: "http://\(host):\(port)/stage?t=\(stageToken)")
+    }
     
     // MARK: - Connections
     
@@ -131,7 +140,7 @@ public final class RemoteControlServer {
                 let host = Self.host(of: connection.endpoint)
                 Task { @MainActor in
                     guard let self else { connection.cancel(); return }
-                    let response = self.route(request, self.token)
+                    let response = self.route(request, self.token, self.stageToken)
                     if response.status == 200 { self.lastSeen[host] = Date() }
                     Self.send(response, on: connection)
                 }
@@ -181,13 +190,41 @@ public final class RemoteControlServer {
 /// Połączenie pilota z `DataStore`: stan do wysłania i wykonanie poleceń.
 @MainActor
 enum RemoteControlBridge {
-    static func response(for request: RemoteHTTPRequest, token: String, store: DataStore) -> RemoteHTTPResponse {
-        RemoteRouter(token: token).response(
+    static func response(for request: RemoteHTTPRequest, token: String, stageToken: String, store: DataStore) -> RemoteHTTPResponse {
+        RemoteRouter(token: token, stageToken: stageToken).response(
             for: request,
             page: { RemoteControlPage.html(language: store.settings.appLanguage) },
             state: { state(of: store) },
-            perform: { perform($0, on: store) }
+            perform: { perform($0, on: store) },
+            stagePage: { MusicianStagePage.html(language: store.settings.appLanguage) },
+            stageState: { semitones in
+                let payload = StagePayload(stage: MusicianStage.make(store: store, semitones: semitones), labels: stageLabels())
+                return (try? JSONEncoder().encode(payload)) ?? Data("{}".utf8)
+            }
         )
+    }
+
+    struct StagePayload: Encodable {
+        let stage: MusicianStage
+        let labels: [String: String]
+    }
+
+    /// Teksty strony dla muzyków w języku interfejsu aplikacji.
+    static func stageLabels() -> [String: String] {
+        [
+            "title": L("Ekran dla muzyków"),
+            "key": L("Tonacja: {0}"),
+            "next": L("Następny slajd"),
+            "nextSong": L("Następnie: {0}"),
+            "borrowed": L("Chwyty jak w: {0}"),
+            "noChords": L("Brak chwytów dla tej pieśni"),
+            "notLive": L("Brak aktywnej prezentacji"),
+            "black": L("CZARNY EKRAN"),
+            "clear": L("TEKST UKRYTY"),
+            "transpose": L("Transpozycja"),
+            "font": L("Czcionka"),
+            "offline": L("Brak połączenia z komputerem. Sprawdź, czy telefon jest w tej samej sieci Wi-Fi."),
+        ]
     }
     
     static func state(of store: DataStore) -> RemoteState {
