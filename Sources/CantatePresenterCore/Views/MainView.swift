@@ -227,6 +227,27 @@ public struct MainView: View {
         .sheet(isPresented: $isShowingQuickText) {
             QuickTextSheet(isPresented: $isShowingQuickText)
         }
+        .alert(
+            store.persistenceIssues.first?.title ?? "",
+            isPresented: Binding(
+                get: { !store.persistenceIssues.isEmpty },
+                set: { isPresented in
+                    if !isPresented, let issue = store.persistenceIssues.first {
+                        store.dismissPersistenceIssue(issue)
+                    }
+                }
+            ),
+            presenting: store.persistenceIssues.first
+        ) { issue in
+            if let copy = issue.quarantinedCopy {
+                Button("Pokaż w Finderze") {
+                    NSWorkspace.shared.activateFileViewerSelecting([copy])
+                }
+            }
+            Button("OK", role: .cancel) {}
+        } message: { issue in
+            Text(issue.message)
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenQuickTextSheet"))) { _ in
             isShowingQuickText = true
         }

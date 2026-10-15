@@ -12,3 +12,7 @@ xcuserdata/
 dist/
 *.dmg
 *.pkg
+
+# Kopie rotacyjne i kwarantanna plików danych (K1)
+data/history/
+data/*.corrupt-*.json
