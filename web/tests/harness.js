@@ -37,7 +37,9 @@ export async function fixture(name) {
 export async function run() {
   const failures = [];
   let passed = 0;
+  const pre = document.getElementById("result");
   for (const t of tests) {
+    if (pre) pre.textContent = `running: ${t.name}`;
     try {
       await t.fn();
       passed++;
@@ -46,7 +48,6 @@ export async function run() {
     }
   }
   const result = { passed, failed: failures.length, failures };
-  const pre = document.getElementById("result");
   if (pre) pre.textContent = JSON.stringify(result);
   return result;
 }

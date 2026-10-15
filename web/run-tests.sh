@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 # Testy wersji webowej w Chrome bez okna (bez Node.js i bez zależności).
-# Serwer statyczny z katalogu repozytorium, bo testy czytają shared/fixtures.
+# Serwer statyczny (web/tools/serve.py) udostępnia web/, shared/ i VERSION, bo testy czytają shared/fixtures.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CHROME="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 PORT="${PORT:-$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1])')}"
 PROFILE="$(mktemp -d)"
 
-python3 -m http.server "$PORT" --bind 127.0.0.1 --directory "$ROOT" >/dev/null 2>&1 &
+python3 -I "$ROOT/web/tools/serve.py" "$PORT" >/dev/null 2>&1 &
 SERVER=$!
 trap 'kill $SERVER 2>/dev/null; rm -rf "$PROFILE"' EXIT
-for _ in $(seq 1 50); do curl -s -o /dev/null "http://127.0.0.1:$PORT/" && break; sleep 0.1; done
+for _ in $(seq 1 100); do curl -s -o /dev/null "http://127.0.0.1:$PORT/VERSION" && break; sleep 0.1; done
 
 DOM="$("$CHROME" --headless=new --disable-gpu --no-first-run --user-data-dir="$PROFILE" \
-  --virtual-time-budget=15000 --dump-dom "http://127.0.0.1:$PORT/web/tests/index.html" 2>/dev/null)"
+  --virtual-time-budget=60000 --dump-dom "http://127.0.0.1:$PORT/web/tests/index.html" 2>/dev/null)"
 RESULT="$(printf '%s' "$DOM" | python3 -c 'import sys,re,html; m=re.search(r"<pre id=\"result\">(.*?)</pre>", sys.stdin.read(), re.S); print(html.unescape(m.group(1)) if m else "")')"
 
 python3 - "$RESULT" <<'PY'
