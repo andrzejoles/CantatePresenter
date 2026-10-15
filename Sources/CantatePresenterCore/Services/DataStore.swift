@@ -1,5 +1,5 @@
 import Foundation
-import Combine
+import Observation
 import SwiftUI
 import os
 
@@ -43,34 +43,37 @@ public struct PersistenceIssue: Identifiable, Equatable {
 }
 
 @MainActor
-public final class DataStore: ObservableObject {
+/// Stan aplikacji. `@Observable` (S2): widok odświeża się tylko po zmianie właściwości, które czyta,
+/// więc przełączanie slajdów nie przerysowuje listy pieśni.
+@Observable
+public final class DataStore {
     public static let shared = DataStore()
     
-    @Published public var songs: [Song] = [] {
+    public var songs: [Song] = [] {
         didSet { searchIndex.update(with: songs) }
     }
     /// Złożone pola do wyszukiwania, aktualizowane przy zmianie biblioteki (S2).
     public private(set) var searchIndex = SongSearchIndex()
-    @Published public var plans: [ServicePlan] = []
-    @Published public var activePlanId: UUID?
-    @Published public var selectedSongId: UUID?
+    public var plans: [ServicePlan] = []
+    public var activePlanId: UUID?
+    public var selectedSongId: UUID?
     
     // Live Presentation State
-    @Published public var activeSong: Song?
-    @Published public var activeSlideIndex: Int = 0
-    @Published public var isLive: Bool = false
-    @Published public var isBlackScreen: Bool = false
-    @Published public var isClearText: Bool = false
+    public var activeSong: Song?
+    public var activeSlideIndex: Int = 0
+    public var isLive: Bool = false
+    public var isBlackScreen: Bool = false
+    public var isClearText: Bool = false
     
-    @Published public var settings: AppSettings = AppSettings()
-    @Published public var temporarySong: Song?
+    public var settings: AppSettings = AppSettings()
+    public var temporarySong: Song?
     
     /// Problemy z odczytem lub zapisem plików danych do pokazania użytkownikowi.
-    @Published public private(set) var persistenceIssues: [PersistenceIssue] = []
+    public private(set) var persistenceIssues: [PersistenceIssue] = []
     
     private let fileStore = JSONFileStore()
     /// Pliki, których nie udało się odczytać; zapis do nich jest wstrzymany, żeby ich nie nadpisać.
-    private var lockedFileNames: Set<String> = []
+    @ObservationIgnored private var lockedFileNames: Set<String> = []
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "persistence")
     
     private let dataDirectory: URL

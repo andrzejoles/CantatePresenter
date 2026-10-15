@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 
 public struct ImportExportSheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @Binding var isPresented: Bool
     
     @State private var selectedTab: Int = 0 // 0: Eksport, 1: Import

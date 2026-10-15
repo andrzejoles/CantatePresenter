@@ -3,7 +3,7 @@ import SwiftUI
 import WebKit
 
 public struct LogoGallerySheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @Binding var isPresented: Bool
     
     @State private var selectedLogoId: String = ""

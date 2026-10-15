@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 public struct OnlineSearchSheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @Binding var isPresented: Bool
     
     @State private var query: String = ""

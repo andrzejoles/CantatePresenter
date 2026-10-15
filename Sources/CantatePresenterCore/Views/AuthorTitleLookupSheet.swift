@@ -9,7 +9,7 @@ public enum LookupScope: String, CaseIterable, Identifiable {
 }
 
 public struct AuthorTitleLookupSheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @Binding var isPresented: Bool
     
     // Initial song passed if triggered for a specific song

@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 
 public struct ImportReviewSheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     public let report: ImportProcessingResult
     public let onCommit: ([Song]) -> Void
     public let onCancel: () -> Void

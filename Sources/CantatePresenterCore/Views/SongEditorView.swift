@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 public struct SongEditorView: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @Binding var isPresented: Bool
     
     var existingSong: Song?

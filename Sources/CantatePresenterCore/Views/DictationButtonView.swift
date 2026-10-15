@@ -9,7 +9,7 @@ public enum DictationTargetMode {
 
 public struct DictationButtonView: View {
     @ObservedObject var dictationService = DictationService.shared
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     
     @Binding var text: String
     public var mode: DictationTargetMode = .replace

@@ -4,7 +4,7 @@ import AppKit
 import UniformTypeIdentifiers
 
 public struct SettingsSheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @Binding var isPresented: Bool
     
     @State private var availableFonts: [String] = []

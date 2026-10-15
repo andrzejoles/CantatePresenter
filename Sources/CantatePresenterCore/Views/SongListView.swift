@@ -20,7 +20,7 @@ public enum SongSortOrder: String, CaseIterable, Identifiable {
 }
 
 public struct SongListView: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @State private var searchText: String = ""
     @State private var searchScope: Song.SearchScope = .all
     @AppStorage("song_list_sort_order") private var sortOrder: SongSortOrder = .titleAsc
