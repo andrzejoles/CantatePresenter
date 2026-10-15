@@ -49,7 +49,7 @@ public struct OnlineSearchSheet: View {
                 HStack {
                     Image(systemName: "globe")
                         .foregroundColor(.secondary)
-                    TextField(L("Wpisz tytuł lub słowa pieśni (np. Barka, Oceany, Dotknij Panie)..."), text: $query)
+                    TextField(L("Wpisz tytuł lub słowa pieśni (np. Kiedy ranne wstają zorze)..."), text: $query)
                         .textFieldStyle(PlainTextFieldStyle())
                         .font(.scaled(13, scale: scale))
                         .onSubmit {
@@ -91,7 +91,15 @@ public struct OnlineSearchSheet: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(query.trimmingCharacters(in: .whitespaces).isEmpty || isSearching)
             }
-            .padding(14)
+            .padding(.horizontal, 14)
+            .padding(.top, 14)
+            
+            Text(L("Źródło: Wikiźródła. Tradycyjne pieśni w domenie publicznej lub na wolnej licencji; adres strony zostaje zapisany w pieśni."))
+                .font(.scaled(11, scale: scale))
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
             
             Divider()
             
@@ -100,7 +108,7 @@ public struct OnlineSearchSheet: View {
                 VStack(spacing: 12) {
                     Spacer()
                     ProgressView()
-                    Text(L("Przeszukiwanie serwisów z pieśniami chrześcijańskimi..."))
+                    Text(L("Przeszukiwanie Wikiźródeł..."))
                         .font(.scaled(13, scale: scale))
                         .foregroundColor(.secondary)
                     Spacer()
@@ -223,6 +231,26 @@ public struct OnlineSearchSheet: View {
                             .background(Color(NSColor.controlBackgroundColor))
                             .cornerRadius(8)
                             
+                            HStack(spacing: 8) {
+                                if let license = selected.license {
+                                    Label(license, systemImage: "checkmark.seal")
+                                        .font(.scaled(11, scale: scale))
+                                        .foregroundColor(.green)
+                                }
+                                Text(selected.snippet)
+                                    .font(.scaled(11, scale: scale))
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                Spacer()
+                                if let link = selected.url, let url = URL(string: link) {
+                                    Link(destination: url) {
+                                        Label(L("Otwórz źródło"), systemImage: "arrow.up.right.square")
+                                            .font(.scaled(11, scale: scale))
+                                    }
+                                }
+                            }
+                            
                             Divider()
                             
                             ScrollView {
@@ -290,12 +318,14 @@ public struct OnlineSearchSheet: View {
             finalAuthor = L("Nieznany")
         }
         
-        let newSong = Song(
+        var newSong = Song(
             title: finalTitle,
             author: finalAuthor,
-            tags: ["Import z sieci", result.source],
+            tags: [result.source],
             rawLyrics: result.lyrics
         )
+        newSong.source = result.url
+        newSong.copyright = result.license
         store.addSong(newSong)
         isPresented = false
     }

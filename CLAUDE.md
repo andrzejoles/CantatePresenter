@@ -72,7 +72,8 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] **N9** Higiena repozytorium. Decyzja właściciela: `2026-10-14_16-19-00.mufl`, `data/songs.json`, `data/plans.json` i `data/holyrics_samples/` zostają w repozytorium jako przykłady dla dewelopera (testy, migracja K2 przy uruchamianiu z repozytorium), ale nigdy w aplikacji ani instalatorze; `build_app.sh` przerywa budowanie, jeśli trafią do pakietu.
 - [x] **N10** Skrypty budowania ukrywają błędy podpisu; wersja w trzech miejscach.
 - [x] **S8** Logo wstawiane regexem i zapisywane do `standby.html` (dwie kopie logiki); przy okazji tłumaczenie tekstów planszy („Wersja”, „GOTOWY DO PROJEKCJI”).
-- [ ] **S9** Wyszukiwanie „online”: fragmenty z DuckDuckGo zapisywane jako tekst pieśni, scrapowanie niezgodne z regulaminem. Wymaga decyzji, co z funkcji zostaje.
+- [x] **S9** Wyszukiwanie „online”: decyzja właściciela: źródła z jasną licencją. Wikiźródła przez API MediaWiki (`OnlineSearchService`, `WikisourceParser`), źródło i licencja zapisywane w pieśni (`Song.source`, `copyright`, `ccliNumber`). DuckDuckGo, LRCLIB i wbudowany katalog usunięte. Giszowiec.org odrzucony (brak licencji i API).
+- [ ] **CCLI SongSelect** (konto płatne parafii): API partnerskie zamknięte dla nowych aplikacji, więc import plików z SongSelect (`.txt`, ChordPro `.pro`, `.usr`), wyszukiwanie w przeglądarce, numer licencji CCLI w Ustawieniach, linia © i numer CCLI na slajdzie, raport użycia. Prośba do CCLI o klucz partnera to decyzja właściciela.
 - [x] **N2** Ustawienia typowane stringami (`"left"`, `"lewo"`) → enumy z tolerancyjnym dekoderem.
 - [x] **N3** Ostatni regex kompilowany w pętli (`HolyricsImporter`).
 - [x] **N4** Dyktowanie: podwójny callback, mylący komentarz o rozpoznawaniu na urządzeniu.
