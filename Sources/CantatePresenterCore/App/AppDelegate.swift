@@ -5,6 +5,7 @@ import SwiftUI
 public final class AppDelegate: NSObject, NSApplicationDelegate {
     public static private(set) var shared: AppDelegate?
     public var mainWindow: NSWindow?
+    private var exitBackupCoordinator: ExitBackupCoordinator?
     
     public override init() {
         super.init()
@@ -263,18 +264,64 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         AppInstallerService.shared.installToApplications()
     }
     
-    public func applicationWillTerminate(_ notification: Notification) {
-        let store = DataStore.shared
-        if store.settings.googleDrive.isEnabled && store.settings.googleDrive.autoBackupOnExit {
-            let semaphore = DispatchSemaphore(value: 0)
-            Task {
-                if let (archiveURL, _) = try? BackupService.shared.createBackupArchive(comment: "Automatyczny backup przy zamykaniu CantatePresenter") {
-                    _ = try? await GoogleDriveService.shared.uploadBackupToDrive(archiveURL: archiveURL)
-                    try? FileManager.default.removeItem(at: archiveURL)
-                }
-                semaphore.signal()
-            }
-            _ = semaphore.wait(timeout: .now() + 4.0)
+    // MARK: - Exit Backup (W2)
+    
+    /// Kopia przy zamykaniu nie może czekać na wątku głównym (zakleszczenie z `@MainActor`),
+    /// więc zamknięcie jest odkładane (`.terminateLater`) do zakończenia kopii, limitu czasu albo „Pomiń”.
+    public func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        let googleDrive = DataStore.shared.settings.googleDrive
+        guard googleDrive.isEnabled, googleDrive.autoBackupOnExit, exitBackupCoordinator == nil else {
+            return .terminateNow
         }
+        
+        let coordinator = ExitBackupCoordinator()
+        exitBackupCoordinator = coordinator
+        let panel = makeExitBackupPanel(onSkip: { coordinator.skip() })
+        panel.center()
+        panel.makeKeyAndOrderFront(nil)
+        
+        Task { @MainActor in
+            _ = await coordinator.run(operations: ExitBackupCoordinator.liveOperations(), timeout: .seconds(60))
+            panel.close()
+            NSApp.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
+    }
+    
+    private func makeExitBackupPanel(onSkip: @escaping () -> Void) -> NSPanel {
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 380, height: 130),
+            styleMask: [.titled],
+            backing: .buffered,
+            defer: false
+        )
+        panel.title = "CantatePresenter"
+        panel.isReleasedWhenClosed = false
+        panel.level = .modalPanel
+        panel.contentView = NSHostingView(rootView: ExitBackupProgressView(onSkip: onSkip))
+        return panel
+    }
+}
+
+// MARK: - Exit Backup Progress View
+private struct ExitBackupProgressView: View {
+    let onSkip: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 14) {
+            HStack(spacing: 12) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Tworzenie kopii zapasowej na Dysku Google…")
+                    .font(.system(size: 13, weight: .medium))
+            }
+            Text("Jeśli wysyłka się nie uda, kopia zostanie zapisana lokalnie.")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+            Button("Pomiń i zamknij", action: onSkip)
+                .keyboardShortcut(.cancelAction)
+        }
+        .padding(20)
+        .frame(width: 380)
     }
 }
