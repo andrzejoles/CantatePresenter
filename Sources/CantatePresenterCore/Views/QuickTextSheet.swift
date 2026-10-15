@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 public struct QuickTextSheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @Binding var isPresented: Bool
     
     @State private var title: String = ""
@@ -30,9 +30,9 @@ public struct QuickTextSheet: View {
                     .foregroundColor(.orange)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Szybki tekst na żywo")
+                    Text(L("Szybki tekst na żywo"))
                         .font(.scaled(16, weight: .bold, scale: scale))
-                    Text("Wpisz tekst lub ogłoszenie — zostanie wyświetlone na projektorze bez zapisywania w bazie.")
+                    Text(L("Wpisz tekst lub ogłoszenie — zostanie wyświetlone na projektorze bez zapisywania w bazie."))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                 }
@@ -51,10 +51,10 @@ public struct QuickTextSheet: View {
             
             // Title Input (optional)
             VStack(alignment: .leading, spacing: 4) {
-                Text("Tytuł (opcjonalny):")
+                Text(L("Tytuł (opcjonalny):"))
                     .font(.scaled(11, weight: .medium, scale: scale))
                     .foregroundColor(.secondary)
-                TextField("np. Ogłoszenie, Intencja, Słowo na dziś...", text: $title)
+                TextField(L("np. Ogłoszenie, Intencja, Słowo na dziś..."), text: $title)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .font(.scaled(13, scale: scale))
             }
@@ -62,7 +62,7 @@ public struct QuickTextSheet: View {
             // Text Input
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("Treść do wyświetlenia:")
+                    Text(L("Treść do wyświetlenia:"))
                         .font(.scaled(11, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
                     
@@ -96,7 +96,7 @@ public struct QuickTextSheet: View {
                         )
                     
                     if text.isEmpty {
-                        Text("Wpisz lub wklej treść do wyświetlenia...\n\nPuste linie dzielą tekst na kolejne slajdy.")
+                        Text(L("Wpisz lub wklej treść do wyświetlenia...\n\nPuste linie dzielą tekst na kolejne slajdy."))
                             .font(.scaled(13, scale: scale))
                             .foregroundColor(.secondary.opacity(0.6))
                             .padding(12)
@@ -110,7 +110,7 @@ public struct QuickTextSheet: View {
                 Image(systemName: "info.circle")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
-                Text("Wskazówka: Naciśnij ⌘+Return lub przycisk poniżej, aby natychmiast wysłać na ekran.")
+                Text(L("Wskazówka: Naciśnij ⌘+Return lub przycisk poniżej, aby natychmiast wysłać na ekran."))
                     .font(.scaled(10.5, scale: scale))
                     .foregroundColor(.secondary)
             }
@@ -119,7 +119,7 @@ public struct QuickTextSheet: View {
             
             // Action Buttons
             HStack {
-                Button("Anuluj") {
+                Button(L("Anuluj")) {
                     isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
@@ -131,7 +131,7 @@ public struct QuickTextSheet: View {
                 }) {
                     HStack(spacing: 5) {
                         Image(systemName: "bolt.fill")
-                        Text("Wyświetl teraz")
+                        Text(L("Wyświetl teraz"))
                     }
                     .font(.scaled(12, weight: .semibold, scale: scale))
                 }

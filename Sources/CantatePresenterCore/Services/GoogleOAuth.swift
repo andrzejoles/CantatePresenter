@@ -115,11 +115,11 @@ public enum GoogleOAuth {
 
         public var errorDescription: String? {
             switch self {
-            case .denied(let reason): return "Google odmówił dostępu: \(reason)."
-            case .missingCode: return "Przekierowanie z Google nie zawiera kodu autoryzacji."
-            case .stateMismatch: return "Odpowiedź logowania nie pasuje do tego żądania (parametr state). Spróbuj ponownie."
-            case .timedOut: return "Logowanie nie zostało dokończone w przeglądarce w wyznaczonym czasie."
-            case .listenerFailed(let reason): return "Nie można uruchomić lokalnego odbiornika logowania: \(reason)."
+            case .denied(let reason): return Lnow("Google odmówił dostępu: {0}.", reason)
+            case .missingCode: return Lnow("Przekierowanie z Google nie zawiera kodu autoryzacji.")
+            case .stateMismatch: return Lnow("Odpowiedź logowania nie pasuje do tego żądania (parametr state). Spróbuj ponownie.")
+            case .timedOut: return Lnow("Logowanie nie zostało dokończone w przeglądarce w wyznaczonym czasie.")
+            case .listenerFailed(let reason): return Lnow("Nie można uruchomić lokalnego odbiornika logowania: {0}.", reason)
             }
         }
     }
@@ -248,8 +248,8 @@ public enum GoogleOAuth {
                 }
                 let body: String
                 switch outcome {
-                case .success: body = "Zalogowano. Możesz zamknąć tę kartę i wrócić do CantatePresenter."
-                case .failure(let error): body = "Logowanie nie powiodło się: \(error.localizedDescription)"
+                case .success: body = Lnow("Zalogowano. Możesz zamknąć tę kartę i wrócić do CantatePresenter.")
+                case .failure(let error): body = Lnow("Logowanie nie powiodło się: {0}", error.localizedDescription)
                 case nil: body = ""
                 }
                 let html = "<!doctype html><meta charset=\"utf-8\"><title>CantatePresenter</title><body style=\"font-family:-apple-system;padding:40px\"><h2>CantatePresenter</h2><p>\(body)</p></body>"

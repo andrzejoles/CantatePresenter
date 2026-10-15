@@ -1,5 +1,5 @@
 import Foundation
-import Combine
+import Observation
 import SwiftUI
 import os
 
@@ -23,54 +23,73 @@ public struct PersistenceIssue: Identifiable, Equatable {
     
     public var title: String {
         switch kind {
-        case .unreadable: return "Nie można odczytać pliku \(fileName)"
-        case .saveFailed: return "Nie można zapisać pliku \(fileName)"
-        case .migrationFailed: return "Nie udało się przenieść danych"
+        case .unreadable: return Lnow("Nie można odczytać pliku {0}", fileName)
+        case .saveFailed: return Lnow("Nie można zapisać pliku {0}", fileName)
+        case .migrationFailed: return Lnow("Nie udało się przenieść danych")
         }
     }
     
     public var message: String {
         switch kind {
         case .unreadable:
-            let copy = quarantinedCopy.map { "Kopia pliku: \($0.lastPathComponent).\n\n" } ?? ""
-            return "Plik jest uszkodzony albo ma nieznany format. Aplikacja go nie nadpisze: zmiany w tej części danych nie będą zapisywane do czasu przywrócenia kopii lub ponownego uruchomienia.\n\n\(copy)Szczegóły: \(errorDescription)"
+            let copy = quarantinedCopy.map { Lnow("Kopia pliku: {0}.\n\n", $0.lastPathComponent) } ?? ""
+            return Lnow("Plik jest uszkodzony albo ma nieznany format. Aplikacja go nie nadpisze: zmiany w tej części danych nie będą zapisywane do czasu przywrócenia kopii lub ponownego uruchomienia.\n\n{0}Szczegóły: {1}", copy, errorDescription)
         case .saveFailed:
-            return "Ostatnie zmiany mogą nie zostać zachowane.\n\nSzczegóły: \(errorDescription)"
+            return Lnow("Ostatnie zmiany mogą nie zostać zachowane.\n\nSzczegóły: {0}", errorDescription)
         case .migrationFailed:
-            return "Biblioteka nie została skopiowana do folderu Application Support. W tej sesji aplikacja używa dotychczasowego katalogu:\n\(fileName)\n\nSzczegóły: \(errorDescription)"
+            return Lnow("Biblioteka nie została skopiowana do folderu Application Support. W tej sesji aplikacja używa dotychczasowego katalogu:\n{0}\n\nSzczegóły: {1}", fileName, errorDescription)
         }
     }
 }
 
 @MainActor
-public final class DataStore: ObservableObject {
+/// Stan aplikacji. `@Observable` (S2): widok odświeża się tylko po zmianie właściwości, które czyta,
+/// więc przełączanie slajdów nie przerysowuje listy pieśni.
+@Observable
+public final class DataStore {
     public static let shared = DataStore()
     
-    @Published public var songs: [Song] = []
-    @Published public var plans: [ServicePlan] = []
-    @Published public var activePlanId: UUID?
-    @Published public var selectedSongId: UUID?
+    public var songs: [Song] = [] {
+        didSet { searchIndex.update(with: songs) }
+    }
+    /// Złożone pola do wyszukiwania, aktualizowane przy zmianie biblioteki (S2).
+    public private(set) var searchIndex = SongSearchIndex()
+    public var plans: [ServicePlan] = []
+    public var activePlanId: UUID?
+    public var selectedSongId: UUID?
     
     // Live Presentation State
-    @Published public var activeSong: Song?
-    @Published public var activeSlideIndex: Int = 0
-    @Published public var isLive: Bool = false
-    @Published public var isBlackScreen: Bool = false
-    @Published public var isClearText: Bool = false
+    public var activeSong: Song?
+    public var activeSlideIndex: Int = 0
+    public var isLive: Bool = false
+    public var isBlackScreen: Bool = false
+    public var isClearText: Bool = false
     
-    @Published public var settings: AppSettings = AppSettings()
-    @Published public var temporarySong: Song?
+    public var settings: AppSettings = AppSettings() {
+        didSet {
+            Localization.currentLanguage = settings.appLanguage
+            if oldValue.appLanguage != settings.appLanguage {
+                NotificationCenter.default.post(name: .appLanguageDidChange, object: nil)
+            }
+        }
+    }
+    public var temporarySong: Song?
     
     /// Problemy z odczytem lub zapisem plików danych do pokazania użytkownikowi.
-    @Published public private(set) var persistenceIssues: [PersistenceIssue] = []
+    public private(set) var persistenceIssues: [PersistenceIssue] = []
     
     private let fileStore = JSONFileStore()
     /// Pliki, których nie udało się odczytać; zapis do nich jest wstrzymany, żeby ich nie nadpisać.
-    private var lockedFileNames: Set<String> = []
+    @ObservationIgnored private var lockedFileNames: Set<String> = []
+    /// Ostatnia pieśń z aktywnego planu; po „szybkim tekście” poprzednia/następna pieśń liczy się od niej (N11).
+    @ObservationIgnored private var lastPlanSongId: UUID?
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "persistence")
     
     private let dataDirectory: URL
     private let songsFileURL: URL
+    private let ccliUsageFileURL: URL
+    /// Wyświetlenia pieśni z numerem CCLI do raportu (eksport CSV w Ustawieniach).
+    public private(set) var ccliUsage: [CCLIUsageEntry] = []
     private let plansFileURL: URL
     private let settingsFileURL: URL
     
@@ -85,6 +104,7 @@ public final class DataStore: ObservableObject {
     init(paths: AppPaths) {
         self.dataDirectory = paths.dataDirectory
         self.songsFileURL = paths.songsFile
+        self.ccliUsageFileURL = paths.ccliUsageFile
         self.plansFileURL = paths.plansFile
         self.settingsFileURL = paths.settingsFile
         
@@ -101,6 +121,7 @@ public final class DataStore: ObservableObject {
         loadSettings()
         loadSongs()
         loadPlans()
+        loadCCLIUsage()
     }
     
     private func createDataDirectoryIfNeeded() {
@@ -143,6 +164,12 @@ public final class DataStore: ObservableObject {
         return song.slides[activeSlideIndex]
     }
     
+    /// Informacja o prawach autorskich dla bieżącego slajdu (pieśni z numerem CCLI).
+    public var currentLiveCopyrightNotice: String? {
+        guard let song = activeSong else { return nil }
+        return CopyrightNotice.text(for: song, slideIndex: activeSlideIndex, settings: settings)
+    }
+    
     // MARK: - Persistence
     public func loadSongs() {
         switch fileStore.load([Song].self, from: songsFileURL) {
@@ -175,7 +202,7 @@ public final class DataStore: ObservableObject {
             unlock(plansFileURL)
             // Default initial plan
             let initialPlan = ServicePlan(
-                name: "Niedziela - Zestaw pieśni",
+                name: Lnow("Niedziela - Zestaw pieśni"),
                 items: songs.prefix(4).map { PlanItem(songId: $0.id) }
             )
             self.plans = [initialPlan]
@@ -190,6 +217,30 @@ public final class DataStore: ObservableObject {
         if activePlanId == nil {
             activePlanId = plans.first?.id
         }
+    }
+    
+    public func loadCCLIUsage() {
+        switch fileStore.load([CCLIUsageEntry].self, from: ccliUsageFileURL) {
+        case .missing:
+            unlock(ccliUsageFileURL)
+            ccliUsage = []
+        case .loaded(let decoded):
+            unlock(ccliUsageFileURL)
+            ccliUsage = decoded
+        case .unreadable(let error, let copy):
+            lock(ccliUsageFileURL, error: error, quarantinedCopy: copy)
+            ccliUsage = []
+        }
+    }
+    
+    /// Zapisuje wyświetlenie pieśni z numerem CCLI (raz na pieśń dziennie).
+    func recordCCLIUsage(for song: Song, at date: Date = Date()) {
+        guard let entry = CCLIUsageReport.entry(for: song, at: date, existing: ccliUsage) else { return }
+        ccliUsage.append(entry)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        encoder.dateEncodingStrategy = .iso8601
+        persist(ccliUsage, to: ccliUsageFileURL, encoder: encoder)
     }
     
     public func savePlans() {
@@ -372,9 +423,13 @@ public final class DataStore: ObservableObject {
     
     // MARK: - Presentation Navigation & Controls
     public func present(song: Song, slideIndex: Int = 0) {
+        if activePlan?.items.contains(where: { $0.songId == song.id }) == true {
+            lastPlanSongId = song.id
+        }
         self.activeSong = song
         self.activeSlideIndex = min(max(0, slideIndex), max(0, song.slides.count - 1))
         self.isLive = true
+        recordCCLIUsage(for: song)
         self.isBlackScreen = false
         self.isClearText = false
     }
@@ -385,14 +440,14 @@ public final class DataStore: ObservableObject {
         guard !trimmed.isEmpty else { return }
         
         let customTitle = (title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        let songTitle = customTitle.isEmpty ? "Szybki tekst" : customTitle
+        let songTitle = customTitle.isEmpty ? Lnow("Szybki tekst") : customTitle
         
         let quickSong = Song(
             id: UUID(),
             title: songTitle,
             author: "Tymczasowy",
             key: "",
-            tags: ["Szybki tekst"],
+            tags: [Lnow("Szybki tekst")],
             rawLyrics: trimmed
         )
         
@@ -433,8 +488,8 @@ public final class DataStore: ObservableObject {
     
     public func jumpToVerse(number: Int) {
         guard let song = activeSong else { return }
-        let targetLabel = "Zwrotka \(number)"
-        if let idx = song.slides.firstIndex(where: { $0.label.lowercased().contains(targetLabel.lowercased()) }) {
+        // Po numerze zwrotki, nie po polskiej etykiecie (S10).
+        if let idx = song.slides.firstIndex(where: { $0.type == .verse && $0.number == number }) {
             jumpToSlide(index: idx)
         } else if number - 1 < song.slides.count {
             jumpToSlide(index: number - 1)
@@ -462,10 +517,15 @@ public final class DataStore: ObservableObject {
         isClearText = false
     }
     
+    /// Pozycja w planie: bieżącej pieśni, a gdy na ekranie jest coś spoza planu (szybki tekst), ostatniej pieśni z planu.
+    private func currentPlanIndex(in plan: ServicePlan) -> Int? {
+        let anchor = activeSong.flatMap { song in plan.items.contains(where: { $0.songId == song.id }) ? song.id : nil } ?? lastPlanSongId
+        return anchor.flatMap { id in plan.items.firstIndex(where: { $0.songId == id }) }
+    }
+    
     public func nextSongInPlan() {
         guard let plan = activePlan, !plan.items.isEmpty else { return }
-        guard let currentSong = activeSong,
-              let currentIndex = plan.items.firstIndex(where: { $0.songId == currentSong.id }) else {
+        guard let currentIndex = currentPlanIndex(in: plan) else {
             if let firstId = plan.items.first?.songId,
                let song = songs.first(where: { $0.id == firstId }) {
                 present(song: song, slideIndex: 0)
@@ -485,8 +545,7 @@ public final class DataStore: ObservableObject {
     
     public func prevSongInPlan() {
         guard let plan = activePlan, !plan.items.isEmpty else { return }
-        guard let currentSong = activeSong,
-              let currentIndex = plan.items.firstIndex(where: { $0.songId == currentSong.id }) else { return }
+        guard let currentIndex = currentPlanIndex(in: plan) else { return }
         
         let prevIndex = currentIndex - 1
         if prevIndex >= 0 {
@@ -515,23 +574,10 @@ public final class DataStore: ObservableObject {
     }
     
     // MARK: - Logo Customization
+    /// Logo jest wstawiane do planszy w pamięci przy wyświetlaniu (`StandbyRenderer`, S8);
+    /// plik `standby.html` nie jest zmieniany.
     public func updateActiveLogo(id: String) {
         settings.activeLogoId = id
         saveSettings()
-        
-        let standbyURL = dataDirectory.appendingPathComponent("standby.html")
-        if FileManager.default.fileExists(atPath: standbyURL.path),
-           var content = try? String(contentsOf: standbyURL, encoding: .utf8) {
-            let logoPreset = LogoCatalog.getById(id)
-            let regexPattern = "(<div class=\"logo-wrapper\">)[\\s\\S]*?(</div>)"
-            if let regex = try? NSRegularExpression(pattern: regexPattern, options: []) {
-                let range = NSRange(location: 0, length: (content as NSString).length)
-                // Escape $ in svg content if any
-                let safeSvg = logoPreset.svgContent.replacingOccurrences(of: "$", with: "\\$")
-                let replacement = "$1\n            " + safeSvg + "\n        $2"
-                content = regex.stringByReplacingMatches(in: content, options: [], range: range, withTemplate: replacement)
-                try? content.write(to: standbyURL, atomically: true, encoding: .utf8)
-            }
-        }
     }
 }

@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "CantatePresenter",
+    defaultLocalization: "pl",
     platforms: [
         .macOS(.v14)
     ],
@@ -13,7 +14,8 @@ let package = Package(
     targets: [
         .target(
             name: "CantatePresenterCore",
-            path: "Sources/CantatePresenterCore"
+            path: "Sources/CantatePresenterCore",
+            resources: [.process("Resources")]
         ),
         .executableTarget(
             name: "CantatePresenter",

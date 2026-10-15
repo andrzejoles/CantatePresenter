@@ -20,8 +20,9 @@ public enum SongSortOrder: String, CaseIterable, Identifiable {
 }
 
 public struct SongListView: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @State private var searchText: String = ""
+    @FocusState private var isSearchFocused: Bool
     @State private var searchScope: Song.SearchScope = .all
     @AppStorage("song_list_sort_order") private var sortOrder: SongSortOrder = .titleAsc
     @Binding var isShowingEditor: Bool
@@ -53,7 +54,7 @@ public struct SongListView: View {
         if query.isEmpty {
             baseList = store.songs
         } else {
-            baseList = store.songs.filter { $0.matches(query: query, scope: searchScope) }
+            baseList = store.searchIndex.filter(store.songs, query: query, scope: searchScope)
         }
         
         let plLocale = Locale(identifier: "pl_PL")
@@ -86,15 +87,33 @@ public struct SongListView: View {
         let scale = store.settings.uiScale
         
         VStack(spacing: 0) {
-            // Search & Action Header
-            VStack(spacing: 8) {
+            // Search Header: pole w osobnej linii, pod nim dyktowanie i zakres wyszukiwania
+            VStack(spacing: 6) {
                 HStack(spacing: 6) {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(isSearchFocused ? .green : .secondary)
                     
-                    TextField(searchScope == .all ? loc(.searchPlaceholder) : "Szukaj (\(searchScope.rawValue.lowercased()))...", text: $searchText)
+                    TextField(searchScope == .all ? L("Szukaj w tytule, autorze i tekście...") : L("Szukaj ({0})...", L(searchScope.rawValue).lowercased()), text: $searchText)
                         .textFieldStyle(PlainTextFieldStyle())
                         .font(.scaled(12, scale: scale))
+                        .focused($isSearchFocused)
+                        .onReceive(NotificationCenter.default.publisher(for: .focusSongSearchField)) { _ in
+                            isSearchFocused = true
+                        }
+                        .onChange(of: isSearchFocused) { _, focused in
+                            // Po aktywacji cały tekst zaznaczony: pisanie od razu zastępuje poprzednie zapytanie.
+                            guard focused else { return }
+                            DispatchQueue.main.async {
+                                NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
+                            }
+                        }
+                        .onSubmit {
+                            // Enter: zaznacz pierwszy wynik i wyjdź z pola, żeby klawisze znów sterowały slajdami.
+                            if let first = filteredSongs.first {
+                                store.selectedSongId = first.id
+                            }
+                            NSApp.keyWindow?.makeFirstResponder(nil)
+                        }
                     
                     if !searchText.isEmpty {
                         Button(action: { searchText = "" }) {
@@ -103,86 +122,31 @@ public struct SongListView: View {
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
-                    
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                // Zielone: pole aktywne, można pisać. Czerwone: nieaktywne, klawisze sterują slajdami.
+                .background((isSearchFocused ? Color.green : Color.red).opacity(0.07))
+                .background(Color(NSColor.controlBackgroundColor))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke((isSearchFocused ? Color.green : Color.red).opacity(isSearchFocused ? 0.7 : 0.35), lineWidth: isSearchFocused ? 1.5 : 1)
+                )
+                .cornerRadius(8)
+                .contentShape(Rectangle())
+                .onTapGesture { isSearchFocused = true }
+                
+                HStack(spacing: 6) {
                     // Voice dictation button for search
                     DictationButtonView(text: $searchText, mode: .replace, size: 12)
                     
                     Picker("", selection: $searchScope) {
                         ForEach(Song.SearchScope.allCases) { scope in
-                            Text(scope.rawValue).tag(scope)
+                            Text(L(scope.rawValue)).tag(scope)
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
-                    .frame(width: 105)
-                }
-                .padding(6)
-                .background(Color(NSColor.controlBackgroundColor))
-                .cornerRadius(8)
-                
-                // Quick Action Buttons
-                HStack(spacing: 5) {
-                    Button(action: {
-                        songToEdit = nil
-                        isShowingEditor = true
-                    }) {
-                        Label(loc(.newSong), systemImage: "plus")
-                            .font(.scaled(11, weight: .medium, scale: scale))
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
-                    
-                    Button(action: {
-                        if let selected = store.selectedSong {
-                            songToEdit = selected
-                            isShowingEditor = true
-                        }
-                    }) {
-                        Label("Edytuj", systemImage: "pencil")
-                            .font(.scaled(11, weight: .medium, scale: scale))
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .disabled(store.selectedSong == nil)
-                    .help("Edytuj wybraną pieśń (podwójny klik lub ⌘E)")
-                    
-                    Button(action: {
-                        isShowingImportExport = true
-                    }) {
-                        Label(loc(.importExport), systemImage: "arrow.up.arrow.down")
-                            .font(.scaled(11, scale: scale))
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    
-                    Button(action: {
-                        lookupTargetSong = store.selectedSong
-                        isShowingAuthorTitleLookup = true
-                    }) {
-                        Label(loc(.titleAuthor), systemImage: "person.text.rectangle")
-                            .font(.scaled(11, scale: scale))
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .help("Wyszukiwarka tytułu i autora (dla zaznaczonej lub dla wszystkich)")
-                    
-                    Button(action: {
-                        isShowingOnlineSearch = true
-                    }) {
-                        Label(loc(.online), systemImage: "globe")
-                            .font(.scaled(11, scale: scale))
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    
-                    Button(action: {
-                        NotificationCenter.default.post(name: NSNotification.Name("OpenQuickTextSheet"), object: nil)
-                    }) {
-                        Label("Szybki tekst", systemImage: "bolt.fill")
-                            .font(.scaled(11, scale: scale))
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .help("Wyświetl natychmiast dowolny tekst lub ogłoszenie bez zapisywania w bazie (⌘T)")
+                    .fixedSize()
                     
                     Spacer()
                 }
@@ -195,11 +159,11 @@ public struct SongListView: View {
             // Sub-header: Count and Sort selector
             HStack {
                 if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
-                    Text("\(filteredSongs.count) pieśni")
+                    Text(L("{0} pieśni", filteredSongs.count))
                         .font(.scaled(10.5, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
                 } else {
-                    Text("\(filteredSongs.count) z \(store.songs.count) pieśni")
+                    Text(L("{0} z {1} pieśni", filteredSongs.count, store.songs.count))
                         .font(.scaled(10.5, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
                 }
@@ -207,22 +171,22 @@ public struct SongListView: View {
                 Spacer()
                 
                 Menu {
-                    Picker("Sortowanie", selection: $sortOrder) {
+                    Picker(L("Sortowanie"), selection: $sortOrder) {
                         ForEach(SongSortOrder.allCases) { order in
-                            Label(order.rawValue, systemImage: order.icon).tag(order)
+                            Label(L(order.rawValue), systemImage: order.icon).tag(order)
                         }
                     }
                 } label: {
                     HStack(spacing: 3) {
                         Image(systemName: "arrow.up.arrow.down")
                             .font(.system(size: 9))
-                        Text(sortOrder.rawValue)
+                        Text(L(sortOrder.rawValue))
                             .font(.scaled(10, scale: scale))
                     }
                     .foregroundColor(.secondary)
                 }
                 .menuStyle(BorderlessButtonMenuStyle())
-                .help("Zmień kolejność sortowania pieśni w bibliotece")
+                .help(L("Zmień kolejność sortowania pieśni w bibliotece"))
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 3)
@@ -251,30 +215,30 @@ public struct SongListView: View {
                         store.selectedSongId = song.id
                     })
                     .contextMenu {
-                        Button("Prezentuj teraz") {
+                        Button(L("Prezentuj teraz")) {
                             store.present(song: song, slideIndex: 0)
                         }
-                        Button("Dodaj do aktywnego planu") {
+                        Button(L("Dodaj do aktywnego planu")) {
                             store.addSongToPlan(songId: song.id)
                         }
-                        Button("Edytuj pieśń ✏️ (⌘E)") {
+                        Button(L("Edytuj pieśń ✏️ (⌘E)")) {
                             songToEdit = song
                             isShowingEditor = true
                         }
                         Divider()
-                        Button("Wyszukaj tytuł i autora online...") {
+                        Button(L("Wyszukaj tytuł i autora online...")) {
                             lookupTargetSong = song
                             isShowingAuthorTitleLookup = true
                         }
                         Divider()
-                        Button("Eksportuj jako plik tekstowy (.txt)...") {
+                        Button(L("Eksportuj jako plik tekstowy (.txt)...")) {
                             _ = SongExporter.exportSongAsTextFile(song)
                         }
-                        Button("Eksportuj jako plik JSON (.json)...") {
+                        Button(L("Eksportuj jako plik JSON (.json)...")) {
                             _ = SongExporter.exportSongsAsJSONFile([song], defaultName: song.title)
                         }
                         Divider()
-                        Button("Usuń z bazy", role: .destructive) {
+                        Button(L("Usuń z bazy"), role: .destructive) {
                             store.deleteSong(id: song.id)
                         }
                     }
@@ -286,11 +250,11 @@ public struct SongListView: View {
             
             // Footer status
             HStack {
-                Text("\(filteredSongs.count) \(loc(.songsInLibrary))")
+                Text("\(filteredSongs.count) \(L("pieśni w bibliotece"))")
                     .font(.scaled(11, scale: scale))
                     .foregroundColor(.secondary)
                 Spacer()
-                Text("Podwójny klik / ⌘E: edycja")
+                Text(L("Podwójny klik / ⌘E: edycja"))
                     .font(.scaled(10, scale: scale))
                     .foregroundColor(.secondary.opacity(0.8))
             }
@@ -334,7 +298,7 @@ private struct SongRowView: View {
                         .cornerRadius(4)
                 }
                 
-                Text("\(song.slides.count) sl.")
+                Text(L("{0} sl.", song.slides.count))
                     .font(.scaled(10, scale: scale))
                     .foregroundColor(.secondary)
             }

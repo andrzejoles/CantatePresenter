@@ -15,7 +15,7 @@ public struct BackupManifest: Codable {
     public let comment: String?
     
     public init(
-        version: String = "1.0.0",
+        version: String = AppVersion.current,
         appName: String = "CantatePresenter",
         createdAt: Date = Date(),
         deviceName: String = Host.current().localizedName ?? "Mac",
@@ -71,7 +71,8 @@ public final class BackupService {
             "plans.json",
             "settings.json",
             "standby.html",
-            "custom_languages.json"
+            "custom_languages.json",
+            "ccli_usage.json"
         ]
         
         for fileName in filesToInclude {
@@ -128,7 +129,7 @@ public final class BackupService {
         process.waitUntilExit()
         
         guard process.terminationStatus == 0 && fileManager.fileExists(atPath: archiveURL.path) else {
-            throw NSError(domain: "CantateBackup", code: 1, userInfo: [NSLocalizedDescriptionKey: "Nie udało się skompresować archiwum kopii zapasowej (kod ditto: \(process.terminationStatus))"])
+            throw NSError(domain: "CantateBackup", code: 1, userInfo: [NSLocalizedDescriptionKey: Lnow("Nie udało się skompresować archiwum kopii zapasowej (kod ditto: {0})", process.terminationStatus)])
         }
         
         return (archiveURL, manifest)
@@ -142,7 +143,7 @@ public final class BackupService {
     public func restoreBackup(from archiveURL: URL) async throws -> BackupManifest {
         let fileManager = FileManager.default
         guard fileManager.fileExists(atPath: archiveURL.path) else {
-            throw NSError(domain: "HolyricsMacBackup", code: 2, userInfo: [NSLocalizedDescriptionKey: "Wskazany plik kopii zapasowej nie istnieje: \(archiveURL.lastPathComponent)"])
+            throw NSError(domain: "HolyricsMacBackup", code: 2, userInfo: [NSLocalizedDescriptionKey: Lnow("Wskazany plik kopii zapasowej nie istnieje: {0}", archiveURL.lastPathComponent)])
         }
         
         let extractDir = fileManager.temporaryDirectory.appendingPathComponent("CantateRestore_\(UUID().uuidString)")
@@ -200,6 +201,7 @@ public final class BackupService {
         store.loadSettings()
         store.loadSongs()
         store.loadPlans()
+        store.loadCCLIUsage()
         store.updateActiveLogo(id: store.settings.activeLogoId)
         LocalizationService.shared.loadCustomLanguages()
     }
@@ -211,9 +213,9 @@ public final class BackupService {
             let (tempArchiveURL, _) = try createBackupArchive()
             
             let savePanel = NSSavePanel()
-            savePanel.title = "Zapisz pełną kopię zapasową CantatePresenter"
-            savePanel.message = "Wybierz miejsce zapisu pliku kopii zapasowej (.cantatebackup)"
-            savePanel.prompt = "Utwórz kopię"
+            savePanel.title = Lnow("Zapisz pełną kopię zapasową CantatePresenter")
+            savePanel.message = Lnow("Wybierz miejsce zapisu pliku kopii zapasowej (.cantatebackup)")
+            savePanel.prompt = Lnow("Utwórz kopię")
             savePanel.nameFieldStringValue = tempArchiveURL.lastPathComponent
             savePanel.allowedContentTypes = [
                 UTType(filenameExtension: "cantatebackup") ?? .data,
@@ -234,7 +236,7 @@ public final class BackupService {
             return false
         } catch {
             let alert = NSAlert()
-            alert.messageText = "Błąd tworzenia kopii zapasowej"
+            alert.messageText = Lnow("Błąd tworzenia kopii zapasowej")
             alert.informativeText = error.localizedDescription
             alert.alertStyle = .warning
             alert.runModal()
@@ -246,9 +248,9 @@ public final class BackupService {
     
     public func restoreBackupWithOpenPanel() async -> (success: Bool, message: String) {
         let openPanel = NSOpenPanel()
-        openPanel.title = "Wybierz plik kopii zapasowej do przywrócenia"
-        openPanel.message = "Wskaż plik .cantatebackup, .holyricsbackup lub .zip zawierający kopię bazy CantatePresenter"
-        openPanel.prompt = "Przywróć dane"
+        openPanel.title = Lnow("Wybierz plik kopii zapasowej do przywrócenia")
+        openPanel.message = Lnow("Wskaż plik .cantatebackup, .holyricsbackup lub .zip zawierający kopię bazy CantatePresenter")
+        openPanel.prompt = Lnow("Przywróć dane")
         openPanel.allowedContentTypes = [
             UTType(filenameExtension: "cantatebackup") ?? .data,
             UTType(filenameExtension: "holyricsbackup") ?? .data,
@@ -264,11 +266,11 @@ public final class BackupService {
                 dateFormatter.dateStyle = .medium
                 dateFormatter.timeStyle = .short
                 let dateStr = dateFormatter.string(from: manifest.createdAt)
-                return (true, "Pomyślnie przywrócono stan aplikacji z kopii z dnia \(dateStr) (pieśni: \(manifest.songsCount), plany: \(manifest.plansCount)). Poprzednie dane zachowano: Plik → Cofnij ostatnie przywracanie.")
+                return (true, Lnow("Pomyślnie przywrócono stan aplikacji z kopii z dnia {0} (pieśni: {1}, plany: {2}). Poprzednie dane zachowano: Plik → Cofnij ostatnie przywracanie.", dateStr, manifest.songsCount, manifest.plansCount))
             } catch {
-                return (false, "Błąd przywracania: \(error.localizedDescription)")
+                return (false, Lnow("Błąd przywracania: {0}", error.localizedDescription))
             }
         }
-        return (false, "Anulowano wybór pliku.")
+        return (false, Lnow("Anulowano wybór pliku."))
     }
 }

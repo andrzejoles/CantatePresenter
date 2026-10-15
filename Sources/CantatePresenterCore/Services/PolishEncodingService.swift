@@ -152,7 +152,7 @@ public final class PolishEncodingService {
     
     /// Contextually restores Polish diacritics in title by cross-referencing words with its lyrics and dictionary
     public func restoreTitleDiacritics(title: String, lyrics: String) -> (title: String, wasRestored: Bool) {
-        var fixedTitle = repairMojibake(title.trimmingCharacters(in: .whitespacesAndNewlines))
+        let fixedTitle = repairMojibake(title.trimmingCharacters(in: .whitespacesAndNewlines))
         
         // If title already has Polish characters, return as is (with mojibake fixed)
         if hasPolishDiacritics(fixedTitle) {

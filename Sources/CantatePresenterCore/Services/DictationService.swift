@@ -2,6 +2,7 @@ import Foundation
 import Speech
 import AVFoundation
 import Combine
+import os
 
 @MainActor
 public final class DictationService: ObservableObject {
@@ -33,10 +34,10 @@ public final class DictationService: ObservableObject {
                     self?.errorMessage = nil
                 case .denied:
                     self?.isAuthorized = false
-                    self?.errorMessage = "Odmówiono dostępu do rozpoznawania mowy w Ustawieniach systemowych."
+                    self?.errorMessage = Lnow("Odmówiono dostępu do rozpoznawania mowy w Ustawieniach systemowych.")
                 case .restricted:
                     self?.isAuthorized = false
-                    self?.errorMessage = "Rozpoznawanie mowy jest ograniczone na tym urządzeniu."
+                    self?.errorMessage = Lnow("Rozpoznawanie mowy jest ograniczone na tym urządzeniu.")
                 case .notDetermined:
                     self?.isAuthorized = false
                 @unknown default:
@@ -46,11 +47,23 @@ public final class DictationService: ObservableObject {
         }
     }
     
+    private var usedOnDeviceRecognition = false
+    /// Numer sesji: zdarzenia z anulowanej wcześniejszej próby nie mogą zatrzymać bieżącej.
+    private var sessionID = 0
+    private var retriedWithServer = false
+    private var forceServerRecognition = false
+    private var lastLocaleIdentifier = ""
+    private static let logger = Logger(subsystem: "com.cantate.presenter", category: "dictation")
+    
     public func startDictation(
         localeIdentifier: String,
         onPartial: @escaping (String) -> Void,
         onFinal: @escaping (String) -> Void
     ) {
+        lastLocaleIdentifier = localeIdentifier
+        if !forceServerRecognition {
+            retriedWithServer = false
+        }
         if isRecording {
             stopDictation()
             return
@@ -59,13 +72,14 @@ public final class DictationService: ObservableObject {
         self.partialHandler = onPartial
         self.finalHandler = onFinal
         self.currentRecognizedText = ""
+        self.finalDelivery.start()
         self.errorMessage = nil
         
         // Request microphone permission first
         AVCaptureDevice.requestAccess(for: .audio) { [weak self] micGranted in
             guard micGranted else {
                 Task { @MainActor in
-                    self?.errorMessage = "Brak dostępu do mikrofonu. Nadaj uprawnienia w Ustawienia systemowe > Prywatność i ochrona > Mikrofon."
+                    self?.errorMessage = Lnow("Brak dostępu do mikrofonu. Nadaj uprawnienia w Ustawienia systemowe > Prywatność i ochrona > Mikrofon.")
                     self?.isRecording = false
                 }
                 return
@@ -74,7 +88,7 @@ public final class DictationService: ObservableObject {
             SFSpeechRecognizer.requestAuthorization { [weak self] authStatus in
                 Task { @MainActor in
                     guard authStatus == .authorized else {
-                        self?.errorMessage = "Brak uprawnień do rozpoznawania mowy. Włącz uprawnienia w Ustawieniach systemowych."
+                        self?.errorMessage = Lnow("Brak uprawnień do rozpoznawania mowy. Włącz uprawnienia w Ustawieniach systemowych.")
                         self?.isRecording = false
                         return
                     }
@@ -96,29 +110,31 @@ public final class DictationService: ObservableObject {
         speechRecognizer = SFSpeechRecognizer(locale: locale)
         
         guard let recognizer = speechRecognizer, recognizer.isAvailable else {
-            self.errorMessage = "Rozpoznawanie mowy dla języka \(localeIdentifier) nie jest obecnie dostępne na tym urządzeniu."
+            self.errorMessage = Lnow("Rozpoznawanie mowy dla języka {0} nie jest obecnie dostępne na tym urządzeniu.", localeIdentifier)
             self.isRecording = false
             return
         }
         
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
         guard let request = recognitionRequest else {
-            self.errorMessage = "Nie można utworzyć żądania rozpoznawania mowy."
+            self.errorMessage = Lnow("Nie można utworzyć żądania rozpoznawania mowy.")
             self.isRecording = false
             return
         }
         
         request.shouldReportPartialResults = true
-        // Enable on-device recognition on Apple Silicon if available
-        if recognizer.supportsOnDeviceRecognition {
-            request.requiresOnDeviceRecognition = false // Allow fallback to network if faster
-        }
+        // Wybór z Ustawień (N4): tylko na tym Macu, jeśli system ma model mowy dla tego języka.
+        // Bez modelu lokalnego (albo gdy opcja jest wyłączona) rozpoznawanie idzie przez serwery Apple.
+        let onDeviceOnly = DataStore.shared.settings.dictationOnDeviceOnly && !forceServerRecognition
+        request.requiresOnDeviceRecognition = onDeviceOnly && recognizer.supportsOnDeviceRecognition
+        usedOnDeviceRecognition = request.requiresOnDeviceRecognition
+        forceServerRecognition = false
         
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
         
         guard recordingFormat.sampleRate > 0 && recordingFormat.channelCount > 0 else {
-            self.errorMessage = "Nieprawidłowy format wejścia mikrofonu."
+            self.errorMessage = Lnow("Nieprawidłowy format wejścia mikrofonu.")
             self.isRecording = false
             return
         }
@@ -134,14 +150,16 @@ public final class DictationService: ObservableObject {
             try audioEngine.start()
             self.isRecording = true
         } catch {
-            self.errorMessage = "Nie udało się uruchomić silnika audio: \(error.localizedDescription)"
+            self.errorMessage = Lnow("Nie udało się uruchomić silnika audio: {0}", error.localizedDescription)
             self.isRecording = false
             return
         }
         
+        sessionID += 1
+        let session = sessionID
         recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
             Task { @MainActor in
-                guard let self = self else { return }
+                guard let self = self, session == self.sessionID else { return }
                 
                 if let result = result {
                     let transcribed = result.bestTranscription.formattedString
@@ -149,14 +167,26 @@ public final class DictationService: ObservableObject {
                     self.partialHandler?(transcribed)
                     
                     if result.isFinal {
-                        self.finalHandler?(transcribed)
+                        // Wynik oddaje stopDictation; tu wcześniej był drugi raz (N4).
                         self.stopDictation()
                     }
                 }
                 
                 if let error = error {
-                    // Ignore cancelation error
                     let nsError = error as NSError
+                    Self.logger.error("Rozpoznawanie mowy: \(nsError.domain, privacy: .public) \(nsError.code) (lokalnie: \(self.usedOnDeviceRecognition))")
+                    // macOS potrafi zgłaszać obsługę lokalną bez pobranego modelu mowy: wtedy jedno ponowienie
+                    // przez serwery Apple, zgodnie z opisem przy opcji w Ustawieniach (N4).
+                    if DictationFallback.shouldRetryWithServer(
+                        usedOnDevice: self.usedOnDeviceRecognition,
+                        recognizedText: self.currentRecognizedText,
+                        alreadyRetried: self.retriedWithServer
+                    ), let onPartial = self.partialHandler, let onFinal = self.finalHandler {
+                        self.retriedWithServer = true
+                        self.restartWithServerRecognition(onPartial: onPartial, onFinal: onFinal)
+                        return
+                    }
+                    // Ignore cancelation error
                     if nsError.domain != "kAFAssistantErrorDomain" || (nsError.code != 203 && nsError.code != 216) {
                         if !self.transcribedTextWasEmitted {
                             self.errorMessage = error.localizedDescription
@@ -172,6 +202,24 @@ public final class DictationService: ObservableObject {
         return !currentRecognizedText.isEmpty
     }
     
+    private var finalDelivery = DictationFinalDelivery()
+    
+    /// Zatrzymuje bieżącą próbę bez oddawania wyniku i zaczyna od nowa z rozpoznawaniem na serwerach Apple.
+    private func restartWithServerRecognition(onPartial: @escaping (String) -> Void, onFinal: @escaping (String) -> Void) {
+        sessionID += 1 // spóźnione zdarzenia anulowanej próby są od teraz ignorowane
+        if audioEngine.isRunning {
+            audioEngine.stop()
+            audioEngine.inputNode.removeTap(onBus: 0)
+        }
+        recognitionRequest?.endAudio()
+        recognitionRequest = nil
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        isRecording = false
+        forceServerRecognition = true
+        startDictation(localeIdentifier: lastLocaleIdentifier, onPartial: onPartial, onFinal: onFinal)
+    }
+    
     public func stopDictation() {
         if audioEngine.isRunning {
             audioEngine.stop()
@@ -184,9 +232,7 @@ public final class DictationService: ObservableObject {
         
         if isRecording {
             isRecording = false
-            if !currentRecognizedText.isEmpty {
-                finalHandler?(currentRecognizedText)
-            }
+            finalDelivery.deliver(currentRecognizedText) { finalHandler?($0) }
         }
     }
     
@@ -200,5 +246,31 @@ public final class DictationService: ObservableObject {
         } else {
             startDictation(localeIdentifier: localeIdentifier, onPartial: onPartial, onFinal: onFinal)
         }
+    }
+}
+
+// MARK: - Final Delivery
+
+/// Wynik dyktowania oddawany dokładnie raz na sesję (N4).
+struct DictationFinalDelivery {
+    private var delivered = false
+    
+    mutating func start() {
+        delivered = false
+    }
+    
+    mutating func deliver(_ text: String, to handler: (String) -> Void) {
+        guard !delivered, !text.isEmpty else { return }
+        delivered = true
+        handler(text)
+    }
+}
+
+// MARK: - Fallback
+
+enum DictationFallback {
+    /// Ponowienie przez serwer tylko, gdy wymuszone lokalne rozpoznawanie zawiodło, zanim padło jakiekolwiek słowo.
+    static func shouldRetryWithServer(usedOnDevice: Bool, recognizedText: String, alreadyRetried: Bool) -> Bool {
+        usedOnDevice && recognizedText.isEmpty && !alreadyRetried
     }
 }

@@ -9,30 +9,31 @@ public struct HolyricsImporter {
         return ext == "muf" || ext == "mufl" || ext == "hly" || ext == "holyrics" || ext == "xml"
     }
     
+    /// Wzorce znaczników Holyrics kompilowane raz, a nie dla każdej importowanej pieśni (N3).
+    /// ##(Verse 1) -> [Zwrotka 1], ##(Chorus 1) -> [Refren] itd.
+    private static let verseMarkerReplacements: [(NSRegularExpression, String)] = [
+        (#"##\(Verse\s*(\d+)\)"#, "[Zwrotka $1]"),
+        (#"##\(Verse\)"#, "[Zwrotka]"),
+        (#"##\(Chorus\s*(\d*)\)"#, "[Refren]"),
+        (#"##\(Bridge\s*(\d*)\)"#, "[Bridge]"),
+        (#"##\(Coda\s*(\d*)\)"#, "[Coda]"),
+        (#"##\(Intro\s*(\d*)\)"#, "[Wstęp]"),
+        (#"##\((Outro|Ending)\s*(\d*)\)"#, "[Zakończenie]"),
+        (#"##\(Pre-Chorus\s*(\d*)\)"#, "[Przed-refren]"),
+        (#"##\((Tag|Interlude)\s*(\d*)\)"#, "[Przejście]"),
+        (#"##\(([^)]+)\)"#, "[$1]")
+    ].map { (try! NSRegularExpression(pattern: $0.0, options: .caseInsensitive), $0.1) }
+    
     /// Translates Holyrics verse section markers into presentation slide tags
     public static func translateHolyricsVerseMarkers(_ text: String) -> String {
         var result = text.replacingOccurrences(of: "\r\n", with: "\n")
                          .replacingOccurrences(of: "\r", with: "\n")
         
         // Convert ##(Verse 1) -> [Zwrotka 1], ##(Chorus 1) -> [Refren], etc.
-        let replacements: [(String, String)] = [
-            (#"##\(Verse\s*(\d+)\)"#, "[Zwrotka $1]"),
-            (#"##\(Verse\)"#, "[Zwrotka]"),
-            (#"##\(Chorus\s*(\d*)\)"#, "[Refren]"),
-            (#"##\(Bridge\s*(\d*)\)"#, "[Bridge]"),
-            (#"##\(Coda\s*(\d*)\)"#, "[Coda]"),
-            (#"##\(Intro\s*(\d*)\)"#, "[Wstęp]"),
-            (#"##\((Outro|Ending)\s*(\d*)\)"#, "[Zakończenie]"),
-            (#"##\(Pre-Chorus\s*(\d*)\)"#, "[Przed-refren]"),
-            (#"##\((Tag|Interlude)\s*(\d*)\)"#, "[Przejście]"),
-            (#"##\(([^)]+)\)"#, "[$1]")
-        ]
         
-        for (pattern, template) in replacements {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-                let ns = result as NSString
-                result = regex.stringByReplacingMatches(in: result, options: [], range: NSRange(location: 0, length: ns.length), withTemplate: template)
-            }
+        for (regex, template) in verseMarkerReplacements {
+            let ns = result as NSString
+            result = regex.stringByReplacingMatches(in: result, options: [], range: NSRange(location: 0, length: ns.length), withTemplate: template)
         }
         
         return result
@@ -293,63 +294,20 @@ public struct HolyricsImporter {
     }
     
     // MARK: - XML Parser (OpenSong / OpenLyrics / Holyrics XML format)
+    /// Prawdziwy parser XML zamiast wyrażeń regularnych: encje (`&amp;`) i CDATA są dekodowane (N5).
     private static func parseHolyricsXML(_ xmlString: String, fallbackTitle: String) -> [Song] {
-        var songs: [Song] = []
-        
-        let songPattern = "<(?:song|music)[^>]*>(.*?)</(?:song|music)>"
-        if let regex = try? NSRegularExpression(pattern: songPattern, options: [.dotMatchesLineSeparators, .caseInsensitive]) {
-            let nsXml = xmlString as NSString
-            let matches = regex.matches(in: xmlString, options: [], range: NSRange(location: 0, length: nsXml.length))
-            
-            for m in matches {
-                let innerXml = nsXml.substring(with: m.range(at: 1))
-                if let song = extractSongFromXMLSnippet(innerXml, fallbackTitle: fallbackTitle) {
-                    songs.append(song)
-                }
-            }
+        HolyricsXMLReader.records(in: xmlString).compactMap { fields in
+            let title = fields["title"] ?? ""
+            let lyrics = fields["lyrics"] ?? ""
+            guard !title.isEmpty || !lyrics.isEmpty else { return nil }
+            return Song(
+                title: title.isEmpty ? fallbackTitle : title,
+                author: fields["author"] ?? "",
+                key: fields["key"] ?? "",
+                tags: ["Import Holyrics XML"],
+                rawLyrics: translateHolyricsVerseMarkers(lyrics)
+            )
         }
-        
-        if songs.isEmpty {
-            if let single = extractSongFromXMLSnippet(xmlString, fallbackTitle: fallbackTitle) {
-                songs.append(single)
-            }
-        }
-        
-        return songs
-    }
-    
-    private static func extractSongFromXMLSnippet(_ snippet: String, fallbackTitle: String) -> Song? {
-        func extractTag(_ tag: String) -> String {
-            let pattern = "<\(tag)[^>]*>(.*?)</\(tag)>"
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators, .caseInsensitive]) else { return "" }
-            let ns = snippet as NSString
-            if let match = regex.firstMatch(in: snippet, options: [], range: NSRange(location: 0, length: ns.length)) {
-                let raw = ns.substring(with: match.range(at: 1))
-                return raw.replacingOccurrences(of: "<![CDATA[", with: "")
-                          .replacingOccurrences(of: "]]>", with: "")
-                          .trimmingCharacters(in: .whitespacesAndNewlines)
-            }
-            return ""
-        }
-        
-        let title = extractTag("title").isEmpty ? extractTag("nome") : extractTag("title")
-        let author = extractTag("author").isEmpty ? extractTag("artist") : extractTag("author")
-        let key = extractTag("key").isEmpty ? extractTag("tom") : extractTag("key")
-        var lyrics = extractTag("lyrics")
-        if lyrics.isEmpty {
-            lyrics = extractTag("letra")
-        }
-        
-        guard !title.isEmpty || !lyrics.isEmpty else { return nil }
-        
-        let cleaned = translateHolyricsVerseMarkers(lyrics)
-        return Song(
-            title: title.isEmpty ? fallbackTitle : title,
-            author: author,
-            key: key,
-            tags: ["Import Holyrics XML"],
-            rawLyrics: cleaned
-        )
     }
     
     // MARK: - Archive (.zip / .hly) extraction
@@ -364,7 +322,12 @@ public struct HolyricsImporter {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
         process.arguments = ["-q", "-o", url.path, "-d", tempDir.path]
-        try? process.run()
+        // `waitUntilExit` na procesie, który się nie uruchomił, zatrzymuje aplikację (N5).
+        do {
+            try process.run()
+        } catch {
+            return nil
+        }
         process.waitUntilExit()
         
         var importedSongs: [Song] = []
@@ -378,5 +341,70 @@ public struct HolyricsImporter {
         }
         
         return importedSongs.isEmpty ? nil : importedSongs
+    }
+}
+
+// MARK: - Holyrics XML Reader
+
+/// Czyta pieśni z XML Holyrics / OpenSong: elementy `song`/`music` z polami (także po portugalsku).
+/// Bez elementu pieśni pola z całego dokumentu tworzą jedną pieśń.
+final class HolyricsXMLReader: NSObject, XMLParserDelegate {
+    private static let songElements: Set<String> = ["song", "music", "musica"]
+    private static let fieldAliases: [String: String] = [
+        "title": "title", "nome": "title", "titulo": "title",
+        "author": "author", "artist": "author", "autor": "author", "artista": "author",
+        "key": "key", "tom": "key", "tone": "key",
+        "lyrics": "lyrics", "letra": "lyrics"
+    ]
+    
+    private var records: [[String: String]] = []
+    private var current: [String: String]?
+    private var documentFields: [String: String] = [:]
+    private var field: String?
+    private var text = ""
+    
+    static func records(in xml: String) -> [[String: String]] {
+        let reader = HolyricsXMLReader()
+        let parser = XMLParser(data: Data(xml.utf8))
+        parser.delegate = reader
+        parser.parse()
+        if reader.records.isEmpty, !reader.documentFields.isEmpty {
+            return [reader.documentFields]
+        }
+        return reader.records
+    }
+    
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName: String?, attributes: [String: String] = [:]) {
+        let name = elementName.lowercased()
+        if Self.songElements.contains(name) {
+            current = [:]
+        } else if let alias = Self.fieldAliases[name] {
+            field = alias
+            text = ""
+        }
+    }
+    
+    func parser(_ parser: XMLParser, foundCharacters string: String) {
+        if field != nil { text += string }
+    }
+    
+    func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+        if field != nil { text += String(decoding: CDATABlock, as: UTF8.self) }
+    }
+    
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName: String?) {
+        let name = elementName.lowercased()
+        if let alias = Self.fieldAliases[name], alias == field {
+            let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if current != nil {
+                if current?[alias]?.isEmpty ?? true { current?[alias] = value }
+            } else if documentFields[alias]?.isEmpty ?? true {
+                documentFields[alias] = value
+            }
+            field = nil
+        } else if Self.songElements.contains(name), let record = current {
+            records.append(record)
+            current = nil
+        }
     }
 }

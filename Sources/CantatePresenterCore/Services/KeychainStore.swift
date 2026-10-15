@@ -52,7 +52,7 @@ public struct KeychainError: LocalizedError {
 
     public var errorDescription: String? {
         let message = SecCopyErrorMessageString(status, nil) as String? ?? "kod \(status)"
-        return "Błąd Pęku kluczy: \(message)"
+        return Lnow("Błąd Pęku kluczy: {0}", message)
     }
 }
 
@@ -82,7 +82,7 @@ public struct GoogleCredentials: Codable, Equatable {
     public mutating func apply(tokenResponse data: Data, now: Date = Date()) throws {
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let access = json["access_token"] as? String else {
-            throw NSError(domain: "GoogleDrive", code: 3, userInfo: [NSLocalizedDescriptionKey: "Brak access_token w odpowiedzi Google"])
+            throw NSError(domain: "GoogleDrive", code: 3, userInfo: [NSLocalizedDescriptionKey: Lnow("Brak access_token w odpowiedzi Google")])
         }
         accessToken = access
         if let refresh = json["refresh_token"] as? String, !refresh.isEmpty {

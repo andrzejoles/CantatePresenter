@@ -21,6 +21,18 @@ mkdir -p "$RESOURCES_DIR"
 cp "$DIR/.build/release/CantatePresenter" "$MACOS_DIR/CantatePresenter"
 chmod +x "$MACOS_DIR/CantatePresenter"
 
+# Tłumaczenia interfejsu (String Catalog, S10): paczka zasobów pakietu obok ikony w Contents/Resources.
+BIN_PATH="$(swift build -c release --show-bin-path)"
+RESOURCE_BUNDLE="$BIN_PATH/CantatePresenter_CantatePresenterCore.bundle"
+if [ ! -d "$RESOURCE_BUNDLE" ]; then
+    echo "BŁĄD: brak $RESOURCE_BUNDLE (tłumaczenia interfejsu)" >&2
+    exit 1
+fi
+cp -R "$RESOURCE_BUNDLE" "$RESOURCES_DIR/"
+
+# Instrukcja obsługi (Pomoc → Otwórz plik INSTRUKCJA.md), S11
+cp "$DIR/INSTRUKCJA.md" "$RESOURCES_DIR/INSTRUKCJA.md"
+
 if [ -f "$DIR/Resources/AppIcon.icns" ]; then
     cp "$DIR/Resources/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"
 fi
@@ -32,6 +44,14 @@ cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
 <dict>
     <key>CFBundleDevelopmentRegion</key>
     <string>pl</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>pl</string>
+        <string>en</string>
+        <string>de</string>
+        <string>es</string>
+        <string>uk</string>
+    </array>
     <key>CFBundleExecutable</key>
     <string>CantatePresenter</string>
     <key>CFBundleIconFile</key>
@@ -57,7 +77,7 @@ cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
     <key>NSSupportsAutomaticGraphicsSwitching</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2026. Wszelkie prawa zastrzeżone.</string>
+    <string>© 2026 Andrzej Oles. Opracowano we współpracy z Claude (Anthropic).</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Aplikacja wymaga dostępu do mikrofonu, aby umożliwić dyktowanie tekstu nowej pieśni oraz wyszukiwanie głosowe.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
@@ -78,7 +98,23 @@ else
     echo "=== Logowanie Google: brak $GOOGLE_CLIENT_JSON, przycisk logowania będzie nieaktywny ==="
 fi
 
+# Wersja z pliku VERSION, numer kompilacji z liczby commitów (N10)
+VERSION="$(tr -d '[:space:]' < "$DIR/VERSION")"
+BUILD_NUMBER="$(git -C "$DIR" rev-list --count HEAD 2>/dev/null || echo 1)"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$CONTENTS_DIR/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$CONTENTS_DIR/Info.plist"
+
+# Przykładowe dane dewelopera (N9) nie mogą trafić do aplikacji ani instalatora.
+LEAKED="$(find "$APP_DIR" \( -name "*.mufl" -o -name "*.muf" -o -name "songs.json" -o -name "plans.json" -o -name "settings.json" \) -print)"
+if [ -n "$LEAKED" ]; then
+    echo "BŁĄD: w pakiecie aplikacji są dane dewelopera:" >&2
+    echo "$LEAKED" >&2
+    exit 1
+fi
+
 echo "=== Podpisywanie aplikacji (ad-hoc codesign) ==="
-codesign --force --deep -s - "$APP_DIR" || true
+# Bez `|| true`: nieudany podpis ma przerwać budowanie. Bez odradzanego `--deep`.
+codesign --force --sign - "$APP_DIR"
+codesign --verify --strict "$APP_DIR"
 
 echo "=== Gotowe! Aplikacja została pomyślnie utworzona: $APP_DIR ==="

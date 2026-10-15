@@ -11,6 +11,12 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
     public var slides: [SongSlide]
     public var createdAt: Date
     public var updatedAt: Date
+    /// Skąd pochodzi tekst (adres strony, np. Wikiźródła albo SongSelect); `nil` dla pieśni wpisanych ręcznie (S9).
+    public var source: String?
+    /// Informacja o prawach autorskich lub licencji, np. „Domena publiczna” albo linia © z SongSelect.
+    public var copyright: String?
+    /// Numer pieśni w katalogu CCLI.
+    public var ccliNumber: String?
     
     public init(
         id: UUID = UUID(),
@@ -45,6 +51,7 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
     // dodane w przyszłości nie spowodują, że stara biblioteka przestanie się wczytywać (K1).
     private enum CodingKeys: String, CodingKey {
         case id, title, author, key, tags, rawLyrics, chords, slides, createdAt, updatedAt
+        case source, copyright, ccliNumber
     }
     
     public init(from decoder: Decoder) throws {
@@ -60,6 +67,14 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
         self.slides = slides.isEmpty && !rawLyrics.isEmpty ? Song.parseLyrics(rawLyrics) : slides
         self.createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
         self.updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? createdAt
+        self.source = try container.decodeIfPresent(String.self, forKey: .source)
+        self.copyright = try container.decodeIfPresent(String.self, forKey: .copyright)
+        // Numer CCLI bywa zapisywany jako liczba (inne programy), więc przyjmujemy oba typy.
+        if let text = try? container.decodeIfPresent(String.self, forKey: .ccliNumber) {
+            self.ccliNumber = text
+        } else if let number = try? container.decodeIfPresent(Int.self, forKey: .ccliNumber) {
+            self.ccliNumber = String(number)
+        }
     }
     
     // MARK: - Unique Identifiers
@@ -92,6 +107,17 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
+    /// Postać do wyszukiwania: jak `foldString`, a do tego znaki interpunkcyjne zamienione na spacje
+    /// i spacje zwinięte, więc „moj jezu moj zbawco” znajduje „Mój Jezu, mój Zbawco”.
+    public static func searchFold(_ string: String) -> String {
+        foldString(string)
+            .unicodeScalars
+            .map { CharacterSet.alphanumerics.contains($0) ? String($0) : " " }
+            .joined()
+            .split(separator: " ", omittingEmptySubsequences: true)
+            .joined(separator: " ")
+    }
+    
     public enum SearchScope: String, CaseIterable, Identifiable {
         case all = "Wszędzie"
         case titleAndAuthor = "Tytuł i autor"
@@ -102,20 +128,20 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
     }
     
     public func matches(query: String, scope: SearchScope = .all) -> Bool {
-        let cleanQuery = Song.foldString(query)
+        let cleanQuery = Song.searchFold(query)
         if cleanQuery.isEmpty { return true }
         
-        let foldedTitle = Song.foldString(title)
-        let foldedAuthor = Song.foldString(author)
+        let foldedTitle = Song.searchFold(title)
+        let foldedAuthor = Song.searchFold(author)
         
         switch scope {
         case .all:
             if foldedTitle.contains(cleanQuery) { return true }
             if foldedAuthor.contains(cleanQuery) { return true }
             for tag in tags {
-                if Song.foldString(tag).contains(cleanQuery) { return true }
+                if Song.searchFold(tag).contains(cleanQuery) { return true }
             }
-            let foldedLyrics = Song.foldString(rawLyrics)
+            let foldedLyrics = Song.searchFold(rawLyrics)
             return foldedLyrics.contains(cleanQuery)
             
         case .titleAndAuthor:
@@ -130,15 +156,15 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
     }
     
     public func matchingSnippet(query: String) -> String? {
-        let cleanQuery = Song.foldString(query)
+        let cleanQuery = Song.searchFold(query)
         guard !cleanQuery.isEmpty else { return nil }
         
-        let foldedTitle = Song.foldString(title)
+        let foldedTitle = Song.searchFold(title)
         if foldedTitle.contains(cleanQuery) { return nil }
         
         let lines = rawLyrics.components(separatedBy: .newlines)
         for line in lines {
-            let folded = Song.foldString(line)
+            let folded = Song.searchFold(line)
             if folded.contains(cleanQuery) {
                 let trimmed = line.trimmingCharacters(in: .whitespaces)
                 if trimmed.count > 70 {
@@ -273,7 +299,9 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
             
             let text = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
             if !text.isEmpty {
-                slides.append(SongSlide(type: type, label: label, text: text))
+                let numbered: Set<SlideType> = [.verse, .chorus, .bridge, .coda, .interlude, .ending]
+                let number = SongSlide.trailingNumber(in: label) ?? (numbered.contains(type) ? 1 : nil)
+                slides.append(SongSlide(type: type, label: label, text: text, number: number))
             }
         }
         

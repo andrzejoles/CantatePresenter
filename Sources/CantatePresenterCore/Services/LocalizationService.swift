@@ -63,337 +63,61 @@ public struct TranslationPackage: Codable {
 public final class LocalizationService: ObservableObject {
     public static let shared = LocalizationService()
     
-    public enum Key: String, CaseIterable, Codable {
-        case appTitle
-        case libraryTab
-        case planTab
-        case searchPlaceholder
-        case newSong
-        case editSong
-        case importExport
-        case online
-        case titleAuthor
-        case present
-        case standby
-        case blackScreen
-        case clearText
-        case prevSlide
-        case nextSlide
-        case prevSong
-        case nextSong
-        case chorus
-        case verse
-        case bridge
-        case coda
-        case interlude
-        case ending
-        case chords
-        case settings
-        case dictation
-        case appLanguage
-        case searchLanguage
-        case dictationLanguage
-        case projectorActive
-        case testWindowActive
-        case uiScale
-        case bottomBarHeight
-        case songsInLibrary
-        case noSongsFound
-        case rawLyricsHint
-        case save
-        case cancel
-        
-        public var contextDescription: String {
-            switch self {
-            case .appTitle:
-                return "Główny tytuł okna programu na pasku tytułu i w nagłówkach aplikacji"
-            case .libraryTab:
-                return "Nazwa pierwszej zakładki bocznej: Biblioteka wszystkich zapisanych pieśni"
-            case .planTab:
-                return "Nazwa drugiej zakładki bocznej: Aktywny plan pieśni na nabożeństwo/mszę"
-            case .searchPlaceholder:
-                return "Tekst podpowiedzi (placeholder) w pasku wyszukiwarki pieśni"
-            case .newSong:
-                return "Przycisk dodania nowej pieśni do bazy danych (+ Nowa pieśń)"
-            case .editSong:
-                return "Przycisk edycji tekstu, zwrotek i chwytów wybranej pieśni (Edycja pieśni)"
-            case .importExport:
-                return "Przycisk otwierający okno importu plików (.mufl, .txt) i eksportu pieśni"
-            case .online:
-                return "Przycisk otwierający wyszukiwarkę pieśni w internecie"
-            case .titleAuthor:
-                return "Przycisk wyszukiwarki i uzupełniania brakującego autora/tytułu utworu"
-            case .present:
-                return "Główny przycisk prezentacji: wyświetla slajd pieśni na żywo na projektorze"
-            case .standby:
-                return "Przycisk planszy czuwania / wygaszacza z logo programu"
-            case .blackScreen:
-                return "Przycisk natychmiastowego zaciemnienia całego ekranu projekcji"
-            case .clearText:
-                return "Przycisk ukrycia tekstu pieśni z zachowaniem tła projekcji"
-            case .prevSlide:
-                return "Przycisk nawigacji: przejście do poprzedniego slajdu pieśni"
-            case .nextSlide:
-                return "Przycisk nawigacji: przejście do następnego slajdu pieśni"
-            case .prevSong:
-                return "Przycisk nawigacji: przejście do poprzedniej pieśni z planu"
-            case .nextSong:
-                return "Przycisk nawigacji: przejście do kolejnej pieśni z planu"
-            case .chorus:
-                return "Przycisk szybkiego skoku do Refrenu pieśni"
-            case .verse:
-                return "Etykieta oznaczająca Zwrotkę pieśni"
-            case .bridge:
-                return "Etykieta sekcji muzycznej Bridge / Mostek"
-            case .coda:
-                return "Etykieta sekcji muzycznej Coda / Koda (zwieńczenie utworu)"
-            case .interlude:
-                return "Etykieta sekcji muzycznej Przejście / Solo instrumentalne"
-            case .ending:
-                return "Etykieta sekcji muzycznej Zakończenie / Outro"
-            case .chords:
-                return "Etykieta i przycisk zakładki akordów i chwytów gitarowych"
-            case .settings:
-                return "Przycisk otwierający okno preferencji i konfiguracji programu"
-            case .dictation:
-                return "Przycisk dyktowania głosem (zamiana mowy na tekst)"
-            case .appLanguage:
-                return "Etykieta wyboru języka interfejsu programu w ustawieniach"
-            case .searchLanguage:
-                return "Etykieta wyboru domyślnego języka przeszukiwania pieśni w sieci"
-            case .dictationLanguage:
-                return "Etykieta wyboru języka rozpoznawania mowy dla dyktowania"
-            case .projectorActive:
-                return "Status informujący, że zewnętrzny ekran projekcji jest podłączony"
-            case .testWindowActive:
-                return "Przycisk otwarcia podglądu projekcji w osobnym oknie testowym"
-            case .uiScale:
-                return "Etykieta suwaka powiększenia całego interfejsu (skalowanie UI)"
-            case .bottomBarHeight:
-                return "Etykieta suwaka wysokości dolnego paska sterowania"
-            case .songsInLibrary:
-                return "Tekst w stopce biblioteki: liczba pieśni w bibliotece"
-            case .noSongsFound:
-                return "Komunikat wyświetlany, gdy żadna pieśń nie pasuje do wyszukiwania"
-            case .rawLyricsHint:
-                return "Podpowiedź formatowania w edytorze tekstu pieśni"
-            case .save:
-                return "Przycisk zatwierdzenia i zapisu danych"
-            case .cancel:
-                return "Przycisk anulowania zmian i zamknięcia okna"
-            }
-        }
+    /// Języki zaimportowane z JSON; działają jako nakładka na String Catalog (S10).
+    @Published public var customLanguages: [CustomLanguage] = [] {
+        didSet { applyOverlays() }
     }
     
-    @Published public var customLanguages: [CustomLanguage] = []
-    
-    private let builtInTranslations: [String: [Key: String]] = [
-        "pl": [
-            .appTitle: "CantatePresenter",
-            .libraryTab: "Biblioteka pieśni",
-            .planTab: "Plan nabożeństwa",
-            .searchPlaceholder: "Szukaj w tytule, autorze i tekście...",
-            .newSong: "Nowa pieśń",
-            .editSong: "Edycja pieśni",
-            .importExport: "Import/Eksport",
-            .online: "Online",
-            .titleAuthor: "Tytuł/Autor",
-            .present: "Prezentuj",
-            .standby: "Standby",
-            .blackScreen: "Czarny",
-            .clearText: "Czysty",
-            .prevSlide: "Poprzedni",
-            .nextSlide: "Następny",
-            .prevSong: "Poprz. pieśń",
-            .nextSong: "Nast. pieśń",
-            .chorus: "Refren",
-            .verse: "Zwrotka",
-            .bridge: "Bridge / Mostek",
-            .coda: "Coda",
-            .interlude: "Przejście",
-            .ending: "Zakończenie",
-            .chords: "Chwyty gitarowe",
-            .settings: "Ustawienia",
-            .dictation: "Dyktowanie głosem",
-            .appLanguage: "Język aplikacji",
-            .searchLanguage: "Język wyszukiwania pieśni",
-            .dictationLanguage: "Język dyktowania głosem",
-            .projectorActive: "Projektor: Aktywny",
-            .testWindowActive: "Okno testowe",
-            .uiScale: "Rozmiar UI",
-            .bottomBarHeight: "Wysokość dolnego paska",
-            .songsInLibrary: "pieśni w bibliotece",
-            .noSongsFound: "Nie znaleziono pieśni",
-            .rawLyricsHint: "Wskazówka: oddzielaj zwrotki pustą linią",
-            .save: "Zapisz",
-            .cancel: "Anuluj"
-        ],
-        "en": [
-            .appTitle: "CantatePresenter",
-            .libraryTab: "Song Library",
-            .planTab: "Service Plan",
-            .searchPlaceholder: "Search in title, author and lyrics...",
-            .newSong: "New Song",
-            .editSong: "Edit Song",
-            .importExport: "Import/Export",
-            .online: "Online",
-            .titleAuthor: "Title/Author",
-            .present: "Present",
-            .standby: "Standby",
-            .blackScreen: "Black Screen",
-            .clearText: "Clear Text",
-            .prevSlide: "Previous",
-            .nextSlide: "Next",
-            .prevSong: "Prev Song",
-            .nextSong: "Next Song",
-            .chorus: "Chorus",
-            .verse: "Verse",
-            .bridge: "Bridge",
-            .coda: "Coda",
-            .interlude: "Interlude",
-            .ending: "Ending",
-            .chords: "Guitar Chords",
-            .settings: "Settings",
-            .dictation: "Voice Dictation",
-            .appLanguage: "App Interface Language",
-            .searchLanguage: "Online Song Search Language",
-            .dictationLanguage: "Voice Dictation Language",
-            .projectorActive: "Projector: Active",
-            .testWindowActive: "Test Window",
-            .uiScale: "UI Scale",
-            .bottomBarHeight: "Bottom Bar Height",
-            .songsInLibrary: "songs in library",
-            .noSongsFound: "No songs found",
-            .rawLyricsHint: "Tip: separate verses with an empty blank line",
-            .save: "Save",
-            .cancel: "Cancel"
-        ],
-        "de": [
-            .appTitle: "Lieder-Präsentator",
-            .libraryTab: "Liederbibliothek",
-            .planTab: "Gottesdienstplan",
-            .searchPlaceholder: "In Titel, Autor und Text suchen...",
-            .newSong: "Neues Lied",
-            .editSong: "Lied bearbeiten",
-            .importExport: "Import/Export",
-            .online: "Online",
-            .titleAuthor: "Titel/Autor",
-            .present: "Präsentieren",
-            .standby: "Standby",
-            .blackScreen: "Schwarz",
-            .clearText: "Ausblenden",
-            .prevSlide: "Zurück",
-            .nextSlide: "Weiter",
-            .prevSong: "Vorh. Lied",
-            .nextSong: "Nächst. Lied",
-            .chorus: "Refrain",
-            .verse: "Strophe",
-            .bridge: "Bridge",
-            .coda: "Coda",
-            .interlude: "Zwischenspiel",
-            .ending: "Schluss / Outro",
-            .chords: "Gitarrenakkorde",
-            .settings: "Einstellungen",
-            .dictation: "Sprachdiktat",
-            .appLanguage: "Sprache der Anwendung",
-            .searchLanguage: "Sprache der Liedersuche",
-            .dictationLanguage: "Sprache für Diktat",
-            .projectorActive: "Beamer: Aktiv",
-            .testWindowActive: "Testfenster",
-            .uiScale: "UI-Skalierung",
-            .bottomBarHeight: "Höhe der Steuerleiste",
-            .songsInLibrary: "Lieder in Bibliothek",
-            .noSongsFound: "Keine Lieder gefunden",
-            .rawLyricsHint: "Tipp: Verse durch Leerzeile trennen",
-            .save: "Speichern",
-            .cancel: "Abbrechen"
-        ],
-        "es": [
-            .appTitle: "Presentador de Canciones",
-            .libraryTab: "Biblioteca de canciones",
-            .planTab: "Plan de culto",
-            .searchPlaceholder: "Buscar en título, autor y letra...",
-            .newSong: "Nueva canción",
-            .editSong: "Editar canción",
-            .importExport: "Importar/Exportar",
-            .online: "En línea",
-            .titleAuthor: "Título/Autor",
-            .present: "Presentar",
-            .standby: "En espera",
-            .blackScreen: "Pantalla negra",
-            .clearText: "Borrar texto",
-            .prevSlide: "Anterior",
-            .nextSlide: "Siguiente",
-            .prevSong: "Canción ant.",
-            .nextSong: "Canción sig.",
-            .chorus: "Coro",
-            .verse: "Estrofa",
-            .bridge: "Puente / Bridge",
-            .coda: "Coda",
-            .interlude: "Interludio",
-            .ending: "Final / Outro",
-            .chords: "Acordes de guitarra",
-            .settings: "Ajustes",
-            .dictation: "Dictado por voz",
-            .appLanguage: "Idioma de la aplicación",
-            .searchLanguage: "Idioma de búsqueda de canciones",
-            .dictationLanguage: "Idioma de dictado por voz",
-            .projectorActive: "Proyector: Activo",
-            .testWindowActive: "Ventana de prueba",
-            .uiScale: "Escala de UI",
-            .bottomBarHeight: "Altura de barra inferior",
-            .songsInLibrary: "canciones en biblioteca",
-            .noSongsFound: "No se encontraron canciones",
-            .rawLyricsHint: "Consejo: separa las estrofas con una línea vacía",
-            .save: "Guardar",
-            .cancel: "Cancelar"
-        ],
-        "uk": [
-            .appTitle: "Презентер Пісень",
-            .libraryTab: "Бібліотека пісень",
-            .planTab: "План служіння",
-            .searchPlaceholder: "Шукати в назві, авторі та тексті...",
-            .newSong: "Нова пісня",
-            .editSong: "Редагувати пісню",
-            .importExport: "Імпорт/Експорт",
-            .online: "Онлайн",
-            .titleAuthor: "Назва/Автор",
-            .present: "Презентувати",
-            .standby: "Очікування",
-            .blackScreen: "Чорний",
-            .clearText: "Очистити",
-            .prevSlide: "Попередній",
-            .nextSlide: "Наступний",
-            .prevSong: "Попер. пісня",
-            .nextSong: "Наст. пісня",
-            .chorus: "Приспів",
-            .verse: "Куплет",
-            .bridge: "Брідж",
-            .coda: "Кода",
-            .interlude: "Програш / Інтерлюдія",
-            .ending: "Закінчення",
-            .chords: "Акорди для гітари",
-            .settings: "Налаштування",
-            .dictation: "Голосовий диктант",
-            .appLanguage: "Мова інтерфейсу",
-            .searchLanguage: "Мова пошуку пісень",
-            .dictationLanguage: "Мова голосового диктанту",
-            .projectorActive: "Проєктор: Активний",
-            .testWindowActive: "Тестове вікно",
-            .uiScale: "Масштаб UI",
-            .bottomBarHeight: "Висота нижньої панелі",
-            .songsInLibrary: "пісень у бібліотеці",
-            .noSongsFound: "Пісень не знайдено",
-            .rawLyricsHint: "Порада: розділяйте куплети порожнім рядком",
-            .save: "Зберегти",
-            .cancel: "Скасувати"
-        ]
+    /// Klucze starych plików tłumaczeń (sprzed String Catalog) → polski tekst źródłowy.
+    static let legacyKeys: [String: String] = [
+        "appLanguage": "Język aplikacji",
+        "appTitle": "CantatePresenter",
+        "blackScreen": "Czarny",
+        "bottomBarHeight": "Wysokość dolnego paska",
+        "bridge": "Bridge / Mostek",
+        "cancel": "Anuluj",
+        "chords": "Chwyty gitarowe",
+        "chorus": "Refren",
+        "clearText": "Czysty",
+        "coda": "Coda",
+        "dictation": "Dyktowanie głosem",
+        "dictationLanguage": "Język dyktowania głosem",
+        "editSong": "Edycja pieśni",
+        "ending": "Zakończenie",
+        "importExport": "Import/Eksport",
+        "interlude": "Przejście",
+        "libraryTab": "Biblioteka pieśni",
+        "newSong": "Nowa pieśń",
+        "nextSlide": "Następny",
+        "nextSong": "Nast. pieśń",
+        "noSongsFound": "Nie znaleziono pieśni",
+        "online": "Online",
+        "planTab": "Plan nabożeństwa",
+        "present": "Prezentuj",
+        "prevSlide": "Poprzedni",
+        "prevSong": "Poprz. pieśń",
+        "projectorActive": "Projektor: Aktywny",
+        "rawLyricsHint": "Wskazówka: oddzielaj zwrotki pustą linią",
+        "save": "Zapisz",
+        "searchLanguage": "Język wyszukiwania pieśni",
+        "searchPlaceholder": "Szukaj w tytule, autorze i tekście...",
+        "settings": "Ustawienia",
+        "songsInLibrary": "pieśni w bibliotece",
+        "standby": "Standby",
+        "testWindowActive": "Okno testowe",
+        "titleAuthor": "Tytuł/Autor",
+        "uiScale": "Rozmiar UI",
+        "verse": "Zwrotka",
     ]
     
     private let customLanguagesURL: URL
     
-    public init() {
-        self.customLanguagesURL = AppPaths.shared.customLanguagesFile
+    public convenience init() {
+        self.init(customLanguagesURL: AppPaths.shared.customLanguagesFile)
+    }
+    
+    init(customLanguagesURL: URL) {
+        self.customLanguagesURL = customLanguagesURL
         loadCustomLanguages()
     }
     
@@ -415,43 +139,38 @@ public final class LocalizationService: ObservableObject {
         return list
     }
     
-    public func text(_ key: Key, lang: String? = nil) -> String {
-        let code = lang ?? DataStore.shared.settings.appLanguage
-        
-        // 1. Check custom imported languages
-        if let custom = customLanguages.first(where: { $0.code == code }),
-           let customStr = custom.strings[key.rawValue],
-           !customStr.trimmingCharacters(in: .whitespaces).isEmpty {
-            return customStr
+    /// Klucze starych plików zamieniane na polskie teksty, żeby dawne tłumaczenia nadal działały.
+    static func normalizedStrings(_ strings: [String: String]) -> [String: String] {
+        var result: [String: String] = [:]
+        for (key, value) in strings {
+            result[legacyKeys[key] ?? key] = value
         }
-        
-        // 2. Check built-in translations
-        if let dict = builtInTranslations[code], let str = dict[key] {
-            return str
+        return result
+    }
+    
+    private func applyOverlays() {
+        for language in customLanguages {
+            Localization.setOverlay(Self.normalizedStrings(language.strings), for: language.code)
         }
-        
-        // 3. Fallback to Polish
-        return builtInTranslations["pl"]?[key] ?? ""
     }
     
     // MARK: - Export Translation Template (for AI and Human Translators)
+    
+    /// Szablon: kluczem i tekstem źródłowym jest polski tekst z katalogu, a kontekstem tłumaczenie angielskie.
+    /// `{0}`, `{1}` to wstawiane wartości i muszą zostać w tłumaczeniu.
     public func generateExportPackage(sourceLanguage: String = "pl") -> TranslationPackage {
-        let sourceDict = builtInTranslations[sourceLanguage] ?? builtInTranslations["pl"]!
-        
-        var items: [TranslationTemplateItem] = []
-        for key in Key.allCases {
-            let src = sourceDict[key] ?? ""
-            items.append(TranslationTemplateItem(
-                key: key.rawValue,
-                sourceText: src,
+        let reference = Localization.catalogKeys(referenceLanguage: "en")
+        let items = reference.keys.sorted().map { key in
+            TranslationTemplateItem(
+                key: key,
+                sourceText: key,
                 translation: "",
-                context: key.contextDescription
-            ))
+                context: "English: \(reference[key] ?? "")"
+            )
         }
-        
         return TranslationPackage(
-            schema: "holyrics-mac-i18n-v1",
-            sourceLanguage: sourceLanguage,
+            schema: "cantate-presenter-i18n-v2",
+            sourceLanguage: Localization.sourceLanguage,
             targetLanguageCode: "wpisz_kod_np_fr",
             targetLanguageName: "Wpisz nazwę języka (np. Français)",
             targetLanguageFlag: "🇫🇷",
@@ -510,7 +229,7 @@ public final class LocalizationService: ObservableObject {
             targetName = (rawDict["targetLanguageName"] as? String) ?? (rawDict["name"] as? String) ?? fallbackFilename.capitalized
             targetFlag = (rawDict["targetLanguageFlag"] as? String) ?? (rawDict["flag"] as? String) ?? "🌐"
         } else {
-            throw NSError(domain: "LocalizationService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Nieprawidłowy format pliku JSON tłumaczenia"])
+            throw NSError(domain: "LocalizationService", code: 400, userInfo: [NSLocalizedDescriptionKey: Lnow("Nieprawidłowy format pliku JSON tłumaczenia")])
         }
         
         if targetCode.isEmpty || targetCode == "wpisz_kod_np_fr" {
@@ -529,30 +248,22 @@ public final class LocalizationService: ObservableObject {
         customLanguages.removeAll(where: { $0.code == targetCode })
         customLanguages.append(customLang)
         
-        saveCustomLanguages()
+        try saveCustomLanguages()
         
         return (code: targetCode, name: targetName, count: parsedStrings.count)
     }
     
-    private func saveCustomLanguages() {
+    /// Zapis przez `JSONFileStore` (kopie przed zapisem); błąd trafia do wywołującego, nie jest połykany (N7).
+    private func saveCustomLanguages() throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted]
-        if let data = try? encoder.encode(customLanguages) {
-            try? data.write(to: customLanguagesURL)
-        }
+        try JSONFileStore().save(customLanguages, to: customLanguagesURL, encoder: encoder)
     }
     
+    /// Nieczytelny plik jest kopiowany do kwarantanny, zanim kolejny import go nadpisze.
     public func loadCustomLanguages() {
-        guard FileManager.default.fileExists(atPath: customLanguagesURL.path),
-              let data = try? Data(contentsOf: customLanguagesURL) else { return }
-        let decoder = JSONDecoder()
-        if let loaded = try? decoder.decode([CustomLanguage].self, from: data) {
+        if case .loaded(let loaded) = JSONFileStore().load([CustomLanguage].self, from: customLanguagesURL) {
             self.customLanguages = loaded
         }
     }
-}
-
-@MainActor
-public func loc(_ key: LocalizationService.Key) -> String {
-    return LocalizationService.shared.text(key)
 }

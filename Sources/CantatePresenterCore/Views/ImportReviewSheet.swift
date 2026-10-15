@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 
 public struct ImportReviewSheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     public let report: ImportProcessingResult
     public let onCommit: ([Song]) -> Void
     public let onCancel: () -> Void
@@ -78,14 +78,14 @@ public struct ImportReviewSheet: View {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Podsumowanie importu i deduplikacji pieśni")
+                    Text(L("Podsumowanie importu i deduplikacji pieśni"))
                         .font(.scaled(17, weight: .bold, scale: scale))
-                    Text("Wykryto duplikaty, naprawiono polskie litery, oczyszczono formatowanie i dołączono chwyty gitarowe.")
+                    Text(L("Wykryto duplikaty, naprawiono polskie litery, oczyszczono formatowanie i dołączono chwyty gitarowe."))
                         .font(.scaled(12, scale: scale))
                         .foregroundColor(.secondary)
                 }
                 Spacer()
-                Button("Anuluj") {
+                Button(L("Anuluj")) {
                     onCancel()
                 }
                 .keyboardShortcut(.cancelAction)
@@ -98,25 +98,25 @@ public struct ImportReviewSheet: View {
             // 4 Summary Metrics Badges
             HStack(spacing: 12) {
                 MetricCard(
-                    title: "Wczytano z pliku",
+                    title: L("Wczytano z pliku"),
                     value: "\(report.totalScanned)",
-                    subtitle: "utworów",
+                    subtitle: L("utworów"),
                     icon: "doc.text.magnifyingglass",
                     color: .blue,
                     scale: scale
                 )
                 
                 MetricCard(
-                    title: "Wykryte duplikaty",
+                    title: L("Wykryte duplikaty"),
                     value: "\(report.duplicateRecords.count)",
-                    subtitle: "pominięte",
+                    subtitle: L("pominięte"),
                     icon: "doc.on.doc.fill",
                     color: .orange,
                     scale: scale
                 )
                 
                 MetricCard(
-                    title: "Autorzy i polskie litery",
+                    title: L("Autorzy i polskie litery"),
                     value: "\(report.enrichmentRecords.count)",
                     subtitle: "wzbogacone",
                     icon: "sparkles",
@@ -125,18 +125,18 @@ public struct ImportReviewSheet: View {
                 )
                 
                 MetricCard(
-                    title: "Chwyty gitarowe",
+                    title: L("Chwyty gitarowe"),
                     value: "\(songsWithChords.count)",
-                    subtitle: "z akordami",
+                    subtitle: L("z akordami"),
                     icon: "guitars.fill",
                     color: .yellow,
                     scale: scale
                 )
                 
                 MetricCard(
-                    title: "Do zaimportowania",
+                    title: L("Do zaimportowania"),
                     value: "\(songsToImportCount)",
-                    subtitle: "unikalnych pieśni",
+                    subtitle: L("unikalnych pieśni"),
                     icon: "checkmark.circle.fill",
                     color: .green,
                     scale: scale
@@ -150,13 +150,13 @@ public struct ImportReviewSheet: View {
             // Tab Selector & Search Bar
             HStack {
                 Picker("", selection: $selectedTab) {
-                    Text("Autorzy & Polskie litery (\(report.enrichmentRecords.count))").tag(0)
-                    Text("Wykryte duplikaty (\(report.duplicateRecords.count))").tag(1)
-                    Text("Chwyty gitarowe (\(songsWithChords.count))").tag(4)
+                    Text(L("Autorzy & Polskie litery ({0})", report.enrichmentRecords.count)).tag(0)
+                    Text(L("Wykryte duplikaty ({0})", report.duplicateRecords.count)).tag(1)
+                    Text(L("Chwyty gitarowe ({0})", songsWithChords.count)).tag(4)
                     if !report.existingCollisions.isEmpty {
-                        Text("Kolizje z bazą (\(report.existingCollisions.count))").tag(2)
+                        Text(L("Kolizje z bazą ({0})", report.existingCollisions.count)).tag(2)
                     }
-                    Text("Wszystkie do dodania (\(workingSongs.count))").tag(3)
+                    Text(L("Wszystkie do dodania ({0})", workingSongs.count)).tag(3)
                 }
                 .pickerStyle(SegmentedPickerStyle())
                 
@@ -165,7 +165,7 @@ public struct ImportReviewSheet: View {
                 HStack(spacing: 6) {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
-                    TextField("Filtruj listę...", text: $searchQuery)
+                    TextField(L("Filtruj listę..."), text: $searchQuery)
                         .textFieldStyle(PlainTextFieldStyle())
                         .font(.scaled(11, scale: scale))
                         .frame(width: 160)
@@ -194,7 +194,7 @@ public struct ImportReviewSheet: View {
                     ScrollView {
                         LazyVStack(spacing: 8) {
                             if filteredEnrichments.isEmpty {
-                                Text("Brak elementów do wyświetlenia")
+                                Text(L("Brak elementów do wyświetlenia"))
                                     .foregroundColor(.secondary)
                                     .padding(40)
                             } else {
@@ -210,7 +210,7 @@ public struct ImportReviewSheet: View {
                     ScrollView {
                         LazyVStack(spacing: 10) {
                             if filteredDuplicates.isEmpty {
-                                Text("Brak wykrytych duplikatów")
+                                Text(L("Brak wykrytych duplikatów"))
                                     .foregroundColor(.secondary)
                                     .padding(40)
                             } else {
@@ -234,7 +234,7 @@ public struct ImportReviewSheet: View {
                         LazyVStack(spacing: 10) {
                             if filteredSongsWithChords.isEmpty {
                                 VStack(spacing: 8) {
-                                    Text("Brak opracowań chwytów spełniających filtr.")
+                                    Text(L("Brak opracowań chwytów spełniających filtr."))
                                         .foregroundColor(.secondary)
                                 }
                                 .padding(40)
@@ -292,12 +292,12 @@ public struct ImportReviewSheet: View {
                                             .cornerRadius(3)
                                     }
                                 }
-                                Text(song.author.isEmpty ? "Autor nieznany" : song.author)
+                                Text(song.author.isEmpty ? L("Autor nieznany") : song.author)
                                     .font(.scaled(10, scale: scale))
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            Text("\(song.slides.count) slajdów")
+                            Text(L("{0} slajdów", song.slides.count))
                                 .font(.scaled(10, scale: scale))
                                 .foregroundColor(.secondary)
                         }
@@ -310,13 +310,13 @@ public struct ImportReviewSheet: View {
             
             // Bottom Action Bar
             HStack {
-                Text("Gotowych do dodania: \(songsToImportCount) pieśni (\(songsWithChords.count) z chwytami gitarowymi)")
+                Text(L("Gotowych do dodania: {0} pieśni ({1} z chwytami gitarowymi)", songsToImportCount, songsWithChords.count))
                     .font(.scaled(12, weight: .medium, scale: scale))
                     .foregroundColor(.secondary)
                 
                 Spacer()
                 
-                Button("Anuluj") {
+                Button(L("Anuluj")) {
                     onCancel()
                 }
                 .font(.scaled(12, scale: scale))
@@ -324,7 +324,7 @@ public struct ImportReviewSheet: View {
                 Button(action: {
                     commitImport()
                 }) {
-                    Label("Zaimportuj \(songsToImportCount) pieśni", systemImage: "arrow.down.doc.fill")
+                    Label(L("Zaimportuj {0} pieśni", songsToImportCount), systemImage: "arrow.down.doc.fill")
                         .font(.scaled(12, weight: .bold, scale: scale))
                 }
                 .buttonStyle(.borderedProminent)
@@ -416,14 +416,14 @@ private struct EnrichmentRowView: View {
                 }
                 
                 HStack(spacing: 6) {
-                    Text("Autor:")
+                    Text(L("Autor:"))
                         .font(.scaled(10, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
                     Text(item.enrichedAuthor)
                         .font(.scaled(11, weight: .semibold, scale: scale))
                         .foregroundColor(.primary)
                     if item.originalAuthor != "brak" && item.originalAuthor != item.enrichedAuthor {
-                        Text("(wcześniej: \(item.originalAuthor))")
+                        Text(L("(wcześniej: {0})", item.originalAuthor))
                             .font(.scaled(10, scale: scale))
                             .foregroundColor(.secondary)
                     }
@@ -459,7 +459,7 @@ private struct ChordsSummaryRowView: View {
                 }
                 
                 if !song.key.isEmpty {
-                    Text("Tonacja: \(song.key)")
+                    Text(L("Tonacja: {0}", song.key))
                         .font(.scaled(10, weight: .bold, scale: scale))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
@@ -471,7 +471,7 @@ private struct ChordsSummaryRowView: View {
                 Spacer()
                 
                 Button(action: onSearchChords) {
-                    Label("Zmień / Szukaj chwytów online", systemImage: "arrow.triangle.2.circlepath")
+                    Label(L("Zmień / Szukaj chwytów online"), systemImage: "arrow.triangle.2.circlepath")
                         .font(.scaled(10, scale: scale))
                 }
                 .buttonStyle(.bordered)
@@ -510,7 +510,7 @@ private struct DuplicateRowView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "doc.on.doc.fill")
                         .foregroundColor(.orange)
-                    Text("Zgodność: \(record.similarityScore)%")
+                    Text(L("Zgodność: {0}%", record.similarityScore))
                         .font(.scaled(11, weight: .bold, scale: scale))
                         .foregroundColor(.orange)
                 }
@@ -521,7 +521,7 @@ private struct DuplicateRowView: View {
                 
                 Spacer()
                 
-                Toggle("Pomiń ten duplikat", isOn: $isSkipped)
+                Toggle(L("Pomiń ten duplikat"), isOn: $isSkipped)
                     .font(.scaled(11, scale: scale))
                     .toggleStyle(CheckboxToggleStyle())
             }
@@ -533,13 +533,13 @@ private struct DuplicateRowView: View {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
                             .font(.scaled(10, scale: scale))
-                        Text("Wersja główna (zachowywana):")
+                        Text(L("Wersja główna (zachowywana):"))
                             .font(.scaled(9.5, weight: .bold, scale: scale))
                             .foregroundColor(.green)
                     }
                     Text(record.primarySong.title)
                         .font(.scaled(11, weight: .semibold, scale: scale))
-                    Text(record.primarySong.author.isEmpty ? "Autor nieznany" : record.primarySong.author)
+                    Text(record.primarySong.author.isEmpty ? L("Autor nieznany") : record.primarySong.author)
                         .font(.scaled(10, scale: scale))
                         .foregroundColor(.secondary)
                 }
@@ -554,13 +554,13 @@ private struct DuplicateRowView: View {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(isSkipped ? .red : .orange)
                             .font(.scaled(10, scale: scale))
-                        Text(isSkipped ? "Wersja zduplikowana (pomijana):" : "Wersja zduplikowana (zostanie dodana):")
+                        Text(isSkipped ? L("Wersja zduplikowana (pomijana):") : L("Wersja zduplikowana (zostanie dodana):"))
                             .font(.scaled(9.5, weight: .bold, scale: scale))
                             .foregroundColor(isSkipped ? .red : .orange)
                     }
                     Text(record.duplicateSong.title)
                         .font(.scaled(11, weight: .semibold, scale: scale))
-                    Text(record.duplicateSong.author.isEmpty ? "Autor nieznany" : record.duplicateSong.author)
+                    Text(record.duplicateSong.author.isEmpty ? L("Autor nieznany") : record.duplicateSong.author)
                         .font(.scaled(10, scale: scale))
                         .foregroundColor(.secondary)
                 }
@@ -597,7 +597,7 @@ private struct CollisionRowView: View {
                     .foregroundColor(.secondary)
             }
             Spacer()
-            Toggle("Pomiń (jest w bibliotece)", isOn: $isSkipped)
+            Toggle(L("Pomiń (jest w bibliotece)"), isOn: $isSkipped)
                 .toggleStyle(.checkbox)
                 .font(.scaled(10, scale: scale))
         }

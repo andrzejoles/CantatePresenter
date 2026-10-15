@@ -40,11 +40,11 @@ Kluczowe elementy:
 - Import: `TextImporter` → `HolyricsImporter` → `HolyricsJavaDeserializer` (pliki `.mufl`/`.muf` to Java ObjectStream) → `SongDeduplicationService` → `ImportReviewSheet`.
 - Kopie: `BackupService` (ZIP przez `/usr/bin/ditto`), przywracanie przez `BackupRestorer` (walidacja, podmiana katalogu, cofnięcie), kopia przy zamykaniu przez `ExitBackupCoordinator`.
 - Dysk Google: `GoogleDriveService` (REST), logowanie `GoogleOAuth` (loopback `127.0.0.1` + PKCE, W3). Client Secret i tokeny tylko w Pęku kluczy (`GoogleCredentialStore`, usługa `com.cantate.presenter.gdrive`, W4); w `settings.json` jest tylko Client ID, folder i flagi. Nie dodawaj sekretów do `AppSettings`.
-- Klawiatura: jeden `KeyboardMonitor` (rejestrowany w `AppDelegate`) i czysta logika `KeyboardRouter` (K3, W5). Działa tylko w oknie głównym bez arkusza i bez fokusu w polu tekstowym oraz w `PresentationWindow`. Skróty z ustawień mają pierwszeństwo przed stałymi klawiszami (strzałki, Page Up/Down, Esc, R, cyfry).
+- Klawiatura: jeden `KeyboardMonitor` (rejestrowany w `AppDelegate`) i czysta logika `KeyboardRouter` (K3, W5). Działa tylko w oknie głównym bez arkusza oraz w `PresentationWindow`. W jednowierszowym polu (wyszukiwanie) przepuszcza klawisze piszące, obsługuje tylko Page Up/Down, F1–F12 i Esc (wyjście z pola); w polu wielowierszowym nie obsługuje nic. Okno główne startuje bez fokusu w polu wyszukiwania. Skróty z ustawień mają pierwszeństwo przed stałymi klawiszami (strzałki, Page Up/Down, Esc, R, cyfry).
 
 ### Dane
 
-Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `standby.html`, `logos/`, `templates/`, `history/` (5 ostatnich wersji przed zapisem, K1).
+Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `ccli_usage.json`, `standby.html`, `logos/`, `templates/`, `history/` (5 ostatnich wersji przed zapisem, K1).
 
 Przy pierwszym uruchomieniu, gdy w Application Support nie ma `songs.json`/`plans.json`/`settings.json`, dane są **kopiowane** ze starej lokalizacji (`data/` obok pakietu .app, a przy `swift run` z bieżącego katalogu). Stary katalog zostaje. Jeśli kopiowanie się nie uda, aplikacja w tej sesji używa starego katalogu i pokazuje alert.
 
@@ -60,6 +60,49 @@ Kolejność, jeden PR na etap:
 1. **Dane i klawiatura**: K1 (bezpieczny odczyt JSON, kwarantanna, kopie rotacyjne), K2 (`AppPaths`), K3 + W5 (jeden `KeyboardRouter` działający tylko dla okna głównego bez arkusza i okna projekcji), W1 (menu Edycja), W8 (unikalne UUID przy imporcie). Najpierw cel testowy.
 2. **Kopie i importy**: W2 (backup w `applicationShouldTerminate` z `.terminateLater`), W3 + W4 (OAuth loopback + PKCE, tokeny w Pęku kluczy), W6 (zabezpieczenia deserializera), W7 + S7 (transpozycja, nagłówki sekcji), S3–S6.
 3. **Jakość**: S2 (`@Observable`, podział `DataStore`, cache wyszukiwania i Auto-Fit), N1 (wspólny `SlideRenderer`), S10 (String Catalog), CI, porządki (N9, N10, S11).
+
+Stan na 2026-10-15: etapy 1 i 2 scalone (PR #1, #2, #3); w etapie 3 zrobione S2, N1, S10 (gałąź `stage3-quality`, jeszcze bez PR).
+
+## Do zrobienia
+
+Z przeglądu kodu (kolejność proponowana):
+- [x] **S1** Projekcja po odłączeniu projektora: zapamiętywać ekran po `CGDirectDisplayID`, po zniknięciu ukryć okno projekcji zamiast przenosić je na ekran operatora, wrócić po ponownym podłączeniu.
+- [x] **S11** Twarde ścieżki `/Users/aoles/dev_gem/...` w kodzie i README; `INSTRUKCJA.md` i próbka jako zasoby pakietu.
+- [x] **N11** Po „szybkim tekście” następna pieśń to pierwsza z planu zamiast kolejnej.
+- [x] **N9** Higiena repozytorium. Decyzja właściciela: `2026-10-14_16-19-00.mufl`, `data/songs.json`, `data/plans.json` i `data/holyrics_samples/` zostają w repozytorium jako przykłady dla dewelopera (testy, migracja K2 przy uruchamianiu z repozytorium), ale nigdy w aplikacji ani instalatorze; `build_app.sh` przerywa budowanie, jeśli trafią do pakietu.
+- [x] **N10** Skrypty budowania ukrywają błędy podpisu; wersja w trzech miejscach.
+- [x] **S8** Logo wstawiane regexem i zapisywane do `standby.html` (dwie kopie logiki); przy okazji tłumaczenie tekstów planszy („Wersja”, „GOTOWY DO PROJEKCJI”).
+- [x] **S9** Wyszukiwanie „online”: decyzja właściciela: źródła z jasną licencją. Wikiźródła przez API MediaWiki (`OnlineSearchService`, `WikisourceParser`), źródło i licencja zapisywane w pieśni (`Song.source`, `copyright`, `ccliNumber`). DuckDuckGo, LRCLIB i wbudowany katalog usunięte. Giszowiec.org odrzucony (brak licencji i API).
+- [x] **CCLI SongSelect** (konto płatne parafii): API partnerskie zamknięte dla nowych aplikacji, więc import plików z SongSelect (`SongSelectImporter`: `.txt`, `.usr`, ChordPro), przycisk „Szukaj w SongSelect” (przeglądarka), numer licencji CCLI w Ustawieniach, linia © i numer CCLI na slajdzie (`CopyrightNotice`, rysowana w `SlideTextView`, poza Auto-Fit), pola © i CCLI w edytorze.
+- [x] **Raport użycia CCLI**: `DataStore.ccliUsage` (`ccli_usage.json`, raz na pieśń dziennie przy `present(song:)`), eksport CSV w Ustawieniach (`CCLIUsageReport`).
+- Decyzja właściciela (2026-10-15): bez klucza partnera API CCLI; nie prosić CCLI o dostęp i nie pobierać z SongSelect automatycznie.
+- [x] **N2** Ustawienia typowane stringami (`"left"`, `"lewo"`) → enumy z tolerancyjnym dekoderem.
+- [x] **N3** Ostatni regex kompilowany w pętli (`HolyricsImporter`).
+- [x] **N4** Dyktowanie: podwójny callback, mylący komentarz o rozpoznawaniu na urządzeniu.
+- [x] **N5** Import Holyrics gubi tonację; XML parsowany regexem.
+- [x] **N6** Przestarzałe API (ostrzeżenia kompilatora).
+- [x] **N7** Pozostałe ciche `try?` przy zapisie (np. własne języki).
+- [x] **N8** Indeks deduplikacji nieaktualizowany po zamianie pieśni głównej.
+- [ ] **CI** Budowanie i testy na GitHubie: workflow `.github/workflows/ci.yml` gotowy na gałęzi `ci-workflow`. GitHub odrzuca push, bo token gita nie ma uprawnienia `workflow`; po zalogowaniu `gh auth login` (albo tokenie z `workflow`) scalić gałąź i wypchnąć.
+- [ ] PR etapu 3 (`stage3-quality`).
+- [x] Nowe instalatory w `dist/` (2026-10-15, wersja 1.0.0, kompilacja 70; `dist/` jest w `.gitignore`).
+
+Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
+- [ ] Przepisanie historii gita: usunięcie `2026-10-14_16-19-00.mufl` i adresu e-mail z dawnych wersji `data/settings.json`.
+- [ ] Podpis Developer ID i notaryzacja (płatne konto Apple Developer).
+- [ ] Automatyczne aktualizacje (Sparkle, nowa zależność).
+- [ ] Weryfikacja aplikacji w Google (zniesienie limitu 100 testerów i ostrzeżenia przy logowaniu; wymaga m.in. polityki prywatności).
+- [ ] Pole `schemaVersion` w plikach danych (zmiana formatu z migracją).
+
+Nowe funkcje:
+- [ ] **Sterowanie ze smartfona** (pilot: następny/poprzedni slajd, czarny ekran, wybór pieśni z planu). Musi działać na **iOS i Androidzie**, więc najpierw wybrać technologię. Kandydaci: aplikacja webowa serwowana przez Maca w sieci lokalnej (HTTP + WebSocket, wejście przez kod QR, bez sklepów z aplikacjami), aplikacja natywna lub wieloplatformowa (sklepy, wyższy koszt), Bluetooth HID (bez instalacji, ale tylko proste klawisze). Uwzględnić parowanie i zabezpieczenie (PIN/token), działanie bez internetu i uprawnienia sieci lokalnej w macOS.
+
+- [ ] **Wersja webowa od nowa** w najlepszych technologiach dla przeglądarki (do wyboru, np. TypeScript + nowoczesny framework, PWA działająca offline, dane w IndexedDB, okno projekcji jako drugie okno przeglądarki lub Presentation API). **Bez Google Drive**: kopia zapasowa tylko do pliku i z pliku. Istniejąca gałąź `origin/web` co najwyżej jako punkt odniesienia.
+- [ ] **Wersja na Windows od nowa** w najlepszych technologiach dla Windows (do wyboru, np. .NET + WinUI 3), z obsługą wielu monitorów i projektora. Istniejąca gałąź `origin/windows` co najwyżej jako punkt odniesienia.
+- [ ] Wspólne dla wersji macOS, web i Windows, żeby wygląd i działanie były możliwie spójne: ten sam format danych i kopii zapasowej (`songs.json`, `plans.json`, kody `SlideType`, `.cantatebackup`), te same tłumaczenia (eksport z `Localizable.xcstrings`), ta sama logika podziału tekstu na slajdy, transpozycji, Auto-Fit i skrótów klawiszowych. Rozważyć wspólny zestaw plików testowych (wejście → oczekiwany wynik) sprawdzany we wszystkich wersjach.
+
+Weryfikacja przez właściciela:
+- [ ] Przejrzenie tłumaczeń interfejsu (en, de, es, uk), najlepiej z osobami znającymi język.
 
 ## Testy
 
@@ -80,7 +123,8 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 
 - Swift tools 5.9, macOS 14. Wcięcia 4 spacje, sekcje `// MARK: -`, `public` na typach jak w istniejącym kodzie.
 - Serwisy dotykające UI lub `DataStore` są `@MainActor`. Długie operacje (import, ZIP, sieć) poza wątkiem głównym.
-- Teksty UI po polsku; nowe teksty w miarę możliwości przez `loc(...)`, docelowo String Catalog (S10). Do JSON zapisuj stabilne kody, nie polskie etykiety.
+- Teksty UI (S10): kluczem jest polski tekst. W widokach `L("…")` (odświeża się po zmianie języka), poza widokami `Lnow("…")`. Wartości wstawiane jako `{0}`, `{1}`: `L("Slajd {0}/{1}", a, b)`, nigdy interpolacja w kluczu. Każdy nowy tekst dodaj do `Sources/CantatePresenterCore/Resources/Localizable.xcstrings` z tłumaczeniem en, de, es, uk; test `LocalizationCatalogCompletenessTests` tego pilnuje.
+- Nie tłumacz danych i formatów: nagłówków eksportu `.txt` („Tytuł:”), znaczników sekcji wstawianych do tekstu („[Zwrotka]”), nazw plików i folderów (`CantatePresenter_Backups`, „przed przywróceniem”), wartości technicznych (HTTP, zapytania Dysku). Do JSON zapisuj stabilne kody, nie etykiety (np. `SlideType`).
 - Nowe pola modeli zapisywanych w JSON tylko z tolerancyjnym dekoderem (`decodeIfPresent` + wartość domyślna), jak w `AppSettings.init(from:)`. Inaczej stare pliki przestaną się wczytywać (K1).
 - Błędy zapisu nie mogą być połykane przez `try?` bez logowania (`os.Logger`) i informacji dla użytkownika.
 - Commity: konwencjonalne prefiksy po angielsku (`feat(ui):`, `fix:`, `refactor:`, `test:`, `docs:`), w treści identyfikator z raportu, np. `fix(data): quarantine unreadable songs.json instead of overwriting (K1)`.
@@ -96,8 +140,7 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 
 - Menu Edycja (W1) jest potrzebne, żeby ⌘C/⌘V/⌘Z działały w polach tekstowych. Nie usuwaj go przy przebudowie menu.
 - Nie dodawaj nowych monitorów `NSEvent` ani `keyDown` dla skrótów prezentacji; wszystko idzie przez `KeyboardRouter`. Okno testowe podglądu i okno instrukcji celowo nie są obsługiwane.
-- `DataStore.updateActiveLogo` nadpisuje `standby.html` w katalogu danych. Pliki `data/*.json` w repozytorium są śledzone przez git; po K2 aplikacja ich nie zmienia, ale nie commituj ich przypadkiem po ręcznych próbach.
+- Plansza startowa jest składana w pamięci (`StandbyRenderer`: logo w `<!--LOGO-->`, wersja, teksty, autor) i powiększana do szerokości ekranu (`StandbyZoom`); pliku `standby.html` nie zapisuj. Pliki `data/*.json` w repozytorium są śledzone przez git; po K2 aplikacja ich nie zmienia, ale nie commituj ich przypadkiem po ręcznych próbach.
 - Stara wersja aplikacji (sprzed K1) wczytuje bibliotekę z błędem dat i nadpisuje ją przykładami. Nie uruchamiaj starych buildów na prawdziwych danych.
-- Twarde ścieżki `/Users/aoles/dev_gem/...` w `ImportExportSheet.swift` i `AppDelegate.swift` (S11).
-- `Models/ENDLogoAsset.swift` to ~50 KB base64; nie czytaj go w całości.
+- Logo END to plik `Sources/CantatePresenterCore/Resources/end_logo.png` (zasób pakietu), wczytywany przez `ENDLogoAsset`.
 - `Package.swift` nie deklaruje zasobów; `data/` i `Resources/AppIcon.icns` są kopiowane ręcznie przez `build_app.sh`.

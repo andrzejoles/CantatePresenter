@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 
 public struct ChordsSearchSheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     public let song: Song
     public let onApply: (String, String) -> Void // (chordsSheet, key)
     @Binding var isPresented: Bool
@@ -33,15 +33,15 @@ public struct ChordsSearchSheet: View {
                         Image(systemName: "guitars.fill")
                             .font(.scaled(18, scale: scale))
                             .foregroundColor(.orange)
-                        Text("Wyszukiwarka chwytów gitarowych i tabulatur")
+                        Text(L("Wyszukiwarka chwytów gitarowych i tabulatur"))
                             .font(.scaled(16, weight: .bold, scale: scale))
                     }
-                    Text("Szukanie akordów dla: „\(song.title)” w internetowych śpiewnikach i bazie nabożeństw")
+                    Text(L("Szukanie akordów dla: „{0}” w internetowych śpiewnikach i bazie nabożeństw", song.title))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                 }
                 Spacer()
-                Button("Zamknij") {
+                Button(L("Zamknij")) {
                     isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
@@ -56,7 +56,7 @@ public struct ChordsSearchSheet: View {
                 HStack(spacing: 6) {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
-                    TextField("Wpisz tytuł pieśni lub słowa...", text: $searchQuery, onCommit: {
+                    TextField(L("Wpisz tytuł pieśni lub słowa..."), text: $searchQuery, onCommit: {
                         triggerSearch()
                     })
                     .textFieldStyle(PlainTextFieldStyle())
@@ -74,7 +74,7 @@ public struct ChordsSearchSheet: View {
                 .background(Color(NSColor.controlBackgroundColor))
                 .cornerRadius(8)
                 
-                DictationButtonView(text: $searchQuery, mode: .replace, size: 13, customPrompt: "Powiedz tytuł pieśni...")
+                DictationButtonView(text: $searchQuery, mode: .replace, size: 13, customPrompt: L("Powiedz tytuł pieśni..."))
                 
                 Button(action: triggerSearch) {
                     if isSearching {
@@ -82,7 +82,7 @@ public struct ChordsSearchSheet: View {
                             .controlSize(.small)
                             .frame(width: 60)
                     } else {
-                        Text("Szukaj")
+                        Text(L("Szukaj"))
                             .font(.scaled(12, weight: .semibold, scale: scale))
                     }
                 }
@@ -99,7 +99,7 @@ public struct ChordsSearchSheet: View {
                 // Left: Results list
                 VStack(alignment: .leading, spacing: 0) {
                     HStack {
-                        Text("Znalezione opracowania (\(results.count))")
+                        Text(L("Znalezione opracowania ({0})", results.count))
                             .font(.scaled(11, weight: .semibold, scale: scale))
                             .foregroundColor(.secondary)
                         Spacer()
@@ -115,7 +115,7 @@ public struct ChordsSearchSheet: View {
                             Image(systemName: "music.note.list")
                                 .font(.scaled(32, scale: scale))
                                 .foregroundColor(.secondary.opacity(0.5))
-                            Text("Wpisz tytuł i kliknij „Szukaj”, aby znaleźć chwyty gitarowe z internetowych śpiewników.")
+                            Text(L("Wpisz tytuł i kliknij „Szukaj”, aby znaleźć chwyty gitarowe z internetowych śpiewników."))
                                 .font(.scaled(11, scale: scale))
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -169,7 +169,7 @@ public struct ChordsSearchSheet: View {
                         // Transposition Toolbar
                         HStack(spacing: 12) {
                             HStack(spacing: 6) {
-                                Text("Transpozycja:")
+                                Text(L("Transpozycja:"))
                                     .font(.scaled(11, weight: .semibold, scale: scale))
                                     .foregroundColor(.secondary)
                                 
@@ -192,7 +192,7 @@ public struct ChordsSearchSheet: View {
                                 .controlSize(.small)
                                 
                                 if transpositionSteps != 0 {
-                                    Button("Reset") {
+                                    Button(L("Reset")) {
                                         resetTransposition()
                                     }
                                     .buttonStyle(.plain)
@@ -207,7 +207,7 @@ public struct ChordsSearchSheet: View {
                                 onApply(previewChords, sel.key)
                                 isPresented = false
                             }) {
-                                Label("Zastosuj chwyty do pieśni", systemImage: "checkmark.circle.fill")
+                                Label(L("Zastosuj chwyty do pieśni"), systemImage: "checkmark.circle.fill")
                                     .font(.scaled(11, weight: .bold, scale: scale))
                             }
                             .buttonStyle(.borderedProminent)
@@ -234,7 +234,7 @@ public struct ChordsSearchSheet: View {
                         
                     } else {
                         VStack(spacing: 8) {
-                            Text("Wybierz opracowanie z listy po lewej stronie, aby podejrzeć chwyty i dokonać transpozycji.")
+                            Text(L("Wybierz opracowanie z listy po lewej stronie, aby podejrzeć chwyty i dokonać transpozycji."))
                                 .font(.scaled(12, scale: scale))
                                 .foregroundColor(.secondary)
                         }

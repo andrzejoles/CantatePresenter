@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 
 public struct MainView: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @ObservedObject var screenManager = ScreenManager.shared
     
     @State private var selectedLeftTab: Int = 0 // 0: Library, 1: Plan
@@ -30,17 +30,35 @@ public struct MainView: View {
                     Image(systemName: "music.quarternote.3")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.blue)
-                    Text(loc(.appTitle))
+                    Text(L("CantatePresenter"))
                         .font(.scaled(14, weight: .bold, scale: scale))
                 }
                 
                 // Screen Status Badge
-                if screenManager.isPresentationActive {
+                if screenManager.isWaitingForDisplay {
+                    // S1: projektor zniknął; okno projekcji ukryte, wróci po ponownym podłączeniu.
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                        Text(L("Projektor odłączony – projekcja wróci po podłączeniu"))
+                            .font(.scaled(10, weight: .bold, scale: scale))
+                            .foregroundColor(.orange)
+                        Button(L("Zakończ projekcję")) {
+                            screenManager.stopPresentation()
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.mini)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.orange.opacity(0.14))
+                    .cornerRadius(6)
+                } else if screenManager.isPresentationActive {
                     HStack(spacing: 5) {
                         Circle()
                             .fill(Color.green)
                             .frame(width: 8, height: 8)
-                        Text(loc(.projectorActive))
+                        Text(L("Projektor: Aktywny"))
                             .font(.scaled(10, weight: .bold, scale: scale))
                             .foregroundColor(.green)
                     }
@@ -53,7 +71,7 @@ public struct MainView: View {
                         Circle()
                             .fill(Color.blue)
                             .frame(width: 8, height: 8)
-                        Text(loc(.testWindowActive))
+                        Text(L("Okno testowe"))
                             .font(.scaled(10, weight: .bold, scale: scale))
                             .foregroundColor(.blue)
                     }
@@ -68,21 +86,27 @@ public struct MainView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "bolt.fill")
                             .font(.system(size: 11))
-                        Text("Szybki tekst")
+                        Text(L("Szybki tekst"))
                             .font(.scaled(11, weight: .semibold, scale: scale))
                     }
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.orange)
                 .controlSize(.small)
-                .help("Wyświetl natychmiast dowolny tekst lub ogłoszenie bez zapisywania w bazie (⌘T)")
+                .help(L("Wyświetl natychmiast dowolny tekst lub ogłoszenie bez zapisywania w bazie (⌘T)"))
                 .keyboardShortcut("t", modifiers: [.command])
+                
+                // Akcje biblioteki (wcześniej ciasno pod wyszukiwarką). Przy wąskim oknie same ikony z podpowiedzią.
+                ViewThatFits(in: .horizontal) {
+                    libraryActions(scale: scale, showTitles: true)
+                    libraryActions(scale: scale, showTitles: false)
+                }
                 
                 Spacer()
                 
                 // UI Scale Controls (Essential requirement)
                 HStack(spacing: 4) {
-                    Text("\(loc(.uiScale)):")
+                    Text("\(L("Rozmiar UI")):")
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                     
@@ -92,7 +116,7 @@ public struct MainView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help("Zmniejsz rozmiar interfejsu (Cmd -)")
+                    .help(L("Zmniejsz rozmiar interfejsu (Cmd -)"))
                     
                     Button(action: { store.resetZoomUI() }) {
                         Text("\(Int(store.settings.uiScale * 100))%")
@@ -100,7 +124,7 @@ public struct MainView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help("Przywróć 100% rozmiaru (Cmd 0)")
+                    .help(L("Przywróć 100% rozmiaru (Cmd 0)"))
                     
                     Button(action: { store.zoomInUI() }) {
                         Image(systemName: "textformat.size.larger")
@@ -108,7 +132,7 @@ public struct MainView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help("Zwiększ rozmiar interfejsu (Cmd +)")
+                    .help(L("Zwiększ rozmiar interfejsu (Cmd +)"))
                 }
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
@@ -125,7 +149,7 @@ public struct MainView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .help("Ustawienia wyglądu i prezentacji")
+                .help(L("Ustawienia wyglądu i prezentacji"))
                 
                 // User Manual button
                 Button(action: {
@@ -136,7 +160,7 @@ public struct MainView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .help("Instrukcja obsługi CantatePresenter (Cmd ?)")
+                .help(L("Instrukcja obsługi CantatePresenter (Cmd ?)"))
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
@@ -150,8 +174,8 @@ public struct MainView: View {
                 VStack(spacing: 0) {
                     // Tab Picker
                     Picker("", selection: $selectedLeftTab) {
-                        Text(loc(.libraryTab)).tag(0)
-                        Text(loc(.planTab)).tag(1)
+                        Text(L("Biblioteka pieśni")).tag(0)
+                        Text(L("Plan nabożeństwa")).tag(1)
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .padding(8)
@@ -241,13 +265,20 @@ public struct MainView: View {
             presenting: store.persistenceIssues.first
         ) { issue in
             if let copy = issue.quarantinedCopy {
-                Button("Pokaż w Finderze") {
+                Button(L("Pokaż w Finderze")) {
                     NSWorkspace.shared.activateFileViewerSelecting([copy])
                 }
             }
-            Button("OK", role: .cancel) {}
+            Button(L("OK"), role: .cancel) {}
         } message: { issue in
             Text(issue.message)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .focusSongSearch)) { _ in
+            selectedLeftTab = 0
+            // Lista pieśni może dopiero się pojawić po przełączeniu zakładki.
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .focusSongSearchField, object: nil)
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .openImportFlow)) { _ in
             guard !isShowingImportExport else { return }
@@ -258,9 +289,92 @@ public struct MainView: View {
             isShowingQuickText = true
         }
     }
+
+    @ViewBuilder
+    private func libraryActions(scale: CGFloat, showTitles: Bool) -> some View {
+        HStack(spacing: 5) {
+            Button(action: {
+                songToEdit = nil
+                isShowingEditor = true
+            }) {
+                Label(L("Nowa pieśń"), systemImage: "plus")
+                    .labelStyle(LibraryActionLabelStyle(showTitle: showTitles))
+                    .font(.scaled(11, weight: .medium, scale: scale))
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            .help(L("Nowa pieśń"))
+            
+            Button(action: {
+                if let selected = store.selectedSong {
+                    songToEdit = selected
+                    isShowingEditor = true
+                }
+            }) {
+                Label(L("Edytuj"), systemImage: "pencil")
+                    .labelStyle(LibraryActionLabelStyle(showTitle: showTitles))
+                    .font(.scaled(11, weight: .medium, scale: scale))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .disabled(store.selectedSong == nil)
+            .help(L("Edytuj wybraną pieśń (podwójny klik lub ⌘E)"))
+            
+            Button(action: { isShowingImportExport = true }) {
+                Label(L("Import/Eksport"), systemImage: "arrow.up.arrow.down")
+                    .labelStyle(LibraryActionLabelStyle(showTitle: showTitles))
+                    .font(.scaled(11, scale: scale))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help(L("Import/Eksport"))
+            
+            Button(action: {
+                lookupTargetSong = store.selectedSong
+                isShowingAuthorTitleLookup = true
+            }) {
+                Label(L("Tytuł/Autor"), systemImage: "person.text.rectangle")
+                    .labelStyle(LibraryActionLabelStyle(showTitle: showTitles))
+                    .font(.scaled(11, scale: scale))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help(L("Wyszukiwarka tytułu i autora (dla zaznaczonej lub dla wszystkich)"))
+            
+            Button(action: { isShowingOnlineSearch = true }) {
+                Label(L("Online"), systemImage: "globe")
+                    .labelStyle(LibraryActionLabelStyle(showTitle: showTitles))
+                    .font(.scaled(11, scale: scale))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help(L("Wyszukiwanie pieśni religijnych w internecie"))
+                }
+        .fixedSize()
+    }
+
 }
 
 extension Notification.Name {
     /// Plik → Importuj pieśni: ten sam przepływ co w oknie Import/Eksport (S3).
     static let openImportFlow = Notification.Name("OpenImportFlow")
+    /// Edycja → Szukaj pieśni (⌘F): przełącza na Bibliotekę i aktywuje pole wyszukiwania.
+    static let focusSongSearch = Notification.Name("FocusSongSearch")
+    static let focusSongSearchField = Notification.Name("FocusSongSearchField")
+}
+
+/// Etykieta przycisku z napisem albo sama ikona (wąskie okno); napis zostaje jako podpowiedź.
+struct LibraryActionLabelStyle: LabelStyle {
+    let showTitle: Bool
+    
+    func makeBody(configuration: Configuration) -> some View {
+        if showTitle {
+            HStack(spacing: 4) {
+                configuration.icon
+                configuration.title
+            }
+        } else {
+            configuration.icon
+        }
+    }
 }
