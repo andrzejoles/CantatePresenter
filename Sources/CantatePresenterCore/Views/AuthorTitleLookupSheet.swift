@@ -58,16 +58,16 @@ public struct AuthorTitleLookupSheet: View {
                     .foregroundColor(.blue)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Wyszukiwarka tytułu i autora pieśni")
+                    Text(L("Wyszukiwarka tytułu i autora pieśni"))
                         .font(.scaled(16, weight: .bold, scale: scale))
-                    Text("Wyszukuje i automatycznie uzupełnia brakujące dane utworów w oparciu o bazę hymnów i sieć internetową")
+                    Text(L("Wyszukuje i automatycznie uzupełnia brakujące dane utworów w oparciu o bazę hymnów i sieć internetową"))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
-                Button("Zamknij") {
+                Button(L("Zamknij")) {
                     isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
@@ -79,12 +79,12 @@ public struct AuthorTitleLookupSheet: View {
             
             // MARK: - Scope Selector (Dla aktualnie zaznaczonej / Dla wszystkich)
             HStack {
-                Text("Zakres operacji:")
+                Text(L("Zakres operacji:"))
                     .font(.scaled(12, weight: .semibold, scale: scale))
                 
                 Picker("", selection: $scope) {
                     ForEach(LookupScope.allCases) { item in
-                        Text(item.rawValue).tag(item)
+                        Text(L(item.rawValue)).tag(item)
                     }
                 }
                 .pickerStyle(SegmentedPickerStyle())
@@ -124,7 +124,7 @@ public struct AuthorTitleLookupSheet: View {
                 HStack(alignment: .top, spacing: 16) {
                     // Song Picker / Info
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Aktualna pieśń:")
+                        Text(L("Aktualna pieśń:"))
                             .font(.scaled(11, weight: .bold, scale: scale))
                             .foregroundColor(.secondary)
                         
@@ -139,7 +139,7 @@ public struct AuthorTitleLookupSheet: View {
                             }
                         )) {
                             ForEach(store.songs) { s in
-                                Text(s.title + (s.author.isEmpty ? " (brak autora)" : " — \(s.author)"))
+                                Text(s.title + (s.author.isEmpty ? L(" (brak autora)") : " — \(s.author)"))
                                     .tag(s.id)
                             }
                         }
@@ -149,12 +149,12 @@ public struct AuthorTitleLookupSheet: View {
                     
                     // Search Query Box
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Fraza wyszukiwania (tytuł lub fragment tekstu):")
+                        Text(L("Fraza wyszukiwania (tytuł lub fragment tekstu):"))
                             .font(.scaled(11, weight: .bold, scale: scale))
                             .foregroundColor(.secondary)
                         
                         HStack {
-                            TextField("Wpisz fragment tekstu lub tytuł...", text: $singleQuery)
+                            TextField(L("Wpisz fragment tekstu lub tytuł..."), text: $singleQuery)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .font(.scaled(12, scale: scale))
                                 .onSubmit {
@@ -169,7 +169,7 @@ public struct AuthorTitleLookupSheet: View {
                                         .controlSize(.small)
                                         .frame(width: 50)
                                 } else {
-                                    Text("Szukaj")
+                                    Text(L("Szukaj"))
                                         .frame(width: 50)
                                 }
                             }
@@ -200,7 +200,7 @@ public struct AuthorTitleLookupSheet: View {
                 VStack(spacing: 12) {
                     Spacer()
                     ProgressView()
-                    Text("Wyszukiwanie tytułu i autora w bazie hymnów i sieci...")
+                    Text(L("Wyszukiwanie tytułu i autora w bazie hymnów i sieci..."))
                         .font(.scaled(12, scale: scale))
                         .foregroundColor(.secondary)
                     Spacer()
@@ -211,10 +211,10 @@ public struct AuthorTitleLookupSheet: View {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 40))
                         .foregroundColor(.secondary.opacity(0.3))
-                    Text("Nie znaleziono propozycji dla podanej frazy.")
+                    Text(L("Nie znaleziono propozycji dla podanej frazy."))
                         .font(.scaled(13, scale: scale))
                         .foregroundColor(.secondary)
-                    Text("Spróbuj wpisać inny fragment tekstu lub pierwsze słowa zwrotki.")
+                    Text(L("Spróbuj wpisać inny fragment tekstu lub pierwsze słowa zwrotki."))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary.opacity(0.8))
                     Spacer()
@@ -240,10 +240,10 @@ public struct AuthorTitleLookupSheet: View {
                                 }
                                 
                                 HStack(spacing: 6) {
-                                    Text("Autor / Wykonawca:")
+                                    Text(L("Autor / Wykonawca:"))
                                         .font(.scaled(11, weight: .medium, scale: scale))
                                         .foregroundColor(.secondary)
-                                    Text(item.artist.isEmpty ? "(brak informacji)" : item.artist)
+                                    Text(item.artist.isEmpty ? L("(brak informacji)") : item.artist)
                                         .font(.scaled(11, weight: .semibold, scale: scale))
                                         .foregroundColor(item.artist.isEmpty ? .secondary : .primary)
                                 }
@@ -263,7 +263,7 @@ public struct AuthorTitleLookupSheet: View {
                                 Button(action: {
                                     applySingleCandidate(item, updateTitle: true, setUnknownAuthor: false)
                                 }) {
-                                    Label("Zastosuj tytuł i autora", systemImage: "checkmark")
+                                    Label(L("Zastosuj tytuł i autora"), systemImage: "checkmark")
                                         .font(.scaled(11, weight: .semibold, scale: scale))
                                 }
                                 .buttonStyle(.borderedProminent)
@@ -273,17 +273,17 @@ public struct AuthorTitleLookupSheet: View {
                                     Button(action: {
                                         applySingleCandidate(item, updateTitle: true, setUnknownAuthor: true)
                                     }) {
-                                        Text("Tytuł + autor: 'Nieznany'")
+                                        Text(L("Tytuł + autor: 'Nieznany'"))
                                             .font(.scaled(10, scale: scale))
                                     }
                                     .buttonStyle(.bordered)
                                     .controlSize(.mini)
-                                    .help("Zastosuj tytuł, a autora oznacz jako 'Nieznany' (np. gdy proponowany autor budzi wątpliwości)")
+                                    .help(L("Zastosuj tytuł, a autora oznacz jako 'Nieznany' (np. gdy proponowany autor budzi wątpliwości)"))
                                     
                                     Button(action: {
                                         applySingleCandidate(item, updateTitle: false, setUnknownAuthor: true)
                                     }) {
-                                        Text("Autor -> 'Nieznany'")
+                                        Text(L("Autor -> 'Nieznany'"))
                                             .font(.scaled(10, scale: scale))
                                     }
                                     .buttonStyle(.bordered)
@@ -293,7 +293,7 @@ public struct AuthorTitleLookupSheet: View {
                                         Button(action: {
                                             applySingleCandidate(item, updateTitle: false, setUnknownAuthor: false)
                                         }) {
-                                            Text("Tylko autora")
+                                            Text(L("Tylko autora"))
                                                 .font(.scaled(10, scale: scale))
                                         }
                                         .buttonStyle(.bordered)
@@ -318,13 +318,13 @@ public struct AuthorTitleLookupSheet: View {
             // Options Bar
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 20) {
-                    Toggle("Tylko pieśni z brakującym autorem", isOn: $onlyMissingAuthor)
+                    Toggle(L("Tylko pieśni z brakującym autorem"), isOn: $onlyMissingAuthor)
                         .font(.scaled(11, scale: scale))
                     
-                    Toggle("Uzupełniaj tylko puste pola", isOn: $onlyFillEmptyFields)
+                    Toggle(L("Uzupełniaj tylko puste pola"), isOn: $onlyFillEmptyFields)
                         .font(.scaled(11, scale: scale))
                     
-                    Toggle("Aktualizuj również tytuły", isOn: $updateTitleAlso)
+                    Toggle(L("Aktualizuj również tytuły"), isOn: $updateTitleAlso)
                         .font(.scaled(11, scale: scale))
                     
                     Spacer()
@@ -335,7 +335,7 @@ public struct AuthorTitleLookupSheet: View {
                                 .controlSize(.small)
                                 .frame(width: 140)
                         } else {
-                            Label("Rozpocznij przeszukiwanie", systemImage: "sparkles.magnifyingglass")
+                            Label(L("Rozpocznij przeszukiwanie"), systemImage: "sparkles.magnifyingglass")
                                 .font(.scaled(11, weight: .semibold, scale: scale))
                         }
                     }
@@ -374,10 +374,10 @@ public struct AuthorTitleLookupSheet: View {
                     Image(systemName: "rectangle.stack.badge.person.crop")
                         .font(.system(size: 44))
                         .foregroundColor(.secondary.opacity(0.3))
-                    Text("Kliknij 'Rozpocznij przeszukiwanie', aby przeanalizować utwory w bibliotece.")
+                    Text(L("Kliknij 'Rozpocznij przeszukiwanie', aby przeanalizować utwory w bibliotece."))
                         .font(.scaled(13, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
-                    Text("System dopasuje pieśni na podstawie słów zwrotek oraz tytułów i zaproponuje autorów.")
+                    Text(L("System dopasuje pieśni na podstawie słów zwrotek oraz tytułów i zaproponuje autorów."))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary.opacity(0.8))
                     Spacer()
@@ -386,7 +386,7 @@ public struct AuthorTitleLookupSheet: View {
                 VStack(spacing: 0) {
                     // Selection action bar
                     HStack {
-                        Button("Zaznacz wszystkie") {
+                        Button(L("Zaznacz wszystkie")) {
                             for i in 0..<batchProposals.count {
                                 batchProposals[i].isSelected = true
                             }
@@ -394,7 +394,7 @@ public struct AuthorTitleLookupSheet: View {
                         .buttonStyle(.bordered)
                         .controlSize(.mini)
                         
-                        Button("Odznacz wszystkie") {
+                        Button(L("Odznacz wszystkie")) {
                             for i in 0..<batchProposals.count {
                                 batchProposals[i].isSelected = false
                             }
@@ -405,7 +405,7 @@ public struct AuthorTitleLookupSheet: View {
                         Divider()
                             .frame(height: 16)
                         
-                        Button("Wszyscy autorzy") {
+                        Button(L("Wszyscy autorzy")) {
                             for i in 0..<batchProposals.count {
                                 batchProposals[i].acceptAuthor = true
                             }
@@ -413,20 +413,20 @@ public struct AuthorTitleLookupSheet: View {
                         .buttonStyle(.bordered)
                         .controlSize(.mini)
                         
-                        Button("Autorzy -> 'Nieznany'") {
+                        Button(L("Autorzy -> 'Nieznany'")) {
                             for i in 0..<batchProposals.count {
                                 batchProposals[i].acceptAuthor = false
                             }
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.mini)
-                        .help("Oznacza proponowanych autorów jako 'Nieznany' (np. gdy nazwy budzą wątpliwości)")
+                        .help(L("Oznacza proponowanych autorów jako 'Nieznany' (np. gdy nazwy budzą wątpliwości)"))
                         
                         Spacer()
                         
                         let selectedCount = batchProposals.filter { $0.isSelected && !$0.isApplied }.count
                         Button(action: applyBatchProposals) {
-                            Label("Zastosuj do zaznaczonych (\(selectedCount))", systemImage: "checkmark.circle")
+                            Label(L("Zastosuj do zaznaczonych ({0})", selectedCount), systemImage: "checkmark.circle")
                                 .font(.scaled(11, weight: .semibold, scale: scale))
                         }
                         .buttonStyle(.borderedProminent)
@@ -462,7 +462,7 @@ public struct AuthorTitleLookupSheet: View {
                                         
                                         Spacer()
                                         
-                                        Text("\(proposal.confidence)% zgodności")
+                                        Text(L("{0}% zgodności", proposal.confidence))
                                             .font(.scaled(9, weight: .bold, scale: scale))
                                             .padding(.horizontal, 5)
                                             .padding(.vertical, 2)
@@ -472,10 +472,10 @@ public struct AuthorTitleLookupSheet: View {
                                     }
                                     
                                     HStack(spacing: 8) {
-                                        Text("Autor:")
+                                        Text(L("Autor:"))
                                             .font(.scaled(11, scale: scale))
                                             .foregroundColor(.secondary)
-                                        Text(proposal.currentAuthor.isEmpty ? "(brak)" : proposal.currentAuthor)
+                                        Text(proposal.currentAuthor.isEmpty ? L("(brak)") : proposal.currentAuthor)
                                             .font(.scaled(11, scale: scale))
                                             .foregroundColor(.secondary)
                                         Image(systemName: "arrow.right")
@@ -485,19 +485,19 @@ public struct AuthorTitleLookupSheet: View {
                                         Toggle(isOn: $proposal.acceptAuthor) {
                                             if proposal.acceptAuthor {
                                                 HStack(spacing: 4) {
-                                                    Text(proposal.proposedAuthor.isEmpty ? "(nie znaleziono)" : proposal.proposedAuthor)
+                                                    Text(proposal.proposedAuthor.isEmpty ? L("(nie znaleziono)") : proposal.proposedAuthor)
                                                         .font(.scaled(11, weight: .bold, scale: scale))
                                                         .foregroundColor(proposal.proposedAuthor.isEmpty ? .secondary : .primary)
-                                                    Text("(zastosuj)")
+                                                    Text(L("(zastosuj)"))
                                                         .font(.scaled(9, scale: scale))
                                                         .foregroundColor(.secondary)
                                                 }
                                             } else {
                                                 HStack(spacing: 4) {
-                                                    Text("Zapisz jako:")
+                                                    Text(L("Zapisz jako:"))
                                                         .font(.scaled(11, scale: scale))
                                                         .foregroundColor(.secondary)
-                                                    Text("\"Nieznany\"")
+                                                    Text(L("\"Nieznany\""))
                                                         .font(.scaled(11, weight: .bold, scale: scale))
                                                         .foregroundColor(.orange)
                                                 }
@@ -552,7 +552,7 @@ public struct AuthorTitleLookupSheet: View {
             updatedTitle = candidate.title
         }
         if setUnknownAuthor {
-            updatedAuthor = "Nieznany"
+            updatedAuthor = L("Nieznany")
         } else if !candidate.artist.isEmpty {
             updatedAuthor = candidate.artist
         }
@@ -561,7 +561,7 @@ public struct AuthorTitleLookupSheet: View {
         song.author = updatedAuthor
         store.updateSong(song)
         
-        singleSuccessMessage = "Zaktualizowano dane utworu: \(updatedTitle) (Autor: \(updatedAuthor))"
+        singleSuccessMessage = L("Zaktualizowano dane utworu: {0} (Autor: {1})", updatedTitle, updatedAuthor)
     }
     
     private func startBatchLookup() {
@@ -573,7 +573,7 @@ public struct AuthorTitleLookupSheet: View {
         }
         
         guard !candidateSongs.isEmpty else {
-            batchSuccessMessage = "Brak pieśni spełniających wybrane kryteria (wszystkie mają już autora)."
+            batchSuccessMessage = L("Brak pieśni spełniających wybrane kryteria (wszystkie mają już autora).")
             return
         }
         
@@ -589,7 +589,7 @@ public struct AuthorTitleLookupSheet: View {
             for (index, song) in candidateSongs.enumerated() {
                 await MainActor.run {
                     self.batchProgress = Double(index) / Double(total)
-                    self.batchStatusText = "Przeszukiwanie \(index + 1) z \(total): \(song.title)..."
+                    self.batchStatusText = L("Przeszukiwanie {0} z {1}: {2}...", index + 1, total, song.title)
                 }
                 
                 let (bestMatch, _) = await AuthorTitleLookupService.shared.lookup(for: song)
@@ -602,7 +602,7 @@ public struct AuthorTitleLookupSheet: View {
                 self.batchProposals = proposals
                 self.batchProgress = 1.0
                 self.isBatchRunning = false
-                self.batchStatusText = "Ukończono! Znaleziono propozycje dla \(proposals.count) z \(total) pieśni."
+                self.batchStatusText = L("Ukończono! Znaleziono propozycje dla {0} z {1} pieśni.", proposals.count, total)
             }
         }
     }
@@ -624,7 +624,7 @@ public struct AuthorTitleLookupSheet: View {
                         }
                     }
                 } else {
-                    song.author = "Nieznany"
+                    song.author = L("Nieznany")
                 }
                 
                 // Update title if enabled
@@ -638,6 +638,6 @@ public struct AuthorTitleLookupSheet: View {
             }
         }
         
-        batchSuccessMessage = "Pomyślnie zaktualizowano dane dla \(appliedCount) pieśni!"
+        batchSuccessMessage = L("Pomyślnie zaktualizowano dane dla {0} pieśni!", appliedCount)
     }
 }

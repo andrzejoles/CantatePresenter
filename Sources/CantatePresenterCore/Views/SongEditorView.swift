@@ -31,7 +31,7 @@ public struct SongEditorView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Text(existingSong == nil ? loc(.newSong) : loc(.editSong))
+                Text(existingSong == nil ? L("Nowa pieśń") : L("Edycja pieśni"))
                     .font(.scaled(16, weight: .bold, scale: scale))
                 
                 Spacer()
@@ -39,18 +39,18 @@ public struct SongEditorView: View {
                 Button(action: {
                     isShowingChordsSearch = true
                 }) {
-                    Label("Wyszukaj chwyty online...", systemImage: "guitars.fill")
+                    Label(L("Wyszukaj chwyty online..."), systemImage: "guitars.fill")
                         .font(.scaled(11, weight: .semibold, scale: scale))
                 }
                 .buttonStyle(.bordered)
                 .tint(.orange)
                 
-                Button(loc(.cancel)) {
+                Button(L("Anuluj")) {
                     isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
                 
-                Button(loc(.save)) {
+                Button(L("Zapisz")) {
                     saveSong()
                     isPresented = false
                 }
@@ -68,30 +68,30 @@ public struct SongEditorView: View {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {
                         HStack {
-                            Text("Tytuł pieśni *")
+                            Text(L("Tytuł pieśni *"))
                                 .font(.scaled(11, weight: .semibold, scale: scale))
                             Spacer()
                             DictationButtonView(text: $title, mode: .replace, size: 11)
                         }
-                        TextField("Wpisz tytuł...", text: $title)
+                        TextField(L("Wpisz tytuł..."), text: $title)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                     }
                     
                     VStack(alignment: .leading, spacing: 3) {
                         HStack {
-                            Text("Autor / Źródło")
+                            Text(L("Autor / Źródło"))
                                 .font(.scaled(11, weight: .semibold, scale: scale))
                             Spacer()
                             DictationButtonView(text: $author, mode: .replace, size: 11)
                         }
-                        TextField("np. Cesareo Gabarain", text: $author)
+                        TextField(L("np. Cesareo Gabarain"), text: $author)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                     }
                     
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Tonacja (Key)")
+                        Text(L("Tonacja (Key)"))
                             .font(.scaled(11, weight: .semibold, scale: scale))
-                        TextField("np. D, G, Am", text: $key)
+                        TextField(L("np. D, G, Am"), text: $key)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .frame(width: 90)
                     }
@@ -99,20 +99,20 @@ public struct SongEditorView: View {
                 
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Tagi / Kategorie (rozdzielone przecinkami)")
+                        Text(L("Tagi / Kategorie (rozdzielone przecinkami)"))
                             .font(.scaled(11, weight: .semibold, scale: scale))
-                        TextField("np. Uwielbienie, Oazowe, Młodzieżowe, ŚDM", text: $tagsString)
+                        TextField(L("np. Uwielbienie, Oazowe, Młodzieżowe, ŚDM"), text: $tagsString)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                     }
                     
                     // Tab Picker for Editor View
                     VStack(alignment: .trailing, spacing: 3) {
-                        Text("Widok edytora")
+                        Text(L("Widok edytora"))
                             .font(.scaled(11, weight: .semibold, scale: scale))
                             .foregroundColor(.secondary)
                         Picker("", selection: $editorTab) {
-                            Text("Tekst i Slajdy").tag(0)
-                            Text("Chwyty gitarowe / Taby" + (chords.isEmpty ? "" : " (✓)")).tag(1)
+                            Text(L("Tekst i Slajdy")).tag(0)
+                            Text(L("Chwyty gitarowe / Taby") + (chords.isEmpty ? "" : " (✓)")).tag(1)
                         }
                         .pickerStyle(SegmentedPickerStyle())
                         .frame(width: 260)
@@ -130,18 +130,18 @@ public struct SongEditorView: View {
                     // Left: Raw Text Editor
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(spacing: 8) {
-                            Text("Treść pieśni (dla rzutnika / zboru)")
+                            Text(L("Treść pieśni (dla rzutnika / zboru)"))
                                 .font(.scaled(12, weight: .semibold, scale: scale))
                             
                             DictationButtonView(
                                 text: $rawLyrics,
                                 mode: .appendNewline,
                                 size: 12,
-                                customPrompt: "Dyktuj tekst nowej zwrotki lub refrenu"
+                                customPrompt: L("Dyktuj tekst nowej zwrotki lub refrenu")
                             )
                             
                             Spacer()
-                            Text(loc(.rawLyricsHint))
+                            Text(L("Wskazówka: oddzielaj zwrotki pustą linią"))
                                 .font(.scaled(10, scale: scale))
                                 .foregroundColor(.secondary)
                         }
@@ -149,17 +149,17 @@ public struct SongEditorView: View {
                         // Quick Section Insertion Toolbar
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 6) {
-                                Text("Wstaw sekcję:")
+                                Text(L("Wstaw sekcję:"))
                                     .font(.scaled(10, weight: .semibold, scale: scale))
                                     .foregroundColor(.secondary)
                                 
-                                SectionInsertButton(title: "+ [Zwrotka]", tag: "[Zwrotka]\n", text: $rawLyrics)
-                                SectionInsertButton(title: "+ [Refren]", tag: "[Refren]\n", text: $rawLyrics)
-                                SectionInsertButton(title: "+ [Bridge / Mostek]", tag: "[Bridge]\n", text: $rawLyrics)
+                                SectionInsertButton(title: L("+ [Zwrotka]"), tag: "[Zwrotka]\n", text: $rawLyrics)
+                                SectionInsertButton(title: L("+ [Refren]"), tag: "[Refren]\n", text: $rawLyrics)
+                                SectionInsertButton(title: L("+ [Bridge / Mostek]"), tag: "[Bridge]\n", text: $rawLyrics)
                                 SectionInsertButton(title: "+ [Pre-Chorus]", tag: "[Pre-Chorus]\n", text: $rawLyrics)
-                                SectionInsertButton(title: "+ [Coda / Koda]", tag: "[Coda]\n", text: $rawLyrics)
-                                SectionInsertButton(title: "+ [Przejście / Solo]", tag: "[Przejście]\n", text: $rawLyrics)
-                                SectionInsertButton(title: "+ [Zakończenie]", tag: "[Zakończenie]\n", text: $rawLyrics)
+                                SectionInsertButton(title: L("+ [Coda / Koda]"), tag: "[Coda]\n", text: $rawLyrics)
+                                SectionInsertButton(title: L("+ [Przejście / Solo]"), tag: "[Przejście]\n", text: $rawLyrics)
+                                SectionInsertButton(title: L("+ [Zakończenie]"), tag: "[Zakończenie]\n", text: $rawLyrics)
                             }
                             .padding(.vertical, 2)
                         }
@@ -177,7 +177,7 @@ public struct SongEditorView: View {
                     // Right: Live Parsed Slides Preview
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
-                            Text("Podgląd wygenerowanych slajdów (\(parsedSlides.count))")
+                            Text(L("Podgląd wygenerowanych slajdów ({0})", parsedSlides.count))
                                 .font(.scaled(12, weight: .semibold, scale: scale))
                             Spacer()
                         }
@@ -195,12 +195,12 @@ public struct SongEditorView: View {
                                                 .foregroundColor(.white)
                                                 .cornerRadius(3)
                                             
-                                            Text(slide.label)
+                                            Text(slide.displayLabel)
                                                 .font(.scaled(11, weight: .bold, scale: scale))
                                                 .foregroundColor(.primary)
                                             
                                             Spacer()
-                                            Text("Slajd \(index + 1)")
+                                            Text(L("Slajd {0}", index + 1))
                                                 .font(.scaled(9, scale: scale))
                                                 .foregroundColor(.secondary)
                                         }
@@ -224,9 +224,9 @@ public struct SongEditorView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Opracowanie akordów i tabulatur (dla muzyków)")
+                            Text(L("Opracowanie akordów i tabulatur (dla muzyków)"))
                                 .font(.scaled(12, weight: .bold, scale: scale))
-                            Text("Chwyty są dostępne dla muzyków w aplikacji i nie wyświetlają się zborowi na ekranie projekcji.")
+                            Text(L("Chwyty są dostępne dla muzyków w aplikacji i nie wyświetlają się zborowi na ekranie projekcji."))
                                 .font(.scaled(10.5, scale: scale))
                                 .foregroundColor(.secondary)
                         }
@@ -235,13 +235,13 @@ public struct SongEditorView: View {
                         
                         // Transpose helpers
                         HStack(spacing: 6) {
-                            Button("Transpozycja ♭ -1") {
+                            Button(L("Transpozycja ♭ -1")) {
                                 chords = GuitarChordsService.shared.transpose(chordsSheet: chords, semitones: -1)
                             }
                             .buttonStyle(.bordered)
                             .controlSize(.small)
                             
-                            Button("Transpozycja ♯ +1") {
+                            Button(L("Transpozycja ♯ +1")) {
                                 chords = GuitarChordsService.shared.transpose(chordsSheet: chords, semitones: 1)
                             }
                             .buttonStyle(.bordered)
@@ -250,7 +250,7 @@ public struct SongEditorView: View {
                             Button(action: {
                                 isShowingChordsSearch = true
                             }) {
-                                Label("Szukaj w internecie...", systemImage: "globe")
+                                Label(L("Szukaj w internecie..."), systemImage: "globe")
                                     .font(.scaled(11, weight: .semibold, scale: scale))
                             }
                             .buttonStyle(.borderedProminent)
@@ -282,7 +282,7 @@ public struct SongEditorView: View {
             }
         }
         .sheet(isPresented: $isShowingChordsSearch) {
-            let tempSong = Song(title: title.isEmpty ? "Nowa pieśń" : title, author: author, rawLyrics: rawLyrics)
+            let tempSong = Song(title: title.isEmpty ? L("Nowa pieśń") : title, author: author, rawLyrics: rawLyrics)
             ChordsSearchSheet(
                 song: tempSong,
                 isPresented: $isShowingChordsSearch,

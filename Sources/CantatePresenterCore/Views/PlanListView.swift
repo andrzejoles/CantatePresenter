@@ -21,7 +21,7 @@ public struct PlanListView: View {
             // Plan Header & Selector
             VStack(spacing: 8) {
                 HStack {
-                    Picker("Plan:", selection: Binding(
+                    Picker(L("Plan:"), selection: Binding(
                         get: { store.activePlanId ?? store.plans.first?.id ?? UUID() },
                         set: { store.activePlanId = $0 }
                     )) {
@@ -33,14 +33,14 @@ public struct PlanListView: View {
                     .font(.scaled(12, scale: scale))
                     
                     Button(action: {
-                        newPlanName = "Plan \(Date().formatted(date: .abbreviated, time: .omitted))"
+                        newPlanName = L("Plan {0}", Date().formatted(date: .abbreviated, time: .omitted))
                         isCreatingPlan = true
                     }) {
                         Image(systemName: "plus")
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help("Utwórz nowy plan")
+                    .help(L("Utwórz nowy plan"))
                     
                     if store.plans.count > 1, let activeId = store.activePlanId {
                         Button(action: {
@@ -50,12 +50,12 @@ public struct PlanListView: View {
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
-                        .help("Usuń ten plan")
+                        .help(L("Usuń ten plan"))
                     }
                 }
                 
                 HStack {
-                    Text("\(activePlanItems.count) pieśni w planie")
+                    Text(L("{0} pieśni w planie", activePlanItems.count))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                     
@@ -69,7 +69,7 @@ public struct PlanListView: View {
                                 store.selectedSongId = song.id
                             }
                         }) {
-                            Label("Uruchom plan", systemImage: "play.fill")
+                            Label(L("Uruchom plan"), systemImage: "play.fill")
                                 .font(.scaled(11, weight: .semibold, scale: scale))
                         }
                         .buttonStyle(.borderedProminent)
@@ -89,10 +89,10 @@ public struct PlanListView: View {
                     Image(systemName: "list.clipboard")
                         .font(.system(size: 36))
                         .foregroundColor(.secondary.opacity(0.5))
-                    Text("Plan nabożeństwa jest pusty")
+                    Text(L("Plan nabożeństwa jest pusty"))
                         .font(.scaled(13, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
-                    Text("Kliknij prawym przyciskiem myszy na pieśń w bibliotece lub kliknij przycisk '+ Do planu', aby dodać pieśni.")
+                    Text(L("Kliknij prawym przyciskiem myszy na pieśń w bibliotece lub kliknij przycisk '+ Do planu', aby dodać pieśni."))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary.opacity(0.8))
                         .multilineTextAlignment(.center)
@@ -140,20 +140,20 @@ public struct PlanListView: View {
         }
         .sheet(isPresented: $isCreatingPlan) {
             VStack(spacing: 16) {
-                Text("Utwórz nowy plan nabożeństwa")
+                Text(L("Utwórz nowy plan nabożeństwa"))
                     .font(.scaled(14, weight: .bold, scale: scale))
                 
-                TextField("Nazwa planu (np. Niedziela 10:00)", text: $newPlanName)
+                TextField(L("Nazwa planu (np. Niedziela 10:00)"), text: $newPlanName)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .frame(width: 300)
                 
                 HStack {
-                    Button("Anuluj") {
+                    Button(L("Anuluj")) {
                         isCreatingPlan = false
                     }
                     .keyboardShortcut(.cancelAction)
                     
-                    Button("Utwórz") {
+                    Button(L("Utwórz")) {
                         if !newPlanName.isEmpty {
                             _ = store.createPlan(name: newPlanName)
                         }
@@ -204,7 +204,7 @@ private struct PlanItemRowView: View {
             // Song Details
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
-                    Text(song?.title ?? "Nieznana pieśń")
+                    Text(song?.title ?? L("Nieznana pieśń"))
                         .font(.scaled(12, weight: .semibold, scale: scale))
                         .lineLimit(1)
                     
@@ -237,7 +237,7 @@ private struct PlanItemRowView: View {
                         .foregroundColor(.green)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .help("Prezentuj teraz")
+                .help(L("Prezentuj teraz"))
                 
                 Button(action: onMoveUp) {
                     Image(systemName: "chevron.up")
@@ -245,7 +245,7 @@ private struct PlanItemRowView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(2)
-                .help("Przesuń wyżej")
+                .help(L("Przesuń wyżej"))
                 
                 Button(action: onMoveDown) {
                     Image(systemName: "chevron.down")
@@ -253,7 +253,7 @@ private struct PlanItemRowView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(2)
-                .help("Przesuń niżej")
+                .help(L("Przesuń niżej"))
                 
                 Button(action: onRemove) {
                     Image(systemName: "xmark")
@@ -262,7 +262,7 @@ private struct PlanItemRowView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(2)
-                .help("Usuń z planu")
+                .help(L("Usuń z planu"))
             }
         }
         .padding(.vertical, 4)

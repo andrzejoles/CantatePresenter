@@ -52,7 +52,7 @@ public struct PresentationContentView: View {
                 if isPreviewWindow {
                     VStack {
                         HStack {
-                            Text("OKNO PODGLĄDU PROJEKCJI")
+                            Text(L("OKNO PODGLĄDU PROJEKCJI"))
                                 .font(.system(size: 10, weight: .bold))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
@@ -79,7 +79,7 @@ public struct PresentationContentView: View {
                             }) {
                                 HStack(spacing: 6) {
                                     Image(systemName: "keyboard")
-                                    Text("Naciśnij ESC, aby wyjść z pełnego ekranu")
+                                    Text(L("Naciśnij ESC, aby wyjść z pełnego ekranu"))
                                 }
                                 .font(.system(size: 11, weight: .semibold))
                                 .padding(.horizontal, 14)

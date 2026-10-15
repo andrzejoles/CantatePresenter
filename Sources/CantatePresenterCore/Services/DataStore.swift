@@ -23,21 +23,21 @@ public struct PersistenceIssue: Identifiable, Equatable {
     
     public var title: String {
         switch kind {
-        case .unreadable: return "Nie można odczytać pliku \(fileName)"
-        case .saveFailed: return "Nie można zapisać pliku \(fileName)"
-        case .migrationFailed: return "Nie udało się przenieść danych"
+        case .unreadable: return Lnow("Nie można odczytać pliku {0}", fileName)
+        case .saveFailed: return Lnow("Nie można zapisać pliku {0}", fileName)
+        case .migrationFailed: return Lnow("Nie udało się przenieść danych")
         }
     }
     
     public var message: String {
         switch kind {
         case .unreadable:
-            let copy = quarantinedCopy.map { "Kopia pliku: \($0.lastPathComponent).\n\n" } ?? ""
-            return "Plik jest uszkodzony albo ma nieznany format. Aplikacja go nie nadpisze: zmiany w tej części danych nie będą zapisywane do czasu przywrócenia kopii lub ponownego uruchomienia.\n\n\(copy)Szczegóły: \(errorDescription)"
+            let copy = quarantinedCopy.map { Lnow("Kopia pliku: {0}.\n\n", $0.lastPathComponent) } ?? ""
+            return Lnow("Plik jest uszkodzony albo ma nieznany format. Aplikacja go nie nadpisze: zmiany w tej części danych nie będą zapisywane do czasu przywrócenia kopii lub ponownego uruchomienia.\n\n{0}Szczegóły: {1}", copy, errorDescription)
         case .saveFailed:
-            return "Ostatnie zmiany mogą nie zostać zachowane.\n\nSzczegóły: \(errorDescription)"
+            return Lnow("Ostatnie zmiany mogą nie zostać zachowane.\n\nSzczegóły: {0}", errorDescription)
         case .migrationFailed:
-            return "Biblioteka nie została skopiowana do folderu Application Support. W tej sesji aplikacja używa dotychczasowego katalogu:\n\(fileName)\n\nSzczegóły: \(errorDescription)"
+            return Lnow("Biblioteka nie została skopiowana do folderu Application Support. W tej sesji aplikacja używa dotychczasowego katalogu:\n{0}\n\nSzczegóły: {1}", fileName, errorDescription)
         }
     }
 }
@@ -65,7 +65,14 @@ public final class DataStore {
     public var isBlackScreen: Bool = false
     public var isClearText: Bool = false
     
-    public var settings: AppSettings = AppSettings()
+    public var settings: AppSettings = AppSettings() {
+        didSet {
+            Localization.currentLanguage = settings.appLanguage
+            if oldValue.appLanguage != settings.appLanguage {
+                NotificationCenter.default.post(name: .appLanguageDidChange, object: nil)
+            }
+        }
+    }
     public var temporarySong: Song?
     
     /// Problemy z odczytem lub zapisem plików danych do pokazania użytkownikowi.
@@ -182,7 +189,7 @@ public final class DataStore {
             unlock(plansFileURL)
             // Default initial plan
             let initialPlan = ServicePlan(
-                name: "Niedziela - Zestaw pieśni",
+                name: Lnow("Niedziela - Zestaw pieśni"),
                 items: songs.prefix(4).map { PlanItem(songId: $0.id) }
             )
             self.plans = [initialPlan]
@@ -392,14 +399,14 @@ public final class DataStore {
         guard !trimmed.isEmpty else { return }
         
         let customTitle = (title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        let songTitle = customTitle.isEmpty ? "Szybki tekst" : customTitle
+        let songTitle = customTitle.isEmpty ? Lnow("Szybki tekst") : customTitle
         
         let quickSong = Song(
             id: UUID(),
             title: songTitle,
             author: "Tymczasowy",
             key: "",
-            tags: ["Szybki tekst"],
+            tags: [Lnow("Szybki tekst")],
             rawLyrics: trimmed
         )
         

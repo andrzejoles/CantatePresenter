@@ -25,12 +25,12 @@ public final class AppInstallerService {
         // Show after a tiny delay so the main window is ready
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             let alert = NSAlert()
-            alert.messageText = "Zainstalować CantatePresenter w folderze Programy?"
-            alert.informativeText = "Aplikacja została uruchomiona z lokalizacji:\n\(Bundle.main.bundlePath)\n\nAby program był łatwo dostępny w Launchpadzie, Docku i Spotlight, zaleca się zainstalowanie go w folderze Programy (/Applications)."
+            alert.messageText = Lnow("Zainstalować CantatePresenter w folderze Programy?")
+            alert.informativeText = Lnow("Aplikacja została uruchomiona z lokalizacji:\n{0}\n\nAby program był łatwo dostępny w Launchpadzie, Docku i Spotlight, zaleca się zainstalowanie go w folderze Programy (/Applications).", Bundle.main.bundlePath)
             alert.alertStyle = .informational
-            alert.addButton(withTitle: "Zainstaluj w Programach")
-            alert.addButton(withTitle: "Uruchom stąd")
-            alert.addButton(withTitle: "Nie pytaj ponownie")
+            alert.addButton(withTitle: Lnow("Zainstaluj w Programach"))
+            alert.addButton(withTitle: Lnow("Uruchom stąd"))
+            alert.addButton(withTitle: Lnow("Nie pytaj ponownie"))
             
             let response = alert.runModal()
             if response == .alertFirstButtonReturn {
@@ -49,8 +49,8 @@ public final class AppInstallerService {
         // Check if we are already in /Applications
         if currentAppPath == destAppPath {
             let alert = NSAlert()
-            alert.messageText = "Program jest już zainstalowany"
-            alert.informativeText = "CantatePresenter znajduje się już w folderze /Applications."
+            alert.messageText = Lnow("Program jest już zainstalowany")
+            alert.informativeText = Lnow("CantatePresenter znajduje się już w folderze /Applications.")
             alert.alertStyle = .informational
             alert.runModal()
             return
@@ -83,8 +83,8 @@ public final class AppInstallerService {
             }
         } catch {
             let errorAlert = NSAlert()
-            errorAlert.messageText = "Błąd instalacji"
-            errorAlert.informativeText = "Nie udało się skopiować aplikacji do /Applications:\n\(error.localizedDescription)\n\nMożesz ręcznie przeciągnąć plik CantatePresenter.app do folderu Programy w Finderze."
+            errorAlert.messageText = Lnow("Błąd instalacji")
+            errorAlert.informativeText = Lnow("Nie udało się skopiować aplikacji do /Applications:\n{0}\n\nMożesz ręcznie przeciągnąć plik CantatePresenter.app do folderu Programy w Finderze.", error.localizedDescription)
             errorAlert.alertStyle = .warning
             errorAlert.runModal()
         }

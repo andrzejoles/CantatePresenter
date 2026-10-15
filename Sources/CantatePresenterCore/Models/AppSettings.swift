@@ -11,31 +11,31 @@ public struct KeyChoice: Identifiable, Hashable {
 }
 
 public struct ShortcutPresets {
-    public static let availableKeys: [KeyChoice] = [
-        KeyChoice(49, "Spacja (Space)"),
-        KeyChoice(124, "Strzałka w prawo (→)"),
-        KeyChoice(123, "Strzałka w lewo (←)"),
-        KeyChoice(125, "Strzałka w dół (↓)"),
-        KeyChoice(126, "Strzałka w górę (↑)"),
+    public static var availableKeys: [KeyChoice] { [
+        KeyChoice(49, Lnow("Spacja (Space)")),
+        KeyChoice(124, Lnow("Strzałka w prawo (→)")),
+        KeyChoice(123, Lnow("Strzałka w lewo (←)")),
+        KeyChoice(125, Lnow("Strzałka w dół (↓)")),
+        KeyChoice(126, Lnow("Strzałka w górę (↑)")),
         KeyChoice(36, "Enter / Return (↵)"),
         KeyChoice(53, "Escape (Esc)"),
         KeyChoice(48, "Tabulator (Tab)"),
         KeyChoice(51, "Backspace (⌫)"),
         KeyChoice(121, "Page Down (⇟)"),
         KeyChoice(116, "Page Up (⇞)"),
-        KeyChoice(11, "Klawisz B"),
-        KeyChoice(8, "Klawisz C"),
-        KeyChoice(15, "Klawisz R"),
-        KeyChoice(45, "Klawisz N"),
-        KeyChoice(35, "Klawisz P"),
-        KeyChoice(33, "Klawisz [ (Lewy nawias)"),
-        KeyChoice(30, "Klawisz ] (Prawy nawias)"),
-        KeyChoice(96, "Klawisz F5"),
-        KeyChoice(97, "Klawisz F6")
-    ]
+        KeyChoice(11, Lnow("Klawisz B")),
+        KeyChoice(8, Lnow("Klawisz C")),
+        KeyChoice(15, Lnow("Klawisz R")),
+        KeyChoice(45, Lnow("Klawisz N")),
+        KeyChoice(35, Lnow("Klawisz P")),
+        KeyChoice(33, Lnow("Klawisz [ (Lewy nawias)")),
+        KeyChoice(30, Lnow("Klawisz ] (Prawy nawias)")),
+        KeyChoice(96, Lnow("Klawisz F5")),
+        KeyChoice(97, Lnow("Klawisz F6"))
+    ] }
     
     public static func nameForKeyCode(_ code: UInt16) -> String {
-        return availableKeys.first(where: { $0.id == code })?.name ?? "Klawisz (kod: \(code))"
+        return availableKeys.first(where: { $0.id == code })?.name ?? Lnow("Klawisz (kod: {0})", code)
     }
 }
 
@@ -255,15 +255,15 @@ public struct LanguagePresets {
         return LocalizationService.shared.availableLanguages
     }
     
-    public static let searchLanguages: [LanguageChoice] = [
-        LanguageChoice("pl", "Polski (pieśni w j. polskim)", "🇵🇱"),
+    public static var searchLanguages: [LanguageChoice] { [
+        LanguageChoice("pl", Lnow("Polski (pieśni w j. polskim)"), "🇵🇱"),
         LanguageChoice("en", "Angielski / English", "🇬🇧"),
         LanguageChoice("de", "Niemiecki / Deutsch", "🇩🇪"),
-        LanguageChoice("es", "Hiszpański / Español", "🇪🇸"),
-        LanguageChoice("all", "Wszystkie języki (bez filtra)", "🌐")
-    ]
+        LanguageChoice("es", Lnow("Hiszpański / Español"), "🇪🇸"),
+        LanguageChoice("all", Lnow("Wszystkie języki (bez filtra)"), "🌐")
+    ] }
     
-    public static let dictationLanguages: [LanguageChoice] = [
+    public static var dictationLanguages: [LanguageChoice] { [
         LanguageChoice("pl-PL", "Polski (Polska)", "🇵🇱"),
         LanguageChoice("en-US", "English (United States)", "🇺🇸"),
         LanguageChoice("en-GB", "English (United Kingdom)", "🇬🇧"),
@@ -272,5 +272,5 @@ public struct LanguagePresets {
         LanguageChoice("uk-UA", "Українська (Україна)", "🇺🇦"),
         LanguageChoice("it-IT", "Italiano (Italia)", "🇮🇹"),
         LanguageChoice("fr-FR", "Français (France)", "🇫🇷")
-    ]
+    ] }
 }

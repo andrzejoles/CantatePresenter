@@ -26,13 +26,13 @@ public struct BackupRestorer {
         public var errorDescription: String? {
             switch self {
             case .missingSongs:
-                return "Kopia zapasowa nie zawiera pliku songs.json."
+                return Lnow("Kopia zapasowa nie zawiera pliku songs.json.")
             case .invalidFile(let name, let error):
-                return "Plik \(name) w kopii zapasowej jest uszkodzony: \(error.localizedDescription)"
+                return Lnow("Plik {0} w kopii zapasowej jest uszkodzony: {1}", name, error.localizedDescription)
             case .unzipFailed(let status):
-                return "Błąd rozpakowywania archiwum kopii zapasowej (kod ditto: \(status))."
+                return Lnow("Błąd rozpakowywania archiwum kopii zapasowej (kod ditto: {0}).", status)
             case .nothingToUndo:
-                return "Brak poprzedniego stanu do przywrócenia."
+                return Lnow("Brak poprzedniego stanu do przywrócenia.")
             }
         }
     }

@@ -117,7 +117,7 @@ public final class SongDeduplicationService {
             if !cLyricsFolded.isEmpty, let idxs = fullLyricsToIndices[cLyricsFolded], let first = idxs.first {
                 matchedIndex = first
                 highestSim = 100
-                duplicateReason = "Identyczny tekst utworu (100% zgodności)"
+                duplicateReason = Lnow("Identyczny tekst utworu (100% zgodności)")
             }
             // Check 2: Same folded title
             else if let idxs = titleToIndices[cTitleFolded] {
@@ -126,7 +126,7 @@ public final class SongDeduplicationService {
                     if sim >= 35 || cTokens.isEmpty {
                         matchedIndex = idx
                         highestSim = max(highestSim, sim)
-                        duplicateReason = "Ten sam tytuł i zgodność tekstu (\(sim)%)"
+                        duplicateReason = Lnow("Ten sam tytuł i zgodność tekstu ({0}%)", sim)
                         break
                     }
                 }
@@ -138,7 +138,7 @@ public final class SongDeduplicationService {
                     if sim >= 70 {
                         matchedIndex = idx
                         highestSim = sim
-                        duplicateReason = "Identyczny początek i bardzo wysokie podobieństwo tekstu (\(sim)%)"
+                        duplicateReason = Lnow("Identyczny początek i bardzo wysokie podobieństwo tekstu ({0}%)", sim)
                         break
                     }
                 }
@@ -201,7 +201,7 @@ public final class SongDeduplicationService {
                     existingCollisions.append(DuplicateRecord(
                         primarySong: libSong,
                         duplicateSong: s,
-                        reason: "Utwór o tym tytule istnieje już w bibliotece (\(sim)% zgodności)",
+                        reason: Lnow("Utwór o tym tytule istnieje już w bibliotece ({0}% zgodności)", sim),
                         similarityScore: sim,
                         // Prawie identyczne pieśni (np. ponowny import własnego eksportu) domyślnie pomijamy.
                         shouldSkipDuplicate: sim >= 90
