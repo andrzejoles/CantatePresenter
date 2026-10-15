@@ -34,6 +34,15 @@ export async function fixture(name) {
   return response.json();
 }
 
+/** Wynik do run-tests.sh (serwer testowy zapisuje go do pliku); w zwykłej przeglądarce bez znaczenia. @param {unknown} result */
+export async function report(result) {
+  try {
+    await fetch("/__test-result", { method: "POST", body: JSON.stringify(result) });
+  } catch {
+    // Strona otwarta bez serwera testowego.
+  }
+}
+
 export async function run() {
   const failures = [];
   let passed = 0;
@@ -49,5 +58,6 @@ export async function run() {
   }
   const result = { passed, failed: failures.length, failures };
   if (pre) pre.textContent = JSON.stringify(result);
+  await report(result);
   return result;
 }
