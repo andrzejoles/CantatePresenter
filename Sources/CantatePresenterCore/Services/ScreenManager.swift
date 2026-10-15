@@ -170,8 +170,8 @@ public final class ScreenManager: ObservableObject {
         self.isPresentationActive = true
     }
     
-    public func stopPresentation() {
-        closePresentationWindow()
+    public func stopPresentation(restoringMainWindow: Bool = true) {
+        closePresentationWindow(restoringMainWindow: restoringMainWindow)
     }
     
     public func togglePresentation() {
@@ -182,7 +182,7 @@ public final class ScreenManager: ObservableObject {
         }
     }
     
-    private func closePresentationWindow() {
+    private func closePresentationWindow(restoringMainWindow: Bool = true) {
         if let window = presentationWindow {
             window.level = .normal
             window.orderOut(nil)
@@ -195,6 +195,7 @@ public final class ScreenManager: ObservableObject {
         presentingDisplay = nil
         
         // Restore focus to the main app window
+        guard restoringMainWindow else { return }
         NSApp.activate(ignoringOtherApps: true)
         if let main = AppDelegate.shared?.mainWindow {
             main.makeKeyAndOrderFront(nil)

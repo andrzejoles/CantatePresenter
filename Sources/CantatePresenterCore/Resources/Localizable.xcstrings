@@ -4761,6 +4761,34 @@
         }
       }
     },
+    "GOTOWY DO PROJEKCJI • OCZEKIWANIE NA PREZENTACJĘ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "READY FOR PROJECTION • WAITING FOR THE PRESENTATION"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BEREIT ZUR PROJEKTION • WARTE AUF DIE PRÄSENTATION"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LISTO PARA PROYECTAR • ESPERANDO LA PRESENTACIÓN"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ГОТОВО ДО ПРОЄКЦІЇ • ОЧІКУВАННЯ ПРЕЗЕНТАЦІЇ"
+          }
+        }
+      }
+    },
     "Galeria 23 propozycji logo": {
       "localizations": {
         "en": {
