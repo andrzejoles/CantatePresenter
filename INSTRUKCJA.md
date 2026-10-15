@@ -50,6 +50,14 @@ Okno główne programu podzielone jest na 3 intuicyjne strefy:
 * **Ukrycie tekstu (Clear Text)**: Klawisz **`C`** — zachowuje tło/planszę, ukrywając sam tekst pieśni.
 * **Powrót do planszy czuwania**: Przycisk **Stop** (`■`).
 
+### Pilot ze smartfona
+Slajdy można przełączać telefonem (iPhone lub Android), bez instalowania aplikacji:
+1. Kliknij **Pilot** na górnym pasku i włącz przełącznik **Włącz pilota**.
+2. Zeskanuj aparatem telefonu wyświetlony kod QR (albo wpisz adres w przeglądarce telefonu).
+3. Na telefonie: **Dalej** / **Wstecz** (lub przesunięcie palcem po podglądzie), czarny ekran, ukrycie tekstu, zakończenie projekcji, wybór slajdu i pieśni z planu.
+
+Telefon musi być w tej samej sieci Wi-Fi co Mac. Kod zawiera jednorazowy klucz dostępu: przycisk **Nowy kod** odłącza wszystkie telefony. Pilot działa, dopóki aplikacja jest otwarta.
+
 ---
 
 ## 3. Plansza Czuwania (Standby) i Wybór Logo
@@ -97,6 +105,9 @@ Edytor automatycznie rozpoznaje i formatuje oznaczenia sekcji:
 * Przy każdej pieśni widoczne jest pole na chwyty gitarowe (np. `D A h G`).
 * Za pomocą przycisków **+1 / -1** możesz jednym kliknięciem transponować całą tonację pieśni w górę lub w dół (np. dostosowując ją do możliwości wokalnych prowadzącego).
 
+### Teksty z Wikiźródeł
+Przycisk **Online** przeszukuje [Wikiźródła](https://pl.wikisource.org): tradycyjne pieśni w domenie publicznej lub na wolnej licencji. Przy imporcie w pieśni zapisuje się adres strony źródłowej i licencja. Współczesnych pieśni objętych prawem autorskim tam nie ma; służy do nich CCLI SongSelect (rozdział 8).
+
 ### Automatyczne pobieranie chwytów z internetu
 1. W edytorze lub w panelu środkowym kliknij **Szukaj chwytów online...**.
 2. Program przeszuka popularne bazy akordów (np. *tekstowo.pl*, *kompasje.pl* i serwisy tabulaturowe).
@@ -133,6 +144,11 @@ W oknie **Import/Eksport** (`⌘I`) możesz zasilić bazę z dowolnych istnieją
 * **Bazy Holyrics (`.mufl`, `.muf`, `.hly`)**: Natywny deserializator odczytuje kompletne archiwa programu Holyrics wraz z metadanymi i kodowaniem.
 * **Pliki i foldery tekstowe (`.txt`)**: Możesz wskazać pojedynczy plik lub **cały folder** zawierający setki plików tekstowych — program automatycznie rozpozna kodowanie znaków (UTF-8, Windows-1250, ISO-8859-2) i naprawi polskie litery (ą, ę, ś, ć, ż, ź, ł, ó, ń).
 * **Format JSON (`.json`)**: Importuje zarówno kopie zapasowe, jak i tablice obiektów z innych systemów.
+
+### Licencja CCLI
+W **Ustawieniach → Licencja CCLI i prawa autorskie** wpisz numer licencji parafii i wybierz, na którym slajdzie pokazywać informację o prawach (tytuł, autorzy, ©, numer pieśni i licencji). Dotyczy pieśni z numerem CCLI. Program zapisuje też każde wyświetlenie takiej pieśni (raz dziennie); przycisk **Eksportuj raport CCLI (CSV)** zapisuje je do pliku, z którym zgłosisz użycie na stronie CCLI.
+
+* **Pliki z CCLI SongSelect (`.txt`, `.usr`, ChordPro `.pro`)**: Pobierz pieśń na koncie SongSelect swojej parafii (przycisk **Szukaj w SongSelect** w oknie Online otwiera wyszukiwarkę) i zaimportuj plik. Zapisują się autorzy, prawa autorskie i numer CCLI, a z ChordPro także akordy.
 * **Wykrywanie duplikatów**: Przed zatwierdzeniem importu program analizuje bibliotekę i wyświetla raport, chroniąc przed powielaniem istniejących utworów.
 
 ---
