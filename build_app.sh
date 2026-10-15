@@ -57,7 +57,7 @@ cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
     <key>NSSupportsAutomaticGraphicsSwitching</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2026. Wszelkie prawa zastrzeżone.</string>
+    <string>© 2026 Andrzej Oles. Opracowano we współpracy z Claude (Anthropic).</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Aplikacja wymaga dostępu do mikrofonu, aby umożliwić dyktowanie tekstu nowej pieśni oraz wyszukiwanie głosowe.</string>
     <key>NSSpeechRecognitionUsageDescription</key>

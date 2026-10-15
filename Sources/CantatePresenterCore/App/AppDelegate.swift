@@ -136,7 +136,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // App Menu
         let appMenuItem = NSMenuItem()
         let appMenu = NSMenu()
-        appMenu.addItem(NSMenuItem(title: "O programie CantatePresenter", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: ""))
+        appMenu.addItem(NSMenuItem(title: "O programie CantatePresenter", action: #selector(showAboutPanelAction), keyEquivalent: ""))
         appMenu.addItem(NSMenuItem.separator())
         if !AppInstallerService.shared.isInstalledInApplications {
             appMenu.addItem(NSMenuItem(title: "Zainstaluj w folderze Programy (/Applications)...", action: #selector(installToApplicationsAction), keyEquivalent: ""))
@@ -293,6 +293,22 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc fileprivate func focusSongSearchAction() {
         mainWindow?.makeKeyAndOrderFront(nil)
         NotificationCenter.default.post(name: .focusSongSearch, object: nil)
+    }
+    
+    /// Okno „O programie” z autorem i informacją o współpracy z Claude.
+    @objc private func showAboutPanelAction() {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .center
+        let credits = NSAttributedString(
+            string: "Autor: Andrzej Oles\nOpracowano we współpracy z Claude (Anthropic)",
+            attributes: [
+                .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize),
+                .foregroundColor: NSColor.labelColor,
+                .paragraphStyle: paragraph
+            ]
+        )
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+        NSApp.activate(ignoringOtherApps: true)
     }
     
     @objc private func quickTextAction() {
