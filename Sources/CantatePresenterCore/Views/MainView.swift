@@ -9,6 +9,7 @@ public struct MainView: View {
     @State private var selectedLeftTab: Int = 0 // 0: Library, 1: Plan
     @State private var isShowingEditor: Bool = false
     @State private var isShowingOnlineSearch: Bool = false
+    @State private var isShowingRemoteControl: Bool = false
     @State private var isShowingImportExport: Bool = false
     @State private var importExportStartsImport: Bool = false
     @State private var isShowingAuthorTitleLookup: Bool = false
@@ -237,6 +238,9 @@ public struct MainView: View {
         .sheet(isPresented: $isShowingEditor) {
             SongEditorView(isPresented: $isShowingEditor, existingSong: songToEdit)
         }
+        .sheet(isPresented: $isShowingRemoteControl) {
+            RemoteControlSheet(isPresented: $isShowingRemoteControl)
+        }
         .sheet(isPresented: $isShowingOnlineSearch) {
             OnlineSearchSheet(isPresented: $isShowingOnlineSearch)
         }
@@ -349,7 +353,17 @@ public struct MainView: View {
             .buttonStyle(.bordered)
             .controlSize(.small)
             .help(L("Wyszukiwanie pieśni religijnych w internecie"))
-                }
+            
+            Button(action: { isShowingRemoteControl = true }) {
+                Label(L("Pilot"), systemImage: "iphone.radiowaves.left.and.right")
+                    .labelStyle(LibraryActionLabelStyle(showTitle: showTitles))
+                    .font(.scaled(11, scale: scale))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .tint(RemoteControlServer.shared.isRunning ? .green : nil)
+            .help(L("Pilot ze smartfona"))
+        }
         .fixedSize()
     }
 
