@@ -30,6 +30,9 @@ if [ ! -d "$RESOURCE_BUNDLE" ]; then
 fi
 cp -R "$RESOURCE_BUNDLE" "$RESOURCES_DIR/"
 
+# Instrukcja obsługi (Pomoc → Otwórz plik INSTRUKCJA.md), S11
+cp "$DIR/INSTRUKCJA.md" "$RESOURCES_DIR/INSTRUKCJA.md"
+
 if [ -f "$DIR/Resources/AppIcon.icns" ]; then
     cp "$DIR/Resources/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"
 fi

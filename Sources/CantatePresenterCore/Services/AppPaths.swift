@@ -134,3 +134,16 @@ public struct AppPaths: Equatable {
         }
     }
 }
+
+// MARK: - User Guide File
+
+extension AppPaths {
+    /// `INSTRUKCJA.md` dołączona do aplikacji przez `build_app.sh` (S11); przy `swift run` plik z bieżącego katalogu.
+    public static var userGuideFile: URL? {
+        if let bundled = Bundle.main.url(forResource: "INSTRUKCJA", withExtension: "md") {
+            return bundled
+        }
+        let local = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("INSTRUKCJA.md")
+        return FileManager.default.fileExists(atPath: local.path) ? local : nil
+    }
+}

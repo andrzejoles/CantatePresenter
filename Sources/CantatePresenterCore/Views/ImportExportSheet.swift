@@ -22,7 +22,6 @@ public struct ImportExportSheet: View {
     @State private var importProgressTitle: String = ""
     @State private var importProgressDetail: String = ""
     
-    private let sampleMuflPath = "/Users/aoles/dev_gem/2026-10-14_16-19-00.mufl"
     
     /// Po otwarciu od razu pokazuje wybór plików do importu (pozycja menu Plik → Importuj pieśni, S3).
     private let startsImportOnAppear: Bool
@@ -37,9 +36,6 @@ public struct ImportExportSheet: View {
         return store.selectedSong
     }
     
-    private var hasSampleMuflFile: Bool {
-        return FileManager.default.fileExists(atPath: sampleMuflPath)
-    }
     
     public var body: some View {
         let scale = store.settings.uiScale
@@ -188,41 +184,6 @@ public struct ImportExportSheet: View {
                             )
                         }
                         
-                        // Highlighted Banner for sample .mufl file if available
-                        if hasSampleMuflFile {
-                            HStack(alignment: .center, spacing: 14) {
-                                Image(systemName: "sparkles.rectangle.stack.fill")
-                                    .font(.scaled(28, scale: scale))
-                                    .foregroundColor(.purple)
-                                
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(L("Dostępna próbka bazy Holyrics (.mufl)"))
-                                        .font(.scaled(13, weight: .bold, scale: scale))
-                                    Text(L("Plik: 2026-10-14_16-19-00.mufl (901 utworów). Aplikacja automatycznie przeszuka duplikaty i uzupełni brakujących autorów oraz tytuły."))
-                                        .font(.scaled(11, scale: scale))
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                Button(action: {
-                                    importFromPath(sampleMuflPath)
-                                }) {
-                                    Label(L("Przeanalizuj i zaimportuj"), systemImage: "arrow.down.circle.fill")
-                                        .font(.scaled(11, weight: .semibold, scale: scale))
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .tint(.purple)
-                                .disabled(isProcessingImport)
-                            }
-                            .padding(12)
-                            .background(Color.purple.opacity(0.08))
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.purple.opacity(0.25), lineWidth: 1)
-                            )
-                        }
                         
                         GroupBox(label: Label(L("Wybierz pliki do importu"), systemImage: "tray.and.arrow.down")) {
                             VStack(alignment: .leading, spacing: 14) {
@@ -387,40 +348,6 @@ public struct ImportExportSheet: View {
                     isSuccessStatus = true
                     statusMessage = L("Pomyślnie wyeksportowano pieśń '{0}' jako JSON.", song.title)
                 }
-            }
-        }
-    }
-    
-    private func importFromPath(_ path: String) {
-        statusMessage = nil
-        isProcessingImport = true
-        importProgressValue = 0.1
-        importProgressTitle = L("Wczytywanie bazy Holyrics (.mufl)...")
-        importProgressDetail = L("Odczyt i parsowanie bazy danych...")
-        
-        Task.detached(priority: .userInitiated) {
-            let url = URL(fileURLWithPath: path)
-            
-            await MainActor.run {
-                self.importProgressValue = 0.35
-                self.importProgressTitle = L("Deserializacja rekordów Holyrics...")
-                self.importProgressDetail = L("Parsowanie obiektów pieśni...")
-            }
-            
-            let existing = await MainActor.run { self.store.songs }
-            
-            await MainActor.run {
-                self.importProgressValue = 0.65
-                self.importProgressTitle = L("Deduplikacja i wzbogacanie metadanych...")
-                self.importProgressDetail = L("Wykrywanie duplikatów, naprawa polskich znaków i dopasowywanie autorów...")
-            }
-            
-            let (_, report) = HolyricsImporter.importFromURLWithReport(url, existingLibrary: existing)
-            
-            await MainActor.run {
-                self.importProgressValue = 1.0
-                self.isProcessingImport = false
-                self.pendingImportReport = report
             }
         }
     }
