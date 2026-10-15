@@ -376,6 +376,8 @@ public final class HolyricsJavaDeserializer {
                                 case "lyrics": musicRecord?.lyrics = str
                                 case "formatting": musicRecord?.formatting = str
                                 case "note": musicRecord?.note = str
+                                // Tonacja, jeśli eksport ją zawiera (N5); w eksportach bez tego pola zostaje pusta.
+                                case "key", "tone", "tom": musicRecord?.key = str
                                 case "language": musicRecord?.language = str
                                 default: break
                                 }
