@@ -5,6 +5,9 @@ import Combine
 
 public struct DisplayScreenItem: Identifiable, Hashable {
     public let id: Int
+    /// Identyfikator monitora (`CGDirectDisplayID`), stały mimo zmiany kolejności ekranów (S1).
+    public let displayID: UInt32
+    public let displayName: String
     public let name: String
     public let resolution: String
     public let frame: CGRect
@@ -24,6 +27,10 @@ public final class ScreenManager: ObservableObject {
     @Published public var availableScreens: [DisplayScreenItem] = []
     @Published public var isPresentationActive: Bool = false
     @Published public var isWindowedPreviewActive: Bool = false
+    /// Projektor zniknął w trakcie projekcji: okno projekcji ukryte, wróci po ponownym podłączeniu (S1).
+    @Published public private(set) var isWaitingForDisplay: Bool = false
+    /// Ekran, na którym trwa projekcja.
+    private var presentingDisplay: DisplayDescriptor?
     
     public private(set) var presentationWindow: NSWindow?
     private var windowedPreviewWindow: NSWindow?
@@ -57,6 +64,8 @@ public final class ScreenManager: ObservableObject {
             let label = "\(name) (\(width)x\(height))\(isPrimary ? " [Główny]" : " [Zewnętrzny]")"
             list.append(DisplayScreenItem(
                 id: index,
+                displayID: DisplayDescriptor(screen, isPrimary: isPrimary).id,
+                displayName: name,
                 name: label,
                 resolution: "\(width) x \(height)",
                 frame: screen.frame,
@@ -68,39 +77,53 @@ public final class ScreenManager: ObservableObject {
     }
     
     // MARK: - Screen Target Resolution & Aspect Ratio
-    public func targetScreen(for index: Int) -> NSScreen? {
-        let screens = NSScreen.screens
-        guard !screens.isEmpty else { return nil }
-        if screens.count == 1 {
-            return screens[0]
-        }
-        if index >= 0 && index < screens.count {
-            return screens[index]
-        }
-        return screens.count > 1 ? screens[1] : screens[0]
+    
+    private static func descriptors(_ screens: [NSScreen]) -> [DisplayDescriptor] {
+        screens.enumerated().map { DisplayDescriptor($0.element, isPrimary: $0.offset == 0) }
     }
     
-    public func targetScreenAspectRatio(for index: Int) -> CGFloat {
-        guard let screen = targetScreen(for: index), screen.frame.height > 0 else {
-            return 16.0 / 9.0
-        }
+    private static func saved(_ settings: AppSettings) -> ScreenSelection.Saved {
+        ScreenSelection.Saved(id: settings.selectedScreenID, name: settings.selectedScreenName, legacyIndex: settings.selectedScreenIndex)
+    }
+    
+    /// Ekran projekcji wybrany w ustawieniach (po identyfikatorze, nazwie, a w starych plikach po indeksie).
+    public func targetScreen(for settings: AppSettings? = nil) -> NSScreen? {
+        let settings = settings ?? DataStore.shared.settings
+        let screens = NSScreen.screens
+        guard let index = ScreenSelection.resolve(Self.descriptors(screens), saved: Self.saved(settings)) else { return nil }
+        return screens[index]
+    }
+    
+    /// Zapamiętuje wybór ekranu po identyfikatorze i nazwie.
+    public func selectScreen(_ item: DisplayScreenItem) {
+        let store = DataStore.shared
+        store.settings.selectedScreenIndex = item.id
+        store.settings.selectedScreenID = item.displayID
+        store.settings.selectedScreenName = item.displayName
+        store.saveSettings()
+    }
+    
+    /// Pozycja na liście `availableScreens` ekranu wybranego w ustawieniach.
+    public var selectedScreenItemID: Int? {
+        guard let screen = targetScreen() else { return nil }
+        return NSScreen.screens.firstIndex(of: screen)
+    }
+    
+    private static func ratio(of screen: NSScreen?) -> CGFloat {
+        guard let screen, screen.frame.height > 0 else { return 16.0 / 9.0 }
         let ratio = screen.frame.width / screen.frame.height
         return (ratio > 0.1 && !ratio.isNaN && !ratio.isInfinite) ? ratio : (16.0 / 9.0)
     }
     
     public var selectedScreenAspectRatio: CGFloat {
-        targetScreenAspectRatio(for: DataStore.shared.settings.selectedScreenIndex)
-    }
-    
-    public func targetScreenSize(for index: Int) -> CGSize {
-        guard let screen = targetScreen(for: index), screen.frame.width > 0, screen.frame.height > 0 else {
-            return CGSize(width: 1920, height: 1080)
-        }
-        return screen.frame.size
+        Self.ratio(of: targetScreen())
     }
     
     public var selectedScreenSize: CGSize {
-        targetScreenSize(for: DataStore.shared.settings.selectedScreenIndex)
+        guard let screen = targetScreen(), screen.frame.width > 0, screen.frame.height > 0 else {
+            return CGSize(width: 1920, height: 1080)
+        }
+        return screen.frame.size
     }
     
     public static func formattedAspectRatio(for ratio: CGFloat) -> String {
@@ -113,8 +136,10 @@ public final class ScreenManager: ObservableObject {
     }
     
     // MARK: - Presentation Window Management
-    public func startPresentation(on screenIndex: Int) {
-        guard let targetScreen = targetScreen(for: screenIndex) else { return }
+    public func startPresentation() {
+        guard let targetScreen = targetScreen() else { return }
+        presentingDisplay = DisplayDescriptor(targetScreen, isPrimary: targetScreen == NSScreen.screens.first)
+        isWaitingForDisplay = false
         
         closePresentationWindow()
         
@@ -149,11 +174,11 @@ public final class ScreenManager: ObservableObject {
         closePresentationWindow()
     }
     
-    public func togglePresentation(on screenIndex: Int) {
+    public func togglePresentation() {
         if isPresentationActive {
             stopPresentation()
         } else {
-            startPresentation(on: screenIndex)
+            startPresentation()
         }
     }
     
@@ -166,6 +191,8 @@ public final class ScreenManager: ObservableObject {
         }
         presentationWindow = nil
         isPresentationActive = false
+        isWaitingForDisplay = false
+        presentingDisplay = nil
         
         // Restore focus to the main app window
         NSApp.activate(ignoringOtherApps: true)
@@ -176,11 +203,24 @@ public final class ScreenManager: ObservableObject {
         }
     }
     
+    /// Po zmianie ekranów projekcja zostaje na swoim ekranie, a gdy ten zniknie, okno jest chowane
+    /// zamiast przenosić się na ekran operatora (poziom `.screenSaver` zasłoniłby mu wszystko). S1
     private func repositionPresentationWindowIfNeeded() {
-        guard let window = presentationWindow, isPresentationActive else { return }
-        let savedIndex = DataStore.shared.settings.selectedScreenIndex
-        guard let targetScreen = targetScreen(for: savedIndex) else { return }
-        window.setFrame(targetScreen.frame, display: true)
+        guard let window = presentationWindow, isPresentationActive, let display = presentingDisplay else { return }
+        let screens = NSScreen.screens
+        switch ScreenSelection.placement(after: Self.descriptors(screens), presentingOn: display) {
+        case .show(let index):
+            let screen = screens[index]
+            presentingDisplay = DisplayDescriptor(screen, isPrimary: index == 0)
+            window.setFrame(screen.frame, display: true)
+            if isWaitingForDisplay {
+                isWaitingForDisplay = false
+                window.orderFrontRegardless()
+            }
+        case .hide:
+            window.orderOut(nil)
+            isWaitingForDisplay = true
+        }
     }
     
     // MARK: - Windowed Preview (for testing projection on a single screen)

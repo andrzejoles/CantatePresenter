@@ -35,7 +35,25 @@ public struct MainView: View {
                 }
                 
                 // Screen Status Badge
-                if screenManager.isPresentationActive {
+                if screenManager.isWaitingForDisplay {
+                    // S1: projektor zniknął; okno projekcji ukryte, wróci po ponownym podłączeniu.
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                        Text(L("Projektor odłączony – projekcja wróci po podłączeniu"))
+                            .font(.scaled(10, weight: .bold, scale: scale))
+                            .foregroundColor(.orange)
+                        Button(L("Zakończ projekcję")) {
+                            screenManager.stopPresentation()
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.mini)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.orange.opacity(0.14))
+                    .cornerRadius(6)
+                } else if screenManager.isPresentationActive {
                     HStack(spacing: 5) {
                         Circle()
                             .fill(Color.green)
