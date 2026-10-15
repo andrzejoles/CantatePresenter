@@ -70,6 +70,32 @@ public struct ShortcutSettings: Codable, Equatable {
     }
 }
 
+// MARK: - Text Alignment (N2)
+
+/// Wyrównanie poziome tekstu slajdu. W JSON te same napisy co wcześniej; stare „lewo”/„prawo”
+/// i nieznane wartości są przyjmowane bez błędu.
+public enum HorizontalTextAlignment: String, Codable, CaseIterable {
+    case left, center, right
+    
+    public init(from decoder: Decoder) throws {
+        let value = try decoder.singleValueContainer().decode(String.self).lowercased()
+        switch value {
+        case "left", "lewo": self = .left
+        case "right", "prawo": self = .right
+        default: self = .center
+        }
+    }
+}
+
+public enum VerticalTextAlignment: String, Codable, CaseIterable {
+    case top, center, bottom
+    
+    public init(from decoder: Decoder) throws {
+        let value = try decoder.singleValueContainer().decode(String.self).lowercased()
+        self = VerticalTextAlignment(rawValue: value) ?? .center
+    }
+}
+
 public struct AppSettings: Codable, Equatable {
     public var selectedScreenIndex: Int
     /// Ekran projekcji po identyfikatorze i nazwie (S1); `selectedScreenIndex` tylko dla starych plików.
@@ -80,8 +106,8 @@ public struct AppSettings: Codable, Equatable {
     public var textColorHex: String
     public var backgroundColorHex: String
     public var hasShadow: Bool
-    public var textAlignment: String // "center", "left", "right"
-    public var verticalAlignment: String // "center", "top", "bottom"
+    public var textAlignment: HorizontalTextAlignment
+    public var verticalAlignment: VerticalTextAlignment
     public var marginPercent: Double // 0.04 to 0.20
     public var lineSpacingFactor: Double // 1.0 to 1.6
     public var uiScale: Double // 0.85 to 1.6
@@ -104,8 +130,8 @@ public struct AppSettings: Codable, Equatable {
         textColorHex: String = "#FFFFFF",
         backgroundColorHex: String = "#000000",
         hasShadow: Bool = true,
-        textAlignment: String = "center",
-        verticalAlignment: String = "center",
+        textAlignment: HorizontalTextAlignment = .center,
+        verticalAlignment: VerticalTextAlignment = .center,
         marginPercent: Double = 0.07,
         lineSpacingFactor: Double = 1.15,
         uiScale: Double = 1.0,
@@ -151,8 +177,8 @@ public struct AppSettings: Codable, Equatable {
         self.textColorHex = try container.decodeIfPresent(String.self, forKey: .textColorHex) ?? "#FFFFFF"
         self.backgroundColorHex = try container.decodeIfPresent(String.self, forKey: .backgroundColorHex) ?? "#000000"
         self.hasShadow = try container.decodeIfPresent(Bool.self, forKey: .hasShadow) ?? true
-        self.textAlignment = try container.decodeIfPresent(String.self, forKey: .textAlignment) ?? "center"
-        self.verticalAlignment = try container.decodeIfPresent(String.self, forKey: .verticalAlignment) ?? "center"
+        self.textAlignment = try container.decodeIfPresent(HorizontalTextAlignment.self, forKey: .textAlignment) ?? .center
+        self.verticalAlignment = try container.decodeIfPresent(VerticalTextAlignment.self, forKey: .verticalAlignment) ?? .center
         self.marginPercent = try container.decodeIfPresent(Double.self, forKey: .marginPercent) ?? 0.07
         self.lineSpacingFactor = try container.decodeIfPresent(Double.self, forKey: .lineSpacingFactor) ?? 1.15
         self.uiScale = try container.decodeIfPresent(Double.self, forKey: .uiScale) ?? 1.0

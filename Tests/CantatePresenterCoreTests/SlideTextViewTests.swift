@@ -7,12 +7,10 @@ import Testing
 
 @Suite("SlideTextView (N1)")
 struct SlideTextViewTests {
-    @Test("Wyrównanie z ustawień, także polskie wartości", arguments: [
-        ("left", TextAlignment.leading), ("lewo", .leading), ("LEFT", .leading),
-        ("right", .trailing), ("prawo", .trailing),
-        ("center", .center), ("", .center), ("cokolwiek", .center)
+    @Test("Wyrównanie z ustawień", arguments: [
+        (HorizontalTextAlignment.left, TextAlignment.leading), (.right, .trailing), (.center, .center)
     ])
-    func alignment(value: String, expected: TextAlignment) {
+    func alignment(value: HorizontalTextAlignment, expected: TextAlignment) {
         #expect(SlideAlignment(value).text == expected)
     }
 
