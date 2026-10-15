@@ -1,0 +1,320 @@
+[
+  {
+    "expected" : [
+      {
+        "label" : "Zwrotka 1",
+        "number" : 1,
+        "text" : "Pan kiedyś stanął nad brzegiem\nSzukał ludzi gotowych",
+        "type" : "verse"
+      },
+      {
+        "label" : "Zwrotka 2",
+        "number" : 2,
+        "text" : "O Panie, to Ty na mnie spojrzałeś\nTwoje usta dziś wyrzekły me imię",
+        "type" : "verse"
+      }
+    ],
+    "input" : "Pan kiedyś stanął nad brzegiem\nSzukał ludzi gotowych\n\nO Panie, to Ty na mnie spojrzałeś\nTwoje usta dziś wyrzekły me imię",
+    "name" : "plain blocks"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "Zwrotka 1",
+        "number" : 1,
+        "text" : "Pierwsza linia\nDruga linia",
+        "type" : "verse"
+      },
+      {
+        "label" : "Refren",
+        "number" : 1,
+        "text" : "Refren linia",
+        "type" : "chorus"
+      },
+      {
+        "label" : "Zwrotka 2",
+        "number" : 2,
+        "text" : "Trzecia linia",
+        "type" : "verse"
+      },
+      {
+        "label" : "Refren 2",
+        "number" : 2,
+        "text" : "Refren linia",
+        "type" : "chorus"
+      }
+    ],
+    "input" : "[Zwrotka 1]\nPierwsza linia\nDruga linia\n\n[Refren]\nRefren linia\n\n[Zwrotka 2]\nTrzecia linia\n\n[Refren]\nRefren linia",
+    "name" : "bracket headers"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "Refren",
+        "number" : 1,
+        "text" : "Chwała Panu\nNa wysokościach",
+        "type" : "chorus"
+      },
+      {
+        "label" : "Refren 2",
+        "number" : 2,
+        "text" : "Alleluja",
+        "type" : "chorus"
+      },
+      {
+        "label" : "Zwrotka 1",
+        "number" : 1,
+        "text" : "Zwykła zwrotka",
+        "type" : "verse"
+      },
+      {
+        "label" : "Coda",
+        "number" : 1,
+        "text" : "Amen",
+        "type" : "coda"
+      }
+    ],
+    "input" : "Ref: Chwała Panu\nNa wysokościach\n\nR: Alleluja\n\nZwykła zwrotka\n\nCoda: Amen",
+    "name" : "inline prefixes"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "1.",
+        "number" : 1,
+        "text" : "Pierwsza zwrotka",
+        "type" : "verse"
+      },
+      {
+        "label" : "2",
+        "number" : 2,
+        "text" : "Druga zwrotka",
+        "type" : "verse"
+      }
+    ],
+    "input" : "1.\nPierwsza zwrotka\n\n2\nDruga zwrotka",
+    "name" : "numbered header line"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "Pre-Chorus",
+        "number" : null,
+        "text" : "Przed refrenem",
+        "type" : "preChorus"
+      },
+      {
+        "label" : "Bridge",
+        "number" : 1,
+        "text" : "Most",
+        "type" : "bridge"
+      },
+      {
+        "label" : "Przejście",
+        "number" : 1,
+        "text" : "Instrumentalnie",
+        "type" : "interlude"
+      },
+      {
+        "label" : "Zakończenie",
+        "number" : 1,
+        "text" : "Koniec",
+        "type" : "ending"
+      },
+      {
+        "label" : "Intro",
+        "number" : null,
+        "text" : "Wstęp",
+        "type" : "intro"
+      },
+      {
+        "label" : "Outro",
+        "number" : null,
+        "text" : "Outro tekst",
+        "type" : "outro"
+      },
+      {
+        "label" : "Tag",
+        "number" : null,
+        "text" : "Tag tekst",
+        "type" : "tag"
+      },
+      {
+        "label" : "Coda",
+        "number" : 1,
+        "text" : "Koda",
+        "type" : "coda"
+      },
+      {
+        "label" : "Coda 2",
+        "number" : 2,
+        "text" : "Koda 2",
+        "type" : "coda"
+      }
+    ],
+    "input" : "[Pre-Chorus]\nPrzed refrenem\n\n[Bridge]\nMost\n\n[Przejście]\nInstrumentalnie\n\n[Zakończenie]\nKoniec\n\n[Intro]\nWstęp\n\n[Outro]\nOutro tekst\n\n[Tag]\nTag tekst\n\n[Coda]\nKoda\n\n[Coda]\nKoda 2",
+    "name" : "section keywords"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "Zwrotka 1",
+        "number" : 1,
+        "text" : "Verse 2\nNot a header in the parser",
+        "type" : "verse"
+      },
+      {
+        "label" : "Refren",
+        "number" : 1,
+        "text" : "Sing it",
+        "type" : "chorus"
+      },
+      {
+        "label" : "Refren 2",
+        "number" : 2,
+        "text" : "Śpiewaj",
+        "type" : "chorus"
+      }
+    ],
+    "input" : "Verse 2\nNot a header in the parser\n\nChorus:\nSing it\n\nRefren:\nŚpiewaj",
+    "name" : "english words without brackets"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "Intro",
+        "number" : null,
+        "text" : "Cisza",
+        "type" : "intro"
+      },
+      {
+        "label" : "Przejście",
+        "number" : 1,
+        "text" : "Dźwięki",
+        "type" : "interlude"
+      }
+    ],
+    "input" : "[Wstęp organowy]\nCisza\n\n[Solo gitara]\nDźwięki",
+    "name" : "custom header"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "Zwrotka 1",
+        "number" : 1,
+        "text" : "Linia A\nLinia B",
+        "type" : "verse"
+      },
+      {
+        "label" : "Zwrotka 2",
+        "number" : 2,
+        "text" : "Linia C",
+        "type" : "verse"
+      }
+    ],
+    "input" : "Linia A\r\nLinia B\r\n\r\n\r\n\r\nLinia C\r\n",
+    "name" : "crlf and extra blank lines"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "Zwrotka 1",
+        "number" : 1,
+        "text" : "Tekst po pustym nagłówku",
+        "type" : "verse"
+      }
+    ],
+    "input" : "[Refren]\n\nTekst po pustym nagłówku",
+    "name" : "header only block"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "Zwrotka 1",
+        "number" : null,
+        "text" : "",
+        "type" : "verse"
+      }
+    ],
+    "input" : "",
+    "name" : "empty"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "Zwrotka 1",
+        "number" : 1,
+        "text" : "Wcięta linia\nTabulator\n\nPo spacjach",
+        "type" : "verse"
+      }
+    ],
+    "input" : "  Wcięta linia  \n\tTabulator\n   \nPo spacjach",
+    "name" : "whitespace lines inside block"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "Refren",
+        "number" : 1,
+        "text" : "A",
+        "type" : "chorus"
+      },
+      {
+        "label" : "Refren 2",
+        "number" : 2,
+        "text" : "B",
+        "type" : "chorus"
+      },
+      {
+        "label" : "Refren 3",
+        "number" : 3,
+        "text" : "C",
+        "type" : "chorus"
+      }
+    ],
+    "input" : "[Refren]\nA\n\n[Refren 2]\nB\n\nRef:\nC",
+    "name" : "multiple choruses"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "Refren",
+        "number" : 1,
+        "text" : "Chwała Panu\nNa wysokościach",
+        "type" : "chorus"
+      },
+      {
+        "label" : "Zwrotka 2",
+        "number" : 2,
+        "text" : "Druga\nzwrotka",
+        "type" : "verse"
+      }
+    ],
+    "input" : "[Refren] Chwała Panu\nNa wysokościach\n\n[Zwrotka 2]: Druga\nzwrotka",
+    "name" : "bracket header with text on the same line"
+  },
+  {
+    "expected" : [
+      {
+        "label" : "Coda",
+        "number" : 1,
+        "text" : "Amen",
+        "type" : "coda"
+      },
+      {
+        "label" : "Refren",
+        "number" : 1,
+        "text" : "Śpiewaj",
+        "type" : "chorus"
+      },
+      {
+        "label" : "Refren 2",
+        "number" : 2,
+        "text" : "Sing\nloud",
+        "type" : "chorus"
+      }
+    ],
+    "input" : "Coda: Amen\n\nRefren:\nŚpiewaj\n\nChorus: Sing\nloud",
+    "name" : "colon header with text and header-only colon"
+  }
+]

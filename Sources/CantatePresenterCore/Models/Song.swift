@@ -177,6 +177,12 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
     }
     
     // MARK: - Smart Lyrics Parsing
+    /// Tekst za nagłówkiem w tej samej linii, bez dwukropka i spacji na początku; `nil`, gdy pusty.
+    private static func textAfterHeader(_ rest: Substring) -> String? {
+        let text = String(rest.drop(while: { $0 == ":" || $0 == " " || $0 == "\t" })).trimmingCharacters(in: .whitespaces)
+        return text.isEmpty ? nil : text
+    }
+    
     private static let preChorusKeywords = ["pre-chorus", "prechorus", "pre chorus", "przed-refren", "przedrefren", "przed refren"]
     
     /// Kompilowany raz, a nie dla każdego bloku (N3).
@@ -219,7 +225,19 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
             let isHeaderMatch = Song.headerRegex.firstMatch(in: firstLine, options: [], range: NSRange(location: 0, length: firstLine.utf16.count)) != nil
             
             if isHeaderMatch || lower.hasPrefix("[") || lower.hasPrefix("ref:") || lower.hasPrefix("refren:") || lower.hasPrefix("chorus:") || lower.hasPrefix("coda:") || lower.hasPrefix("koda:") || lower.hasPrefix("przejście:") || lower.hasPrefix("przejscie:") || lower.hasPrefix("zakończenie:") {
-                let headerContent = firstLine.trimmingCharacters(in: CharacterSet(charactersIn: "[]: \t"))
+                // Tekst w tej samej linii co nagłówek („Ref: Chwała Panu”, „[Refren] Chwała”) zostaje w slajdzie.
+                let headerContent: String
+                var inlineText: String?
+                if lower.hasPrefix("["), let close = firstLine.firstIndex(of: "]") {
+                    headerContent = String(firstLine[firstLine.index(after: firstLine.startIndex)..<close])
+                        .trimmingCharacters(in: CharacterSet(charactersIn: "[]: \t"))
+                    inlineText = Song.textAfterHeader(firstLine[firstLine.index(after: close)...])
+                } else if !isHeaderMatch, let colon = firstLine.firstIndex(of: ":") {
+                    headerContent = String(firstLine[..<colon]).trimmingCharacters(in: CharacterSet(charactersIn: "[]: \t"))
+                    inlineText = Song.textAfterHeader(firstLine[firstLine.index(after: colon)...])
+                } else {
+                    headerContent = firstLine.trimmingCharacters(in: CharacterSet(charactersIn: "[]: \t"))
+                }
                 let hLower = headerContent.lowercased()
                 
                 // Przedrefren przed refrenem: „pre-chorus” zawiera „chorus”, a „przed-refren” zawiera „ref” (S7).
@@ -262,7 +280,11 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
                     type = .verse
                     label = headerContent
                 }
-                lines.removeFirst()
+                if let inlineText {
+                    lines[0] = inlineText
+                } else {
+                    lines.removeFirst()
+                }
             } else {
                 // Auto detect by line prefix or sequential index
                 if lower.starts(with: "ref:") || lower.starts(with: "refren:") {
