@@ -229,7 +229,7 @@ public struct UserManualView: View {
                         Text(L("Instrukcja Obsługi CantatePresenter"))
                             .font(.scaled(16, weight: .bold, scale: scale))
                         
-                        Text("v1.0.0")
+                        Text("v\(AppVersion.current)")
                             .font(.system(size: 10, weight: .semibold))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)

@@ -3641,30 +3641,30 @@
         }
       }
     },
-    "Domyślna plansza (Holyrics Mac v1.0.0)": {
+    "Domyślna plansza": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Default screen (Holyrics Mac v1.0.0)"
+            "value": "Default screen"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standardbildschirm (Holyrics Mac v1.0.0)"
+            "value": "Standardbildschirm"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pantalla predeterminada (Holyrics Mac v1.0.0)"
+            "value": "Pantalla predeterminada"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Стандартний екран (Holyrics Mac v1.0.0)"
+            "value": "Стандартний екран"
           }
         }
       }
@@ -14897,34 +14897,6 @@
         }
       }
     },
-    "Wersja 1.0.0": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Version 1.0.0"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Version 1.0.0"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Versión 1.0.0"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Версія 1.0.0"
-          }
-        }
-      }
-    },
     "Wersja główna (zachowywana):": {
       "localizations": {
         "en": {
@@ -15005,6 +14977,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Дубльована версія (буде додана):"
+          }
+        }
+      }
+    },
+    "Wersja {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versión {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Версія {0}"
           }
         }
       }
