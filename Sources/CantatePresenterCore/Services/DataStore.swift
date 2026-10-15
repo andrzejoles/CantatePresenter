@@ -267,6 +267,7 @@ public final class DataStore: ObservableObject {
     
     // MARK: - Song Operations
     public func addSong(_ song: Song) {
+        let song = Song.assigningUniqueIdentifiers([song], existing: Set(songs.map(\.id)))[0]
         songs.insert(song, at: 0)
         selectedSongId = song.id
         saveSongs()
@@ -274,6 +275,7 @@ public final class DataStore: ObservableObject {
     
     public func addSongs(_ newSongs: [Song]) {
         guard !newSongs.isEmpty else { return }
+        let newSongs = Song.assigningUniqueIdentifiers(newSongs, existing: Set(songs.map(\.id)))
         songs.append(contentsOf: newSongs)
         if selectedSongId == nil {
             selectedSongId = newSongs.first?.id

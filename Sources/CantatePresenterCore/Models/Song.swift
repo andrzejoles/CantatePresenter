@@ -62,6 +62,26 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
         self.updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? createdAt
     }
     
+    // MARK: - Unique Identifiers
+    /// Nadaje nowe id (pieśni i jej slajdom) pieśniom, których id jest już zajęte w `existing`
+    /// albo powtarza się wcześniej w `songs`. Pozostałe pieśni zostają bez zmian (W8).
+    public static func assigningUniqueIdentifiers(_ songs: [Song], existing: Set<UUID>) -> [Song] {
+        var used = existing
+        return songs.map { song in
+            var song = song
+            if used.contains(song.id) {
+                song.id = UUID()
+                song.slides = song.slides.map { slide in
+                    var slide = slide
+                    slide.id = UUID()
+                    return slide
+                }
+            }
+            used.insert(song.id)
+            return song
+        }
+    }
+    
     // MARK: - Search matching with Polish diacritics folding
     public static func foldString(_ string: String) -> String {
         return string
