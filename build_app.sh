@@ -104,6 +104,14 @@ BUILD_NUMBER="$(git -C "$DIR" rev-list --count HEAD 2>/dev/null || echo 1)"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$CONTENTS_DIR/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$CONTENTS_DIR/Info.plist"
 
+# Przykładowe dane dewelopera (N9) nie mogą trafić do aplikacji ani instalatora.
+LEAKED="$(find "$APP_DIR" \( -name "*.mufl" -o -name "*.muf" -o -name "songs.json" -o -name "plans.json" -o -name "settings.json" \) -print)"
+if [ -n "$LEAKED" ]; then
+    echo "BŁĄD: w pakiecie aplikacji są dane dewelopera:" >&2
+    echo "$LEAKED" >&2
+    exit 1
+fi
+
 echo "=== Podpisywanie aplikacji (ad-hoc codesign) ==="
 # Bez `|| true`: nieudany podpis ma przerwać budowanie. Bez odradzanego `--deep`.
 codesign --force --sign - "$APP_DIR"
