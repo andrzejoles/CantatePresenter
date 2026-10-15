@@ -24,6 +24,10 @@ public final class HolyricsJavaDeserializer {
     private static let TC_ENUM: UInt8 = 0x7E
     
     private static let BASE_WIRE_HANDLE: UInt32 = 0x7e0000
+    /// Limit zagnieżdżenia `readContent` (W6). Prawdziwe eksporty mają kilka poziomów.
+    /// Ramka `readContent` w buildzie debug jest duża: na wątku z 512 KB stosu (testy, `Task`)
+    /// 64 poziomy już przepełniały stos, 48 jeszcze nie. 32 zostawia zapas.
+    private static let MAX_DEPTH = 32
     
     public struct RawMusicRecord {
         public var title: String = ""
@@ -36,33 +40,34 @@ public final class HolyricsJavaDeserializer {
         public var language: String = ""
     }
     
-    private let data: Data
+    /// Bajty indeksowane od zera (wycinek `Data` może mieć niezerowy `startIndex`).
+    private let bytes: [UInt8]
     private var pos: Int = 0
+    private var depth: Int = 0
     private var handles: [Any?] = []
     
     public init(data: Data) {
-        self.data = data
+        self.bytes = Array(data)
     }
     
     public static func isJavaSerializedStream(_ data: Data) -> Bool {
-        guard data.count >= 4 else { return false }
-        return data[0] == 0xac && data[1] == 0xed && data[2] == 0x00 && data[3] == 0x05
+        data.starts(with: [0xac, 0xed, 0x00, 0x05])
     }
     
     public func deserializeMusicRecords() throws -> [RawMusicRecord] {
-        guard data.count >= 4 else {
+        guard bytes.count >= 4 else {
             throw DeserializationError.invalidHeader("Plik jest za krótki")
         }
         
-        let magic = readUInt16()
-        let version = readUInt16()
+        let magic = try readUInt16()
+        let version = try readUInt16()
         guard magic == HolyricsJavaDeserializer.STREAM_MAGIC, version == HolyricsJavaDeserializer.STREAM_VERSION else {
             throw DeserializationError.invalidHeader("Nieprawidłowy nagłówek Java ObjectStream (oczekiwano AC ED 00 05)")
         }
         
         var musicRecords: [RawMusicRecord] = []
         
-        while pos < data.count {
+        while pos < bytes.count {
             guard let obj = try readContent() else {
                 continue
             }
@@ -88,6 +93,8 @@ public final class HolyricsJavaDeserializer {
         case unexpectedToken(UInt8, Int)
         case prematureEndOfData(Int)
         case invalidReference(UInt32)
+        case invalidLength(Int64, Int)
+        case tooDeep(Int)
         
         var errorDescription: String? {
             switch self {
@@ -95,6 +102,8 @@ public final class HolyricsJavaDeserializer {
             case .unexpectedToken(let tok, let offset): return String(format: "Nieoczekiwany znacznik 0x%02X na pozycji %d", tok, offset)
             case .prematureEndOfData(let offset): return "Przedwczesny koniec danych na pozycji \(offset)"
             case .invalidReference(let ref): return "Nieprawidłowy uchwyt referencji \(ref)"
+            case .invalidLength(let length, let offset): return "Nieprawidłowa długość \(length) na pozycji \(offset)"
+            case .tooDeep(let offset): return "Zbyt głębokie zagnieżdżenie danych na pozycji \(offset)"
             }
         }
     }
@@ -114,54 +123,97 @@ public final class HolyricsJavaDeserializer {
     }
     
     // MARK: - Primitive Readers
-    private func readUInt8() -> UInt8 {
-        guard pos < data.count else { return 0 }
-        let val = data[pos]
+    // Każdy odczyt sprawdza granice i rzuca błąd zamiast zwracać 0 po końcu danych (W6).
+    private var remaining: Int { bytes.count - pos }
+    
+    private func require(_ count: Int) throws {
+        guard count >= 0, count <= remaining else {
+            throw DeserializationError.prematureEndOfData(pos)
+        }
+    }
+    
+    private func readUInt8() throws -> UInt8 {
+        try require(1)
+        let val = bytes[pos]
         pos += 1
         return val
     }
     
-    private func readUInt16() -> UInt16 {
-        guard pos + 2 <= data.count else { return 0 }
-        let val = UInt16(data[pos]) << 8 | UInt16(data[pos + 1])
+    private func readUInt16() throws -> UInt16 {
+        try require(2)
+        let val = UInt16(bytes[pos]) << 8 | UInt16(bytes[pos + 1])
         pos += 2
         return val
     }
     
-    private func readUInt32() -> UInt32 {
-        guard pos + 4 <= data.count else { return 0 }
-        let val = UInt32(data[pos]) << 24 | UInt32(data[pos + 1]) << 16 | UInt32(data[pos + 2]) << 8 | UInt32(data[pos + 3])
+    private func readUInt32() throws -> UInt32 {
+        try require(4)
+        let val = UInt32(bytes[pos]) << 24 | UInt32(bytes[pos + 1]) << 16 | UInt32(bytes[pos + 2]) << 8 | UInt32(bytes[pos + 3])
         pos += 4
         return val
     }
     
-    private func readInt64() -> Int64 {
-        guard pos + 8 <= data.count else { return 0 }
+    private func readInt64() throws -> Int64 {
+        try require(8)
         var val: Int64 = 0
         for i in 0..<8 {
-            val = (val << 8) | Int64(data[pos + i])
+            val = (val << 8) | Int64(bytes[pos + i])
         }
         pos += 8
         return val
     }
     
-    private func readUTF() -> String {
-        let length = Int(readUInt16())
-        guard pos + length <= data.count else {
-            pos = data.count
-            return ""
-        }
-        let sub = data.subdata(in: pos..<(pos + length))
-        pos += length
-        return String(data: sub, encoding: .utf8) ?? String(decoding: sub, as: UTF8.self)
+    private func skip(_ count: Int) throws {
+        try require(count)
+        pos += count
     }
     
-    private func readLongUTF() -> String {
-        let length = Int(readInt64())
-        guard length > 0 && pos + length <= data.count else { return "" }
-        let sub = data.subdata(in: pos..<(pos + length))
+    private func readString(length: Int) throws -> String {
+        try require(length)
+        let sub = bytes[pos..<(pos + length)]
         pos += length
-        return String(data: sub, encoding: .utf8) ?? String(decoding: sub, as: UTF8.self)
+        return String(bytes: sub, encoding: .utf8) ?? String(decoding: sub, as: UTF8.self)
+    }
+    
+    private func readUTF() throws -> String {
+        try readString(length: Int(try readUInt16()))
+    }
+    
+    private func readLongUTF() throws -> String {
+        let length = try readInt64()
+        // Porównanie na Int64, zanim długość trafi do arytmetyki na pozycjach (przepełnienie `pos + length`).
+        guard length >= 0, length <= Int64(remaining) else {
+            throw DeserializationError.invalidLength(length, pos)
+        }
+        return try readString(length: Int(length))
+    }
+    
+    /// Pomija dane bloku (`TC_BLOCKDATA` / `TC_BLOCKDATALONG`) aż do `TC_ENDBLOCKDATA`, czytając po drodze obiekty.
+    /// Koniec danych przed `TC_ENDBLOCKDATA` to błąd, nie cichy wynik częściowy.
+    private func readBlockContents(collect: Bool) throws -> [Any] {
+        var elems: [Any] = []
+        while true {
+            try require(1)
+            switch bytes[pos] {
+            case HolyricsJavaDeserializer.TC_ENDBLOCKDATA:
+                pos += 1
+                return elems
+            case HolyricsJavaDeserializer.TC_BLOCKDATA:
+                pos += 1
+                try skip(Int(try readUInt8()))
+            case HolyricsJavaDeserializer.TC_BLOCKDATALONG:
+                pos += 1
+                try skip(Int(try readUInt32()))
+            default:
+                if collect {
+                    if let el = try readContent() {
+                        elems.append(el)
+                    }
+                } else {
+                    _ = try readContent()
+                }
+            }
+        }
     }
     
     // MARK: - Core Content Parser
@@ -174,46 +226,58 @@ public final class HolyricsJavaDeserializer {
     }
     
     private func readContent() throws -> Any? {
-        guard pos < data.count else { return nil }
-        let tc = readUInt8()
+        guard depth < HolyricsJavaDeserializer.MAX_DEPTH else {
+            throw DeserializationError.tooDeep(pos)
+        }
+        depth += 1
+        defer { depth -= 1 }
+        
+        let tc = try readUInt8()
         
         switch tc {
         case HolyricsJavaDeserializer.TC_NULL:
             return nil
             
         case HolyricsJavaDeserializer.TC_REFERENCE:
-            let ref = readUInt32()
+            let ref = try readUInt32()
+            guard ref >= HolyricsJavaDeserializer.BASE_WIRE_HANDLE else {
+                throw DeserializationError.invalidReference(ref)
+            }
             let handleIndex = Int(ref - HolyricsJavaDeserializer.BASE_WIRE_HANDLE)
-            guard handleIndex >= 0 && handleIndex < handles.count else {
+            guard handleIndex < handles.count else {
                 throw DeserializationError.invalidReference(ref)
             }
             return handles[handleIndex]
             
         case HolyricsJavaDeserializer.TC_STRING:
             let h = assignHandle(nil)
-            let s = readUTF()
+            let s = try readUTF()
             setHandle(h, s)
             return s
             
         case HolyricsJavaDeserializer.TC_LONGSTRING:
             let h = assignHandle(nil)
-            let s = readLongUTF()
+            let s = try readLongUTF()
             setHandle(h, s)
             return s
             
         case HolyricsJavaDeserializer.TC_CLASSDESC:
             let h = assignHandle(nil)
-            let name = readUTF()
-            let suid = readInt64()
-            let flags = readUInt8()
-            let numFields = Int(readUInt16())
+            let name = try readUTF()
+            let suid = try readInt64()
+            let flags = try readUInt8()
+            let numFields = Int(try readUInt16())
+            // Każde pole zajmuje co najmniej 3 bajty (typ + długość nazwy).
+            guard numFields * 3 <= remaining else {
+                throw DeserializationError.invalidLength(Int64(numFields), pos)
+            }
             
             var fields: [(name: String, typeCode: Character, className: String?)] = []
             fields.reserveCapacity(numFields)
             
             for _ in 0..<numFields {
-                let ftype = Character(UnicodeScalar(readUInt8()))
-                let fname = readUTF()
+                let ftype = Character(UnicodeScalar(try readUInt8()))
+                let fname = try readUTF()
                 var fclass: String? = nil
                 if ftype == "[" || ftype == "L" {
                     if let c = try readContent() as? String {
@@ -224,17 +288,17 @@ public final class HolyricsJavaDeserializer {
             }
             
             // Skip class annotations until TC_ENDBLOCKDATA
-            while pos < data.count && data[pos] != HolyricsJavaDeserializer.TC_ENDBLOCKDATA {
-                if data[pos] == HolyricsJavaDeserializer.TC_BLOCKDATA {
+            while true {
+                try require(1)
+                if bytes[pos] == HolyricsJavaDeserializer.TC_ENDBLOCKDATA {
                     pos += 1
-                    let len = Int(readUInt8())
-                    pos += len
+                    break
+                } else if bytes[pos] == HolyricsJavaDeserializer.TC_BLOCKDATA {
+                    pos += 1
+                    try skip(Int(try readUInt8()))
                 } else {
                     pos += 1
                 }
-            }
-            if pos < data.count && data[pos] == HolyricsJavaDeserializer.TC_ENDBLOCKDATA {
-                pos += 1
             }
             
             let superClass = try readContent()
@@ -254,7 +318,7 @@ public final class HolyricsJavaDeserializer {
             // Gather class hierarchy
             var hierarchy: [ClassDescriptor] = []
             var curr: ClassDescriptor? = cdObj
-            while let c = curr {
+            while let c = curr, hierarchy.count < HolyricsJavaDeserializer.MAX_DEPTH {
                 hierarchy.append(c)
                 curr = c.superClass as? ClassDescriptor
             }
@@ -270,28 +334,28 @@ public final class HolyricsJavaDeserializer {
                 for f in c.fields {
                     switch f.typeCode {
                     case "Z": // boolean
-                        let val = readUInt8() != 0
+                        let val = try readUInt8() != 0
                         obj[f.name] = val
                     case "B": // byte
-                        let val = readUInt8()
+                        let val = try readUInt8()
                         obj[f.name] = val
                     case "C": // char
-                        let val = readUInt16()
+                        let val = try readUInt16()
                         obj[f.name] = val
                     case "S": // short
-                        let val = Int16(bitPattern: readUInt16())
+                        let val = Int16(bitPattern: try readUInt16())
                         obj[f.name] = val
                     case "I": // int
-                        let val = Int32(bitPattern: readUInt32())
+                        let val = Int32(bitPattern: try readUInt32())
                         obj[f.name] = val
                     case "J": // long
-                        let val = readInt64()
+                        let val = try readInt64()
                         obj[f.name] = val
                     case "F": // float
-                        let bits = readUInt32()
+                        let bits = try readUInt32()
                         obj[f.name] = Float(bitPattern: bits)
                     case "D": // double
-                        let bits = UInt64(readInt64())
+                        let bits = UInt64(bitPattern: try readInt64())
                         obj[f.name] = Double(bitPattern: bits)
                     default:
                         break
@@ -325,46 +389,13 @@ public final class HolyricsJavaDeserializer {
                 // 3. Custom writeObject (SC_WRITE_METHOD flag 0x01)
                 if (c.flags & 0x01) != 0 {
                     if c.name == "java.util.ArrayList" {
-                        var elems: [Any] = []
-                        while pos < data.count && data[pos] != HolyricsJavaDeserializer.TC_ENDBLOCKDATA {
-                            if data[pos] == HolyricsJavaDeserializer.TC_BLOCKDATA {
-                                pos += 1
-                                let len = Int(readUInt8())
-                                pos += len
-                            } else if data[pos] == HolyricsJavaDeserializer.TC_BLOCKDATALONG {
-                                pos += 1
-                                let len = Int(readUInt32())
-                                pos += len
-                            } else {
-                                if let el = try readContent() {
-                                    elems.append(el)
-                                }
-                            }
-                        }
-                        if pos < data.count && data[pos] == HolyricsJavaDeserializer.TC_ENDBLOCKDATA {
-                            pos += 1
-                        }
+                        let elems = try readBlockContents(collect: true)
                         obj["_elements"] = elems
                         setHandle(h, obj)
                         return elems
                     } else {
                         // Skip extra block data until TC_ENDBLOCKDATA
-                        while pos < data.count && data[pos] != HolyricsJavaDeserializer.TC_ENDBLOCKDATA {
-                            if data[pos] == HolyricsJavaDeserializer.TC_BLOCKDATA {
-                                pos += 1
-                                let len = Int(readUInt8())
-                                pos += len
-                            } else if data[pos] == HolyricsJavaDeserializer.TC_BLOCKDATALONG {
-                                pos += 1
-                                let len = Int(readUInt32())
-                                pos += len
-                            } else {
-                                _ = try? readContent()
-                            }
-                        }
-                        if pos < data.count && data[pos] == HolyricsJavaDeserializer.TC_ENDBLOCKDATA {
-                            pos += 1
-                        }
+                        _ = try readBlockContents(collect: false)
                     }
                 }
             }
@@ -380,7 +411,11 @@ public final class HolyricsJavaDeserializer {
         case HolyricsJavaDeserializer.TC_ARRAY:
             _ = try readContent() // classDesc
             let h = assignHandle(nil)
-            let arrLen = Int(readUInt32())
+            let arrLen = Int(try readUInt32())
+            // Każdy element zajmuje co najmniej 1 bajt; większa długość oznacza uszkodzony plik.
+            guard arrLen <= remaining else {
+                throw DeserializationError.invalidLength(Int64(arrLen), pos)
+            }
             var arr: [Any?] = []
             arr.reserveCapacity(arrLen)
             setHandle(h, arr)
@@ -393,13 +428,11 @@ public final class HolyricsJavaDeserializer {
             return arr
             
         case HolyricsJavaDeserializer.TC_BLOCKDATA:
-            let len = Int(readUInt8())
-            pos += len
+            try skip(Int(try readUInt8()))
             return nil
             
         case HolyricsJavaDeserializer.TC_BLOCKDATALONG:
-            let len = Int(readUInt32())
-            pos += len
+            try skip(Int(try readUInt32()))
             return nil
             
         case HolyricsJavaDeserializer.TC_ENDBLOCKDATA:

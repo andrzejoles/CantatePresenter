@@ -5,6 +5,7 @@ import SwiftUI
 public final class AppDelegate: NSObject, NSApplicationDelegate {
     public static private(set) var shared: AppDelegate?
     public var mainWindow: NSWindow?
+    private var exitBackupCoordinator: ExitBackupCoordinator?
     
     public override init() {
         super.init()
@@ -147,6 +148,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         fileMenu.addItem(NSMenuItem.separator())
         fileMenu.addItem(NSMenuItem(title: "Utwórz pełną kopię zapasową (.cantatebackup)...", action: #selector(createBackupAction), keyEquivalent: "b"))
         fileMenu.addItem(NSMenuItem(title: "Przywróć z kopii zapasowej...", action: #selector(restoreBackupAction), keyEquivalent: ""))
+        fileMenu.addItem(NSMenuItem(title: "Cofnij ostatnie przywracanie...", action: #selector(undoRestoreAction), keyEquivalent: ""))
         fileMenu.addItem(NSMenuItem.separator())
         fileMenu.addItem(NSMenuItem(title: "Zamknij okno", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w"))
         fileMenuItem.submenu = fileMenu
@@ -222,13 +224,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    /// Analiza w tle, przegląd duplikatów i jeden zapis, jak w oknie Import/Eksport (S3).
     @objc private func importAction() {
-        Task { @MainActor in
-            let songs = TextImporter.pickFilesForImport()
-            for s in songs {
-                DataStore.shared.addSong(s)
-            }
-        }
+        NotificationCenter.default.post(name: .openImportFlow, object: nil)
     }
     
     @objc private func exportJSONAction() {
@@ -251,9 +249,35 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc private func restoreBackupAction() {
         Task { @MainActor in
-            _ = BackupService.shared.restoreBackupWithOpenPanel()
+            let result = await BackupService.shared.restoreBackupWithOpenPanel()
+            guard result.message != "Anulowano wybór pliku." else { return }
+            showInfoAlert(title: result.success ? "Przywrócono kopię zapasową" : "Nie przywrócono kopii zapasowej", message: result.message, isError: !result.success)
         }
     }
+    
+    @MainActor @objc fileprivate func undoRestoreAction() {
+        let alert = NSAlert()
+        alert.messageText = "Cofnąć ostatnie przywracanie?"
+        alert.informativeText = "Dane wrócą do stanu sprzed ostatniego przywrócenia kopii zapasowej. Dane z przywróconej kopii zostaną usunięte."
+        alert.addButton(withTitle: "Cofnij przywracanie")
+        alert.addButton(withTitle: "Anuluj")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        do {
+            try BackupService.shared.undoLastRestore()
+            showInfoAlert(title: "Cofnięto przywracanie", message: "Przywrócono dane sprzed ostatniego przywrócenia kopii.", isError: false)
+        } catch {
+            showInfoAlert(title: "Nie udało się cofnąć przywracania", message: error.localizedDescription, isError: true)
+        }
+    }
+    
+    private func showInfoAlert(title: String, message: String, isError: Bool) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = isError ? .warning : .informational
+        alert.runModal()
+    }
+
     
     @objc private func quickTextAction() {
         NotificationCenter.default.post(name: NSNotification.Name("OpenQuickTextSheet"), object: nil)
@@ -263,18 +287,74 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         AppInstallerService.shared.installToApplications()
     }
     
-    public func applicationWillTerminate(_ notification: Notification) {
-        let store = DataStore.shared
-        if store.settings.googleDrive.isEnabled && store.settings.googleDrive.autoBackupOnExit {
-            let semaphore = DispatchSemaphore(value: 0)
-            Task {
-                if let (archiveURL, _) = try? BackupService.shared.createBackupArchive(comment: "Automatyczny backup przy zamykaniu CantatePresenter") {
-                    _ = try? await GoogleDriveService.shared.uploadBackupToDrive(archiveURL: archiveURL)
-                    try? FileManager.default.removeItem(at: archiveURL)
-                }
-                semaphore.signal()
-            }
-            _ = semaphore.wait(timeout: .now() + 4.0)
+    // MARK: - Exit Backup (W2)
+    
+    /// Kopia przy zamykaniu nie może czekać na wątku głównym (zakleszczenie z `@MainActor`),
+    /// więc zamknięcie jest odkładane (`.terminateLater`) do zakończenia kopii, limitu czasu albo „Pomiń”.
+    public func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        let googleDrive = DataStore.shared.settings.googleDrive
+        guard googleDrive.isEnabled, googleDrive.autoBackupOnExit, exitBackupCoordinator == nil else {
+            return .terminateNow
         }
+        
+        let coordinator = ExitBackupCoordinator()
+        exitBackupCoordinator = coordinator
+        let panel = makeExitBackupPanel(onSkip: { coordinator.skip() })
+        panel.center()
+        panel.makeKeyAndOrderFront(nil)
+        
+        Task { @MainActor in
+            _ = await coordinator.run(operations: ExitBackupCoordinator.liveOperations(), timeout: .seconds(60))
+            panel.close()
+            NSApp.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
+    }
+    
+    private func makeExitBackupPanel(onSkip: @escaping () -> Void) -> NSPanel {
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 380, height: 130),
+            styleMask: [.titled],
+            backing: .buffered,
+            defer: false
+        )
+        panel.title = "CantatePresenter"
+        panel.isReleasedWhenClosed = false
+        panel.level = .modalPanel
+        panel.contentView = NSHostingView(rootView: ExitBackupProgressView(onSkip: onSkip))
+        return panel
+    }
+}
+
+// MARK: - Menu Validation
+extension AppDelegate: NSMenuItemValidation {
+    public func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(undoRestoreAction) {
+            return BackupService.shared.canUndoRestore
+        }
+        return true
+    }
+}
+
+// MARK: - Exit Backup Progress View
+private struct ExitBackupProgressView: View {
+    let onSkip: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 14) {
+            HStack(spacing: 12) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Tworzenie kopii zapasowej na Dysku Google…")
+                    .font(.system(size: 13, weight: .medium))
+            }
+            Text("Jeśli wysyłka się nie uda, kopia zostanie zapisana lokalnie.")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+            Button("Pomiń i zamknij", action: onSkip)
+                .keyboardShortcut(.cancelAction)
+        }
+        .padding(20)
+        .frame(width: 380)
     }
 }

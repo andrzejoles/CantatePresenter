@@ -29,10 +29,6 @@ public struct GuitarChordResult: Identifiable, Equatable {
 public final class GuitarChordsService {
     public static let shared = GuitarChordsService()
     
-    // Scale for transposition
-    private static let chromaticScaleSharps = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"]
-    private static let chromaticScaleFlats  = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "B", "H"]
-    
     // Curated offline chords database for most popular Polish worship hymns
     private var curatedChords: [String: GuitarChordResult] = [:]
     
@@ -92,8 +88,6 @@ public final class GuitarChordsService {
         var chordSheetLines: [String] = []
         var foundAnyChords = false
         
-        // Regex for standalone chord line (e.g. "C   G   a   F" or "e H7 C D")
-        let chordLineRegex = try? NSRegularExpression(pattern: #"^\s*([A-Ha-h][#b]?(?:m|maj|min|dim|sus|add)?[0-9]?(?:/[A-Ha-h][#b]?)?(\s+|$))+$"#, options: [])
         // Regex for inline chords in parens like (CG) or (a e)
         let inlineParensChordRegex = try? NSRegularExpression(pattern: #"\(([A-Ha-h0-9#b\s/]{1,8})\)"#, options: [])
         // Regex for inline chords in brackets like [C] or [G]
@@ -104,8 +98,8 @@ public final class GuitarChordsService {
             let nsLine = line as NSString
             let range = NSRange(location: 0, length: nsLine.length)
             
-            // Check if entire line is just chords
-            if let regex = chordLineRegex, regex.firstMatch(in: line, options: [], range: range) != nil && !trimmed.isEmpty {
+            // Check if entire line is just chords (also Fis, Es, x2, | separators)
+            if !trimmed.isEmpty && ChordTransposer.isChordLine(line) {
                 foundAnyChords = true
                 chordSheetLines.append(line)
                 continue // don't add chord-only line to audience projection
@@ -137,71 +131,9 @@ public final class GuitarChordsService {
         return (finalCleanLyrics, finalChords)
     }
     
-    /// Transposes chords in a chord sheet by given number of semitones (-11 to +11)
+    /// Transposes chords in a chord sheet by given number of semitones (W7: see `ChordTransposer`)
     public func transpose(chordsSheet: String, semitones: Int) -> String {
-        guard semitones != 0 else { return chordsSheet }
-        
-        // Normalize semitones to 0...11
-        let shift = (semitones % 12 + 12) % 12
-        
-        let chordRegex = try? NSRegularExpression(pattern: #"\b([A-H][#b]?)(m|maj|min|dim|sus|add)?([0-9]?)(?:/([A-H][#b]?))?\b"#, options: [])
-        guard let regex = chordRegex else { return chordsSheet }
-        
-        func transposeRoot(_ root: String) -> String {
-            let isLower = (root == root.lowercased())
-            let upper = root.uppercased()
-            
-            let scale = GuitarChordsService.chromaticScaleSharps
-            guard let idx = scale.firstIndex(of: upper) else { return root }
-            let newIdx = (idx + shift) % 12
-            let transposed = scale[newIdx]
-            return isLower ? transposed.lowercased() : transposed
-        }
-        
-        let lines = chordsSheet.components(separatedBy: .newlines)
-        var transposedLines: [String] = []
-        
-        for line in lines {
-            let ns = line as NSString
-            let matches = regex.matches(in: line, options: [], range: NSRange(location: 0, length: ns.length))
-            if matches.isEmpty {
-                transposedLines.append(line)
-                continue
-            }
-            
-            var lineResult = line
-            // Process matches in reverse order so character offsets don't invalidate
-            for m in matches.reversed() {
-                let fullChord = ns.substring(with: m.range)
-                let rootRange = m.range(at: 1)
-                guard rootRange.location != NSNotFound else { continue }
-                
-                let rootStr = ns.substring(with: rootRange)
-                let newRoot = transposeRoot(rootStr)
-                
-                var newChord = newRoot
-                let modRange = m.range(at: 2)
-                if modRange.location != NSNotFound {
-                    newChord += ns.substring(with: modRange)
-                }
-                let numRange = m.range(at: 3)
-                if numRange.location != NSNotFound {
-                    newChord += ns.substring(with: numRange)
-                }
-                let bassRange = m.range(at: 4)
-                if bassRange.location != NSNotFound {
-                    let bassStr = ns.substring(with: bassRange)
-                    newChord += "/" + transposeRoot(bassStr)
-                }
-                
-                if let r = Range(m.range, in: lineResult) {
-                    lineResult.replaceSubrange(r, with: newChord)
-                }
-            }
-            transposedLines.append(lineResult)
-        }
-        
-        return transposedLines.joined(separator: "\n")
+        ChordTransposer.transpose(chordsSheet, semitones: semitones)
     }
     
     // MARK: - Online Chords Scraper

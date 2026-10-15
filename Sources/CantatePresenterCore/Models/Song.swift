@@ -151,6 +151,14 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
     }
     
     // MARK: - Smart Lyrics Parsing
+    private static let preChorusKeywords = ["pre-chorus", "prechorus", "pre chorus", "przed-refren", "przedrefren", "przed refren"]
+    
+    /// Kompilowany raz, a nie dla każdego bloku (N3).
+    private static let headerRegex = try! NSRegularExpression(
+        pattern: #"^\[([^\]]+)\]$|^([0-9]+)\.?$|^(pre[- ]?chorus|przed[- ]?refren|ref(ren)?|chorus|bridge|most(ek)?|coda|koda|interlude|przej[sś]cie|solo|intro|wst[eę]p|outro|zako[nń]czenie|ending|tag|zwrotka|z)(\s*[0-9]*)?:?$"#,
+        options: .caseInsensitive
+    )
+    
     public static func parseLyrics(_ raw: String) -> [SongSlide] {
         let normalized = raw.replacingOccurrences(of: "\r\n", with: "\n")
                             .replacingOccurrences(of: "\r", with: "\n")
@@ -182,17 +190,17 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
             let lower = firstLine.lowercased()
             
             // Check for explicit headers like [Zwrotka 1], [Refren], [Coda], [Koda], [Przejście], [Zakończenie], etc.
-            let headerRegex = try? NSRegularExpression(
-                pattern: #"^\[([^\]]+)\]$|^([0-9]+)\.?$|^(ref(ren)?|chorus|bridge|most(ek)?|coda|koda|interlude|przej[sś]cie|solo|intro|wst[eę]p|outro|zako[nń]czenie|ending|tag|zwrotka|z)(\s*[0-9]*)?:?$"#,
-                options: .caseInsensitive
-            )
-            let isHeaderMatch = headerRegex?.firstMatch(in: firstLine, options: [], range: NSRange(location: 0, length: firstLine.utf16.count)) != nil
+            let isHeaderMatch = Song.headerRegex.firstMatch(in: firstLine, options: [], range: NSRange(location: 0, length: firstLine.utf16.count)) != nil
             
             if isHeaderMatch || lower.hasPrefix("[") || lower.hasPrefix("ref:") || lower.hasPrefix("refren:") || lower.hasPrefix("chorus:") || lower.hasPrefix("coda:") || lower.hasPrefix("koda:") || lower.hasPrefix("przejście:") || lower.hasPrefix("przejscie:") || lower.hasPrefix("zakończenie:") {
                 let headerContent = firstLine.trimmingCharacters(in: CharacterSet(charactersIn: "[]: \t"))
                 let hLower = headerContent.lowercased()
                 
-                if hLower.contains("coda") || hLower.contains("koda") {
+                // Przedrefren przed refrenem: „pre-chorus” zawiera „chorus”, a „przed-refren” zawiera „ref” (S7).
+                if Song.preChorusKeywords.contains(where: { hLower.contains($0) }) {
+                    type = .preChorus
+                    label = "Pre-Chorus"
+                } else if hLower.contains("coda") || hLower.contains("koda") {
                     type = .coda
                     label = codaCounter > 1 ? "Coda \(codaCounter)" : "Coda"
                     codaCounter += 1
