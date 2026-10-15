@@ -341,19 +341,5 @@ public struct LiveOutputView: View {
         }
         .background(Color(NSColor.windowBackgroundColor))
     }
-    
-    private func customFont(name: String, size: CGFloat, isBold: Bool) -> Font {
-        if name == "System" || name == "SF Pro" {
-            return .system(size: size, weight: isBold ? .bold : .regular)
-        }
-        return .custom(name, size: size).weight(isBold ? .bold : .regular)
-    }
-    
-    private func alignmentForString(_ alignment: String) -> TextAlignment {
-        switch alignment.lowercased() {
-        case "left", "lewo": return .leading
-        case "right", "prawo": return .trailing
-        default: return .center
-        }
-    }
 }
+

@@ -42,14 +42,7 @@ public struct PresentationSlidePreviewCanvas: View {
             
             // Scale font size and layout metrics to match container proportionally
             let previewFontSize = max(5.0, targetOptimalSize * scaleFactor)
-            let horizontalPadding = size.width * CGFloat(settings.marginPercent)
-            let verticalPadding = size.height * CGFloat(settings.marginPercent)
-            let lineSpacing = previewFontSize * CGFloat(settings.lineSpacingFactor - 1.0)
-            let shadowRadius = max(0.5, 4.0 * scaleFactor)
-            let shadowOffset = max(0.5, 2.0 * scaleFactor)
-            
             let bgColor = Color(hex: settings.backgroundColorHex)
-            let txtColor = Color(hex: settings.textColorHex)
             
             ZStack {
                 bgColor
@@ -58,31 +51,14 @@ public struct PresentationSlidePreviewCanvas: View {
                     Color.black.opacity(0.22)
                 }
                 
-                VStack(alignment: alignmentForString(settings.textAlignment)) {
-                    if settings.verticalAlignment == "bottom" {
-                        Spacer()
-                    }
-                    
-                    Text(text)
-                        .font(customFont(name: settings.fontFamily, size: previewFontSize, isBold: settings.isBold))
-                        .foregroundColor(txtColor.opacity(isDimmed ? 0.65 : 1.0))
-                        .multilineTextAlignment(textAlignmentForString(settings.textAlignment))
-                        .lineSpacing(lineSpacing)
-                        .shadow(
-                            color: settings.hasShadow ? Color.black.opacity(isDimmed ? 0.4 : 0.85) : Color.clear,
-                            radius: shadowRadius,
-                            x: shadowOffset,
-                            y: shadowOffset
-                        )
-                        .frame(maxWidth: .infinity, alignment: frameAlignmentForString(settings.textAlignment))
-                        .padding(.horizontal, horizontalPadding)
-                        .padding(.vertical, verticalPadding)
-                    
-                    if settings.verticalAlignment == "top" {
-                        Spacer()
-                    }
-                }
-                .frame(width: size.width, height: size.height)
+                SlideTextView(
+                    text: text,
+                    settings: settings,
+                    fontSize: previewFontSize,
+                    containerSize: size,
+                    scaleFactor: scaleFactor,
+                    isDimmed: isDimmed
+                )
                 
                 if let label = label {
                     VStack {
@@ -103,35 +79,5 @@ public struct PresentationSlidePreviewCanvas: View {
             }
         }
     }
-    
-    private func customFont(name: String, size: CGFloat, isBold: Bool) -> Font {
-        if name == "System" || name == "SF Pro" {
-            return .system(size: size, weight: isBold ? .bold : .regular)
-        }
-        return .custom(name, size: size).weight(isBold ? .bold : .regular)
-    }
-    
-    private func alignmentForString(_ alignment: String) -> HorizontalAlignment {
-        switch alignment.lowercased() {
-        case "left", "lewo": return .leading
-        case "right", "prawo": return .trailing
-        default: return .center
-        }
-    }
-    
-    private func textAlignmentForString(_ alignment: String) -> TextAlignment {
-        switch alignment.lowercased() {
-        case "left", "lewo": return .leading
-        case "right", "prawo": return .trailing
-        default: return .center
-        }
-    }
-    
-    private func frameAlignmentForString(_ alignment: String) -> Alignment {
-        switch alignment.lowercased() {
-        case "left", "lewo": return .leading
-        case "right", "prawo": return .trailing
-        default: return .center
-        }
-    }
 }
+
