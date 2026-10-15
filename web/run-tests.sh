@@ -14,9 +14,16 @@ python3 -I "$ROOT/web/tools/serve.py" "$PORT" "$RESULT" >/dev/null 2>&1 &
 SERVER=$!
 CHROME_PID=""
 cleanup() {
-  [ -n "$CHROME_PID" ] && kill "$CHROME_PID" 2>/dev/null || true
+  local status=$?
+  if [ -n "$CHROME_PID" ]; then
+    kill "$CHROME_PID" 2>/dev/null || true
+    wait "$CHROME_PID" 2>/dev/null || true
+  fi
   kill "$SERVER" 2>/dev/null || true
-  rm -rf "$WORK"
+  wait "$SERVER" 2>/dev/null || true
+  # Chrome może jeszcze chwilę pisać do profilu; błąd sprzątania nie zmienia wyniku testów.
+  rm -rf "$WORK" 2>/dev/null || true
+  exit "$status"
 }
 trap cleanup EXIT
 for _ in $(seq 1 100); do curl -s -o /dev/null "http://127.0.0.1:$PORT/VERSION" && break; sleep 0.1; done
