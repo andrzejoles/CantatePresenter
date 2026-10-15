@@ -92,6 +92,17 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
+    /// Postać do wyszukiwania: jak `foldString`, a do tego znaki interpunkcyjne zamienione na spacje
+    /// i spacje zwinięte, więc „moj jezu moj zbawco” znajduje „Mój Jezu, mój Zbawco”.
+    public static func searchFold(_ string: String) -> String {
+        foldString(string)
+            .unicodeScalars
+            .map { CharacterSet.alphanumerics.contains($0) ? String($0) : " " }
+            .joined()
+            .split(separator: " ", omittingEmptySubsequences: true)
+            .joined(separator: " ")
+    }
+    
     public enum SearchScope: String, CaseIterable, Identifiable {
         case all = "Wszędzie"
         case titleAndAuthor = "Tytuł i autor"
@@ -102,20 +113,20 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
     }
     
     public func matches(query: String, scope: SearchScope = .all) -> Bool {
-        let cleanQuery = Song.foldString(query)
+        let cleanQuery = Song.searchFold(query)
         if cleanQuery.isEmpty { return true }
         
-        let foldedTitle = Song.foldString(title)
-        let foldedAuthor = Song.foldString(author)
+        let foldedTitle = Song.searchFold(title)
+        let foldedAuthor = Song.searchFold(author)
         
         switch scope {
         case .all:
             if foldedTitle.contains(cleanQuery) { return true }
             if foldedAuthor.contains(cleanQuery) { return true }
             for tag in tags {
-                if Song.foldString(tag).contains(cleanQuery) { return true }
+                if Song.searchFold(tag).contains(cleanQuery) { return true }
             }
-            let foldedLyrics = Song.foldString(rawLyrics)
+            let foldedLyrics = Song.searchFold(rawLyrics)
             return foldedLyrics.contains(cleanQuery)
             
         case .titleAndAuthor:
@@ -130,15 +141,15 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
     }
     
     public func matchingSnippet(query: String) -> String? {
-        let cleanQuery = Song.foldString(query)
+        let cleanQuery = Song.searchFold(query)
         guard !cleanQuery.isEmpty else { return nil }
         
-        let foldedTitle = Song.foldString(title)
+        let foldedTitle = Song.searchFold(title)
         if foldedTitle.contains(cleanQuery) { return nil }
         
         let lines = rawLyrics.components(separatedBy: .newlines)
         for line in lines {
-            let folded = Song.foldString(line)
+            let folded = Song.searchFold(line)
             if folded.contains(cleanQuery) {
                 let trimmed = line.trimmingCharacters(in: .whitespaces)
                 if trimmed.count > 70 {

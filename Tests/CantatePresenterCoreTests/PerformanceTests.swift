@@ -138,3 +138,27 @@ final class Flag: @unchecked Sendable {
     var value: Bool { lock.withLock { _value } }
     func set() { lock.withLock { _value = true } }
 }
+
+// MARK: - Wyszukiwanie bez znaków interpunkcyjnych
+
+@Suite("Wyszukiwanie ignoruje interpunkcję")
+struct SearchPunctuationTests {
+    private let song = Song(title: "Mój Jezu, mój Zbawco", author: "K. Sz.", rawLyrics: "Mój Jezu, mój Zbawco, któż jest tak wielki jak Ty?\nCały świat...")
+
+    @Test("Zapytanie bez polskich znaków i przecinków znajduje pieśń", arguments: [
+        "moj jezu moj zbawco", "jezu mój zbawco", "MOJ JEZU, MOJ ZBAWCO", "tak wielki jak ty", "caly swiat", "k sz"
+    ])
+    func ignoresPunctuation(query: String) {
+        var index = SongSearchIndex()
+        index.update(with: [song])
+        #expect(index.filter([song], query: query, scope: .all).count == 1, "\(query)")
+        #expect(song.matches(query: query, scope: .all), "\(query)")
+    }
+
+    @Test("Interpunkcja nie skleja słów i nie daje fałszywych trafień")
+    func noFalseMatches() {
+        var index = SongSearchIndex()
+        index.update(with: [song])
+        #expect(index.filter([song], query: "jezumoj", scope: .all).isEmpty)
+    }
+}
