@@ -380,15 +380,8 @@ public struct UserManualView: View {
     }
     
     private func openMarkdownFile() {
-        let fileManager = FileManager.default
-        let bundleURL = Bundle.main.bundleURL
-        let projectFolder = bundleURL.pathExtension == "app"
-            ? bundleURL.deletingLastPathComponent()
-            : URL(fileURLWithPath: fileManager.currentDirectoryPath)
-        
-        let docURL = projectFolder.appendingPathComponent("INSTRUKCJA.md")
-        if fileManager.fileExists(atPath: docURL.path) {
-            NSWorkspace.shared.open(docURL)
+        if let url = AppPaths.userGuideFile {
+            NSWorkspace.shared.open(url)
         }
     }
 }

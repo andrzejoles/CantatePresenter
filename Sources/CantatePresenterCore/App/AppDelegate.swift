@@ -115,20 +115,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc public func openInstructionMarkdownAction() {
-        let fileManager = FileManager.default
-        let bundleURL = Bundle.main.bundleURL
-        let projectFolder = bundleURL.pathExtension == "app"
-            ? bundleURL.deletingLastPathComponent()
-            : URL(fileURLWithPath: fileManager.currentDirectoryPath)
-        
-        let docURL = projectFolder.appendingPathComponent("INSTRUKCJA.md")
-        if fileManager.fileExists(atPath: docURL.path) {
-            NSWorkspace.shared.open(docURL)
-        } else {
-            let localURL = URL(fileURLWithPath: "/Users/aoles/dev_gem/INSTRUKCJA.md")
-            if fileManager.fileExists(atPath: localURL.path) {
-                NSWorkspace.shared.open(localURL)
-            }
+        if let url = AppPaths.userGuideFile {
+            NSWorkspace.shared.open(url)
         }
     }
     
