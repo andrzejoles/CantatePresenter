@@ -76,6 +76,8 @@ public enum Localization {
             if !translated.isEmpty {
                 return translated
             }
+        } else if language != sourceLanguage, let translated = rawCatalog[language]?[key], !translated.isEmpty {
+            return translated
         }
         return key
     }
@@ -94,10 +96,31 @@ public enum Localization {
     public static func catalogKeys(referenceLanguage: String = "en") -> [String: String] {
         guard let url = resourceBundle?.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: referenceLanguage),
               let dictionary = NSDictionary(contentsOf: url) as? [String: String] else {
-            return [:]
+            return rawCatalog[referenceLanguage] ?? [:]
         }
         return dictionary
     }
+    
+    /// Starsze SwiftPM (np. Xcode 26) kopiują `Localizable.xcstrings` bez kompilacji do `.lproj`;
+    /// wtedy tłumaczenia czytane są wprost z katalogu (JSON), żeby interfejs nie został po polsku.
+    static let rawCatalog: [String: [String: String]] = {
+        guard let url = resourceBundle?.url(forResource: "Localizable", withExtension: "xcstrings"),
+              let data = try? Data(contentsOf: url),
+              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let strings = root["strings"] as? [String: Any] else {
+            return [:]
+        }
+        var result: [String: [String: String]] = [:]
+        for (key, entry) in strings {
+            guard let localizations = (entry as? [String: Any])?["localizations"] as? [String: Any] else { continue }
+            for (language, value) in localizations {
+                if let unit = (value as? [String: Any])?["stringUnit"] as? [String: Any], let text = unit["value"] as? String {
+                    result[language, default: [:]][key] = text
+                }
+            }
+        }
+        return result
+    }()
 }
 
 // MARK: - L()
