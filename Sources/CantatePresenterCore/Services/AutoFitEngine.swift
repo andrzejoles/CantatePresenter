@@ -3,6 +3,30 @@ import AppKit
 
 public struct AutoFitEngine {
     
+    // MARK: - Cache (S2)
+    
+    /// Wynik zależy tylko od tych parametrów, więc ten sam slajd w tym samym oknie liczymy raz,
+    /// zamiast przy każdym przerysowaniu projekcji i podglądów.
+    private struct CacheKey: Hashable {
+        let text: String
+        let width: Int
+        let height: Int
+        let fontFamily: String
+        let isBold: Bool
+        let lineSpacingFactor: Double
+        let marginPercent: Double
+        let minFontSize: CGFloat
+        let maxFontSize: CGFloat
+    }
+    
+    private static let cacheLock = NSLock()
+    nonisolated(unsafe) private static var cache: [CacheKey: CGFloat] = [:]
+    private static let cacheLimit = 512
+    
+    public static func clearCache() {
+        cacheLock.withLock { cache.removeAll() }
+    }
+    
     /// Computes the optimal font size to fill the container without clipping or overflowing.
     public static func calculateOptimalFontSize(
         for text: String,
@@ -13,6 +37,49 @@ public struct AutoFitEngine {
         marginPercent: Double = 0.07,
         minFontSize: CGFloat = 14.0,
         maxFontSize: CGFloat = 260.0
+    ) -> CGFloat {
+        let key = CacheKey(
+            text: text,
+            width: Int(containerSize.width.rounded()),
+            height: Int(containerSize.height.rounded()),
+            fontFamily: fontFamily,
+            isBold: isBold,
+            lineSpacingFactor: lineSpacingFactor,
+            marginPercent: marginPercent,
+            minFontSize: minFontSize,
+            maxFontSize: maxFontSize
+        )
+        if let cached = cacheLock.withLock({ cache[key] }) {
+            return cached
+        }
+        let size = computeOptimalFontSize(
+            for: text,
+            containerSize: containerSize,
+            fontFamily: fontFamily,
+            isBold: isBold,
+            lineSpacingFactor: lineSpacingFactor,
+            marginPercent: marginPercent,
+            minFontSize: minFontSize,
+            maxFontSize: maxFontSize
+        )
+        cacheLock.withLock {
+            if cache.count >= cacheLimit {
+                cache.removeAll(keepingCapacity: true)
+            }
+            cache[key] = size
+        }
+        return size
+    }
+    
+    private static func computeOptimalFontSize(
+        for text: String,
+        containerSize: CGSize,
+        fontFamily: String,
+        isBold: Bool,
+        lineSpacingFactor: Double,
+        marginPercent: Double,
+        minFontSize: CGFloat,
+        maxFontSize: CGFloat
     ) -> CGFloat {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return 48.0

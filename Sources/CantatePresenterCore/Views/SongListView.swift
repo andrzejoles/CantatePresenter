@@ -53,7 +53,7 @@ public struct SongListView: View {
         if query.isEmpty {
             baseList = store.songs
         } else {
-            baseList = store.songs.filter { $0.matches(query: query, scope: searchScope) }
+            baseList = store.searchIndex.filter(store.songs, query: query, scope: searchScope)
         }
         
         let plLocale = Locale(identifier: "pl_PL")

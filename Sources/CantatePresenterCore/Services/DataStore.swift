@@ -46,7 +46,11 @@ public struct PersistenceIssue: Identifiable, Equatable {
 public final class DataStore: ObservableObject {
     public static let shared = DataStore()
     
-    @Published public var songs: [Song] = []
+    @Published public var songs: [Song] = [] {
+        didSet { searchIndex.update(with: songs) }
+    }
+    /// Złożone pola do wyszukiwania, aktualizowane przy zmianie biblioteki (S2).
+    public private(set) var searchIndex = SongSearchIndex()
     @Published public var plans: [ServicePlan] = []
     @Published public var activePlanId: UUID?
     @Published public var selectedSongId: UUID?
