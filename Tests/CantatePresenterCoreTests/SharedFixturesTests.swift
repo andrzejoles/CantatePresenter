@@ -51,3 +51,64 @@ struct SharedFixturesTests {
         }
     }
 }
+
+extension SharedFixturesTests {
+    static func context(_ object: [String: String]) -> KeyboardRouter.Context {
+        guard object["kind"] == "main" else { return .presentationWindow }
+        let focus: KeyboardRouter.Focus
+        switch object["focus"] {
+        case "text": focus = .text
+        case "multilineText": focus = .multilineText
+        case "list": focus = .list
+        default: focus = .other
+        }
+        return .mainWindow(focus: focus)
+    }
+
+    /// Akcja w postaci zapisywanej w keyboard.json: `{"type": "verse", "number": 3}`.
+    static func json(_ action: KeyboardAction?) -> [String: Any]? {
+        guard let action else { return nil }
+        switch action {
+        case .verse(let number): return ["type": "verse", "number": number]
+        default:
+            let name = "\(action)"
+            return ["type": name]
+        }
+    }
+
+    @Test("Skróty klawiszowe")
+    func keyboard() throws {
+        for fixture in try Self.load("keyboard.json") {
+            let action = KeyboardRouter.action(
+                keyCode: UInt16(try #require(fixture["macCode"] as? Int)),
+                characters: fixture["characters"] as? String,
+                command: try #require(fixture["command"] as? Bool),
+                shortcuts: ShortcutSettings(),
+                context: Self.context(try #require(fixture["context"] as? [String: String]))
+            )
+            let expected = fixture["expected"] as? [String: Any]
+            let actual = Self.json(action)
+            #expect(actual?["type"] as? String == expected?["type"] as? String, "\(fixture["note"] ?? "")")
+            #expect(actual?["number"] as? Int == expected?["number"] as? Int, "\(fixture["note"] ?? "")")
+        }
+    }
+}
+
+@Suite("Wspólna kopia zapasowa w formacie macOS")
+struct SharedBackupFixtureTests {
+    @Test("Kopia z shared/fixtures przywraca się i dane się wczytują")
+    func restoresSharedBackup() async throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let extracted = dir.url.appendingPathComponent("extracted")
+        try await BackupRestorer.unzip(SharedFixturesTests.directory.appendingPathComponent("backup-macos.cantatebackup"), to: extracted)
+        let data = dir.url.appendingPathComponent("data")
+        try FileManager.default.createDirectory(at: data, withIntermediateDirectories: true)
+        let result = try BackupRestorer(dataDirectory: data).restore(fromExtracted: extracted)
+        #expect(result.songsCount == 2 && result.plansCount == 1)
+
+        let songs = try JSONFileStore.makeDecoder().decode([Song].self, from: Data(contentsOf: data.appendingPathComponent("songs.json")))
+        #expect(songs[0].slides[0].type == .verse && songs[0].ccliNumber == "9999001")
+        #expect(songs[1].slides.count == 2)
+    }
+}

@@ -1,0 +1,263 @@
+[
+  {
+    "characters" : " ",
+    "command" : false,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "nextSlide"
+    },
+    "macCode" : 49,
+    "note" : "spacja: następny slajd (skrót z ustawień)"
+  },
+  {
+    "characters" : "",
+    "command" : false,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "nextSlide"
+    },
+    "macCode" : 124,
+    "note" : "strzałka w prawo"
+  },
+  {
+    "characters" : "",
+    "command" : false,
+    "context" : {
+      "focus" : "list",
+      "kind" : "main"
+    },
+    "expected" : null,
+    "macCode" : 126,
+    "note" : "strzałka w górę na liście zmienia zaznaczenie"
+  },
+  {
+    "characters" : "",
+    "command" : false,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "prevSlide"
+    },
+    "macCode" : 126,
+    "note" : "strzałka w górę poza listą"
+  },
+  {
+    "characters" : "\r",
+    "command" : false,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "startPresentation"
+    },
+    "macCode" : 36,
+    "note" : "Enter w oknie głównym: start projekcji"
+  },
+  {
+    "characters" : "\r",
+    "command" : false,
+    "context" : {
+      "kind" : "presentation"
+    },
+    "expected" : {
+      "type" : "nextSlide"
+    },
+    "macCode" : 36,
+    "note" : "Enter w oknie projekcji: następny slajd"
+  },
+  {
+    "characters" : "",
+    "command" : false,
+    "context" : {
+      "focus" : "text",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "endTextEditing"
+    },
+    "macCode" : 53,
+    "note" : "Esc w polu wyszukiwania: wyjście z pola"
+  },
+  {
+    "characters" : "",
+    "command" : false,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "stopPresentation"
+    },
+    "macCode" : 53,
+    "note" : "Esc: koniec projekcji"
+  },
+  {
+    "characters" : "b",
+    "command" : false,
+    "context" : {
+      "focus" : "text",
+      "kind" : "main"
+    },
+    "expected" : null,
+    "macCode" : 11,
+    "note" : "B w polu wyszukiwania pisze literę"
+  },
+  {
+    "characters" : "b",
+    "command" : false,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "blackScreen"
+    },
+    "macCode" : 11,
+    "note" : "B: czarny ekran"
+  },
+  {
+    "characters" : "c",
+    "command" : false,
+    "context" : {
+      "kind" : "presentation"
+    },
+    "expected" : {
+      "type" : "clearText"
+    },
+    "macCode" : 8,
+    "note" : "C w oknie projekcji: ukryj tekst"
+  },
+  {
+    "characters" : "r",
+    "command" : false,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "chorus"
+    },
+    "macCode" : 15,
+    "note" : "R: refren"
+  },
+  {
+    "characters" : "3",
+    "command" : false,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : {
+      "number" : 3,
+      "type" : "verse"
+    },
+    "macCode" : 20,
+    "note" : "3: zwrotka 3"
+  },
+  {
+    "characters" : "",
+    "command" : false,
+    "context" : {
+      "focus" : "text",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "nextSlide"
+    },
+    "macCode" : 121,
+    "note" : "Page Down działa także w polu wyszukiwania"
+  },
+  {
+    "characters" : "t",
+    "command" : true,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "quickText"
+    },
+    "macCode" : 17,
+    "note" : "⌘T: szybki tekst"
+  },
+  {
+    "characters" : "t",
+    "command" : true,
+    "context" : {
+      "kind" : "presentation"
+    },
+    "expected" : null,
+    "macCode" : 17,
+    "note" : "⌘T w oknie projekcji: nic"
+  },
+  {
+    "characters" : "=",
+    "command" : true,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "zoomIn"
+    },
+    "macCode" : 24,
+    "note" : "⌘=: powiększenie"
+  },
+  {
+    "characters" : "a",
+    "command" : false,
+    "context" : {
+      "focus" : "multilineText",
+      "kind" : "main"
+    },
+    "expected" : null,
+    "macCode" : 0,
+    "note" : "pole wielowierszowe: nic"
+  },
+  {
+    "characters" : "]",
+    "command" : false,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "nextSong"
+    },
+    "macCode" : 30,
+    "note" : "]: następna pieśń"
+  },
+  {
+    "characters" : "[",
+    "command" : false,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : {
+      "type" : "prevSong"
+    },
+    "macCode" : 33,
+    "note" : "[: poprzednia pieśń"
+  },
+  {
+    "characters" : "",
+    "command" : false,
+    "context" : {
+      "focus" : "other",
+      "kind" : "main"
+    },
+    "expected" : null,
+    "macCode" : 122,
+    "note" : "F1 bez przypisania: nic"
+  }
+]
