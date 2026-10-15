@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 
 public struct LiveOutputView: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @ObservedObject var screenManager = ScreenManager.shared
     
     public init() {}

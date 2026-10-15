@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 
 public struct ChordsSearchSheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     public let song: Song
     public let onApply: (String, String) -> Void // (chordsSheet, key)
     @Binding var isPresented: Bool

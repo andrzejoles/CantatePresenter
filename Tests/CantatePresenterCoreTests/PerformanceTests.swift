@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import Testing
 @testable import CantatePresenterCore
 
@@ -73,4 +74,67 @@ struct PerformanceTests {
         #expect(warm * 10 < cold)
         #expect(AutoFitEngine.calculateOptimalFontSize(for: text, containerSize: CGSize(width: 800, height: 450)) < first)
     }
+}
+
+// MARK: - S2: zmiana slajdu nie unieważnia listy pieśni
+
+@MainActor
+@Suite("DataStore: śledzenie pojedynczych właściwości (S2)")
+struct DataStoreObservationTests {
+    private func makeStore(_ dir: TestDirectory) -> DataStore {
+        let store = DataStore(dataDirectory: dir.url)
+        store.songs = Array(PerformanceTests.library.prefix(20))
+        return store
+    }
+
+    /// Właściwości czytane przez listę pieśni.
+    private func trackLibraryReads(_ store: DataStore, onChange: @escaping @Sendable () -> Void) {
+        withObservationTracking {
+            _ = store.songs
+            _ = store.selectedSongId
+            _ = store.settings.uiScale
+            _ = store.searchIndex
+            // Znacznik „na żywo” przy pieśni na liście
+            _ = store.activeSong?.id
+            _ = store.isLive
+        } onChange: {
+            onChange()
+        }
+    }
+
+    @Test("Przełączenie slajdu, czarny ekran i ukrycie tekstu nie powiadamiają listy pieśni")
+    func liveChangesDoNotInvalidateLibrary() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let store = makeStore(dir)
+        store.present(song: store.songs[0])
+        let fired = Flag()
+
+        trackLibraryReads(store) { fired.set() }
+        store.nextSlide()
+        store.toggleBlackScreen()
+        store.toggleClearText()
+
+        #expect(!fired.value)
+    }
+
+    @Test("Zmiana biblioteki powiadamia listę pieśni")
+    func libraryChangeInvalidates() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let store = makeStore(dir)
+        let fired = Flag()
+
+        trackLibraryReads(store) { fired.set() }
+        store.addSong(Song(title: "Nowa", rawLyrics: "Tekst"))
+
+        #expect(fired.value)
+    }
+}
+
+final class Flag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var _value = false
+    var value: Bool { lock.withLock { _value } }
+    func set() { lock.withLock { _value = true } }
 }

@@ -25,7 +25,7 @@ public struct ManualParagraph: Identifiable {
 }
 
 public struct UserManualView: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @Environment(\.dismiss) private var dismiss
     @State private var selectedSectionId: String = "intro"
     @State private var searchText: String = ""

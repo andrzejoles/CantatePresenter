@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 
 public struct PresentationContentView: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     public var isPreviewWindow: Bool = false
     
     @State private var showEscHint: Bool = false

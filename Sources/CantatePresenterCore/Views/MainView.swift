@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 
 public struct MainView: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @ObservedObject var screenManager = ScreenManager.shared
     
     @State private var selectedLeftTab: Int = 0 // 0: Library, 1: Plan

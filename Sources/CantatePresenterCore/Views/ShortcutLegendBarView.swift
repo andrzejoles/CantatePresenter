@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 
 public struct ShortcutLegendBarView: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     public let scale: Double
     
     public init(scale: Double) {
