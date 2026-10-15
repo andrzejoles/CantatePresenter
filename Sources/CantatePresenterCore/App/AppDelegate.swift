@@ -16,6 +16,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         
         setupMainMenu()
         setupMainWindow()
+        KeyboardMonitor.shared.start()
         
         NSApp.activate(ignoringOtherApps: true)
     }

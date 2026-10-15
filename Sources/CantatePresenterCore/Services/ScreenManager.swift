@@ -27,7 +27,6 @@ public final class ScreenManager: ObservableObject {
     
     public private(set) var presentationWindow: NSWindow?
     private var windowedPreviewWindow: NSWindow?
-    private var keyMonitor: Any?
     private var cancellables = Set<AnyCancellable>()
     
     public init() {
@@ -141,20 +140,6 @@ public final class ScreenManager: ObservableObject {
         window.makeKeyAndOrderFront(nil)
         self.presentationWindow = window
         self.isPresentationActive = true
-        
-        // Local monitor to ensure ESC (code 53) closes presentation even if focus is in a subview
-        if keyMonitor == nil {
-            keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-                guard let self = self, self.isPresentationActive else { return event }
-                if event.keyCode == 53 { // ESC
-                    Task { @MainActor in
-                        self.stopPresentation()
-                    }
-                    return nil
-                }
-                return event
-            }
-        }
     }
     
     public func stopPresentation() {
@@ -170,11 +155,6 @@ public final class ScreenManager: ObservableObject {
     }
     
     private func closePresentationWindow() {
-        if let monitor = keyMonitor {
-            NSEvent.removeMonitor(monitor)
-            keyMonitor = nil
-        }
-        
         if let window = presentationWindow {
             window.level = .normal
             window.orderOut(nil)
@@ -259,64 +239,8 @@ public final class ScreenManager: ObservableObject {
 }
 
 // MARK: - Presentation Window Subclass
+/// Klawiaturę okna projekcji obsługuje `KeyboardMonitor` (K3, W5).
 public final class PresentationWindow: NSWindow {
     public override var canBecomeKey: Bool { true }
     public override var canBecomeMain: Bool { true }
-    
-    public override func cancelOperation(_ sender: Any?) {
-        Task { @MainActor in
-            ScreenManager.shared.stopPresentation()
-        }
-    }
-    
-    public override func performKeyEquivalent(with event: NSEvent) -> Bool {
-        if event.keyCode == 53 { // ESC key
-            Task { @MainActor in
-                ScreenManager.shared.stopPresentation()
-            }
-            return true
-        }
-        return super.performKeyEquivalent(with: event)
-    }
-    
-    public override func keyDown(with event: NSEvent) {
-        if event.keyCode == 53 { // ESC key
-            Task { @MainActor in
-                ScreenManager.shared.stopPresentation()
-            }
-            return
-        }
-        
-        // Navigation shortcuts during presentation:
-        // Space (49), Right (124), Down (125), Return (36), Page Down (121) -> Next Slide
-        if event.keyCode == 49 || event.keyCode == 124 || event.keyCode == 125 || event.keyCode == 36 || event.keyCode == 121 {
-            Task { @MainActor in
-                DataStore.shared.nextSlide()
-            }
-            return
-        }
-        // Left (123), Up (126), Page Up (116) -> Previous Slide
-        if event.keyCode == 123 || event.keyCode == 126 || event.keyCode == 116 {
-            Task { @MainActor in
-                DataStore.shared.prevSlide()
-            }
-            return
-        }
-        // 'B' (11) -> Toggle Black Screen
-        if event.keyCode == 11 {
-            Task { @MainActor in
-                DataStore.shared.toggleBlackScreen()
-            }
-            return
-        }
-        // 'C' (8) -> Toggle Clear Text
-        if event.keyCode == 8 {
-            Task { @MainActor in
-                DataStore.shared.toggleClearText()
-            }
-            return
-        }
-        
-        super.keyDown(with: event)
-    }
 }

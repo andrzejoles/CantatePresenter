@@ -512,6 +512,21 @@ public struct SettingsSheet: View {
                                 scale: scale
                             )
                             
+                            let conflicts = store.settings.shortcuts.conflicts
+                            if !conflicts.isEmpty {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    ForEach(conflicts, id: \.self) { conflict in
+                                        Label(conflict, systemImage: "exclamationmark.triangle.fill")
+                                            .font(.scaled(11, weight: .medium, scale: scale))
+                                            .foregroundColor(.orange)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(8)
+                                .background(Color.orange.opacity(0.1))
+                                .cornerRadius(6)
+                            }
+                            
                             HStack {
                                 Spacer()
                                 Button("Przywróć domyślne skróty") {
