@@ -188,7 +188,7 @@ public struct ImportExportSheet: View {
                         
                         GroupBox(label: Label(L("Wybierz pliki do importu"), systemImage: "tray.and.arrow.down")) {
                             VStack(alignment: .leading, spacing: 14) {
-                                Text(L("Aplikacja obsługuje pliki bazy Holyrics (.muf, .mufl, .hly), pliki tekstowe (.txt) z dowolnym kodowaniem, formaty XML (OpenLyrics / OpenSong), pliki JSON oraz archiwa ZIP."))
+                                Text(L("Aplikacja obsługuje pliki bazy Holyrics (.muf, .mufl, .hly), pliki tekstowe (.txt) z dowolnym kodowaniem, formaty XML (OpenLyrics / OpenSong), pliki JSON, archiwa ZIP oraz pliki pobrane z CCLI SongSelect (.txt, .usr, ChordPro .pro)."))
                                     .font(.scaled(11, scale: scale))
                                     .foregroundColor(.secondary)
                                 
@@ -360,7 +360,7 @@ public struct ImportExportSheet: View {
         panel.canChooseDirectories = chooseDirectories
         panel.allowsMultipleSelection = true
         // allowedContentTypes zamiast przestarzałego allowedFileTypes (N6); .mufl itp. jako typy z rozszerzenia.
-        panel.allowedContentTypes = ["txt", "json", "muf", "mufl", "hly", "holyrics", "xml", "zip"].compactMap { UTType(filenameExtension: $0) }
+        panel.allowedContentTypes = TextImporter.supportedExtensions.compactMap { UTType(filenameExtension: $0) }
         panel.prompt = L("Wybierz do analizy")
         panel.message = L("Wybierz pliki Holyrics (.mufl), pliki tekstowe lub archiwa")
         
