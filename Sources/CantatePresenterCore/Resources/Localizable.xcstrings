@@ -953,6 +953,34 @@
         }
       }
     },
+    "Aplikacja obsługuje pliki bazy Holyrics (.muf, .mufl, .hly), pliki tekstowe (.txt) z dowolnym kodowaniem, formaty XML (OpenLyrics / OpenSong), pliki JSON, archiwa ZIP oraz pliki pobrane z CCLI SongSelect (.txt, .usr, ChordPro .pro).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supported: Holyrics database files (.muf, .mufl, .hly), text files (.txt) in any encoding, XML formats (OpenLyrics / OpenSong), JSON files, ZIP archives and files downloaded from CCLI SongSelect (.txt, .usr, ChordPro .pro)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unterstützt werden Holyrics-Datenbankdateien (.muf, .mufl, .hly), Textdateien (.txt) in beliebiger Kodierung, XML-Formate (OpenLyrics / OpenSong), JSON-Dateien, ZIP-Archive sowie aus CCLI SongSelect heruntergeladene Dateien (.txt, .usr, ChordPro .pro)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se admiten archivos de base de datos de Holyrics (.muf, .mufl, .hly), archivos de texto (.txt) con cualquier codificación, formatos XML (OpenLyrics / OpenSong), archivos JSON, archivos ZIP y archivos descargados de CCLI SongSelect (.txt, .usr, ChordPro .pro)."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Підтримуються файли бази Holyrics (.muf, .mufl, .hly), текстові файли (.txt) у будь-якому кодуванні, формати XML (OpenLyrics / OpenSong), файли JSON, архіви ZIP і файли, завантажені з CCLI SongSelect (.txt, .usr, ChordPro .pro)."
+          }
+        }
+      }
+    },
     "Aplikacja została uruchomiona z lokalizacji:\n{0}\n\nAby program był łatwo dostępny w Launchpadzie, Docku i Spotlight, zaleca się zainstalowanie go w folderze Programy (/Applications).": {
       "localizations": {
         "en": {
