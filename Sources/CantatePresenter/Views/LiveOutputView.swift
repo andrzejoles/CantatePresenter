@@ -17,6 +17,10 @@ public struct LiveOutputView: View {
         return nil
     }
     
+    private var presentationAspectRatio: CGFloat {
+        screenManager.targetScreenAspectRatio(for: store.settings.selectedScreenIndex)
+    }
+    
     public var body: some View {
         let scale = store.settings.uiScale
         
@@ -25,8 +29,18 @@ public struct LiveOutputView: View {
                 // MARK: - Section 1: Live Monitor (What's on screen)
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
-                        Label("Ekran na żywo", systemImage: "display")
-                            .font(.scaled(13, weight: .bold, scale: scale))
+                        HStack(spacing: 6) {
+                            Label("Ekran na żywo", systemImage: "display")
+                                .font(.scaled(13, weight: .bold, scale: scale))
+                            
+                            Text(ScreenManager.formattedAspectRatio(for: presentationAspectRatio))
+                                .font(.scaled(9, weight: .semibold, scale: scale))
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 1.5)
+                                .background(Color.secondary.opacity(0.12))
+                                .cornerRadius(4)
+                        }
                         
                         Spacer()
                         
@@ -54,7 +68,7 @@ public struct LiveOutputView: View {
                         }
                     }
                     
-                    // 16:9 Aspect Ratio Mini Screen
+                    // Presentation Screen Aspect Ratio Mini Screen
                     ZStack {
                         let bgColor = Color(hex: store.settings.backgroundColorHex)
                         let txtColor = Color(hex: store.settings.textColorHex)
@@ -95,10 +109,11 @@ public struct LiveOutputView: View {
                                 .shadow(color: store.settings.hasShadow ? Color.black.opacity(0.8) : Color.clear, radius: 2, x: 1, y: 1)
                                 .padding(12)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .minimumScaleFactor(0.6)
                         }
                     }
-                    .frame(height: 155)
-                    .cornerRadius(8)
+                    .aspectRatio(presentationAspectRatio, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(store.isLive ? Color.red.opacity(0.8) : Color.secondary.opacity(0.3), lineWidth: store.isLive ? 2 : 1)
@@ -182,8 +197,18 @@ public struct LiveOutputView: View {
                 // MARK: - Section 3: Next Slide Preview (Styled like Live Monitor, but grayed out)
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
-                        Label("Podgląd następnego slajdu", systemImage: "arrow.forward.square")
-                            .font(.scaled(13, weight: .bold, scale: scale))
+                        HStack(spacing: 6) {
+                            Label("Podgląd następnego slajdu", systemImage: "arrow.forward.square")
+                                .font(.scaled(13, weight: .bold, scale: scale))
+                            
+                            Text(ScreenManager.formattedAspectRatio(for: presentationAspectRatio))
+                                .font(.scaled(9, weight: .semibold, scale: scale))
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 1.5)
+                                .background(Color.secondary.opacity(0.12))
+                                .cornerRadius(4)
+                        }
                         
                         Spacer()
                         
@@ -206,7 +231,7 @@ public struct LiveOutputView: View {
                         }
                     }
                     
-                    // 16:9 Aspect Ratio Mini Screen for NEXT slide (grayed out preview)
+                    // Presentation Screen Aspect Ratio Mini Screen for NEXT slide (grayed out preview)
                     ZStack {
                         let bgColor = Color(hex: store.settings.backgroundColorHex)
                         let txtColor = Color(hex: store.settings.textColorHex)
@@ -239,6 +264,7 @@ public struct LiveOutputView: View {
                                 .shadow(color: store.settings.hasShadow ? Color.black.opacity(0.4) : Color.clear, radius: 2, x: 1, y: 1)
                                 .padding(12)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .minimumScaleFactor(0.6)
                         } else {
                             Color(NSColor.controlBackgroundColor)
                             VStack(spacing: 6) {
@@ -249,10 +275,12 @@ public struct LiveOutputView: View {
                                     .font(.scaled(11, scale: scale))
                                     .foregroundColor(.secondary)
                             }
+                            .padding(8)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
                     }
-                    .frame(height: 135)
-                    .cornerRadius(8)
+                    .aspectRatio(presentationAspectRatio, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.secondary.opacity(0.35), lineWidth: 1)

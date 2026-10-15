@@ -9,6 +9,12 @@ public struct DisplayScreenItem: Identifiable, Hashable {
     public let resolution: String
     public let frame: CGRect
     public let isPrimary: Bool
+    
+    public var aspectRatio: CGFloat {
+        guard frame.height > 0 else { return 16.0 / 9.0 }
+        let ratio = frame.width / frame.height
+        return (ratio > 0.1 && !ratio.isNaN && !ratio.isInfinite) ? ratio : (16.0 / 9.0)
+    }
 }
 
 @MainActor
@@ -62,21 +68,43 @@ public final class ScreenManager: ObservableObject {
         self.availableScreens = list
     }
     
+    // MARK: - Screen Target Resolution & Aspect Ratio
+    public func targetScreen(for index: Int) -> NSScreen? {
+        let screens = NSScreen.screens
+        guard !screens.isEmpty else { return nil }
+        if screens.count == 1 {
+            return screens[0]
+        }
+        if index >= 0 && index < screens.count {
+            return screens[index]
+        }
+        return screens.count > 1 ? screens[1] : screens[0]
+    }
+    
+    public func targetScreenAspectRatio(for index: Int) -> CGFloat {
+        guard let screen = targetScreen(for: index), screen.frame.height > 0 else {
+            return 16.0 / 9.0
+        }
+        let ratio = screen.frame.width / screen.frame.height
+        return (ratio > 0.1 && !ratio.isNaN && !ratio.isInfinite) ? ratio : (16.0 / 9.0)
+    }
+    
+    public var selectedScreenAspectRatio: CGFloat {
+        targetScreenAspectRatio(for: DataStore.shared.settings.selectedScreenIndex)
+    }
+    
+    public static func formattedAspectRatio(for ratio: CGFloat) -> String {
+        if abs(ratio - 16.0 / 9.0) < 0.03 { return "16:9" }
+        if abs(ratio - 16.0 / 10.0) < 0.08 { return "16:10" }
+        if abs(ratio - 4.0 / 3.0) < 0.03 { return "4:3" }
+        if abs(ratio - 21.0 / 9.0) < 0.08 { return "21:9" }
+        if abs(ratio - 5.0 / 4.0) < 0.03 { return "5:4" }
+        return String(format: "%.2f:1", ratio)
+    }
+    
     // MARK: - Presentation Window Management
     public func startPresentation(on screenIndex: Int) {
-        let screens = NSScreen.screens
-        guard !screens.isEmpty else { return }
-        
-        // When there is only 1 screen, targetScreen is always screens[0]
-        let targetIndex: Int
-        if screens.count == 1 {
-            targetIndex = 0
-        } else if screenIndex >= 0 && screenIndex < screens.count {
-            targetIndex = screenIndex
-        } else {
-            targetIndex = 1
-        }
-        let targetScreen = screens[targetIndex]
+        guard let targetScreen = targetScreen(for: screenIndex) else { return }
         
         closePresentationWindow()
         
@@ -156,17 +184,8 @@ public final class ScreenManager: ObservableObject {
     
     private func repositionPresentationWindowIfNeeded() {
         guard let window = presentationWindow, isPresentationActive else { return }
-        let screens = NSScreen.screens
-        guard !screens.isEmpty else { return }
-        
-        let targetIndex: Int
-        if screens.count == 1 {
-            targetIndex = 0
-        } else {
-            let savedIndex = DataStore.shared.settings.selectedScreenIndex
-            targetIndex = (savedIndex >= 0 && savedIndex < screens.count) ? savedIndex : (screens.count > 1 ? 1 : 0)
-        }
-        let targetScreen = screens[targetIndex]
+        let savedIndex = DataStore.shared.settings.selectedScreenIndex
+        guard let targetScreen = targetScreen(for: savedIndex) else { return }
         window.setFrame(targetScreen.frame, display: true)
     }
     
@@ -180,7 +199,10 @@ public final class ScreenManager: ObservableObject {
         let presentationView = PresentationContentView(isPreviewWindow: true)
         let hostingController = NSHostingController(rootView: presentationView)
         
-        let initialRect = NSRect(x: 100, y: 100, width: 800, height: 450)
+        let ratio = selectedScreenAspectRatio
+        let initialWidth: CGFloat = 800
+        let initialHeight = max(250, initialWidth / ratio)
+        let initialRect = NSRect(x: 100, y: 100, width: initialWidth, height: initialHeight)
         let window = NSWindow(
             contentRect: initialRect,
             styleMask: [.titled, .closable, .resizable, .miniaturizable],
