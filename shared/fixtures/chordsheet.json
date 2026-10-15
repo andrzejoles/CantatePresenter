@@ -1,0 +1,156 @@
+[
+  {
+    "expected" : {
+      "borrowedFrom" : null,
+      "lines" : [
+        {
+          "chords" : "D            G",
+          "text" : "Idziemy razem przez pola,"
+        },
+        {
+          "chords" : "A            D",
+          "text" : "słońce nad nami świeci."
+        }
+      ]
+    },
+    "name" : "inne łamanie wierszy",
+    "semitones" : 0,
+    "sheet" : "Zwrotka 1:\nD            G\nIdziemy razem przez pola,\nA            D\nsłońce nad nami świeci.\n\nRefren:\nG        A\nŚpiewaj radośnie,\nD        h\nniech się niesie.\n\nIdziemy razem przez lasy,\nwiatr nam przygrywa cicho.",
+    "slide" : {
+      "text" : "Idziemy razem\nprzez pola,\nsłońce nad nami świeci.",
+      "type" : "verse"
+    }
+  },
+  {
+    "expected" : {
+      "borrowedFrom" : "Zwrotka 1",
+      "lines" : [
+        {
+          "chords" : "D            G",
+          "text" : "Idziemy razem przez lasy,"
+        },
+        {
+          "chords" : "A            D",
+          "text" : "wiatr nam przygrywa cicho."
+        }
+      ]
+    },
+    "name" : "chwyty pożyczone z pierwszej zwrotki",
+    "semitones" : 0,
+    "sheet" : "Zwrotka 1:\nD            G\nIdziemy razem przez pola,\nA            D\nsłońce nad nami świeci.\n\nRefren:\nG        A\nŚpiewaj radośnie,\nD        h\nniech się niesie.\n\nIdziemy razem przez lasy,\nwiatr nam przygrywa cicho.",
+    "slide" : {
+      "text" : "Idziemy razem przez lasy,\nwiatr nam przygrywa cicho.",
+      "type" : "verse"
+    }
+  },
+  {
+    "expected" : {
+      "borrowedFrom" : null,
+      "lines" : [
+        {
+          "chords" : "A        H",
+          "text" : "Śpiewaj radośnie,"
+        },
+        {
+          "chords" : "E        c#",
+          "text" : "niech się niesie."
+        }
+      ]
+    },
+    "name" : "refren z transpozycją",
+    "semitones" : 2,
+    "sheet" : "Zwrotka 1:\nD            G\nIdziemy razem przez pola,\nA            D\nsłońce nad nami świeci.\n\nRefren:\nG        A\nŚpiewaj radośnie,\nD        h\nniech się niesie.\n\nIdziemy razem przez lasy,\nwiatr nam przygrywa cicho.",
+    "slide" : {
+      "text" : "Ref. Śpiewaj radośnie, niech się niesie.",
+      "type" : "chorus"
+    }
+  },
+  {
+    "expected" : {
+      "borrowedFrom" : "Zwrotka 1",
+      "lines" : [
+        {
+          "chords" : "Db           Gb",
+          "text" : "Zupełnie inne słowa"
+        },
+        {
+          "chords" : "Ab           Db",
+          "text" : "których nie ma w arkuszu"
+        }
+      ]
+    },
+    "name" : "inna wersja tekstu",
+    "semitones" : -1,
+    "sheet" : "Zwrotka 1:\nD            G\nIdziemy razem przez pola,\nA            D\nsłońce nad nami świeci.\n\nRefren:\nG        A\nŚpiewaj radośnie,\nD        h\nniech się niesie.\n\nIdziemy razem przez lasy,\nwiatr nam przygrywa cicho.",
+    "slide" : {
+      "text" : "Zupełnie inne słowa\nktórych nie ma w arkuszu",
+      "type" : "verse"
+    }
+  },
+  {
+    "expected" : {
+      "borrowedFrom" : null,
+      "lines" : [
+        {
+          "chords" : "A fis",
+          "text" : "Pierwszy wiersz pieśni"
+        },
+        {
+          "chords" : "E",
+          "text" : "Drugi wiersz pieśni"
+        }
+      ]
+    },
+    "name" : "nawiasy na końcu wiersza",
+    "semitones" : 0,
+    "sheet" : "(aFCG)\nPierwszy wiersz pieśni (Afis)\nDrugi wiersz pieśni (E)",
+    "slide" : {
+      "text" : "Pierwszy wiersz pieśni\nDrugi wiersz pieśni",
+      "type" : "verse"
+    }
+  },
+  {
+    "expected" : {
+      "borrowedFrom" : null,
+      "lines" : [
+        {
+          "chords" : "G           D",
+          "text" : "Chwała na wysokości"
+        },
+        {
+          "chords" : "e      C",
+          "text" : "Bogu w niebie"
+        }
+      ]
+    },
+    "name" : "akordy w nawiasach kwadratowych",
+    "semitones" : 0,
+    "sheet" : "[G]Chwała na wy[D]sokości\n[e]Bogu w [C]niebie",
+    "slide" : {
+      "text" : "Chwała na wysokości\nBogu w niebie",
+      "type" : "verse"
+    }
+  },
+  {
+    "expected" : {
+      "borrowedFrom" : null,
+      "lines" : [
+        {
+          "chords" : null,
+          "text" : "A"
+        },
+        {
+          "chords" : null,
+          "text" : "B"
+        }
+      ]
+    },
+    "name" : "bez arkusza",
+    "semitones" : 0,
+    "sheet" : null,
+    "slide" : {
+      "text" : "A\nB",
+      "type" : "verse"
+    }
+  }
+]

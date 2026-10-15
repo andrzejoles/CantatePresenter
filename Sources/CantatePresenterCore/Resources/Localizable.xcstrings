@@ -1569,6 +1569,34 @@
         }
       }
     },
+    "Brak chwytów dla tej pieśni": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No chords for this song"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Akkorde für dieses Lied"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este canto no tiene acordes"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для цієї пісні немає акордів"
+          }
+        }
+      }
+    },
     "Brak dostępu do mikrofonu. Nadaj uprawnienia w Ustawienia systemowe > Prywatność i ochrona > Mikrofon.": {
       "localizations": {
         "en": {
@@ -2937,6 +2965,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Гітарні акорди / Таби"
+          }
+        }
+      }
+    },
+    "Chwyty jak w: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chords as in: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akkorde wie in: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acordes como en: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Акорди як у: {0}"
           }
         }
       }
@@ -4673,6 +4729,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Редагувати вибрану пісню (подвійний клік або ⌘E)"
+          }
+        }
+      }
+    },
+    "Ekran dla muzyków": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musicians' screen"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musikeransicht"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pantalla para músicos"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Екран для музикантів"
+          }
+        }
+      }
+    },
+    "Ekran dla muzyków: bieżący slajd z chwytami (okno na osobny monitor)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musicians' screen: current slide with chords (window for a separate monitor)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musikeransicht: aktuelle Folie mit Akkorden (Fenster für einen eigenen Monitor)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pantalla para músicos: diapositiva actual con acordes (ventana para otro monitor)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Екран для музикантів: поточний слайд з акордами (вікно для окремого монітора)"
           }
         }
       }
@@ -8373,6 +8485,90 @@
         }
       }
     },
+    "Muzycy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musicians"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musiker"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Músicos"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Музиканти"
+          }
+        }
+      }
+    },
+    "Muzycy (chwyty, tylko podgląd)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musicians (chords, view only)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musiker (Akkorde, nur Ansicht)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Músicos (acordes, solo vista)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Музиканти (акорди, лише перегляд)"
+          }
+        }
+      }
+    },
+    "Muzycy skanują ten kod: bieżący slajd z chwytami na tablecie lub telefonie, bez sterowania prezentacją.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musicians scan this code: the current slide with chords on a tablet or phone, without controlling the presentation."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musiker scannen diesen Code: aktuelle Folie mit Akkorden auf Tablet oder Telefon, ohne die Präsentation zu steuern."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los músicos escanean este código: la diapositiva actual con acordes en una tableta o teléfono, sin controlar la presentación."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Музиканти сканують цей код: поточний слайд з акордами на планшеті чи телефоні, без керування презентацією."
+          }
+        }
+      }
+    },
     "NA EKRANIE": {
       "localizations": {
         "en": {
@@ -8705,6 +8901,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Наступна пісня"
+          }
+        }
+      }
+    },
+    "Następnie: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Danach: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A continuación: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Далі: {0}"
           }
         }
       }
@@ -15289,6 +15513,34 @@
         }
       }
     },
+    "Sterowanie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Control"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steuerung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Control"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Керування"
+          }
+        }
+      }
+    },
     "Strona projektu na GitHub...": {
       "localizations": {
         "en": {
@@ -16293,6 +16545,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Тональність: {0}"
+          }
+        }
+      }
+    },
+    "Transpozycja": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transpose"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transponieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transposición"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Транспозиція"
           }
         }
       }
