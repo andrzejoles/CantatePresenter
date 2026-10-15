@@ -16,6 +16,7 @@ swift test                  # testy (Swift Testing, wymaga pełnego Xcode)
 ```
 
 - `swift run` działa, ale mikrofon/dyktowanie nie mają wtedy uprawnień (brak Info.plist). Do sprawdzania funkcji używaj `./build_app.sh` + `open`.
+- Logowanie Google: `build_app.sh` wbudowuje klienta OAuth (typ „Aplikacja komputerowa”, projekt `CantatePresenter` w Google Cloud Console) z pliku `google-oauth-client.json` w katalogu głównym (albo `$GOOGLE_OAUTH_CLIENT_JSON`) do Info.plist (`CantateGoogleClientID`, `CantateGoogleClientSecret`). Plik jest w `.gitignore`; nigdy go nie commituj ani nie wypisuj jego zawartości. Bez pliku przycisk logowania jest nieaktywny. Aplikacja jest niezweryfikowana: logować mogą się tylko użytkownicy testowi dodani w konsoli (do 100).
 - Próby na kopii danych: `CANTATE_DATA_DIR=/ścieżka/do/kopii CantatePresenter.app/Contents/MacOS/CantatePresenter`. Zmiana `HOME` **nie** przekierowuje Application Support.
 - Nie ma lintera ani formatera w projekcie. Trzymaj się stylu istniejącego kodu.
 
@@ -37,7 +38,8 @@ Kluczowe elementy:
 - `AutoFitEngine` dobiera rozmiar czcionki wyszukiwaniem binarnym. Ten sam render jest skopiowany w `PresentationContentView` (projektor) i `PresentationSlidePreviewCanvas` (podglądy); muszą wyglądać identycznie.
 - `Song.parseLyrics` dzieli tekst na slajdy (bloki rozdzielone pustą linią, nagłówki `[Zwrotka 1]`, `[Refren]`, `R:` itd.).
 - Import: `TextImporter` → `HolyricsImporter` → `HolyricsJavaDeserializer` (pliki `.mufl`/`.muf` to Java ObjectStream) → `SongDeduplicationService` → `ImportReviewSheet`.
-- Kopie: `BackupService` (ZIP przez `/usr/bin/ditto`), `GoogleDriveService` (REST).
+- Kopie: `BackupService` (ZIP przez `/usr/bin/ditto`), przywracanie przez `BackupRestorer` (walidacja, podmiana katalogu, cofnięcie), kopia przy zamykaniu przez `ExitBackupCoordinator`.
+- Dysk Google: `GoogleDriveService` (REST), logowanie `GoogleOAuth` (loopback `127.0.0.1` + PKCE, W3). Client Secret i tokeny tylko w Pęku kluczy (`GoogleCredentialStore`, usługa `com.cantate.presenter.gdrive`, W4); w `settings.json` jest tylko Client ID, folder i flagi. Nie dodawaj sekretów do `AppSettings`.
 - Klawiatura: jeden `KeyboardMonitor` (rejestrowany w `AppDelegate`) i czysta logika `KeyboardRouter` (K3, W5). Działa tylko w oknie głównym bez arkusza i bez fokusu w polu tekstowym oraz w `PresentationWindow`. Skróty z ustawień mają pierwszeństwo przed stałymi klawiszami (strzałki, Page Up/Down, Esc, R, cyfry).
 
 ### Dane

@@ -66,6 +66,18 @@ cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
 </plist>
 EOF
 
+# Klient OAuth Google (W3): plik JSON pobrany z Google Cloud Console, poza repozytorium (.gitignore).
+GOOGLE_CLIENT_JSON="${GOOGLE_OAUTH_CLIENT_JSON:-$DIR/google-oauth-client.json}"
+if [ -f "$GOOGLE_CLIENT_JSON" ]; then
+    CLIENT_ID=$(/usr/bin/plutil -extract installed.client_id raw -o - "$GOOGLE_CLIENT_JSON")
+    CLIENT_SECRET=$(/usr/bin/plutil -extract installed.client_secret raw -o - "$GOOGLE_CLIENT_JSON")
+    /usr/libexec/PlistBuddy -c "Add :CantateGoogleClientID string $CLIENT_ID" "$CONTENTS_DIR/Info.plist"
+    /usr/libexec/PlistBuddy -c "Add :CantateGoogleClientSecret string $CLIENT_SECRET" "$CONTENTS_DIR/Info.plist"
+    echo "=== Logowanie Google: klient OAuth wbudowany ==="
+else
+    echo "=== Logowanie Google: brak $GOOGLE_CLIENT_JSON, przycisk logowania będzie nieaktywny ==="
+fi
+
 echo "=== Podpisywanie aplikacji (ad-hoc codesign) ==="
 codesign --force --deep -s - "$APP_DIR" || true
 

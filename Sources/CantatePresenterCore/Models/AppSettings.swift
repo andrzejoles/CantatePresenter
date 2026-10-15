@@ -163,35 +163,76 @@ public struct AppSettings: Codable, Equatable {
 
 public struct GoogleDriveSettings: Codable, Equatable {
     public var isEnabled: Bool
+    /// Adres konta ustawiany po zalogowaniu; tylko do wyświetlenia.
     public var accountEmail: String
-    public var clientId: String
-    public var clientSecret: String
-    public var accessToken: String
-    public var refreshToken: String
+    /// Tokeny są w Pęku kluczy (`GoogleCredentialStore`, W4), klient OAuth jest wbudowany w aplikację.
     public var targetFolder: String
     public var autoBackupOnExit: Bool
     public var lastBackupDate: Date?
     
+    /// Sekrety odczytane ze starego `settings.json`; do przeniesienia do Pęku kluczy, nigdy nie zapisywane.
+    private var legacySecrets: GoogleCredentials?
+    
     public init(
         isEnabled: Bool = false,
-        accountEmail: String = "andrzej.oles.tel@gmail.com",
-        clientId: String = "",
-        clientSecret: String = "",
-        accessToken: String = "",
-        refreshToken: String = "",
+        accountEmail: String = "",
         targetFolder: String = "CantatePresenter_Backups",
         autoBackupOnExit: Bool = false,
         lastBackupDate: Date? = nil
     ) {
         self.isEnabled = isEnabled
         self.accountEmail = accountEmail
-        self.clientId = clientId
-        self.clientSecret = clientSecret
-        self.accessToken = accessToken
-        self.refreshToken = refreshToken
         self.targetFolder = targetFolder
         self.autoBackupOnExit = autoBackupOnExit
         self.lastBackupDate = lastBackupDate
+    }
+    
+    // MARK: - Codable
+    private enum CodingKeys: String, CodingKey {
+        case isEnabled, accountEmail, targetFolder, autoBackupOnExit, lastBackupDate
+        // Tylko odczyt starych plików (własny klient użytkownika, clientId/clientSecret, jest pomijany)
+        case accessToken, refreshToken
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? false
+        self.accountEmail = try container.decodeIfPresent(String.self, forKey: .accountEmail) ?? ""
+        self.targetFolder = try container.decodeIfPresent(String.self, forKey: .targetFolder) ?? "CantatePresenter_Backups"
+        self.autoBackupOnExit = try container.decodeIfPresent(Bool.self, forKey: .autoBackupOnExit) ?? false
+        self.lastBackupDate = try container.decodeIfPresent(Date.self, forKey: .lastBackupDate)
+        
+        let legacy = GoogleCredentials(
+            accessToken: try container.decodeIfPresent(String.self, forKey: .accessToken) ?? "",
+            refreshToken: try container.decodeIfPresent(String.self, forKey: .refreshToken) ?? ""
+        )
+        self.legacySecrets = legacy == GoogleCredentials() ? nil : legacy
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(isEnabled, forKey: .isEnabled)
+        try container.encode(accountEmail, forKey: .accountEmail)
+        try container.encode(targetFolder, forKey: .targetFolder)
+        try container.encode(autoBackupOnExit, forKey: .autoBackupOnExit)
+        try container.encodeIfPresent(lastBackupDate, forKey: .lastBackupDate)
+    }
+    
+    // MARK: - Legacy Secrets Migration (W4)
+    
+    public var hasLegacySecrets: Bool { legacySecrets != nil }
+    
+    /// Przenosi sekrety ze starego `settings.json` do Pęku kluczy, nie nadpisując niepustych wartości.
+    public mutating func migrateLegacySecrets(into store: GoogleCredentialStore) throws {
+        guard let legacy = legacySecrets else { return }
+        try store.update { credentials in
+            if credentials.refreshToken.isEmpty { credentials.refreshToken = legacy.refreshToken }
+            if credentials.accessToken.isEmpty {
+                credentials.accessToken = legacy.accessToken
+                credentials.expiresAt = nil
+            }
+        }
+        legacySecrets = nil
     }
 }
 
