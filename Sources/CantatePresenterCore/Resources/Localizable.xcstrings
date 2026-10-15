@@ -7337,6 +7337,34 @@
         }
       }
     },
+    "Nagrania nie są wysyłane do Apple i dyktowanie działa bez internetu. Jeśli macOS nie ma modelu mowy dla wybranego języka, rozpoznawanie odbywa się na serwerach Apple.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recordings are not sent to Apple and dictation works without internet. If macOS has no speech model for the selected language, recognition runs on Apple servers."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahmen werden nicht an Apple gesendet und das Diktat funktioniert ohne Internet. Hat macOS kein Sprachmodell für die gewählte Sprache, erfolgt die Erkennung auf Apple-Servern."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las grabaciones no se envían a Apple y el dictado funciona sin internet. Si macOS no tiene un modelo de voz para el idioma elegido, el reconocimiento se realiza en los servidores de Apple."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записи не надсилаються до Apple, і диктант працює без інтернету. Якщо в macOS немає мовної моделі для вибраної мови, розпізнавання відбувається на серверах Apple."
+          }
+        }
+      }
+    },
     "Najnowsze": {
       "localizations": {
         "en": {
@@ -12065,6 +12093,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Почати пошук"
+          }
+        }
+      }
+    },
+    "Rozpoznawaj mowę tylko na tym Macu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recognize speech on this Mac only"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprache nur auf diesem Mac erkennen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconocer la voz solo en este Mac"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Розпізнавати мовлення лише на цьому Mac"
           }
         }
       }

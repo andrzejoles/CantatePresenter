@@ -92,6 +92,8 @@ public struct AppSettings: Codable, Equatable {
     public var bottomBarHeight: Double // 52.0 to 160.0, default 72.0
     public var appLanguage: String // "pl", "en", "de", "es", "uk"
     public var dictationLanguage: String // "pl-PL", "en-US", "de-DE", "es-ES", "uk-UA"
+    /// Rozpoznawanie mowy tylko na tym Macu, bez wysyłania nagrań do Apple (N4). Domyślnie włączone.
+    public var dictationOnDeviceOnly: Bool = true
     public var activeLogoId: String // "light_of_glory", etc.
     public var googleDrive: GoogleDriveSettings
     
@@ -161,6 +163,7 @@ public struct AppSettings: Codable, Equatable {
         self.bottomBarHeight = try container.decodeIfPresent(Double.self, forKey: .bottomBarHeight) ?? 72.0
         self.appLanguage = try container.decodeIfPresent(String.self, forKey: .appLanguage) ?? "pl"
         self.dictationLanguage = try container.decodeIfPresent(String.self, forKey: .dictationLanguage) ?? "pl-PL"
+        self.dictationOnDeviceOnly = try container.decodeIfPresent(Bool.self, forKey: .dictationOnDeviceOnly) ?? true
         self.activeLogoId = try container.decodeIfPresent(String.self, forKey: .activeLogoId) ?? "light_of_glory"
         self.googleDrive = try container.decodeIfPresent(GoogleDriveSettings.self, forKey: .googleDrive) ?? GoogleDriveSettings()
     }
