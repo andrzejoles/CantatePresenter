@@ -112,8 +112,12 @@ public final class LocalizationService: ObservableObject {
     
     private let customLanguagesURL: URL
     
-    public init() {
-        self.customLanguagesURL = AppPaths.shared.customLanguagesFile
+    public convenience init() {
+        self.init(customLanguagesURL: AppPaths.shared.customLanguagesFile)
+    }
+    
+    init(customLanguagesURL: URL) {
+        self.customLanguagesURL = customLanguagesURL
         loadCustomLanguages()
     }
     
@@ -244,24 +248,21 @@ public final class LocalizationService: ObservableObject {
         customLanguages.removeAll(where: { $0.code == targetCode })
         customLanguages.append(customLang)
         
-        saveCustomLanguages()
+        try saveCustomLanguages()
         
         return (code: targetCode, name: targetName, count: parsedStrings.count)
     }
     
-    private func saveCustomLanguages() {
+    /// Zapis przez `JSONFileStore` (kopie przed zapisem); błąd trafia do wywołującego, nie jest połykany (N7).
+    private func saveCustomLanguages() throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted]
-        if let data = try? encoder.encode(customLanguages) {
-            try? data.write(to: customLanguagesURL)
-        }
+        try JSONFileStore().save(customLanguages, to: customLanguagesURL, encoder: encoder)
     }
     
+    /// Nieczytelny plik jest kopiowany do kwarantanny, zanim kolejny import go nadpisze.
     public func loadCustomLanguages() {
-        guard FileManager.default.fileExists(atPath: customLanguagesURL.path),
-              let data = try? Data(contentsOf: customLanguagesURL) else { return }
-        let decoder = JSONDecoder()
-        if let loaded = try? decoder.decode([CustomLanguage].self, from: data) {
+        if case .loaded(let loaded) = JSONFileStore().load([CustomLanguage].self, from: customLanguagesURL) {
             self.customLanguages = loaded
         }
     }
