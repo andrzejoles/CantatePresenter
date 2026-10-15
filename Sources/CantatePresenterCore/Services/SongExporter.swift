@@ -107,23 +107,42 @@ public struct SongExporter {
             return 0
         }
         
-        var exportedCount = 0
-        for song in songs {
-            let safeName = sanitizeFilename(song.title)
-            let fileURL = folderURL.appendingPathComponent("\(safeName).txt")
-            let text = songToText(song)
-            if (try? text.write(to: fileURL, atomically: true, encoding: .utf8)) != nil {
-                exportedCount += 1
-            }
+        do {
+            return try exportSongs(songs, to: folderURL)
+        } catch {
+            return 0
         }
-        
-        return exportedCount
+    }
+    
+    /// Zapisuje każdą pieśń jako osobny plik .txt. Powtórzone tytuły dostają sufiks „ (2)”, „ (3)”
+    /// (porównanie bez wielkości liter, jak w APFS), więc żadna pieśń nie nadpisuje innej (S4).
+    /// Zwraca liczbę faktycznie zapisanych plików; błąd zapisu przerywa eksport.
+    public static func exportSongs(_ songs: [Song], to folderURL: URL) throws -> Int {
+        var usedNames: Set<String> = []
+        var written = 0
+        for song in songs {
+            let baseName = sanitizeFilename(song.title)
+            var fileName = "\(baseName).txt"
+            var counter = 2
+            while usedNames.contains(fileName.lowercased()) {
+                fileName = "\(baseName) (\(counter)).txt"
+                counter += 1
+            }
+            usedNames.insert(fileName.lowercased())
+            try songToText(song).write(to: folderURL.appendingPathComponent(fileName), atomically: true, encoding: .utf8)
+            written += 1
+        }
+        return written
     }
     
     private static func sanitizeFilename(_ string: String) -> String {
         let invalidCharacters = CharacterSet(charactersIn: "\\/:*?\"<>|")
         let cleaned = string.components(separatedBy: invalidCharacters).joined(separator: "_")
-        let trimmed = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Bez znaków nowej linii i kropki na początku (plik ukryty); nazwa w limicie 255 bajtów APFS.
+        let trimmed = String(cleaned
+            .components(separatedBy: .newlines).joined(separator: " ")
+            .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ".")))
+            .prefix(120))
         return trimmed.isEmpty ? "Piesn" : trimmed
     }
 }
