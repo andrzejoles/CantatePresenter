@@ -11,9 +11,19 @@ let package = Package(
     ],
     dependencies: [],
     targets: [
+        .target(
+            name: "CantatePresenterCore",
+            path: "Sources/CantatePresenterCore"
+        ),
         .executableTarget(
             name: "CantatePresenter",
+            dependencies: ["CantatePresenterCore"],
             path: "Sources/CantatePresenter"
+        ),
+        .testTarget(
+            name: "CantatePresenterCoreTests",
+            dependencies: ["CantatePresenterCore"],
+            path: "Tests/CantatePresenterCoreTests"
         )
     ]
 )
