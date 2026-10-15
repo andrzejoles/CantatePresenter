@@ -11201,6 +11201,34 @@
         }
       }
     },
+    "Projektor odłączony – projekcja wróci po podłączeniu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projector disconnected – projection resumes when reconnected"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projektor getrennt – Projektion läuft nach dem Anschließen weiter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proyector desconectado – la proyección vuelve al reconectarlo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проєктор від’єднано – проєкція відновиться після під’єднання"
+          }
+        }
+      }
+    },
     "Projektor: Aktywny": {
       "localizations": {
         "en": {
@@ -17105,6 +17133,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вийти з CantatePresenter"
+          }
+        }
+      }
+    },
+    "Zakończ projekcję": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End projection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projektion beenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminar proyección"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завершити проєкцію"
           }
         }
       }

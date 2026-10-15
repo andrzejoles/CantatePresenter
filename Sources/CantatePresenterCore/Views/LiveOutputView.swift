@@ -18,11 +18,11 @@ public struct LiveOutputView: View {
     }
     
     private var presentationAspectRatio: CGFloat {
-        screenManager.targetScreenAspectRatio(for: store.settings.selectedScreenIndex)
+        screenManager.selectedScreenAspectRatio
     }
     
     private var presentationScreenSize: CGSize {
-        screenManager.targetScreenSize(for: store.settings.selectedScreenIndex)
+        screenManager.selectedScreenSize
     }
     
     public var body: some View {
@@ -295,10 +295,11 @@ public struct LiveOutputView: View {
                     }
                     
                     Picker(L("Docelowy ekran:"), selection: Binding(
-                        get: { store.settings.selectedScreenIndex },
-                        set: {
-                            store.settings.selectedScreenIndex = $0
-                            store.saveSettings()
+                        get: { _ = store.settings.selectedScreenID; return screenManager.selectedScreenItemID ?? 0 },
+                        set: { index in
+                            if let item = screenManager.availableScreens.first(where: { $0.id == index }) {
+                                screenManager.selectScreen(item)
+                            }
                         }
                     )) {
                         ForEach(screenManager.availableScreens) { screen in
@@ -311,7 +312,7 @@ public struct LiveOutputView: View {
                     // Launch buttons
                     VStack(spacing: 6) {
                         Button(action: {
-                            screenManager.togglePresentation(on: store.settings.selectedScreenIndex)
+                            screenManager.togglePresentation()
                         }) {
                             HStack {
                                 Image(systemName: screenManager.isPresentationActive ? "stop.circle.fill" : "play.rectangle.fill")

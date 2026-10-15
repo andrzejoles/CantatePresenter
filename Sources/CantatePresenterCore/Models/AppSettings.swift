@@ -72,6 +72,9 @@ public struct ShortcutSettings: Codable, Equatable {
 
 public struct AppSettings: Codable, Equatable {
     public var selectedScreenIndex: Int
+    /// Ekran projekcji po identyfikatorze i nazwie (S1); `selectedScreenIndex` tylko dla starych plików.
+    public var selectedScreenID: UInt32?
+    public var selectedScreenName: String?
     public var fontFamily: String
     public var isBold: Bool
     public var textColorHex: String
@@ -139,6 +142,8 @@ public struct AppSettings: Codable, Equatable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.selectedScreenIndex = try container.decodeIfPresent(Int.self, forKey: .selectedScreenIndex) ?? 1
+        self.selectedScreenID = try container.decodeIfPresent(UInt32.self, forKey: .selectedScreenID)
+        self.selectedScreenName = try container.decodeIfPresent(String.self, forKey: .selectedScreenName)
         self.fontFamily = try container.decodeIfPresent(String.self, forKey: .fontFamily) ?? "Helvetica Neue"
         self.isBold = try container.decodeIfPresent(Bool.self, forKey: .isBold) ?? true
         self.textColorHex = try container.decodeIfPresent(String.self, forKey: .textColorHex) ?? "#FFFFFF"
