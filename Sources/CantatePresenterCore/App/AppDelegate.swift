@@ -60,6 +60,14 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         window.contentViewController = hostingController
         window.center()
         window.makeKeyAndOrderFront(nil)
+        // Okno projekcji też jest oknem, więc bez tego zamknięcie okna głównego zostawiało projekcję na ekranie.
+        NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) { _ in
+            MainActor.assumeIsolated {
+                ScreenManager.shared.stopPresentation(restoringMainWindow: false)
+                ScreenManager.shared.stopWindowedPreview()
+                NSApp.terminate(nil)
+            }
+        }
         
         self.mainWindow = window
         // SwiftUI daje fokus pierwszemu polu tekstowemu (wyszukiwanie), przez co klawisze pisały w nim

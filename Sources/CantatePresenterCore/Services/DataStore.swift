@@ -538,23 +538,10 @@ public final class DataStore {
     }
     
     // MARK: - Logo Customization
+    /// Logo jest wstawiane do planszy w pamięci przy wyświetlaniu (`StandbyRenderer`, S8);
+    /// plik `standby.html` nie jest zmieniany.
     public func updateActiveLogo(id: String) {
         settings.activeLogoId = id
         saveSettings()
-        
-        let standbyURL = dataDirectory.appendingPathComponent("standby.html")
-        if FileManager.default.fileExists(atPath: standbyURL.path),
-           var content = try? String(contentsOf: standbyURL, encoding: .utf8) {
-            let logoPreset = LogoCatalog.getById(id)
-            let regexPattern = "(<div class=\"logo-wrapper\">)[\\s\\S]*?(</div>)"
-            if let regex = try? NSRegularExpression(pattern: regexPattern, options: []) {
-                let range = NSRange(location: 0, length: (content as NSString).length)
-                // Escape $ in svg content if any
-                let safeSvg = logoPreset.svgContent.replacingOccurrences(of: "$", with: "\\$")
-                let replacement = "$1\n            " + safeSvg + "\n        $2"
-                content = regex.stringByReplacingMatches(in: content, options: [], range: range, withTemplate: replacement)
-                try? content.write(to: standbyURL, atomically: true, encoding: .utf8)
-            }
-        }
     }
 }
