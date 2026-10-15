@@ -61,6 +61,41 @@ Kolejność, jeden PR na etap:
 2. **Kopie i importy**: W2 (backup w `applicationShouldTerminate` z `.terminateLater`), W3 + W4 (OAuth loopback + PKCE, tokeny w Pęku kluczy), W6 (zabezpieczenia deserializera), W7 + S7 (transpozycja, nagłówki sekcji), S3–S6.
 3. **Jakość**: S2 (`@Observable`, podział `DataStore`, cache wyszukiwania i Auto-Fit), N1 (wspólny `SlideRenderer`), S10 (String Catalog), CI, porządki (N9, N10, S11).
 
+Stan na 2026-10-15: etapy 1 i 2 scalone (PR #1, #2, #3); w etapie 3 zrobione S2, N1, S10 (gałąź `stage3-quality`, jeszcze bez PR).
+
+## Do zrobienia
+
+Z przeglądu kodu (kolejność proponowana):
+- [ ] **S1** Projekcja po odłączeniu projektora: zapamiętywać ekran po `CGDirectDisplayID`, po zniknięciu ukryć okno projekcji zamiast przenosić je na ekran operatora, wrócić po ponownym podłączeniu.
+- [ ] **S11** Twarde ścieżki `/Users/aoles/dev_gem/...` w kodzie i README; `INSTRUKCJA.md` i próbka jako zasoby pakietu.
+- [ ] **N11** Po „szybkim tekście” następna pieśń to pierwsza z planu zamiast kolejnej.
+- [ ] **N9** Higiena repozytorium (pliki danych i próbki w gicie, `.gitignore`).
+- [ ] **N10** Skrypty budowania ukrywają błędy podpisu; wersja w trzech miejscach.
+- [ ] **S8** Logo wstawiane regexem i zapisywane do `standby.html` (dwie kopie logiki); przy okazji tłumaczenie tekstów planszy („Wersja”, „GOTOWY DO PROJEKCJI”).
+- [ ] **S9** Wyszukiwanie „online”: fragmenty z DuckDuckGo zapisywane jako tekst pieśni, scrapowanie niezgodne z regulaminem. Wymaga decyzji, co z funkcji zostaje.
+- [ ] **N2** Ustawienia typowane stringami (`"left"`, `"lewo"`) → enumy z tolerancyjnym dekoderem.
+- [ ] **N3** Ostatni regex kompilowany w pętli (`HolyricsImporter`).
+- [ ] **N4** Dyktowanie: podwójny callback, mylący komentarz o rozpoznawaniu na urządzeniu.
+- [ ] **N5** Import Holyrics gubi tonację; XML parsowany regexem.
+- [ ] **N6** Przestarzałe API (ostrzeżenia kompilatora).
+- [ ] **N7** Pozostałe ciche `try?` przy zapisie (np. własne języki).
+- [ ] **N8** Indeks deduplikacji nieaktualizowany po zamianie pieśni głównej.
+- [ ] **CI** Budowanie i testy na GitHubie.
+- [ ] PR etapu 3 (`stage3-quality`); nowe instalatory w `dist/` (obecne są sprzed poprawek K1).
+
+Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
+- [ ] Przepisanie historii gita: usunięcie `2026-10-14_16-19-00.mufl` i adresu e-mail z dawnych wersji `data/settings.json`.
+- [ ] Podpis Developer ID i notaryzacja (płatne konto Apple Developer).
+- [ ] Automatyczne aktualizacje (Sparkle, nowa zależność).
+- [ ] Weryfikacja aplikacji w Google (zniesienie limitu 100 testerów i ostrzeżenia przy logowaniu; wymaga m.in. polityki prywatności).
+- [ ] Pole `schemaVersion` w plikach danych (zmiana formatu z migracją).
+
+Nowe funkcje:
+- [ ] **Sterowanie ze smartfona** (pilot: następny/poprzedni slajd, czarny ekran, wybór pieśni z planu). Musi działać na **iOS i Androidzie**, więc najpierw wybrać technologię. Kandydaci: aplikacja webowa serwowana przez Maca w sieci lokalnej (HTTP + WebSocket, wejście przez kod QR, bez sklepów z aplikacjami), aplikacja natywna lub wieloplatformowa (sklepy, wyższy koszt), Bluetooth HID (bez instalacji, ale tylko proste klawisze). Uwzględnić parowanie i zabezpieczenie (PIN/token), działanie bez internetu i uprawnienia sieci lokalnej w macOS.
+
+Weryfikacja przez właściciela:
+- [ ] Przejrzenie tłumaczeń interfejsu (en, de, es, uk), najlepiej z osobami znającymi język.
+
 ## Testy
 
 Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTests/`) testuje bibliotekę `CantatePresenterCore` przez `@testable import`, więc typy nie muszą być `public`. Używaj Swift Testing (`import Testing`, `@Suite`, `@Test`, `#expect`); przed indeksowaniem wyników używaj `try #require(...)`, bo przekroczenie zakresu wywraca cały proces testowy. Wymaga pełnego Xcode, nie samych Command Line Tools.
