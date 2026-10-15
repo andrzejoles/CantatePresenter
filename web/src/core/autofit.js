@@ -61,8 +61,9 @@ export function optimalFontSize(text, options) {
   const key = [text, Math.round(width), Math.round(height), fontFamily, isBold, lineSpacingFactor, marginPercent, minFontSize, maxFontSize].join("\u0000");
   if (cache.has(key)) return cache.get(key);
 
-  const usableWidth = Math.max(40, width * (1 - 2 * marginPercent));
-  const usableHeight = Math.max(40, height * (1 - 2 * marginPercent));
+  // 1% zapasu: pomiar w canvas i układ w DOM mogą się różnić o ułamek piksela.
+  const usableWidth = Math.max(40, width * (1 - 2 * marginPercent)) * 0.99;
+  const usableHeight = Math.max(40, height * (1 - 2 * marginPercent)) * 0.99;
   const words = text.split(/\s+/).filter(Boolean);
   let low = minFontSize, high = maxFontSize, best = minFontSize;
 

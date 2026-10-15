@@ -1,0 +1,12 @@
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+body.no-cursor { cursor: none; }
+#screen { position: fixed; inset: 0; }
+.screen { position: relative; overflow: hidden; }
+.stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.slide-text { position: absolute; inset: 0; display: flex; flex-direction: column; box-sizing: border-box; }
+.slide-notice { position: absolute; left: 0; right: 0; text-align: center; opacity: 0.75; font-family: -apple-system, "Segoe UI", sans-serif; }
+.standby { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4em; color: #fff; font-family: -apple-system, "Segoe UI", sans-serif; background: radial-gradient(circle at 50% 40%, #1d2433, #05070b 70%); }
+.standby-title { font-weight: 700; letter-spacing: 0.02em; }
+.standby-subtitle { opacity: 0.7; }
+#hint { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: rgba(30, 30, 30, 0.85); color: #fff; padding: 10px 16px; border-radius: 10px; font: 14px -apple-system, "Segoe UI", sans-serif; transition: opacity 0.4s; }
+#hint.hidden { opacity: 0; pointer-events: none; }
