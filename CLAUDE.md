@@ -69,7 +69,7 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] **S1** Projekcja po odłączeniu projektora: zapamiętywać ekran po `CGDirectDisplayID`, po zniknięciu ukryć okno projekcji zamiast przenosić je na ekran operatora, wrócić po ponownym podłączeniu.
 - [x] **S11** Twarde ścieżki `/Users/aoles/dev_gem/...` w kodzie i README; `INSTRUKCJA.md` i próbka jako zasoby pakietu.
 - [x] **N11** Po „szybkim tekście” następna pieśń to pierwsza z planu zamiast kolejnej.
-- [ ] **N9** Higiena repozytorium (pliki danych i próbki w gicie, `.gitignore`).
+- [x] **N9** Higiena repozytorium. Decyzja właściciela: `2026-10-14_16-19-00.mufl`, `data/songs.json`, `data/plans.json` i `data/holyrics_samples/` zostają w repozytorium jako przykłady dla dewelopera (testy, migracja K2 przy uruchamianiu z repozytorium), ale nigdy w aplikacji ani instalatorze; `build_app.sh` przerywa budowanie, jeśli trafią do pakietu.
 - [x] **N10** Skrypty budowania ukrywają błędy podpisu; wersja w trzech miejscach.
 - [ ] **S8** Logo wstawiane regexem i zapisywane do `standby.html` (dwie kopie logiki); przy okazji tłumaczenie tekstów planszy („Wersja”, „GOTOWY DO PROJEKCJI”).
 - [ ] **S9** Wyszukiwanie „online”: fragmenty z DuckDuckGo zapisywane jako tekst pieśni, scrapowanie niezgodne z regulaminem. Wymaga decyzji, co z funkcji zostaje.
