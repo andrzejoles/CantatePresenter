@@ -39,3 +39,15 @@ struct StandbyCreditsTests {
         #expect(StandbyCredits.inject(into: html, credits: credits).contains("Andrzej Oles"))
     }
 }
+
+// MARK: - N9: logo END jako zasób
+
+@Suite("Logo END z zasobów (N9)")
+struct ENDLogoAssetTests {
+    @Test("Logo wczytuje się z zasobów jako poprawny PNG")
+    func loadsPNG() throws {
+        let data = try #require(Data(base64Encoded: ENDLogoAsset.base64PNG))
+        #expect(data.starts(with: [0x89, 0x50, 0x4E, 0x47]))
+        #expect(data.count > 10_000)
+    }
+}
