@@ -59,6 +59,7 @@ public final class DictationService: ObservableObject {
         self.partialHandler = onPartial
         self.finalHandler = onFinal
         self.currentRecognizedText = ""
+        self.finalDelivery.start()
         self.errorMessage = nil
         
         // Request microphone permission first
@@ -109,10 +110,10 @@ public final class DictationService: ObservableObject {
         }
         
         request.shouldReportPartialResults = true
-        // Enable on-device recognition on Apple Silicon if available
-        if recognizer.supportsOnDeviceRecognition {
-            request.requiresOnDeviceRecognition = false // Allow fallback to network if faster
-        }
+        // Wybór z Ustawień (N4): tylko na tym Macu, jeśli system ma model mowy dla tego języka.
+        // Bez modelu lokalnego (albo gdy opcja jest wyłączona) rozpoznawanie idzie przez serwery Apple.
+        let onDeviceOnly = DataStore.shared.settings.dictationOnDeviceOnly
+        request.requiresOnDeviceRecognition = onDeviceOnly && recognizer.supportsOnDeviceRecognition
         
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
@@ -149,7 +150,7 @@ public final class DictationService: ObservableObject {
                     self.partialHandler?(transcribed)
                     
                     if result.isFinal {
-                        self.finalHandler?(transcribed)
+                        // Wynik oddaje stopDictation; tu wcześniej był drugi raz (N4).
                         self.stopDictation()
                     }
                 }
@@ -172,6 +173,8 @@ public final class DictationService: ObservableObject {
         return !currentRecognizedText.isEmpty
     }
     
+    private var finalDelivery = DictationFinalDelivery()
+    
     public func stopDictation() {
         if audioEngine.isRunning {
             audioEngine.stop()
@@ -184,9 +187,7 @@ public final class DictationService: ObservableObject {
         
         if isRecording {
             isRecording = false
-            if !currentRecognizedText.isEmpty {
-                finalHandler?(currentRecognizedText)
-            }
+            finalDelivery.deliver(currentRecognizedText) { finalHandler?($0) }
         }
     }
     
@@ -200,5 +201,22 @@ public final class DictationService: ObservableObject {
         } else {
             startDictation(localeIdentifier: localeIdentifier, onPartial: onPartial, onFinal: onFinal)
         }
+    }
+}
+
+// MARK: - Final Delivery
+
+/// Wynik dyktowania oddawany dokładnie raz na sesję (N4).
+struct DictationFinalDelivery {
+    private var delivered = false
+    
+    mutating func start() {
+        delivered = false
+    }
+    
+    mutating func deliver(_ text: String, to handler: (String) -> Void) {
+        guard !delivered, !text.isEmpty else { return }
+        delivered = true
+        handler(text)
     }
 }
