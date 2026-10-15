@@ -1,6 +1,46 @@
 import Foundation
 import Combine
 import SwiftUI
+import os
+
+// MARK: - Persistence Issue
+
+/// Problem z plikiem danych pokazywany użytkownikowi w oknie głównym (K1).
+public struct PersistenceIssue: Identifiable, Equatable {
+    public enum Kind: Equatable {
+        /// Pliku nie da się odczytać; zapis do niego jest zablokowany do czasu udanego wczytania.
+        case unreadable
+        case saveFailed
+        /// Nie udało się przenieść danych do Application Support (K2); `fileName` to stary katalog.
+        case migrationFailed
+    }
+    
+    public let id = UUID()
+    public let kind: Kind
+    public let fileName: String
+    public let quarantinedCopy: URL?
+    public let errorDescription: String
+    
+    public var title: String {
+        switch kind {
+        case .unreadable: return "Nie można odczytać pliku \(fileName)"
+        case .saveFailed: return "Nie można zapisać pliku \(fileName)"
+        case .migrationFailed: return "Nie udało się przenieść danych"
+        }
+    }
+    
+    public var message: String {
+        switch kind {
+        case .unreadable:
+            let copy = quarantinedCopy.map { "Kopia pliku: \($0.lastPathComponent).\n\n" } ?? ""
+            return "Plik jest uszkodzony albo ma nieznany format. Aplikacja go nie nadpisze: zmiany w tej części danych nie będą zapisywane do czasu przywrócenia kopii lub ponownego uruchomienia.\n\n\(copy)Szczegóły: \(errorDescription)"
+        case .saveFailed:
+            return "Ostatnie zmiany mogą nie zostać zachowane.\n\nSzczegóły: \(errorDescription)"
+        case .migrationFailed:
+            return "Biblioteka nie została skopiowana do folderu Application Support. W tej sesji aplikacja używa dotychczasowego katalogu:\n\(fileName)\n\nSzczegóły: \(errorDescription)"
+        }
+    }
+}
 
 @MainActor
 public final class DataStore: ObservableObject {
@@ -21,25 +61,41 @@ public final class DataStore: ObservableObject {
     @Published public var settings: AppSettings = AppSettings()
     @Published public var temporarySong: Song?
     
+    /// Problemy z odczytem lub zapisem plików danych do pokazania użytkownikowi.
+    @Published public private(set) var persistenceIssues: [PersistenceIssue] = []
+    
+    private let fileStore = JSONFileStore()
+    /// Pliki, których nie udało się odczytać; zapis do nich jest wstrzymany, żeby ich nie nadpisać.
+    private var lockedFileNames: Set<String> = []
+    private static let logger = Logger(subsystem: "com.cantate.presenter", category: "persistence")
+    
     private let dataDirectory: URL
     private let songsFileURL: URL
     private let plansFileURL: URL
     private let settingsFileURL: URL
     
-    public init() {
-        // Data directory inside current working directory or bundle path
-        let bundleURL = Bundle.main.bundleURL
-        let projectFolder: URL
-        if bundleURL.pathExtension == "app" {
-            projectFolder = bundleURL.deletingLastPathComponent()
-        } else {
-            projectFolder = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+    public convenience init() {
+        self.init(paths: AppPaths.shared)
+    }
+    
+    convenience init(dataDirectory: URL) {
+        self.init(paths: AppPaths(dataDirectory: dataDirectory))
+    }
+    
+    init(paths: AppPaths) {
+        self.dataDirectory = paths.dataDirectory
+        self.songsFileURL = paths.songsFile
+        self.plansFileURL = paths.plansFile
+        self.settingsFileURL = paths.settingsFile
+        
+        if case .failed(let legacy, let error) = paths.migration {
+            persistenceIssues.append(PersistenceIssue(
+                kind: .migrationFailed,
+                fileName: legacy.path,
+                quarantinedCopy: nil,
+                errorDescription: error
+            ))
         }
-        let baseURL = projectFolder.appendingPathComponent("data")
-        self.dataDirectory = baseURL
-        self.songsFileURL = baseURL.appendingPathComponent("songs.json")
-        self.plansFileURL = baseURL.appendingPathComponent("plans.json")
-        self.settingsFileURL = baseURL.appendingPathComponent("settings.json")
         
         createDataDirectoryIfNeeded()
         loadSettings()
@@ -89,13 +145,17 @@ public final class DataStore: ObservableObject {
     
     // MARK: - Persistence
     public func loadSongs() {
-        if FileManager.default.fileExists(atPath: songsFileURL.path),
-           let data = try? Data(contentsOf: songsFileURL),
-           let decoded = try? JSONDecoder().decode([Song].self, from: data) {
-            self.songs = decoded
-        } else {
+        switch fileStore.load([Song].self, from: songsFileURL) {
+        case .missing:
+            unlock(songsFileURL)
             self.songs = SampleSongs.loadDefaults()
             saveSongs()
+        case .loaded(let decoded):
+            unlock(songsFileURL)
+            self.songs = decoded
+        case .unreadable(let error, let copy):
+            lock(songsFileURL, error: error, quarantinedCopy: copy)
+            self.songs = []
         }
         if selectedSongId == nil {
             selectedSongId = songs.first?.id
@@ -103,21 +163,16 @@ public final class DataStore: ObservableObject {
     }
     
     public func saveSongs() {
-        createDataDirectoryIfNeeded()
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         encoder.dateEncodingStrategy = .iso8601
-        if let data = try? encoder.encode(songs) {
-            try? data.write(to: songsFileURL, options: .atomic)
-        }
+        persist(songs, to: songsFileURL, encoder: encoder)
     }
     
     public func loadPlans() {
-        if FileManager.default.fileExists(atPath: plansFileURL.path),
-           let data = try? Data(contentsOf: plansFileURL),
-           let decoded = try? JSONDecoder().decode([ServicePlan].self, from: data) {
-            self.plans = decoded
-        } else {
+        switch fileStore.load([ServicePlan].self, from: plansFileURL) {
+        case .missing:
+            unlock(plansFileURL)
             // Default initial plan
             let initialPlan = ServicePlan(
                 name: "Niedziela - Zestaw pieśni",
@@ -125,6 +180,12 @@ public final class DataStore: ObservableObject {
             )
             self.plans = [initialPlan]
             savePlans()
+        case .loaded(let decoded):
+            unlock(plansFileURL)
+            self.plans = decoded
+        case .unreadable(let error, let copy):
+            lock(plansFileURL, error: error, quarantinedCopy: copy)
+            self.plans = []
         }
         if activePlanId == nil {
             activePlanId = plans.first?.id
@@ -132,37 +193,81 @@ public final class DataStore: ObservableObject {
     }
     
     public func savePlans() {
-        createDataDirectoryIfNeeded()
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         encoder.dateEncodingStrategy = .iso8601
-        if let data = try? encoder.encode(plans) {
-            try? data.write(to: plansFileURL, options: .atomic)
-        }
+        persist(plans, to: plansFileURL, encoder: encoder)
     }
     
     public func loadSettings() {
-        if FileManager.default.fileExists(atPath: settingsFileURL.path),
-           let data = try? Data(contentsOf: settingsFileURL),
-           let decoded = try? JSONDecoder().decode(AppSettings.self, from: data) {
-            self.settings = decoded
-        } else {
+        switch fileStore.load(AppSettings.self, from: settingsFileURL) {
+        case .missing:
+            unlock(settingsFileURL)
             self.settings = AppSettings()
             saveSettings()
+        case .loaded(let decoded):
+            unlock(settingsFileURL)
+            self.settings = decoded
+        case .unreadable(let error, let copy):
+            lock(settingsFileURL, error: error, quarantinedCopy: copy)
+            self.settings = AppSettings()
         }
     }
     
     public func saveSettings() {
-        createDataDirectoryIfNeeded()
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
-        if let data = try? encoder.encode(settings) {
-            try? data.write(to: settingsFileURL, options: .atomic)
+        persist(settings, to: settingsFileURL, encoder: encoder)
+    }
+    
+    public func dismissPersistenceIssue(_ issue: PersistenceIssue) {
+        persistenceIssues.removeAll { $0.id == issue.id }
+    }
+    
+    private func persist<Value: Encodable>(_ value: Value, to url: URL, encoder: JSONEncoder) {
+        let fileName = url.lastPathComponent
+        guard !lockedFileNames.contains(fileName) else {
+            Self.logger.warning("Pominięto zapis \(fileName, privacy: .public): plik był nieczytelny przy wczytywaniu")
+            return
         }
+        do {
+            try fileStore.save(value, to: url, encoder: encoder)
+            persistenceIssues.removeAll { $0.kind == .saveFailed && $0.fileName == fileName }
+        } catch {
+            Self.logger.error("Błąd zapisu \(fileName, privacy: .public): \(String(describing: error), privacy: .public)")
+            // Jedno powiadomienie na plik, nie przy każdym kolejnym zapisie.
+            if !persistenceIssues.contains(where: { $0.kind == .saveFailed && $0.fileName == fileName }) {
+                persistenceIssues.append(PersistenceIssue(
+                    kind: .saveFailed,
+                    fileName: fileName,
+                    quarantinedCopy: nil,
+                    errorDescription: error.localizedDescription
+                ))
+            }
+        }
+    }
+    
+    private func lock(_ url: URL, error: Error, quarantinedCopy: URL?) {
+        let fileName = url.lastPathComponent
+        lockedFileNames.insert(fileName)
+        persistenceIssues.removeAll { $0.fileName == fileName }
+        persistenceIssues.append(PersistenceIssue(
+            kind: .unreadable,
+            fileName: fileName,
+            quarantinedCopy: quarantinedCopy,
+            errorDescription: String(describing: error)
+        ))
+    }
+    
+    private func unlock(_ url: URL) {
+        let fileName = url.lastPathComponent
+        lockedFileNames.remove(fileName)
+        persistenceIssues.removeAll { $0.kind == .unreadable && $0.fileName == fileName }
     }
     
     // MARK: - Song Operations
     public func addSong(_ song: Song) {
+        let song = Song.assigningUniqueIdentifiers([song], existing: Set(songs.map(\.id)))[0]
         songs.insert(song, at: 0)
         selectedSongId = song.id
         saveSongs()
@@ -170,6 +275,7 @@ public final class DataStore: ObservableObject {
     
     public func addSongs(_ newSongs: [Song]) {
         guard !newSongs.isEmpty else { return }
+        let newSongs = Song.assigningUniqueIdentifiers(newSongs, existing: Set(songs.map(\.id)))
         songs.append(contentsOf: newSongs)
         if selectedSongId == nil {
             selectedSongId = newSongs.first?.id

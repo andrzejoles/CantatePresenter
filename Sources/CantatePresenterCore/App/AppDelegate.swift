@@ -6,12 +6,17 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     public static private(set) var shared: AppDelegate?
     public var mainWindow: NSWindow?
     
+    public override init() {
+        super.init()
+    }
+    
     public func applicationDidFinishLaunching(_ notification: Notification) {
         AppDelegate.shared = self
         NSApp.setActivationPolicy(.regular)
         
         setupMainMenu()
         setupMainWindow()
+        KeyboardMonitor.shared.start()
         
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -146,6 +151,22 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         fileMenu.addItem(NSMenuItem(title: "Zamknij okno", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w"))
         fileMenuItem.submenu = fileMenu
         mainMenu.addItem(fileMenuItem)
+        
+        // Edit Menu: bez pozycji z akcjami copy:/paste:/undo: skróty ⌘C, ⌘V, ⌘Z nie działają w polach tekstowych (W1)
+        let editMenuItem = NSMenuItem()
+        let editMenu = NSMenu(title: "Edycja")
+        editMenu.addItem(NSMenuItem(title: "Cofnij", action: Selector(("undo:")), keyEquivalent: "z"))
+        let redoItem = NSMenuItem(title: "Ponów", action: Selector(("redo:")), keyEquivalent: "z")
+        redoItem.keyEquivalentModifierMask = [.command, .shift]
+        editMenu.addItem(redoItem)
+        editMenu.addItem(NSMenuItem.separator())
+        editMenu.addItem(NSMenuItem(title: "Wytnij", action: #selector(NSText.cut(_:)), keyEquivalent: "x"))
+        editMenu.addItem(NSMenuItem(title: "Kopiuj", action: #selector(NSText.copy(_:)), keyEquivalent: "c"))
+        editMenu.addItem(NSMenuItem(title: "Wklej", action: #selector(NSText.paste(_:)), keyEquivalent: "v"))
+        editMenu.addItem(NSMenuItem(title: "Usuń", action: #selector(NSText.delete(_:)), keyEquivalent: ""))
+        editMenu.addItem(NSMenuItem(title: "Zaznacz wszystko", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
+        editMenuItem.submenu = editMenu
+        mainMenu.addItem(editMenuItem)
         
         // View Menu (Zooming)
         let viewMenuItem = NSMenuItem()

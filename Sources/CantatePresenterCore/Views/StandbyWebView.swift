@@ -4,27 +4,8 @@ import WebKit
 import AppKit
 
 final class PresentationWKWebView: WKWebView {
+    // Nie przejmuje fokusu, więc klawisze trafiają do `KeyboardMonitor` jako okno projekcji.
     override var acceptsFirstResponder: Bool { false }
-    
-    override func performKeyEquivalent(with event: NSEvent) -> Bool {
-        if event.keyCode == 53 { // ESC
-            Task { @MainActor in
-                ScreenManager.shared.stopPresentation()
-            }
-            return true
-        }
-        return super.performKeyEquivalent(with: event)
-    }
-    
-    override func keyDown(with event: NSEvent) {
-        if event.keyCode == 53 { // ESC
-            Task { @MainActor in
-                ScreenManager.shared.stopPresentation()
-            }
-            return
-        }
-        super.keyDown(with: event)
-    }
 }
 
 public struct StandbyWebView: NSViewRepresentable {
@@ -68,16 +49,12 @@ public struct StandbyWebView: NSViewRepresentable {
     
     private func loadHTML(into webView: WKWebView) {
         let fileManager = FileManager.default
-        let bundleURL = Bundle.main.bundleURL
-        let projectFolder = bundleURL.pathExtension == "app"
-            ? bundleURL.deletingLastPathComponent()
-            : URL(fileURLWithPath: fileManager.currentDirectoryPath)
         
         let targetURL: URL
         if !htmlPath.isEmpty && fileManager.fileExists(atPath: htmlPath) {
             targetURL = URL(fileURLWithPath: htmlPath)
         } else {
-            let defaultURL = projectFolder.appendingPathComponent("data/standby.html")
+            let defaultURL = AppPaths.shared.standbyFile
             if fileManager.fileExists(atPath: defaultURL.path) {
                 targetURL = defaultURL
             } else {

@@ -227,91 +227,29 @@ public struct MainView: View {
         .sheet(isPresented: $isShowingQuickText) {
             QuickTextSheet(isPresented: $isShowingQuickText)
         }
+        .alert(
+            store.persistenceIssues.first?.title ?? "",
+            isPresented: Binding(
+                get: { !store.persistenceIssues.isEmpty },
+                set: { isPresented in
+                    if !isPresented, let issue = store.persistenceIssues.first {
+                        store.dismissPersistenceIssue(issue)
+                    }
+                }
+            ),
+            presenting: store.persistenceIssues.first
+        ) { issue in
+            if let copy = issue.quarantinedCopy {
+                Button("Pokaż w Finderze") {
+                    NSWorkspace.shared.activateFileViewerSelecting([copy])
+                }
+            }
+            Button("OK", role: .cancel) {}
+        } message: { issue in
+            Text(issue.message)
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenQuickTextSheet"))) { _ in
             isShowingQuickText = true
-        }
-        .onAppear {
-            setupGlobalKeyMonitor()
-        }
-    }
-    
-    private func setupGlobalKeyMonitor() {
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            // Don't intercept if user is typing in a text field
-            if let firstResponder = NSApp.keyWindow?.firstResponder,
-               firstResponder is NSTextView || firstResponder is NSTextField {
-                return event
-            }
-            
-            // Command key combos
-            if event.modifierFlags.contains(.command) {
-                if event.charactersIgnoringModifiers == "t" || event.characters == "t" {
-                    isShowingQuickText = true
-                    return nil
-                } else if event.characters == "=" || event.characters == "+" {
-                    store.zoomInUI()
-                    return nil
-                } else if event.characters == "-" {
-                    store.zoomOutUI()
-                    return nil
-                } else if event.characters == "0" {
-                    store.resetZoomUI()
-                    return nil
-                }
-                return event
-            }
-            
-            let shortcuts = store.settings.shortcuts
-            let code = event.keyCode
-            
-            // Configurable presentation shortcuts
-            if code == shortcuts.nextSlideKey || code == 124 || code == 125 {
-                store.nextSlide()
-                return nil
-            } else if code == shortcuts.prevSlideKey || code == 123 || code == 126 {
-                store.prevSlide()
-                return nil
-            } else if code == shortcuts.nextSongKey {
-                store.nextSongInPlan()
-                return nil
-            } else if code == shortcuts.prevSongKey {
-                store.prevSongInPlan()
-                return nil
-            } else if code == shortcuts.startPresentationKey {
-                if let song = store.selectedSong {
-                    store.present(song: song, slideIndex: 0)
-                }
-                return nil
-            } else if code == shortcuts.stopPresentationKey || code == 53 {
-                if screenManager.isPresentationActive {
-                    if NSScreen.screens.count == 1 || NSApp.keyWindow == screenManager.presentationWindow {
-                        screenManager.stopPresentation()
-                        store.stopLive()
-                        return nil
-                    } else {
-                        store.stopLive()
-                        return nil
-                    }
-                } else {
-                    store.stopLive()
-                    return nil
-                }
-            } else if code == shortcuts.blackScreenKey {
-                store.toggleBlackScreen()
-                return nil
-            } else if code == shortcuts.clearTextKey {
-                store.toggleClearText()
-                return nil
-            } else if code == 15 { // 'R' key (Refren)
-                store.jumpToChorus()
-                return nil
-            } else if (18...29).contains(code) { // Number keys 1-9
-                if let char = event.characters?.first, let num = Int(String(char)), num >= 1 && num <= 9 {
-                    store.jumpToVerse(number: num)
-                    return nil
-                }
-            }
-            return event
         }
     }
 }
