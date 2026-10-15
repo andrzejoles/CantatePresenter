@@ -9,30 +9,31 @@ public struct HolyricsImporter {
         return ext == "muf" || ext == "mufl" || ext == "hly" || ext == "holyrics" || ext == "xml"
     }
     
+    /// Wzorce znaczników Holyrics kompilowane raz, a nie dla każdej importowanej pieśni (N3).
+    /// ##(Verse 1) -> [Zwrotka 1], ##(Chorus 1) -> [Refren] itd.
+    private static let verseMarkerReplacements: [(NSRegularExpression, String)] = [
+        (#"##\(Verse\s*(\d+)\)"#, "[Zwrotka $1]"),
+        (#"##\(Verse\)"#, "[Zwrotka]"),
+        (#"##\(Chorus\s*(\d*)\)"#, "[Refren]"),
+        (#"##\(Bridge\s*(\d*)\)"#, "[Bridge]"),
+        (#"##\(Coda\s*(\d*)\)"#, "[Coda]"),
+        (#"##\(Intro\s*(\d*)\)"#, "[Wstęp]"),
+        (#"##\((Outro|Ending)\s*(\d*)\)"#, "[Zakończenie]"),
+        (#"##\(Pre-Chorus\s*(\d*)\)"#, "[Przed-refren]"),
+        (#"##\((Tag|Interlude)\s*(\d*)\)"#, "[Przejście]"),
+        (#"##\(([^)]+)\)"#, "[$1]")
+    ].map { (try! NSRegularExpression(pattern: $0.0, options: .caseInsensitive), $0.1) }
+    
     /// Translates Holyrics verse section markers into presentation slide tags
     public static func translateHolyricsVerseMarkers(_ text: String) -> String {
         var result = text.replacingOccurrences(of: "\r\n", with: "\n")
                          .replacingOccurrences(of: "\r", with: "\n")
         
         // Convert ##(Verse 1) -> [Zwrotka 1], ##(Chorus 1) -> [Refren], etc.
-        let replacements: [(String, String)] = [
-            (#"##\(Verse\s*(\d+)\)"#, "[Zwrotka $1]"),
-            (#"##\(Verse\)"#, "[Zwrotka]"),
-            (#"##\(Chorus\s*(\d*)\)"#, "[Refren]"),
-            (#"##\(Bridge\s*(\d*)\)"#, "[Bridge]"),
-            (#"##\(Coda\s*(\d*)\)"#, "[Coda]"),
-            (#"##\(Intro\s*(\d*)\)"#, "[Wstęp]"),
-            (#"##\((Outro|Ending)\s*(\d*)\)"#, "[Zakończenie]"),
-            (#"##\(Pre-Chorus\s*(\d*)\)"#, "[Przed-refren]"),
-            (#"##\((Tag|Interlude)\s*(\d*)\)"#, "[Przejście]"),
-            (#"##\(([^)]+)\)"#, "[$1]")
-        ]
         
-        for (pattern, template) in replacements {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-                let ns = result as NSString
-                result = regex.stringByReplacingMatches(in: result, options: [], range: NSRange(location: 0, length: ns.length), withTemplate: template)
-            }
+        for (regex, template) in verseMarkerReplacements {
+            let ns = result as NSString
+            result = regex.stringByReplacingMatches(in: result, options: [], range: NSRange(location: 0, length: ns.length), withTemplate: template)
         }
         
         return result
