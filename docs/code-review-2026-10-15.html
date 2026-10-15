@@ -1,0 +1,902 @@
+<title>Code Review CantatePresenter</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spectral:wght@500;600;700&display=swap">
+<style>
+/* Layout: one reading column (~66ch) with a scannable findings index on top, then findings grouped by severity, then the improvement roadmap. */
+:root {
+  --bg: #f5f7f4;
+  --surface: #ffffff;
+  --ink: #1a2420;
+  --muted: #5a6862;
+  --line: #dce3de;
+  --accent: #1d6a50;
+  --accent-soft: #e3f0ea;
+  --code-bg: #eef2ef;
+  --crit: #b3261e;
+  --crit-soft: #fbe9e7;
+  --high: #b8540b;
+  --high-soft: #fdefe2;
+  --med: #8a6a00;
+  --med-soft: #f8f0d6;
+  --low: #3f6488;
+  --low-soft: #e6eef6;
+  --font-display: "Spectral", Georgia, "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111714; --surface: #18201c; --ink: #e4ebe7; --muted: #9baba3; --line: #2a3530;
+    --accent: #62c39c; --accent-soft: #1a2e25; --code-bg: #1d2622;
+    --crit: #ff8378; --crit-soft: #3a1c1a; --high: #f3a25c; --high-soft: #3a2817;
+    --med: #e0c25e; --med-soft: #33301a; --low: #93b8db; --low-soft: #1c2a38;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111714; --surface: #18201c; --ink: #e4ebe7; --muted: #9baba3; --line: #2a3530;
+  --accent: #62c39c; --accent-soft: #1a2e25; --code-bg: #1d2622;
+  --crit: #ff8378; --crit-soft: #3a1c1a; --high: #f3a25c; --high-soft: #3a2817;
+  --med: #e0c25e; --med-soft: #33301a; --low: #93b8db; --low-soft: #1c2a38;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 72px;
+}
+.wrap { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.75rem; font-weight: 600; }
+h3 { font-size: 1.22rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+:not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre {
+  margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 6px;
+  padding: 14px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.55;
+}
+.eyebrow { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); font-weight: 600; }
+.lede { font-size: 1.1rem; color: var(--muted); max-width: 66ch; }
+.prose { max-width: 66ch; display: flex; flex-direction: column; gap: 14px; }
+
+header.top { display: flex; flex-direction: column; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 32px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 0.9rem; color: var(--muted); }
+.meta b { color: var(--ink); font-weight: 600; }
+
+.tally { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tally div { border-top: 3px solid currentColor; padding-top: 8px; display: flex; flex-direction: column; }
+.tally .n { font-family: var(--font-display); font-size: 2.2rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.tally .l { font-size: 0.85rem; color: var(--muted); }
+.t-crit { color: var(--crit); } .t-high { color: var(--high); } .t-med { color: var(--med); } .t-low { color: var(--low); }
+@media (max-width: 560px) { .tally { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.chip {
+  display: inline-block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+}
+.c-crit { color: var(--crit); background: var(--crit-soft); }
+.c-high { color: var(--high); background: var(--high-soft); }
+.c-med { color: var(--med); background: var(--med-soft); }
+.c-low { color: var(--low); background: var(--low-soft); }
+
+.toplist { display: flex; flex-direction: column; gap: 10px; padding-left: 1.3em; margin: 0; max-width: 70ch; }
+
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; min-width: 640px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td.id { font-family: var(--font-mono); font-weight: 500; white-space: nowrap; }
+td.loc { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+
+section.group { display: flex; flex-direction: column; gap: 8px; }
+.group-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding-bottom: 8px; border-bottom: 2px solid var(--ink); }
+.group-head p { color: var(--muted); font-size: 0.95rem; }
+
+article.finding { padding-block: 24px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+article.finding:last-child { border-bottom: 0; }
+.f-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.f-id { font-family: var(--font-mono); font-weight: 500; color: var(--muted); font-size: 0.95rem; }
+.f-loc { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); overflow-wrap: anywhere; }
+dl.f-body { margin: 0; display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 10px 18px; max-width: 100%; }
+dl.f-body dt { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; padding-top: 3px; }
+dl.f-body dd { margin: 0; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+dl.f-body ul { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 4px; }
+@media (max-width: 640px) { dl.f-body { grid-template-columns: minmax(0, 1fr); gap: 4px; } dl.f-body dd { margin-bottom: 10px; } }
+
+.strengths { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 28px; margin: 0; padding: 0; list-style: none; }
+.strengths li { border-left: 2px solid var(--accent); padding-left: 12px; font-size: 0.95rem; }
+.strengths b { display: block; font-weight: 600; }
+
+.roadmap { display: flex; flex-direction: column; gap: 26px; }
+.road-item { display: grid; grid-template-columns: 13em minmax(0, 1fr); gap: 6px 24px; }
+.road-item h3 { font-size: 1.08rem; }
+.road-item ul { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; }
+@media (max-width: 640px) { .road-item { grid-template-columns: minmax(0, 1fr); } }
+
+.phases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.phase { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.phase h3 { font-size: 1.05rem; }
+.phase ol { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 5px; font-size: 0.92rem; }
+.phase .when { font-size: 0.8rem; color: var(--accent); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+@media (max-width: 760px) { .phases { grid-template-columns: minmax(0, 1fr); } }
+
+nav.toc { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.92rem; }
+footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); padding-top: 18px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">Code review · andrzejoles/CantatePresenter</span>
+  <h1>Code Review CantatePresenter</h1>
+  <p class="lede">Przegląd całego kodu natywnej aplikacji macOS do projekcji pieśni (SwiftUI + AppKit). Raport opisuje znalezione błędy z proponowanymi poprawkami, a na końcu zbiera ulepszenia, które warto wprowadzić w dalszej kolejności.</p>
+  <div class="meta">
+    <span>Data: <b>15.10.2026</b></span>
+    <span>Commit: <b class="mono">1069375</b></span>
+    <span>Zakres: <b>52 pliki Swift, ok. 14,6 tys. linii</b>, skrypty budowania, dane w <code>data/</code></span>
+    <span>Metoda: <b>statyczna analiza kodu</b> (bez uruchamiania; środowisko przeglądu nie ma kompilatora Swift ani macOS)</span>
+  </div>
+  <div class="tally" aria-label="Liczba uwag według wagi">
+    <div class="t-crit"><span class="n">3</span><span class="l">krytyczne</span></div>
+    <div class="t-high"><span class="n">8</span><span class="l">wysokie</span></div>
+    <div class="t-med"><span class="n">11</span><span class="l">średnie</span></div>
+    <div class="t-low"><span class="n">11</span><span class="l">niskie</span></div>
+  </div>
+  <nav class="toc" aria-label="Spis treści">
+    <a href="#podsumowanie">Podsumowanie</a>
+    <a href="#indeks">Indeks uwag</a>
+    <a href="#krytyczne">Krytyczne</a>
+    <a href="#wysokie">Wysokie</a>
+    <a href="#srednie">Średnie</a>
+    <a href="#niskie">Niskie</a>
+    <a href="#ulepszenia">Co jeszcze bym ulepszył</a>
+    <a href="#plan">Plan wdrożenia</a>
+  </nav>
+</header>
+
+<section id="podsumowanie" class="prose">
+  <span class="eyebrow">Podsumowanie</span>
+  <h2>Mocny produkt, kruche fundamenty</h2>
+  <p>Funkcjonalnie aplikacja jest bogata i przemyślana pod kątem operatora: podgląd w proporcjach ekranu, Auto-Fit, wyszukiwanie z polskimi znakami, import z Holyrics. Największe ryzyko leży w warstwie danych i obsłudze klawiatury, czyli tam, gdzie błąd w trakcie nabożeństwa jest najbardziej odczuwalny.</p>
+  <p>Pięć rzeczy do naprawy w pierwszej kolejności:</p>
+  <ol class="toplist">
+    <li><b>Biblioteka pieśni może zostać nadpisana przykładami</b> przy każdym błędzie odczytu <code>songs.json</code> (K1).</li>
+    <li><b>Dane leżą obok pliku .app</b>, więc po instalacji w <code>/Applications</code> biblioteka „znika”, a zapis może się po cichu nie udawać (K2).</li>
+    <li><b>Esc w dowolnym oknie dialogowym gasi projektor</b>, a Enter w Ustawieniach uruchamia prezentację (K3).</li>
+    <li><b>Brak menu Edycja</b>: w edytorze pieśni nie działa ⌘C / ⌘V / ⌘Z (W1).</li>
+    <li><b>Integracja z Dyskiem Google nie może działać</b>: Google wyłączył użyty przepływ OAuth, a token nie jest odświeżany; automatyczny backup przy zamykaniu blokuje się sam (W2, W3).</li>
+  </ol>
+</section>
+
+<section class="prose" aria-labelledby="mocne">
+  <span class="eyebrow">Co jest dobre</span>
+  <h2 id="mocne">Mocne strony</h2>
+  <ul class="strengths">
+    <li><b>Zero zależności zewnętrznych</b>Czysty SwiftPM, szybki build, mała powierzchnia ataku.</li>
+    <li><b>Auto-Fit przez wyszukiwanie binarne</b><code>AutoFitEngine</code> sprawdza i szerokość pojedynczych słów, i wysokość akapitu.</li>
+    <li><b>Wierny podgląd</b><code>PresentationSlidePreviewCanvas</code> liczy czcionkę dla rozdzielczości projektora i skaluje ją proporcjonalnie.</li>
+    <li><b>Polskie wyszukiwanie</b>Folding diakrytyków z osobną obsługą „ł”, sortowanie z polską kolacją.</li>
+    <li><b>Własny parser Java ObjectStream</b>Import <code>.mufl</code> bez JVM to nietrywialne i trafne rozwiązanie.</li>
+    <li><b>Tolerancyjny dekoder ustawień</b><code>AppSettings.init(from:)</code> z wartościami domyślnymi to wzorzec, który warto rozszerzyć na modele pieśni.</li>
+  </ul>
+</section>
+
+<section id="indeks" style="display:flex;flex-direction:column;gap:14px;">
+  <span class="eyebrow">Indeks uwag</span>
+  <h2>Wszystkie uwagi w jednym miejscu</h2>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>ID</th><th>Uwaga</th><th>Waga</th><th>Miejsce</th></tr></thead>
+      <tbody>
+        <tr><td class="id"><a href="#K1">K1</a></td><td>Utrata biblioteki przy błędzie dekodowania</td><td><span class="chip c-crit">krytyczna</span></td><td class="loc">DataStore.swift:91</td></tr>
+        <tr><td class="id"><a href="#K2">K2</a></td><td>Dane zapisywane obok pakietu .app</td><td><span class="chip c-crit">krytyczna</span></td><td class="loc">DataStore.swift:29</td></tr>
+        <tr><td class="id"><a href="#K3">K3</a></td><td>Globalne przechwytywanie Esc / Enter / Spacji</td><td><span class="chip c-crit">krytyczna</span></td><td class="loc">MainView.swift:238, ScreenManager.swift:146</td></tr>
+        <tr><td class="id"><a href="#W1">W1</a></td><td>Brak menu Edycja (kopiuj / wklej / cofnij)</td><td><span class="chip c-high">wysoka</span></td><td class="loc">AppDelegate.swift:118</td></tr>
+        <tr><td class="id"><a href="#W2">W2</a></td><td>Autobackup przy zamykaniu nigdy się nie wykonuje</td><td><span class="chip c-high">wysoka</span></td><td class="loc">AppDelegate.swift:245</td></tr>
+        <tr><td class="id"><a href="#W3">W3</a></td><td>Dysk Google: wyłączony przepływ OAuth, brak odświeżania tokenu</td><td><span class="chip c-high">wysoka</span></td><td class="loc">GoogleDriveService.swift:43, 111</td></tr>
+        <tr><td class="id"><a href="#W4">W4</a></td><td>Sekrety jawnym tekstem i w kopiach zapasowych</td><td><span class="chip c-high">wysoka</span></td><td class="loc">AppSettings.swift:581, BackupService.swift:76</td></tr>
+        <tr><td class="id"><a href="#W5">W5</a></td><td>Okno projekcji ignoruje skonfigurowane skróty</td><td><span class="chip c-high">wysoka</span></td><td class="loc">ScreenManager.swift:282</td></tr>
+        <tr><td class="id"><a href="#W6">W6</a></td><td>Deserializer .mufl: awaria lub zawieszenie na uszkodzonym pliku</td><td><span class="chip c-high">wysoka</span></td><td class="loc">HolyricsJavaDeserializer.swift:186, 383</td></tr>
+        <tr><td class="id"><a href="#W7">W7</a></td><td>Błędna transpozycja akordów</td><td><span class="chip c-high">wysoka</span></td><td class="loc">GuitarChordsService.swift:147</td></tr>
+        <tr><td class="id"><a href="#W8">W8</a></td><td>Zduplikowane UUID po imporcie JSON</td><td><span class="chip c-high">wysoka</span></td><td class="loc">TextImporter.swift:171</td></tr>
+        <tr><td class="id"><a href="#S1">S1</a></td><td>Po odłączeniu projektora projekcja zasłania ekran operatora</td><td><span class="chip c-med">średnia</span></td><td class="loc">ScreenManager.swift:72, 196</td></tr>
+        <tr><td class="id"><a href="#S2">S2</a></td><td>Wydajność: jeden ObservableObject i liczenie w <code>body</code></td><td><span class="chip c-med">średnia</span></td><td class="loc">DataStore.swift, SongListView.swift:50</td></tr>
+        <tr><td class="id"><a href="#S3">S3</a></td><td>Import z menu Plik zapisuje bazę N razy, bez deduplikacji</td><td><span class="chip c-med">średnia</span></td><td class="loc">AppDelegate.swift:204</td></tr>
+        <tr><td class="id"><a href="#S4">S4</a></td><td>Eksport do folderu nadpisuje pieśni o tym samym tytule</td><td><span class="chip c-med">średnia</span></td><td class="loc">SongExporter.swift:381</td></tr>
+        <tr><td class="id"><a href="#S5">S5</a></td><td>Przywracanie kopii bez walidacji i bez wycofania</td><td><span class="chip c-med">średnia</span></td><td class="loc">BackupService.swift:147</td></tr>
+        <tr><td class="id"><a href="#S6">S6</a></td><td>Wykrywanie kodowania: gałąź ISO-8859-2 jest martwa</td><td><span class="chip c-med">średnia</span></td><td class="loc">TextImporter.swift:130</td></tr>
+        <tr><td class="id"><a href="#S7">S7</a></td><td>Pre-chorus rozpoznawany jako refren</td><td><span class="chip c-med">średnia</span></td><td class="loc">Song.swift:171, HolyricsImporter.swift:26</td></tr>
+        <tr><td class="id"><a href="#S8">S8</a></td><td>Logo wstrzykiwane regexem i zapisywane do pliku</td><td><span class="chip c-med">średnia</span></td><td class="loc">DataStore.swift:398, StandbyWebView.swift:358</td></tr>
+        <tr><td class="id"><a href="#S9">S9</a></td><td>Wyszukiwanie „online”: fragmenty z DuckDuckGo jako tekst pieśni</td><td><span class="chip c-med">średnia</span></td><td class="loc">OnlineSearchService.swift:325</td></tr>
+        <tr><td class="id"><a href="#S10">S10</a></td><td>Lokalizacja pokrywa ok. 12% tekstów UI; logika zależy od polskich etykiet</td><td><span class="chip c-med">średnia</span></td><td class="loc">LocalizationService.swift, DataStore.swift:316</td></tr>
+        <tr><td class="id"><a href="#S11">S11</a></td><td>Twarde ścieżki z komputera autora</td><td><span class="chip c-med">średnia</span></td><td class="loc">ImportExportSheet.swift:25, AppDelegate.swift:105</td></tr>
+        <tr><td class="id"><a href="#N1">N1</a></td><td>Zduplikowany kod renderowania slajdu i ścieżek</td><td><span class="chip c-low">niska</span></td><td class="loc">3 widoki, 5 serwisów</td></tr>
+        <tr><td class="id"><a href="#N2">N2</a></td><td>Ustawienia typowane stringami</td><td><span class="chip c-low">niska</span></td><td class="loc">AppSettings.swift:497</td></tr>
+        <tr><td class="id"><a href="#N3">N3</a></td><td>Regex kompilowany w pętli</td><td><span class="chip c-low">niska</span></td><td class="loc">Song.swift:143</td></tr>
+        <tr><td class="id"><a href="#N4">N4</a></td><td>Dyktowanie: podwójny callback, mylący komentarz o prywatności</td><td><span class="chip c-low">niska</span></td><td class="loc">DictationService.swift:114, 148</td></tr>
+        <tr><td class="id"><a href="#N5">N5</a></td><td>Import Holyrics: tonacja nigdy nie trafia do pieśni, XML parsowany regexem</td><td><span class="chip c-low">niska</span></td><td class="loc">HolyricsJavaDeserializer.swift:308</td></tr>
+        <tr><td class="id"><a href="#N6">N6</a></td><td>Przestarzałe API</td><td><span class="chip c-low">niska</span></td><td class="loc">TextImporter.swift:261</td></tr>
+        <tr><td class="id"><a href="#N7">N7</a></td><td>Ciche połykanie błędów zapisu (<code>try?</code>)</td><td><span class="chip c-low">niska</span></td><td class="loc">DataStore.swift:110</td></tr>
+        <tr><td class="id"><a href="#N8">N8</a></td><td>Indeks deduplikacji nieaktualizowany po zamianie</td><td><span class="chip c-low">niska</span></td><td class="loc">SongDeduplicationService.swift:136</td></tr>
+        <tr><td class="id"><a href="#N9">N9</a></td><td>Higiena repozytorium</td><td><span class="chip c-low">niska</span></td><td class="loc">katalog główny, data/</td></tr>
+        <tr><td class="id"><a href="#N10">N10</a></td><td>Skrypty budowania ukrywają błędy podpisu, wersja w 3 miejscach</td><td><span class="chip c-low">niska</span></td><td class="loc">build_app.sh:68</td></tr>
+        <tr><td class="id"><a href="#N11">N11</a></td><td>Po „szybkim tekście” następna pieśń to pierwsza z planu</td><td><span class="chip c-low">niska</span></td><td class="loc">DataStore.swift:345</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========================= KRYTYCZNE ========================= -->
+<section id="krytyczne" class="group">
+  <div class="group-head"><h2>Krytyczne</h2><p>Grożą utratą danych lub przerwaniem projekcji w trakcie nabożeństwa.</p></div>
+
+  <article class="finding" id="K1">
+    <div class="f-head"><span class="f-id">K1</span><h3>Utrata biblioteki przy błędzie dekodowania <code>songs.json</code></h3><span class="chip c-crit">krytyczna</span></div>
+    <div class="f-loc">Services/DataStore.swift:91–103 · Models/Song.swift:3 (brak własnego dekodera)</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p><code>loadSongs()</code> nie odróżnia „pliku nie ma” od „pliku nie da się odczytać”. Każdy błąd <code>JSONDecoder</code> (uszkodzony plik, ręczna edycja, a przede wszystkim <b>dodanie nowego pola do <code>Song</code></b>, który używa syntezowanego <code>Codable</code>) kończy się wczytaniem <code>SampleSongs</code> i natychmiastowym <code>saveSongs()</code>. To samo dotyczy planów w <code>loadPlans()</code>.</p></dd>
+      <dt>Skutek</dt>
+      <dd><p>Pierwsza aktualizacja aplikacji, która doda np. pole <code>ccliNumber</code>, nadpisze całą bibliotekę użytkownika kilkoma przykładowymi pieśniami. Nie ma kopii, z której dałoby się to odzyskać.</p></dd>
+      <dt>Proponowana zmiana</dt>
+      <dd>
+        <ul>
+          <li>Rozdzielić przypadki: brak pliku → przykłady; błąd odczytu → przenieść plik do <code>songs.corrupt-&lt;data&gt;.json</code>, pokazać alert i <b>nie zapisywać</b>.</li>
+          <li>Dodać do <code>Song</code>, <code>SongSlide</code> i <code>ServicePlan</code> dekodery z <code>decodeIfPresent</code> (jak w <code>AppSettings</code>) oraz pole <code>schemaVersion</code> w pliku.</li>
+          <li>Przed każdym zapisem trzymać rotacyjną kopię (np. 5 ostatnich wersji).</li>
+        </ul>
+<pre><code>public func loadSongs() {
+    guard FileManager.default.fileExists(atPath: songsFileURL.path) else {
+        songs = SampleSongs.loadDefaults(); saveSongs(); return
+    }
+    do {
+        let data = try Data(contentsOf: songsFileURL)
+        songs = try decoder.decode([Song].self, from: data)
+    } catch {
+        let quarantine = songsFileURL.deletingPathExtension()
+            .appendingPathExtension("corrupt-\(Int(Date().timeIntervalSince1970)).json")
+        try? FileManager.default.copyItem(at: songsFileURL, to: quarantine)
+        loadError = .songsUnreadable(error, quarantine)   // pokazywane w UI
+        isPersistenceLocked = true                         // saveSongs() nic nie robi
+    }
+}</code></pre>
+      </dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="K2">
+    <div class="f-head"><span class="f-id">K2</span><h3>Dane zapisywane obok pakietu <code>.app</code></h3><span class="chip c-crit">krytyczna</span></div>
+    <div class="f-loc">Services/DataStore.swift:29–42 · LocalizationService.swift:396 · BackupService.swift:48 · StandbyWebView.swift:387 · AppDelegate.swift:95 · AppInstallerService.swift:385</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p>Katalog <code>data/</code> jest wyznaczany jako <code>bundleURL.deletingLastPathComponent()</code>, czyli folder, w którym leży aplikacja. Ta sama logika jest skopiowana w pięciu miejscach.</p></dd>
+      <dt>Skutek</dt>
+      <dd>
+        <ul>
+          <li>Wbudowany instalator kopiuje aplikację do <code>/Applications</code>. Po restarcie dane są szukane w <code>/Applications/data</code>, więc użytkownik widzi pustą bibliotekę z przykładami; jego pieśni zostają w starym folderze.</li>
+          <li>Konto bez uprawnień administratora nie może pisać w <code>/Applications</code>; uruchomienie z DMG (tylko do odczytu) też nie zapisze danych. Wszystkie zapisy idą przez <code>try?</code>, więc błąd jest niewidoczny.</li>
+          <li>Przy <code>swift run</code> dane zależą od bieżącego katalogu terminala.</li>
+        </ul>
+      </dd>
+      <dt>Proponowana zmiana</dt>
+      <dd>
+        <p>Jeden typ <code>AppPaths</code> wskazujący na <code>~/Library/Application Support/CantatePresenter</code>, plus jednorazowa migracja ze starej lokalizacji. Zasoby tylko do odczytu (domyślny <code>standby.html</code>, loga) przenieść do zasobów pakietu SwiftPM.</p>
+<pre><code>enum AppPaths {
+    static let dataDirectory: URL = {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let dir = base.appendingPathComponent("CantatePresenter", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }()
+    static var songs: URL { dataDirectory.appendingPathComponent("songs.json") }
+    // plans, settings, custom_languages, standby.html …
+
+    /// Kopiuje dane ze starego „data/” obok .app, jeśli nowa lokalizacja jest pusta.
+    static func migrateLegacyDataIfNeeded() { … }
+}</code></pre>
+      </dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="K3">
+    <div class="f-head"><span class="f-id">K3</span><h3>Globalne przechwytywanie Esc, Enter, Spacji i strzałek</h3><span class="chip c-crit">krytyczna</span></div>
+    <div class="f-loc">Views/MainView.swift:233–316 · Services/ScreenManager.swift:146–157</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p>Oba lokalne monitory <code>NSEvent</code> działają w całej aplikacji, niezależnie od tego, które okno jest aktywne. Jedyny filtr to „czy fokus jest w polu tekstowym”. Monitor z <code>MainView</code> jest dodawany w <code>onAppear</code> i nigdy usuwany (token nie jest zapamiętywany).</p></dd>
+      <dt>Skutek</dt>
+      <dd>
+        <ul>
+          <li>Operator otwiera Ustawienia w trakcie pieśni i naciska Esc, żeby je zamknąć: monitor <code>ScreenManager</code> zamyka okno projekcji, a monitor <code>MainView</code> wywołuje <code>stopLive()</code>. Arkusz zostaje otwarty, projektor gaśnie.</li>
+          <li>Enter na przełączniku w arkuszu Ustawień uruchamia projekcję zaznaczonej pieśni (<code>startPresentationKey = 36</code>).</li>
+          <li>Strzałki na liście pieśni zmieniają slajd zamiast zaznaczenia, a Spacja na przycisku w arkuszu przełącza slajd.</li>
+        </ul>
+      </dd>
+      <dt>Proponowana zmiana</dt>
+      <dd>
+        <p>Jeden <code>KeyboardRouter</code> rejestrowany raz (w <code>AppDelegate</code>), działający tylko dla okna głównego bez otwartego arkusza oraz dla okna projekcji. Esc w oknie głównym z arkuszem musi trafić do arkusza.</p>
+<pre><code>monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+    guard let key = NSApp.keyWindow,
+          key.attachedSheet == nil,
+          key === AppDelegate.shared?.mainWindow || key is PresentationWindow,
+          !(key.firstResponder is NSText) else { return event }
+    return router.handle(event) ? nil : event
+}
+// przy zamknięciu: NSEvent.removeMonitor(monitor)</code></pre>
+      </dd>
+    </dl>
+  </article>
+</section>
+
+<!-- ========================= WYSOKIE ========================= -->
+<section id="wysokie" class="group">
+  <div class="group-head"><h2>Wysokie</h2><p>Funkcje, które nie działają lub działają błędnie w typowym użyciu.</p></div>
+
+  <article class="finding" id="W1">
+    <div class="f-head"><span class="f-id">W1</span><h3>Brak menu Edycja: nie działa kopiuj, wklej i cofnij</h3><span class="chip c-high">wysoka</span></div>
+    <div class="f-loc">App/AppDelegate.swift:118–187</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p>Menu jest budowane ręcznie (aplikacja, Plik, Widok, Okno, Pomoc). W AppKit skróty ⌘C, ⌘V, ⌘X, ⌘A, ⌘Z działają w polach tekstowych tylko wtedy, gdy istnieją pozycje menu z akcjami <code>copy:</code>, <code>paste:</code> itd.</p></dd>
+      <dt>Skutek</dt>
+      <dd><p>W edytorze pieśni nie da się wkleić tekstu skrótem ani cofnąć zmiany. To podstawowy scenariusz dodawania pieśni.</p></dd>
+      <dt>Proponowana zmiana</dt>
+      <dd>
+<pre><code>let editMenu = NSMenu(title: "Edycja")
+editMenu.addItem(withTitle: "Cofnij", action: Selector(("undo:")), keyEquivalent: "z")
+let redo = editMenu.addItem(withTitle: "Ponów", action: Selector(("redo:")), keyEquivalent: "z")
+redo.keyEquivalentModifierMask = [.command, .shift]
+editMenu.addItem(.separator())
+editMenu.addItem(withTitle: "Wytnij", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+editMenu.addItem(withTitle: "Kopiuj", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+editMenu.addItem(withTitle: "Wklej", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+editMenu.addItem(withTitle: "Zaznacz wszystko", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")</code></pre>
+        <p>Przy okazji: ⌘T jest obsługiwane w trzech miejscach (menu, <code>.keyboardShortcut</code>, monitor), a ⌘+/−/0 w dwóch. Wystarczy menu.</p>
+      </dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="W2">
+    <div class="f-head"><span class="f-id">W2</span><h3>Automatyczny backup przy zamykaniu nigdy się nie wykonuje</h3><span class="chip c-high">wysoka</span></div>
+    <div class="f-loc">App/AppDelegate.swift:245–258</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p><code>applicationWillTerminate</code> działa na wątku głównym i czeka na <code>DispatchSemaphore</code>. Zadanie <code>Task { … }</code> dziedziczy izolację <code>@MainActor</code> (klasa jest izolowana przez zgodność z <code>NSApplicationDelegate</code>), a <code>BackupService</code> jest <code>@MainActor</code>. Zadanie nie może ruszyć, dopóki wątek główny czeka.</p></dd>
+      <dt>Skutek</dt>
+      <dd><p>Zakleszczenie do upływu 4 s, potem aplikacja kończy pracę bez kopii. Nawet bez zakleszczenia wysyłka ZIP na Dysk rzadko zmieści się w 4 s.</p></dd>
+      <dt>Proponowana zmiana</dt>
+      <dd>
+<pre><code>func applicationShouldTerminate(_ sender: NSApplication) -&gt; NSApplication.TerminateReply {
+    let gd = DataStore.shared.settings.googleDrive
+    guard gd.isEnabled, gd.autoBackupOnExit else { return .terminateNow }
+    showBackupProgressWindow()
+    Task {
+        await runExitBackup(timeout: .seconds(60))   // z możliwością „Pomiń”
+        NSApp.reply(toApplicationShouldTerminate: true)
+    }
+    return .terminateLater
+}</code></pre>
+      </dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="W3">
+    <div class="f-head"><span class="f-id">W3</span><h3>Dysk Google: wyłączony przepływ OAuth i brak odświeżania tokenu</h3><span class="chip c-high">wysoka</span></div>
+    <div class="f-loc">Services/GoogleDriveService.swift:43, 67, 111–119, 163</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd>
+        <ul>
+          <li><code>redirect_uri = urn:ietf:wg:oauth:2.0:oob</code> to przepływ „out-of-band”, który Google zablokował dla nowych i istniejących klientów w latach 2022–2023. Logowanie zakończy się błędem <code>invalid_request</code>.</li>
+          <li><code>getValidAccessToken()</code> zwraca zapisany <code>accessToken</code>, jeśli nie jest pusty, bez sprawdzania ważności. Token wygasa po ok. godzinie, potem każde żądanie dostaje 401, a odświeżenie nie jest próbowane.</li>
+          <li>Nazwa folderu jest wklejana do zapytania <code>q</code> bez escapowania apostrofu.</li>
+          <li><code>downloadBackupFromDrive</code> używa nazwy pliku z Dysku jako ścieżki w katalogu tymczasowym.</li>
+        </ul>
+      </dd>
+      <dt>Proponowana zmiana</dt>
+      <dd>
+        <ul>
+          <li>Przepływ dla aplikacji desktopowych: przekierowanie na loopback (<code>http://127.0.0.1:&lt;port&gt;</code>) z PKCE, otwierane przez <code>ASWebAuthenticationSession</code> lub przeglądarkę systemową. Przy PKCE sekret klienta nie musi być wpisywany przez użytkownika.</li>
+          <li>Przechowywać <code>expiresAt</code>; odświeżać token przed wygaśnięciem i ponawiać żądanie raz po 401.</li>
+          <li>Escapować <code>'</code> w zapytaniu (<code>\'</code>), plik tymczasowy nazywać UUID.</li>
+        </ul>
+      </dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="W4">
+    <div class="f-head"><span class="f-id">W4</span><h3>Sekrety jawnym tekstem i w kopiach zapasowych</h3><span class="chip c-high">wysoka</span></div>
+    <div class="f-loc">Models/AppSettings.swift:581–613 · Services/BackupService.swift:76–82 · data/settings.json</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd>
+        <ul>
+          <li><code>clientSecret</code>, <code>accessToken</code> i <code>refreshToken</code> leżą w <code>settings.json</code> obok aplikacji.</li>
+          <li>Pełny backup pakuje <code>settings.json</code>, więc tokeny trafiają do każdego pliku <code>.cantatebackup</code> i na Dysk Google.</li>
+          <li>Domyślna wartość <code>accountEmail</code> w kodzie to prywatny adres autora; ten sam adres jest w śledzonym przez git <code>data/settings.json</code>. Historia gita nie zawiera tokenów (sprawdzone), ale adres jest publiczny.</li>
+        </ul>
+      </dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Tokeny i sekret w Pęku kluczy (<code>SecItemAdd</code> / <code>SecItemCopyMatching</code>, usługa <code>com.cantate.presenter.gdrive</code>); w JSON tylko flagi i nazwa folderu. Backup ma pomijać pola poufne. Domyślny e-mail: pusty ciąg. Plik <code>data/settings.json</code> usunąć z repozytorium i dodać do <code>.gitignore</code>.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="W5">
+    <div class="f-head"><span class="f-id">W5</span><h3>Okno projekcji ignoruje skonfigurowane skróty</h3><span class="chip c-high">wysoka</span></div>
+    <div class="f-loc">Services/ScreenManager.swift:262–321 · Views/StandbyWebView.swift:323–345 · Views/MainView.swift:305</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p><code>PresentationWindow.keyDown</code> ma zaszyte kody klawiszy (Spacja, strzałki, B, C), a nie czyta <code>settings.shortcuts</code>. Esc jest obsługiwany w pięciu miejscach (monitor, <code>cancelOperation</code>, <code>performKeyEquivalent</code>, <code>keyDown</code>, <code>PresentationWKWebView</code>). Klawisz R jest zaszyty na refren, mimo że „Klawisz R” można wybrać w ustawieniach dla innej akcji.</p></dd>
+      <dt>Skutek</dt>
+      <dd><p>W trybie jednego ekranu (okno projekcji ma fokus) zmienione w Ustawieniach skróty nie działają; pilot do prezentacji z mapowaniem na Page Down/Up zachowuje się inaczej w zależności od tego, które okno jest aktywne.</p></dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Ten sam <code>KeyboardRouter</code> co w K3 dla obu okien. W ustawieniach walidacja konfliktów (dwie akcje na jednym klawiszu, kolizja z R i cyframi).</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="W6">
+    <div class="f-head"><span class="f-id">W6</span><h3>Deserializer <code>.mufl</code>: awaria lub zawieszenie na uszkodzonym pliku</h3><span class="chip c-high">wysoka</span></div>
+    <div class="f-loc">Services/HolyricsJavaDeserializer.swift:160–161, 186, 214, 383–391</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd>
+        <ul>
+          <li>Linia 186: <code>ref - BASE_WIRE_HANDLE</code> na <code>UInt32</code>. Dla wartości mniejszej niż <code>0x7E0000</code> Swift zatrzymuje program (przepełnienie arytmetyczne).</li>
+          <li>Linie 383–391: długość tablicy z pliku (do ~4,3 mld) trafia do <code>reserveCapacity</code> i pętli. Po końcu danych <code>readContent()</code> zwraca <code>nil</code>, więc pętla kręci się miliardy razy.</li>
+          <li>Linia 160: <code>pos + length</code> dla długości bliskiej <code>Int.max</code> przepełnia się.</li>
+          <li>Rekursja bez limitu głębokości.</li>
+        </ul>
+      </dd>
+      <dt>Skutek</dt>
+      <dd><p>Obcięty lub uszkodzony plik eksportu (np. przerwane pobieranie) zamyka aplikację albo zawiesza import.</p></dd>
+      <dt>Proponowana zmiana</dt>
+      <dd>
+<pre><code>guard ref &gt;= Self.BASE_WIRE_HANDLE else { throw DeserializationError.invalidReference(ref) }
+let handleIndex = Int(ref - Self.BASE_WIRE_HANDLE)
+
+let arrLen = Int(readUInt32())
+guard arrLen &lt;= data.count - pos else { throw DeserializationError.prematureEndOfData(pos) }
+
+guard depth &lt; 64 else { throw DeserializationError.tooDeep }</code></pre>
+        <p>Do tego testy na plikach z <code>data/holyrics_samples</code> oraz ich obciętych i losowo uszkodzonych wariantach.</p>
+      </dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="W7">
+    <div class="f-head"><span class="f-id">W7</span><h3>Błędna transpozycja akordów</h3><span class="chip c-high">wysoka</span></div>
+    <div class="f-loc">Services/GuitarChordsService.swift:141–206, 89–138</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd>
+        <p>Wzorzec <code>\b([A-H][#b]?)…\b</code> sprawdziłem na przykładach:</p>
+        <ul>
+          <li><b>Akordy molowe w notacji polskiej</b> (<code>a</code>, <code>e</code>, <code>d</code>) nie pasują do <code>[A-H]</code>, więc nie są transponowane, choć <code>transposeRoot</code> obsługuje małe litery.</li>
+          <li><b>Krzyżyk gubi granicę słowa</b>: w <code>"F# G"</code> dopasowuje się samo <code>F</code>. Po transpozycji o +1 wynik to <code>F##</code>.</li>
+          <li>Bemole (<code>Bb</code>, <code>Eb</code>) i polskie <code>B</code> (= B♭) nie występują w skali krzyżykowej i zostają bez zmian.</li>
+          <li><code>extractChordsAndCleanLyrics</code> wkłada do arkusza akordów także linie tekstu, więc słowo „A” na początku wersu zostaje „przetransponowane”.</li>
+        </ul>
+      </dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Tokenizować tylko linie rozpoznane jako akordowe; wzorzec z jawnymi granicami i małymi literami; mapowanie bemoli i polskiego <code>B/H</code> na indeks półtonu; wybór zapisu krzyżykowego lub bemolowego według tonacji docelowej. Testy jednostkowe dla wszystkich 12 przesunięć.</p>
+<pre><code>(?&lt;![\p{L}#])([A-Ha-h](?:#|b|is|es)?)(m|maj7?|min|dim|sus[24]?|add9)?(\d{0,2})(?:/([A-Ha-h](?:#|b)?))?(?![\p{L}#])</code></pre>
+      </dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="W8">
+    <div class="f-head"><span class="f-id">W8</span><h3>Zduplikowane UUID po imporcie JSON</h3><span class="chip c-high">wysoka</span></div>
+    <div class="f-loc">Services/TextImporter.swift:167–215 · Views/ImportReviewSheet.swift:349–361 · Services/DataStore.swift:171</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p>Import własnego eksportu JSON zachowuje oryginalne <code>id</code>. Kolizje z biblioteką są pokazywane w podsumowaniu, ale <code>commitImport()</code> ich nie wyklucza, a <code>addSongs</code> nie sprawdza identyfikatorów.</p></dd>
+      <dt>Skutek</dt>
+      <dd><p>Dwie pieśni o tym samym <code>id</code>: <code>List</code> zaznacza obie naraz, <code>updateSong</code> edytuje tylko pierwszą, <code>deleteSong</code> usuwa obie, a pozycja planu wskazuje przypadkową.</p></dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>W <code>addSongs</code> nadawać nowe <code>id</code> (i nowe <code>id</code> slajdów), jeśli identyfikator już istnieje; w przeglądzie importu domyślnie pomijać kolizje o zgodności ≥ 90%.</p></dd>
+    </dl>
+  </article>
+</section>
+
+<!-- ========================= ŚREDNIE ========================= -->
+<section id="srednie" class="group">
+  <div class="group-head"><h2>Średnie</h2><p>Błędy brzegowe, wydajność i spójność.</p></div>
+
+  <article class="finding" id="S1">
+    <div class="f-head"><span class="f-id">S1</span><h3>Po odłączeniu projektora projekcja zasłania ekran operatora</h3><span class="chip c-med">średnia</span></div>
+    <div class="f-loc">Services/ScreenManager.swift:72–82, 196–201</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p>Ekran docelowy jest zapisywany jako indeks w <code>NSScreen.screens</code>. Gdy kabel HDMI się poluzuje, <code>repositionPresentationWindowIfNeeded</code> przenosi okno na <code>screens[0]</code>, czyli laptop operatora, na poziomie <code>.screenSaver</code>. Po ponownym podłączeniu kolejność ekranów może być inna.</p></dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Zapamiętywać <code>CGDirectDisplayID</code> (z <code>deviceDescription["NSScreenNumber"]</code>) i nazwę. Po zniknięciu ekranu ukryć okno projekcji, pokazać komunikat i wrócić automatycznie, gdy ten sam ekran się pojawi.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="S2">
+    <div class="f-head"><span class="f-id">S2</span><h3>Wydajność: jeden <code>ObservableObject</code> i ciężkie obliczenia w <code>body</code></h3><span class="chip c-med">średnia</span></div>
+    <div class="f-loc">Services/DataStore.swift:6–22 · Views/SongListView.swift:50–80 · Models/Song.swift:62–88 · PresentationContentView.swift:465 · PresentationSlidePreviewCanvas.swift:393</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd>
+        <ul>
+          <li>Każda zmiana slajdu (<code>activeSlideIndex</code>) unieważnia wszystkie widoki obserwujące <code>DataStore</code>, w tym listę pieśni.</li>
+          <li><code>filteredSongs</code> przy każdym przerysowaniu filtruje i sortuje całą bibliotekę, a <code>matches</code> wykonuje folding całego tekstu każdej pieśni. Przy ~900 pieśniach po imporcie z Holyrics to zauważalne opóźnienie przy każdym naciśnięciu klawisza.</li>
+          <li><code>AutoFitEngine</code> (12 × <code>boundingRect</code> plus pomiar każdego słowa) liczy się w <code>body</code> trzech widoków przy każdym renderze.</li>
+        </ul>
+      </dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Rozdzielić stan na <code>LibraryStore</code> i <code>LiveState</code> oraz przejść na makro <code>@Observable</code> (dostępne od macOS 14, czyli minimalnej wersji projektu), które śledzi pojedyncze właściwości. Złożone pola wyszukiwania liczyć raz przy zapisie pieśni. Wynik Auto-Fit zapamiętywać w słowniku z kluczem (tekst, rozmiar, ustawienia czcionki).</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="S3">
+    <div class="f-head"><span class="f-id">S3</span><h3>Import z menu Plik zapisuje bazę N razy, bez deduplikacji</h3><span class="chip c-med">średnia</span></div>
+    <div class="f-loc">App/AppDelegate.swift:204–211</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p><code>importAction</code> wywołuje <code>addSong</code> dla każdej pieśni; każde wywołanie zapisuje cały <code>songs.json</code>. Import 900 pieśni to 900 zapisów rosnącego pliku na wątku głównym. Ta ścieżka pomija też przegląd duplikatów dostępny w oknie Import/Eksport.</p></dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Pozycja menu ma otwierać ten sam przepływ co okno Import/Eksport (analiza w tle, <code>ImportReviewSheet</code>, jeden zapis przez <code>addSongs</code>).</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="S4">
+    <div class="f-head"><span class="f-id">S4</span><h3>Eksport do folderu nadpisuje pieśni o tym samym tytule</h3><span class="chip c-med">średnia</span></div>
+    <div class="f-loc">Services/SongExporter.swift:381–388</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p>Nazwa pliku to oczyszczony tytuł. Dwie „Barki” (np. wersja z akordami i bez) dają jeden plik, a licznik wyeksportowanych i tak rośnie o dwa.</p></dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Dopisywać sufiks (<code>Barka (2).txt</code>) przy kolizji i raportować faktyczną liczbę plików.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="S5">
+    <div class="f-head"><span class="f-id">S5</span><h3>Przywracanie kopii bez walidacji i bez wycofania</h3><span class="chip c-med">średnia</span></div>
+    <div class="f-loc">Services/BackupService.swift:147–228, 131–135, 161–165</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd>
+        <ul>
+          <li>Kopiowane są wszystkie pliki z archiwum, bez listy dozwolonych nazw i bez sprawdzenia, czy <code>songs.json</code> da się zdekodować. W połączeniu z K1 uszkodzona kopia zastępuje bibliotekę przykładami.</li>
+          <li>„Migawka bezpieczeństwa” jest tworzona w katalogu tymczasowym, ale nigdzie nie jest używana ani pokazywana.</li>
+          <li>Błąd w połowie pętli zostawia mieszankę starych i nowych plików.</li>
+          <li><code>ditto</code> działa synchronicznie na wątku głównym (UI zamarza przy dużych kopiach).</li>
+        </ul>
+      </dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Rozpakować do katalogu tymczasowego, zdekodować i zweryfikować pliki, a dopiero potem podmienić cały katalog danych jedną operacją (<code>FileManager.replaceItemAt</code>). Poprzedni stan zachować jako „Cofnij przywracanie”. Proces <code>ditto</code> uruchamiać asynchronicznie.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="S6">
+    <div class="f-head"><span class="f-id">S6</span><h3>Wykrywanie kodowania: gałąź ISO-8859-2 jest martwa</h3><span class="chip c-med">średnia</span></div>
+    <div class="f-loc">Services/TextImporter.swift:130–164</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p>Dekodowanie jako Windows-1250 prawie nigdy nie zwraca <code>nil</code> (niemal każdy bajt jest poprawny), więc ISO-8859-2 i MacRoman nie są nigdy próbowane. Plik w ISO-8859-2 zostaje odczytany jako CP1250: „ą” staje się „±”, „ś” staje się „¶”.</p></dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Zdekodować wszystkimi kandydatami i wybrać wynik z największą liczbą polskich liter i najmniejszą liczbą znaków spoza alfabetu (<code>±¶¼</code>, znaki sterujące).</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="S7">
+    <div class="f-head"><span class="f-id">S7</span><h3>Pre-chorus rozpoznawany jako refren</h3><span class="chip c-med">średnia</span></div>
+    <div class="f-loc">Models/Song.swift:171–181 · Services/HolyricsImporter.swift:26</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p>Import Holyrics zamienia <code>##(Pre-Chorus)</code> na <code>[Przed-refren]</code>. W <code>parseLyrics</code> warunek <code>hLower.contains("ref")</code> jest sprawdzany przed <code>contains("pre")</code>, więc sekcja trafia do typu <code>.chorus</code> i zwiększa licznik refrenów. To samo dzieje się z nagłówkiem <code>[Pre-Chorus]</code> (zawiera „chorus”). Gałąź <code>.preChorus</code> jest nieosiągalna. Skrót „R” skacze wtedy do przedrefrenu.</p></dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Słownik nagłówków dopasowywany od najdłuższego (pre-chorus, przed-refren przed refrenem) zamiast łańcucha <code>contains</code>; regex nagłówka jako <code>static let</code>.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="S8">
+    <div class="f-head"><span class="f-id">S8</span><h3>Logo wstrzykiwane regexem i zapisywane do pliku</h3><span class="chip c-med">średnia</span></div>
+    <div class="f-loc">Services/DataStore.swift:398–416 · Views/StandbyWebView.swift:358–361, 414–425</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd>
+        <ul>
+          <li>Ta sama podmiana logo istnieje dwa razy; wersja w <code>DataStore</code> zapisuje zmodyfikowany <code>standby.html</code> na dysk. Plik jest śledzony przez git, stąd commity typu „Update runtime data”.</li>
+          <li>W szablonie zamiany escapowany jest tylko <code>$</code>, a nie <code>\</code>. Bezpieczniej użyć <code>NSRegularExpression.escapedTemplate(for:)</code>.</li>
+          <li>Prywatne klucze KVC (<code>allowFileAccessFromFileURLs</code>, <code>drawsBackground</code>) mogą przestać działać w kolejnej wersji WebKit.</li>
+        </ul>
+      </dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Wstawiać logo tylko w pamięci, przy ładowaniu, w miejsce znacznika <code>&lt;!--LOGO--&gt;</code>. Plik użytkownika nie powinien być modyfikowany. Lokalne zasoby ładować przez <code>loadFileURL(_:allowingReadAccessTo:)</code>.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="S9">
+    <div class="f-head"><span class="f-id">S9</span><h3>Wyszukiwanie „online”: fragmenty z DuckDuckGo jako tekst pieśni</h3><span class="chip c-med">średnia</span></div>
+    <div class="f-loc">Services/OnlineSearchService.swift:7–235, 325–378 · GuitarChordsService.swift:208</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd>
+        <ul>
+          <li>Wynik z wyszukiwarki ma tytuł <code>query.capitalized</code> i tekst równy 1–2 zdaniom opisu strony (linie 368, 371). Import tworzy „pieśń”, która nie jest pieśnią.</li>
+          <li>Scrapowanie HTML DuckDuckGo jest niezgodne z regulaminem serwisu i psuje się przy każdej zmianie znaczników.</li>
+          <li>Wbudowany katalog „pieśni z sieci” jest w rzeczywistości lokalny; teksty nie mają źródła i warto je zweryfikować z oryginałami.</li>
+          <li>Parametr języka nie jest przekazywany do LRCLIB.</li>
+        </ul>
+      </dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Pokazywać źródło każdego wyniku zgodnie z prawdą; wyniki z wyszukiwarki prezentować jako linki do otwarcia w przeglądarce, bez importu. Rozważyć prawa autorskie (licencja CCLI) dla tekstów pobieranych automatycznie.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="S10">
+    <div class="f-head"><span class="f-id">S10</span><h3>Lokalizacja pokrywa ok. 12% tekstów; logika zależy od polskich etykiet</h3><span class="chip c-med">średnia</span></div>
+    <div class="f-loc">Services/LocalizationService.swift · Services/DataStore.swift:316 · Models/SlideType (SongSlide.swift:3)</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd>
+        <ul>
+          <li>Około 26 wywołań <code>loc()</code> wobec ok. 190 literałów <code>Text("…")</code> po polsku. Po przełączeniu na angielski większość interfejsu zostaje po polsku.</li>
+          <li><code>loc()</code> czyta <code>DataStore.shared</code> poza obserwacją SwiftUI, więc zmiana języka nie odświeża wszystkich widoków.</li>
+          <li><code>jumpToVerse</code> szuka etykiety „Zwrotka N”, a <code>SlideType</code> zapisuje do JSON polskie wartości (<code>"Zwrotka"</code>, <code>"Refren"</code>). Zmiana tłumaczenia zmieni format danych.</li>
+        </ul>
+      </dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p>Przejść na String Catalog (<code>Localizable.xcstrings</code>) i <code>String(localized:)</code>. Do JSON zapisywać stabilne kody (<code>verse</code>, <code>chorus</code>), a numer zwrotki trzymać jako osobne pole <code>SongSlide.number</code>. Własny mechanizm importu tłumaczeń można zostawić jako nakładkę na katalog.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="S11">
+    <div class="f-head"><span class="f-id">S11</span><h3>Twarde ścieżki z komputera autora</h3><span class="chip c-med">średnia</span></div>
+    <div class="f-loc">Views/ImportExportSheet.swift:25 · App/AppDelegate.swift:105 · README.md:85, 144</div>
+    <dl class="f-body">
+      <dt>Problem</dt>
+      <dd><p><code>/Users/aoles/dev_gem/…</code> w kodzie i dokumentacji. Na innych komputerach przycisk importu przykładowego pliku jest ukryty, a „Otwórz INSTRUKCJA.md” nic nie robi.</p></dd>
+      <dt>Proponowana zmiana</dt>
+      <dd><p><code>INSTRUKCJA.md</code> i plik przykładowy dołączyć jako zasoby pakietu (<code>Bundle.module</code>); w README używać ścieżek względnych.</p></dd>
+    </dl>
+  </article>
+</section>
+
+<!-- ========================= NISKIE ========================= -->
+<section id="niskie" class="group">
+  <div class="group-head"><h2>Niskie</h2><p>Jakość kodu, utrzymanie i drobne błędy.</p></div>
+
+  <article class="finding" id="N1">
+    <div class="f-head"><span class="f-id">N1</span><h3>Zduplikowany kod renderowania slajdu i ścieżek</h3><span class="chip c-low">niska</span></div>
+    <div class="f-loc">PresentationContentView.swift:562–591 · PresentationSlidePreviewCanvas.swift:466–495 · LiveOutputView.swift:345–358 · ColorExtensions.swift</div>
+    <dl class="f-body">
+      <dt>Opis i zmiana</dt>
+      <dd><p><code>customFont</code> i trzy funkcje wyrównania są skopiowane w trzech widokach; <code>Color(hex:)</code> i <code>NSColor(hex:)</code> powtarzają parser; logika <code>data/</code> jest w pięciu miejscach. Jeden widok <code>SlideRenderer(text:settings:scale:)</code> używany przez projekcję i oba podglądy gwarantuje, że podgląd zawsze odpowiada ekranowi. Dodatkowo pomiar w <code>AutoFitEngine</code> (<code>NSFontManager.convert</code>) i render (<code>.custom(name).weight(.bold)</code>) mogą wybrać inne kroje; obie ścieżki powinny używać tego samego <code>NSFont</code> (<code>Font(nsFont)</code>).</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="N2">
+    <div class="f-head"><span class="f-id">N2</span><h3>Ustawienia typowane stringami</h3><span class="chip c-low">niska</span></div>
+    <div class="f-loc">Models/AppSettings.swift:497–509</div>
+    <dl class="f-body">
+      <dt>Opis i zmiana</dt>
+      <dd><p><code>textAlignment</code> przyjmuje <code>"center"</code>, <code>"left"</code>, ale też <code>"lewo"</code>. Enumy <code>Codable</code> (<code>HorizontalTextAlignment</code>, <code>VerticalTextAlignment</code>, <code>AppLanguage</code>) usuwają literówki i <code>switch</code> z <code>default</code>.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="N3">
+    <div class="f-head"><span class="f-id">N3</span><h3>Regex kompilowany w pętli</h3><span class="chip c-low">niska</span></div>
+    <div class="f-loc">Models/Song.swift:143 · HolyricsImporter.swift:31 · GuitarChordsService.swift:96</div>
+    <dl class="f-body">
+      <dt>Opis i zmiana</dt>
+      <dd><p><code>NSRegularExpression</code> jest tworzony dla każdego bloku tekstu i każdego pliku. Przenieść do <code>static let</code>; przy imporcie setek pieśni to wyraźny zysk.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="N4">
+    <div class="f-head"><span class="f-id">N4</span><h3>Dyktowanie: podwójny callback i mylący komentarz</h3><span class="chip c-low">niska</span></div>
+    <div class="f-loc">Services/DictationService.swift:112–115, 146–150, 175–190</div>
+    <dl class="f-body">
+      <dt>Opis i zmiana</dt>
+      <dd><p>Przy wyniku końcowym <code>finalHandler</code> wywoływany jest dwa razy (bezpośrednio i w <code>stopDictation</code>). Obecny handler jest idempotentny, ale to pułapka na przyszłość. Komentarz mówi o włączeniu rozpoznawania na urządzeniu, a kod ustawia <code>requiresOnDeviceRecognition = false</code>, więc dyktowany tekst może trafiać na serwery Apple. Warto to opisać w ustawieniach jako świadomy wybór.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="N5">
+    <div class="f-head"><span class="f-id">N5</span><h3>Import Holyrics: tonacja nie jest odczytywana, XML parsowany regexem</h3><span class="chip c-low">niska</span></div>
+    <div class="f-loc">Services/HolyricsJavaDeserializer.swift:308–317 · HolyricsImporter.swift:296–353, 364–368</div>
+    <dl class="f-body">
+      <dt>Opis i zmiana</dt>
+      <dd><p><code>RawMusicRecord.key</code> nigdy nie jest przypisywany (brak przypadku w <code>switch</code>), więc import z <code>.mufl</code> zawsze daje pustą tonację. XML jest wycinany regexem bez dekodowania encji (<code>&amp;amp;</code> zostaje w tekście); <code>XMLParser</code> lub parser OpenLyrics rozwiąże to poprawnie. Przy <code>unzip</code>: <code>try? process.run()</code> a potem <code>waitUntilExit()</code> na procesie, który mógł nie wystartować.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="N6">
+    <div class="f-head"><span class="f-id">N6</span><h3>Przestarzałe API</h3><span class="chip c-low">niska</span></div>
+    <div class="f-loc">TextImporter.swift:261 · ImportExportSheet.swift:422 · ScreenManager.swift:188 · AppDelegate.swift:16</div>
+    <dl class="f-body">
+      <dt>Opis i zmiana</dt>
+      <dd><p><code>allowedFileTypes</code> → <code>allowedContentTypes</code> (z własnymi <code>UTType</code> dla <code>.mufl</code> i <code>.cantatebackup</code> w Info.plist); <code>NSApp.activate(ignoringOtherApps:)</code> → <code>NSApp.activate()</code> na macOS 14.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="N7">
+    <div class="f-head"><span class="f-id">N7</span><h3>Ciche połykanie błędów zapisu</h3><span class="chip c-low">niska</span></div>
+    <div class="f-loc">DataStore.swift:110–112, 139–141, 159–161 · LocalizationService.swift:540</div>
+    <dl class="f-body">
+      <dt>Opis i zmiana</dt>
+      <dd><p>Zapis danych to <code>try?</code>. Pełny dysk albo brak uprawnień (patrz K2) oznacza, że zmiany po cichu przepadają. Zapisy powinny rzucać błąd, logować przez <code>os.Logger</code> i pokazywać nieblokujący baner w oknie głównym.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="N8">
+    <div class="f-head"><span class="f-id">N8</span><h3>Indeks deduplikacji nieaktualizowany po zamianie</h3><span class="chip c-low">niska</span></div>
+    <div class="f-loc">Services/SongDeduplicationService.swift:136–146, 173–177</div>
+    <dl class="f-body">
+      <dt>Opis i zmiana</dt>
+      <dd><p>Gdy duplikat z lepszymi metadanymi zastępuje oryginał, jego tytuł i początek tekstu nie są dopisywane do słowników, więc kolejne kopie mogą przejść niezauważone. Przy kolizji z biblioteką <code>libTitleMap</code> trzyma tylko ostatnią pieśń o danym tytule.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="N9">
+    <div class="f-head"><span class="f-id">N9</span><h3>Higiena repozytorium</h3><span class="chip c-low">niska</span></div>
+    <div class="f-loc">2026-10-14_16-19-00.mufl · test_kompasje_search3.swift · data/*.json · Models/ENDLogoAsset.swift</div>
+    <dl class="f-body">
+      <dt>Opis i zmiana</dt>
+      <dd>
+        <ul>
+          <li>Prywatna baza Holyrics (884 KB) w katalogu głównym: teksty mogą być objęte prawami autorskimi. Usunąć z repozytorium (i rozważyć usunięcie z historii).</li>
+          <li>Skrypt eksperymentalny <code>test_kompasje_search3.swift</code> w katalogu głównym przenieść do <code>scripts/</code> albo usunąć.</li>
+          <li>Pliki runtime (<code>songs.json</code>, <code>plans.json</code>, <code>settings.json</code>) są śledzone i zmieniają się przy każdym uruchomieniu.</li>
+          <li>PNG zapisany jako 50 KB base64 w pliku Swift: zamienić na zasób SwiftPM.</li>
+        </ul>
+      </dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="N10">
+    <div class="f-head"><span class="f-id">N10</span><h3>Skrypty budowania ukrywają błędy, wersja w trzech miejscach</h3><span class="chip c-low">niska</span></div>
+    <div class="f-loc">build_app.sh:68 · build_installer.sh:7 · LiveOutputView.swift:100 · StandbyWebView.swift:90</div>
+    <dl class="f-body">
+      <dt>Opis i zmiana</dt>
+      <dd><p><code>codesign … || true</code> ukrywa nieudany podpis; <code>--deep</code> jest odradzane przez Apple. Wersja „1.0.0” jest wpisana w skryptach i w dwóch widokach. Jedno źródło (<code>VERSION</code> lub Info.plist) i odczyt przez <code>Bundle.main.infoDictionary</code>.</p></dd>
+    </dl>
+  </article>
+
+  <article class="finding" id="N11">
+    <div class="f-head"><span class="f-id">N11</span><h3>Po „szybkim tekście” następna pieśń to pierwsza z planu</h3><span class="chip c-low">niska</span></div>
+    <div class="f-loc">Services/DataStore.swift:345–364</div>
+    <dl class="f-body">
+      <dt>Opis i zmiana</dt>
+      <dd><p>Tymczasowej pieśni nie ma w planie, więc przejście do następnej pieśni zaczyna plan od początku. Lepiej zapamiętać pozycję w planie sprzed wyświetlenia ogłoszenia i kontynuować od niej.</p></dd>
+    </dl>
+  </article>
+</section>
+
+<!-- ========================= ULEPSZENIA ========================= -->
+<section id="ulepszenia" style="display:flex;flex-direction:column;gap:22px;">
+  <div class="prose">
+    <span class="eyebrow">Poza listą błędów</span>
+    <h2>Co jeszcze bym ulepszył</h2>
+    <p>Poniższe punkty nie są błędami, ale wyraźnie podniosą niezawodność i wygodę rozwoju.</p>
+  </div>
+  <div class="roadmap">
+    <div class="road-item">
+      <h3>Architektura</h3>
+      <ul>
+        <li>Zamiast singletonów (<code>DataStore.shared</code>, <code>ScreenManager.shared</code>) wstrzykiwać zależności przez środowisko SwiftUI. Bez tego kodu nie da się sensownie testować.</li>
+        <li>Warstwa <code>Repository</code> odpowiedzialna za zapis, migracje schematu i kopie; widoki nie powinny znać plików JSON.</li>
+        <li>Przy rosnącej bibliotece rozważyć SQLite (np. GRDB z FTS5 do wyszukiwania pełnotekstowego) albo SwiftData.</li>
+        <li>Tryb języka Swift 6 ze ścisłą współbieżnością: usunie dziesiątki ręcznych <code>Task { @MainActor in … }</code> i wyłapie błędy jak W2 na etapie kompilacji.</li>
+      </ul>
+    </div>
+    <div class="road-item">
+      <h3>Testy</h3>
+      <ul>
+        <li>Projekt nie ma żadnego celu testowego. Pierwsze testy (Swift Testing): <code>Song.parseLyrics</code>, <code>transpose</code>, deserializer <code>.mufl</code> na plikach z <code>data/holyrics_samples</code>, wykrywanie kodowania, deduplikacja, zgodność wstecz dekoderów modeli.</li>
+        <li>Testy migawkowe <code>SlideRenderer</code> w kilku rozdzielczościach, żeby Auto-Fit nie zaczął obcinać tekstu po zmianie.</li>
+      </ul>
+    </div>
+    <div class="road-item">
+      <h3>CI i dystrybucja</h3>
+      <ul>
+        <li>GitHub Actions na <code>macos-14</code>: <code>swift build</code>, <code>swift test</code>, SwiftLint i SwiftFormat przy każdym PR.</li>
+        <li>Podpis Developer ID i notaryzacja (<code>notarytool</code>). Obecny podpis ad-hoc sprawia, że Gatekeeper blokuje aplikację na innych Macach.</li>
+        <li>Automatyczne aktualizacje przez Sparkle; wersja i build ustawiane z tagu git.</li>
+        <li>Projekt Xcode lub <code>Package.swift</code> z zasobami (<code>resources: [.process("Resources")]</code>) zamiast ręcznie składanego pakietu .app.</li>
+      </ul>
+    </div>
+    <div class="road-item">
+      <h3>Niezawodność na żywo</h3>
+      <ul>
+        <li>Cofanie (<code>UndoManager</code>) dla usuwania i edycji pieśni oraz planów; potwierdzenie usunięcia pieśni użytej w planie.</li>
+        <li>Klawisz „panika” natychmiast wygaszający ekran, działający zawsze, także przy otwartym arkuszu.</li>
+        <li>Wskaźnik w oknie głównym, gdy projektor zniknie (S1), oraz automatyczny powrót.</li>
+        <li>Autozapis szkicu w edytorze pieśni.</li>
+      </ul>
+    </div>
+    <div class="road-item">
+      <h3>Funkcje</h3>
+      <ul>
+        <li>Monitor sceniczny dla muzyków: drugi ekran z bieżącym i następnym slajdem oraz akordami.</li>
+        <li>Zdalne sterowanie z telefonu (lokalny serwer WWW z Bonjour), np. dla lidera uwielbienia.</li>
+        <li>Motywy per pieśń: tło (obraz, wideo), krój, kolor; płynne przejścia między slajdami.</li>
+        <li>Wyjście NDI lub Syphon dla transmisji online.</li>
+        <li>Eksport i import OpenLyrics, OpenSong, ProPresenter; raportowanie CCLI.</li>
+        <li>Kolejność sekcji (np. Z1 R Z2 R) bez powielania tekstu refrenu.</li>
+      </ul>
+    </div>
+    <div class="road-item">
+      <h3>Dostępność i UI</h3>
+      <ul>
+        <li>Etykiety VoiceOver dla przycisków z samą ikoną (np. <code>gearshape</code>, <code>stop.fill</code>).</li>
+        <li>Ostrzeżenie o zbyt niskim kontraście kolorów tekstu i tła projekcji w Ustawieniach.</li>
+        <li>Rzeczywisty postęp importu zamiast wartości ustawianych na sztywno (0,35, 0,65).</li>
+      </ul>
+    </div>
+    <div class="road-item">
+      <h3>Dokumentacja</h3>
+      <ul>
+        <li>README: usunąć ścieżki lokalne i nazwę „Holyrics Mac”; dodać krótki opis architektury, <code>CONTRIBUTING.md</code>, <code>CHANGELOG.md</code> i licencję.</li>
+        <li>Opis formatu plików danych i polityki migracji schematu.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= PLAN ========================= -->
+<section id="plan" style="display:flex;flex-direction:column;gap:18px;">
+  <div class="prose">
+    <span class="eyebrow">Kolejność prac</span>
+    <h2>Plan wdrożenia</h2>
+    <p>Kolejność wynika z ryzyka dla użytkownika: najpierw dane i zachowanie w trakcie nabożeństwa, potem integracje, na końcu refaktoryzacja.</p>
+  </div>
+  <div class="phases">
+    <div class="phase">
+      <span class="when">Etap 1 · najpierw</span>
+      <h3>Dane i klawiatura</h3>
+      <ol>
+        <li>K1: bezpieczny odczyt, kwarantanna, kopie rotacyjne</li>
+        <li>K2: <code>AppPaths</code> i migracja do Application Support</li>
+        <li>K3 + W5: jeden <code>KeyboardRouter</code></li>
+        <li>W1: menu Edycja</li>
+        <li>W8: unikalne UUID przy imporcie</li>
+        <li>Cel testowy z testami K1 i W8</li>
+      </ol>
+    </div>
+    <div class="phase">
+      <span class="when">Etap 2 · potem</span>
+      <h3>Kopie i importy</h3>
+      <ol>
+        <li>W2: backup przy zamykaniu przez <code>.terminateLater</code></li>
+        <li>W3 + W4: OAuth z PKCE, tokeny w Pęku kluczy</li>
+        <li>W6: zabezpieczenia deserializera i testy na uszkodzonych plikach</li>
+        <li>W7 + S7: akordy i nagłówki sekcji z testami</li>
+        <li>S3, S4, S5, S6</li>
+      </ol>
+    </div>
+    <div class="phase">
+      <span class="when">Etap 3 · w tle</span>
+      <h3>Jakość i rozwój</h3>
+      <ol>
+        <li>S2: <code>@Observable</code>, podział stanu, cache wyszukiwania</li>
+        <li>N1: wspólny <code>SlideRenderer</code></li>
+        <li>S10: String Catalog</li>
+        <li>CI, notaryzacja, Sparkle</li>
+        <li>Porządki w repozytorium (N9, N10, S11)</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Raport przygotowany na podstawie statycznej analizy kodu z gałęzi <span class="mono">claude/wonderful-mendel-t6wwto</span> (commit <span class="mono">1069375</span>). Wiersze w lokalizacjach odnoszą się do tego commita. Zachowanie zależne od środowiska uruchomieniowego (W2, K3) wynika z analizy kodu i warto je potwierdzić na Macu przed wdrożeniem poprawek.
+</footer>
+
+</div>

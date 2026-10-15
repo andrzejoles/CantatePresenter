@@ -156,11 +156,13 @@ CantatePresenter/
 │   ├── standby.html       # Szablon planszy czuwania z aktywnym logo SVG
 │   └── templates/         # Wzorcowe szablony tłumaczeń JSON dla AI
 ├── przykladowe_piesni/    # Przykładowe pliki .txt do importu
-└── Sources/CantatePresenter/ # Kod źródłowy w Swift
-    ├── App/               # Cykl życia aplikacji i menu systemowe
-    ├── Models/            # Modele danych (Song, SongSlide, ServicePlan, LogoPreset)
-    ├── Services/          # Silnik Auto-Fit, Importer Holyrics, Akordy, Tłumaczenia
-    ├── Views/             # Widoki SwiftUI (Main, List, Slides, Live, Editor, Sheets)
-    └── Helpers/           # Skalowanie UI i obsługa kolorów
+├── Sources/CantatePresenter/ # main.swift (start aplikacji)
+├── Sources/CantatePresenterCore/ # Kod źródłowy w Swift
+│   ├── App/               # Cykl życia aplikacji i menu systemowe
+│   ├── Models/            # Modele danych (Song, SongSlide, ServicePlan, LogoPreset)
+│   ├── Services/          # Silnik Auto-Fit, Importer Holyrics, Akordy, Tłumaczenia
+│   ├── Views/             # Widoki SwiftUI (Main, List, Slides, Live, Editor, Sheets)
+│   └── Helpers/           # Skalowanie UI i obsługa kolorów
+└── Tests/CantatePresenterCoreTests/ # Testy (swift test)
 ```
 

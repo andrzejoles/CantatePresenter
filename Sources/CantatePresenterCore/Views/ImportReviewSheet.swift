@@ -11,6 +11,7 @@ public struct ImportReviewSheet: View {
     @State private var selectedTab: Int = 0 // 0: Wzbogacone, 1: Duplikaty, 2: Kolizje, 3: Wszystkie, 4: Chwyty
     @State private var searchQuery: String = ""
     @State private var duplicateSkipMap: [UUID: Bool] = [:]
+    @State private var collisionSkipMap: [UUID: Bool] = [:]
     @State private var songForChordsSearch: Song?
     @State private var isShowingChordsModal: Bool = false
     @State private var workingSongs: [Song] = []
@@ -62,14 +63,12 @@ public struct ImportReviewSheet: View {
         }
     }
     
+    private var songsToCommit: [Song] {
+        report.songsToCommit(workingSongs: workingSongs, duplicateSkips: duplicateSkipMap, collisionSkips: collisionSkipMap)
+    }
+    
     private var songsToImportCount: Int {
-        var count = workingSongs.count
-        for d in report.duplicateRecords {
-            if duplicateSkipMap[d.id] == false {
-                count += 1
-            }
-        }
-        return count
+        songsToCommit.count
     }
     
     public var body: some View {
@@ -259,7 +258,14 @@ public struct ImportReviewSheet: View {
                     ScrollView {
                         LazyVStack(spacing: 8) {
                             ForEach(report.existingCollisions) { item in
-                                CollisionRowView(record: item, scale: scale)
+                                CollisionRowView(
+                                    record: item,
+                                    isSkipped: Binding(
+                                        get: { collisionSkipMap[item.id] ?? item.shouldSkipDuplicate },
+                                        set: { collisionSkipMap[item.id] = $0 }
+                                    ),
+                                    scale: scale
+                                )
                             }
                         }
                         .padding(16)
@@ -348,17 +354,7 @@ public struct ImportReviewSheet: View {
     }
     
     private func commitImport() {
-        var finalSongs = workingSongs
-        
-        for d in report.duplicateRecords {
-            if duplicateSkipMap[d.id] == false {
-                var copy = d.duplicateSong
-                copy.title = "\(copy.title) (wersja alternatywna)"
-                finalSongs.append(copy)
-            }
-        }
-        
-        onCommit(finalSongs)
+        onCommit(songsToCommit)
     }
 }
 
@@ -586,6 +582,7 @@ private struct DuplicateRowView: View {
 
 private struct CollisionRowView: View {
     let record: DuplicateRecord
+    @Binding var isSkipped: Bool
     let scale: CGFloat
     
     var body: some View {
@@ -600,6 +597,9 @@ private struct CollisionRowView: View {
                     .foregroundColor(.secondary)
             }
             Spacer()
+            Toggle("Pomiń (jest w bibliotece)", isOn: $isSkipped)
+                .toggleStyle(.checkbox)
+                .font(.scaled(10, scale: scale))
         }
         .padding(10)
         .background(Color.yellow.opacity(0.08))

@@ -40,6 +40,48 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
         self.updatedAt = updatedAt
     }
     
+    // MARK: - Codable
+    // Tolerancyjny dekoder: brakujące pola dostają wartości domyślne, więc nowe pola
+    // dodane w przyszłości nie spowodują, że stara biblioteka przestanie się wczytywać (K1).
+    private enum CodingKeys: String, CodingKey {
+        case id, title, author, key, tags, rawLyrics, chords, slides, createdAt, updatedAt
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        self.title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
+        self.author = try container.decodeIfPresent(String.self, forKey: .author) ?? ""
+        self.key = try container.decodeIfPresent(String.self, forKey: .key) ?? ""
+        self.tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
+        self.rawLyrics = try container.decodeIfPresent(String.self, forKey: .rawLyrics) ?? ""
+        self.chords = try container.decodeIfPresent(String.self, forKey: .chords)
+        let slides = try container.decodeIfPresent([SongSlide].self, forKey: .slides) ?? []
+        self.slides = slides.isEmpty && !rawLyrics.isEmpty ? Song.parseLyrics(rawLyrics) : slides
+        self.createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        self.updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? createdAt
+    }
+    
+    // MARK: - Unique Identifiers
+    /// Nadaje nowe id (pieśni i jej slajdom) pieśniom, których id jest już zajęte w `existing`
+    /// albo powtarza się wcześniej w `songs`. Pozostałe pieśni zostają bez zmian (W8).
+    public static func assigningUniqueIdentifiers(_ songs: [Song], existing: Set<UUID>) -> [Song] {
+        var used = existing
+        return songs.map { song in
+            var song = song
+            if used.contains(song.id) {
+                song.id = UUID()
+                song.slides = song.slides.map { slide in
+                    var slide = slide
+                    slide.id = UUID()
+                    return slide
+                }
+            }
+            used.insert(song.id)
+            return song
+        }
+    }
+    
     // MARK: - Search matching with Polish diacritics folding
     public static func foldString(_ string: String) -> String {
         return string
