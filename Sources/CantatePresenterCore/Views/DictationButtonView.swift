@@ -46,7 +46,7 @@ public struct DictationButtonView: View {
                         .foregroundColor(.red)
                         .font(.system(size: size, weight: .bold))
                     
-                    Text("Dyktuję...")
+                    Text(L("Dyktuję..."))
                         .font(.system(size: max(9, size - 2), weight: .semibold))
                         .foregroundColor(.red)
                 } else {
@@ -61,7 +61,7 @@ public struct DictationButtonView: View {
             .cornerRadius(5)
         }
         .buttonStyle(PlainButtonStyle())
-        .help(isThisButtonRecording ? "Kliknij, aby zakończyć dyktowanie" : (customPrompt ?? "Dyktuj głosowo (\(dictationLanguageName))"))
+        .help(isThisButtonRecording ? L("Kliknij, aby zakończyć dyktowanie") : (customPrompt ?? L("Dyktuj głosowo ({0})", dictationLanguageName)))
         .onChange(of: dictationService.isRecording) { _, isRec in
             if !isRec && isThisButtonRecording {
                 isThisButtonRecording = false
@@ -76,7 +76,7 @@ public struct DictationButtonView: View {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.orange)
-                    Text("Problem z dyktowaniem")
+                    Text(L("Problem z dyktowaniem"))
                         .font(.headline)
                 }
                 Text(dictationService.errorMessage ?? "")

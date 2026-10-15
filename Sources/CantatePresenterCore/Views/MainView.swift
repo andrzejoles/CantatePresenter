@@ -30,7 +30,7 @@ public struct MainView: View {
                     Image(systemName: "music.quarternote.3")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.blue)
-                    Text(loc(.appTitle))
+                    Text(L("CantatePresenter"))
                         .font(.scaled(14, weight: .bold, scale: scale))
                 }
                 
@@ -40,7 +40,7 @@ public struct MainView: View {
                         Circle()
                             .fill(Color.green)
                             .frame(width: 8, height: 8)
-                        Text(loc(.projectorActive))
+                        Text(L("Projektor: Aktywny"))
                             .font(.scaled(10, weight: .bold, scale: scale))
                             .foregroundColor(.green)
                     }
@@ -53,7 +53,7 @@ public struct MainView: View {
                         Circle()
                             .fill(Color.blue)
                             .frame(width: 8, height: 8)
-                        Text(loc(.testWindowActive))
+                        Text(L("Okno testowe"))
                             .font(.scaled(10, weight: .bold, scale: scale))
                             .foregroundColor(.blue)
                     }
@@ -68,21 +68,21 @@ public struct MainView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "bolt.fill")
                             .font(.system(size: 11))
-                        Text("Szybki tekst")
+                        Text(L("Szybki tekst"))
                             .font(.scaled(11, weight: .semibold, scale: scale))
                     }
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.orange)
                 .controlSize(.small)
-                .help("Wyświetl natychmiast dowolny tekst lub ogłoszenie bez zapisywania w bazie (⌘T)")
+                .help(L("Wyświetl natychmiast dowolny tekst lub ogłoszenie bez zapisywania w bazie (⌘T)"))
                 .keyboardShortcut("t", modifiers: [.command])
                 
                 Spacer()
                 
                 // UI Scale Controls (Essential requirement)
                 HStack(spacing: 4) {
-                    Text("\(loc(.uiScale)):")
+                    Text("\(L("Rozmiar UI")):")
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                     
@@ -92,7 +92,7 @@ public struct MainView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help("Zmniejsz rozmiar interfejsu (Cmd -)")
+                    .help(L("Zmniejsz rozmiar interfejsu (Cmd -)"))
                     
                     Button(action: { store.resetZoomUI() }) {
                         Text("\(Int(store.settings.uiScale * 100))%")
@@ -100,7 +100,7 @@ public struct MainView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help("Przywróć 100% rozmiaru (Cmd 0)")
+                    .help(L("Przywróć 100% rozmiaru (Cmd 0)"))
                     
                     Button(action: { store.zoomInUI() }) {
                         Image(systemName: "textformat.size.larger")
@@ -108,7 +108,7 @@ public struct MainView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help("Zwiększ rozmiar interfejsu (Cmd +)")
+                    .help(L("Zwiększ rozmiar interfejsu (Cmd +)"))
                 }
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
@@ -125,7 +125,7 @@ public struct MainView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .help("Ustawienia wyglądu i prezentacji")
+                .help(L("Ustawienia wyglądu i prezentacji"))
                 
                 // User Manual button
                 Button(action: {
@@ -136,7 +136,7 @@ public struct MainView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .help("Instrukcja obsługi CantatePresenter (Cmd ?)")
+                .help(L("Instrukcja obsługi CantatePresenter (Cmd ?)"))
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
@@ -150,8 +150,8 @@ public struct MainView: View {
                 VStack(spacing: 0) {
                     // Tab Picker
                     Picker("", selection: $selectedLeftTab) {
-                        Text(loc(.libraryTab)).tag(0)
-                        Text(loc(.planTab)).tag(1)
+                        Text(L("Biblioteka pieśni")).tag(0)
+                        Text(L("Plan nabożeństwa")).tag(1)
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .padding(8)
@@ -241,11 +241,11 @@ public struct MainView: View {
             presenting: store.persistenceIssues.first
         ) { issue in
             if let copy = issue.quarantinedCopy {
-                Button("Pokaż w Finderze") {
+                Button(L("Pokaż w Finderze")) {
                     NSWorkspace.shared.activateFileViewerSelecting([copy])
                 }
             }
-            Button("OK", role: .cancel) {}
+            Button(L("OK"), role: .cancel) {}
         } message: { issue in
             Text(issue.message)
         }

@@ -22,7 +22,7 @@ public struct ShortcutLegendBarView: View {
                         Image(systemName: "command")
                             .font(.system(size: round(11 * heightFactor), weight: .bold))
                             .foregroundColor(.secondary)
-                        Text("SKRÓTY:")
+                        Text(L("SKRÓTY:"))
                             .font(.scaled(round(9 * heightFactor), weight: .bold, scale: scale))
                             .foregroundColor(.secondary)
                     }
@@ -36,7 +36,7 @@ public struct ShortcutLegendBarView: View {
                         iconName: "chevron.left.circle.fill",
                         iconColor: .blue,
                         keyCapText: shortKeyName(for: shortcuts.prevSlideKey),
-                        label: loc(.prevSlide),
+                        label: L("Poprzedni"),
                         scale: scale,
                         heightFactor: heightFactor,
                         action: { store.prevSlide() }
@@ -47,7 +47,7 @@ public struct ShortcutLegendBarView: View {
                         iconName: "chevron.right.circle.fill",
                         iconColor: .blue,
                         keyCapText: shortKeyName(for: shortcuts.nextSlideKey),
-                        label: loc(.nextSlide),
+                        label: L("Następny"),
                         scale: scale,
                         heightFactor: heightFactor,
                         action: { store.nextSlide() }
@@ -61,7 +61,7 @@ public struct ShortcutLegendBarView: View {
                         iconName: "music.note",
                         iconColor: .orange,
                         keyCapText: "R",
-                        label: loc(.chorus),
+                        label: L("Refren"),
                         scale: scale,
                         heightFactor: heightFactor,
                         action: { store.jumpToChorus() }
@@ -72,7 +72,7 @@ public struct ShortcutLegendBarView: View {
                         iconName: "text.list.number",
                         iconColor: .purple,
                         keyCapText: "1 – 9",
-                        label: loc(.verse),
+                        label: L("Zwrotka"),
                         scale: scale,
                         heightFactor: heightFactor
                     )
@@ -85,7 +85,7 @@ public struct ShortcutLegendBarView: View {
                         iconName: "moon.fill",
                         iconColor: store.isBlackScreen ? .red : .primary,
                         keyCapText: shortKeyName(for: shortcuts.blackScreenKey),
-                        label: loc(.blackScreen),
+                        label: L("Czarny"),
                         scale: scale,
                         heightFactor: heightFactor,
                         isActive: store.isBlackScreen,
@@ -97,7 +97,7 @@ public struct ShortcutLegendBarView: View {
                         iconName: "eye.slash.fill",
                         iconColor: store.isClearText ? .orange : .primary,
                         keyCapText: shortKeyName(for: shortcuts.clearTextKey),
-                        label: loc(.clearText),
+                        label: L("Czysty"),
                         scale: scale,
                         heightFactor: heightFactor,
                         isActive: store.isClearText,
@@ -112,7 +112,7 @@ public struct ShortcutLegendBarView: View {
                         iconName: "backward.end.alt.fill",
                         iconColor: .teal,
                         keyCapText: shortKeyName(for: shortcuts.prevSongKey),
-                        label: loc(.prevSong),
+                        label: L("Poprz. pieśń"),
                         scale: scale,
                         heightFactor: heightFactor,
                         action: { store.prevSongInPlan() }
@@ -123,7 +123,7 @@ public struct ShortcutLegendBarView: View {
                         iconName: "forward.end.alt.fill",
                         iconColor: .teal,
                         keyCapText: shortKeyName(for: shortcuts.nextSongKey),
-                        label: loc(.nextSong),
+                        label: L("Nast. pieśń"),
                         scale: scale,
                         heightFactor: heightFactor,
                         action: { store.nextSongInPlan() }
@@ -137,7 +137,7 @@ public struct ShortcutLegendBarView: View {
                         iconName: "play.circle.fill",
                         iconColor: .green,
                         keyCapText: shortKeyName(for: shortcuts.startPresentationKey),
-                        label: loc(.present),
+                        label: L("Prezentuj"),
                         scale: scale,
                         heightFactor: heightFactor,
                         action: {
@@ -152,7 +152,7 @@ public struct ShortcutLegendBarView: View {
                         iconName: "bolt.fill",
                         iconColor: .orange,
                         keyCapText: "⌘T",
-                        label: "Szybki tekst",
+                        label: L("Szybki tekst"),
                         scale: scale,
                         heightFactor: heightFactor,
                         action: {
@@ -165,7 +165,7 @@ public struct ShortcutLegendBarView: View {
                         iconName: "stop.circle.fill",
                         iconColor: .gray,
                         keyCapText: shortKeyName(for: shortcuts.stopPresentationKey),
-                        label: loc(.standby),
+                        label: L("Standby"),
                         scale: scale,
                         heightFactor: heightFactor,
                         action: {
@@ -195,7 +195,7 @@ public struct ShortcutLegendBarView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.mini)
-                .help("Zmniejsz wysokość paska")
+                .help(L("Zmniejsz wysokość paska"))
                 
                 Button(action: {
                     store.settings.bottomBarHeight = 72.0
@@ -206,7 +206,7 @@ public struct ShortcutLegendBarView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.mini)
-                .help("Kliknij, aby przywrócić domyślną wysokość (72px)")
+                .help(L("Kliknij, aby przywrócić domyślną wysokość (72px)"))
                 
                 Button(action: {
                     store.settings.bottomBarHeight = min(160, store.settings.bottomBarHeight + 10)
@@ -218,7 +218,7 @@ public struct ShortcutLegendBarView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.mini)
-                .help("Zwiększ wysokość paska")
+                .help(L("Zwiększ wysokość paska"))
             }
             .padding(.trailing, 10)
             .padding(.leading, 4)
@@ -229,7 +229,7 @@ public struct ShortcutLegendBarView: View {
     
     private func shortKeyName(for code: UInt16) -> String {
         switch code {
-        case 49: return "Spacja"
+        case 49: return L("Spacja")
         case 124: return "→"
         case 123: return "←"
         case 125: return "↓"
@@ -320,6 +320,6 @@ public struct KeyboardShortcutItemView: View {
         .onHover { hovering in
             isHovered = hovering
         }
-        .help(action != nil ? "Kliknij lub naciśnij \(keyCapText)" : label)
+        .help(action != nil ? L("Kliknij lub naciśnij {0}", keyCapText) : label)
     }
 }

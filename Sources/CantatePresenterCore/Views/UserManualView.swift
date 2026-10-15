@@ -33,160 +33,160 @@ public struct UserManualView: View {
     private let sections: [UserManualSection] = [
         UserManualSection(
             id: "intro",
-            title: "1. Wprowadzenie",
+            title: L("1. Wprowadzenie"),
             icon: "sparkles",
             content: [
                 ManualParagraph(
-                    heading: "O programie CantatePresenter",
-                    body: "CantatePresenter to profesjonalne narzędzie macOS stworzone dla wspólnot, zespołów muzycznych, parafii oraz Ruchu Equipes Notre-Dame (END). Umożliwia prezentację słów pieśni, chwytów gitarowych i slajdów liturgicznych.",
-                    tip: "Aplikacja jest w 100% natywna dla Apple Silicon (M1–M5), co zapewnia natychmiastowe działanie i znikome zużycie baterii."
+                    heading: L("O programie CantatePresenter"),
+                    body: L("CantatePresenter to profesjonalne narzędzie macOS stworzone dla wspólnot, zespołów muzycznych, parafii oraz Ruchu Equipes Notre-Dame (END). Umożliwia prezentację słów pieśni, chwytów gitarowych i slajdów liturgicznych."),
+                    tip: L("Aplikacja jest w 100% natywna dla Apple Silicon (M1–M5), co zapewnia natychmiastowe działanie i znikome zużycie baterii.")
                 ),
                 ManualParagraph(
-                    heading: "Układ trzypanelowy",
-                    body: "• Lewy panel: Biblioteka pieśni z wyszukiwarką oraz Plany nabożeństw.\n• Środkowy panel: Podgląd slajdów wybranej pieśni wraz z chwytami gitarowymi.\n• Prawy panel (Live Monitor): Podgląd stanu rzutnika na żywo, podgląd następnego slajdu i kontrola monitorów."
+                    heading: L("Układ trzypanelowy"),
+                    body: L("• Lewy panel: Biblioteka pieśni z wyszukiwarką oraz Plany nabożeństw.\n• Środkowy panel: Podgląd slajdów wybranej pieśni wraz z chwytami gitarowymi.\n• Prawy panel (Live Monitor): Podgląd stanu rzutnika na żywo, podgląd następnego slajdu i kontrola monitorów.")
                 )
             ]
         ),
         UserManualSection(
             id: "presentation",
-            title: "2. Prezentacja i Ekrany",
+            title: L("2. Prezentacja i Ekrany"),
             icon: "display",
             content: [
                 ManualParagraph(
-                    heading: "Prezentacja na projektorze lub monitorze",
-                    body: "Wybierz docelowy monitor w prawym panelu i kliknij 'Prezentuj na pełnym ekranie'. Kliknięcie w dowolny slajd włącza projekcję na żywo.",
-                    tip: "Możesz także otworzyć 'Okno testowe' w prawym panelu, aby testować wygląd slajdów bez podłączania projektora."
+                    heading: L("Prezentacja na projektorze lub monitorze"),
+                    body: L("Wybierz docelowy monitor w prawym panelu i kliknij 'Prezentuj na pełnym ekranie'. Kliknięcie w dowolny slajd włącza projekcję na żywo."),
+                    tip: L("Możesz także otworzyć 'Okno testowe' w prawym panelu, aby testować wygląd slajdów bez podłączania projektora.")
                 ),
                 ManualParagraph(
-                    heading: "Prezentacja na jednym ekranie & Wyjście ESC",
-                    body: "Gdy podłączony jest tylko 1 ekran, prezentacja uruchamia się w trybie pełnoekranowym na Twoim Macu. Naciśnij w dowolnym momencie klawisz ESC, aby natychmiast wrócić do aplikacji.",
+                    heading: L("Prezentacja na jednym ekranie & Wyjście ESC"),
+                    body: L("Gdy podłączony jest tylko 1 ekran, prezentacja uruchamia się w trybie pełnoekranowym na Twoim Macu. Naciśnij w dowolnym momencie klawisz ESC, aby natychmiast wrócić do aplikacji."),
                     shortcuts: [
-                        ("ESC", "Natychmiastowe wyjście z pełnego ekranu"),
-                        ("Spacja / → / ↓ / Page Down / Enter", "Przejście do następnego slajdu"),
-                        ("← / ↑ / Page Up", "Przejście do poprzedniego slajdu"),
-                        ("B", "Czarny ekran (Black Screen)"),
-                        ("C", "Ukrycie tekstu (Clear Text)")
+                        ("ESC", L("Natychmiastowe wyjście z pełnego ekranu")),
+                        (L("Spacja / → / ↓ / Page Down / Enter"), L("Przejście do następnego slajdu")),
+                        (L("← / ↑ / Page Up"), L("Przejście do poprzedniego slajdu")),
+                        ("B", L("Czarny ekran (Black Screen)")),
+                        ("C", L("Ukrycie tekstu (Clear Text)"))
                     ]
                 )
             ]
         ),
         UserManualSection(
             id: "standby",
-            title: "3. Plansza Czuwania i Logo",
+            title: L("3. Plansza Czuwania i Logo"),
             icon: "photo.badge.checkmark",
             content: [
                 ManualParagraph(
-                    heading: "Plansza czuwania (Standby)",
-                    body: "Gdy nie trwa prezentacja pieśni, na rzutniku widoczna jest elegancka plansza czuwania z nazwą programu 'CantatePresenter', wersją, zegarem i wybranym logo.",
-                    tip: "Plansza aktualizuje się automatycznie przy każdej zmianie logo w Ustawieniach."
+                    heading: L("Plansza czuwania (Standby)"),
+                    body: L("Gdy nie trwa prezentacja pieśni, na rzutniku widoczna jest elegancka plansza czuwania z nazwą programu 'CantatePresenter', wersją, zegarem i wybranym logo."),
+                    tip: L("Plansza aktualizuje się automatycznie przy każdej zmianie logo w Ustawieniach.")
                 ),
                 ManualParagraph(
-                    heading: "Galeria 23 propozycji logo",
-                    body: "W Ustawieniach dostępna jest bogata galeria logotypów, w tym oficjalne logo Equipes Notre-Dame (END: ryba i obrączki przymierza), złota gitara akustyczna, Lira Dawidowa, klucz wiolinowy z korektorem, harfa i fale harmoniczne."
+                    heading: L("Galeria 23 propozycji logo"),
+                    body: L("W Ustawieniach dostępna jest bogata galeria logotypów, w tym oficjalne logo Equipes Notre-Dame (END: ryba i obrączki przymierza), złota gitara akustyczna, Lira Dawidowa, klucz wiolinowy z korektorem, harfa i fale harmoniczne.")
                 )
             ]
         ),
         UserManualSection(
             id: "editor",
-            title: "4. Baza Pieśni i Edytor",
+            title: L("4. Baza Pieśni i Edytor"),
             icon: "square.and.pencil",
             content: [
                 ManualParagraph(
-                    heading: "Edycja istniejących pieśni i dodawanie nowych",
-                    body: "Kliknij 'Nowa pieśń' lub wybierz pieśń i kliknij 'Edytuj' (Cmd E). Edytor posiada podgląd podziału na slajdy na żywo."
+                    heading: L("Edycja istniejących pieśni i dodawanie nowych"),
+                    body: L("Kliknij 'Nowa pieśń' lub wybierz pieśń i kliknij 'Edytuj' (Cmd E). Edytor posiada podgląd podziału na slajdy na żywo.")
                 ),
                 ManualParagraph(
-                    heading: "Obsługiwane sekcje utworu",
-                    body: "Program rozpoznaje znaczniki:\n• [Zwrotka 1], [Zwrotka 2], [1], [2]\n• [Refren], [Refren 1], [R]\n• [Coda] lub [Koda]\n• [Bridge] lub [Mostek]\n• [Przejście] lub [Interlude]\n• [Zakończenie] lub [Ending]\n• [Intro] oraz [Outro]",
-                    tip: "Możesz też po prostu oddzielać zwrotki pustą linią — program sam podzieli tekst na slajdy."
+                    heading: L("Obsługiwane sekcje utworu"),
+                    body: L("Program rozpoznaje znaczniki:\n• [Zwrotka 1], [Zwrotka 2], [1], [2]\n• [Refren], [Refren 1], [R]\n• [Coda] lub [Koda]\n• [Bridge] lub [Mostek]\n• [Przejście] lub [Interlude]\n• [Zakończenie] lub [Ending]\n• [Intro] oraz [Outro]"),
+                    tip: L("Możesz też po prostu oddzielać zwrotki pustą linią — program sam podzieli tekst na slajdy.")
                 )
             ]
         ),
         UserManualSection(
             id: "chords",
-            title: "5. Chwyty Gitarowe",
+            title: L("5. Chwyty Gitarowe"),
             icon: "guitars",
             content: [
                 ManualParagraph(
-                    heading: "Akordy i transpozycja",
-                    body: "Pieśń może zawierać chwyty gitarowe (np. D A h G). Przyciski +1 / -1 pozwalają transponować tonację całego utworu jednym kliknięciem."
+                    heading: L("Akordy i transpozycja"),
+                    body: L("Pieśń może zawierać chwyty gitarowe (np. D A h G). Przyciski +1 / -1 pozwalają transponować tonację całego utworu jednym kliknięciem.")
                 ),
                 ManualParagraph(
-                    heading: "Pobieranie chwytów z internetu",
-                    body: "Kliknij 'Szukaj chwytów online' — aplikacja przeszuka polskie serwisy (tekstowo.pl, kompasje.pl) i pozwoli wstawić akordy bezpośrednio do pieśni."
+                    heading: L("Pobieranie chwytów z internetu"),
+                    body: L("Kliknij 'Szukaj chwytów online' — aplikacja przeszuka polskie serwisy (tekstowo.pl, kompasje.pl) i pozwoli wstawić akordy bezpośrednio do pieśni.")
                 )
             ]
         ),
         UserManualSection(
             id: "dictation",
-            title: "6. Dyktowanie Głosowe",
+            title: L("6. Dyktowanie Głosowe"),
             icon: "mic.fill",
             content: [
                 ManualParagraph(
-                    heading: "Wprowadzanie tekstu i szukanie głosem",
-                    body: "Kliknij ikonę mikrofonu w edytorze lub obok paska szukania, aby podyktować słowa pieśni lub wyszukać utwór głosem.",
-                    tip: "Język rozpoznawania mowy (domyślnie polski pl-PL) można ustawić w Ustawieniach."
+                    heading: L("Wprowadzanie tekstu i szukanie głosem"),
+                    body: L("Kliknij ikonę mikrofonu w edytorze lub obok paska szukania, aby podyktować słowa pieśni lub wyszukać utwór głosem."),
+                    tip: L("Język rozpoznawania mowy (domyślnie polski pl-PL) można ustawić w Ustawieniach.")
                 )
             ]
         ),
         UserManualSection(
             id: "plans",
-            title: "7. Plany Nabożeństw",
+            title: L("7. Plany Nabożeństw"),
             icon: "list.bullet.rectangle",
             content: [
                 ManualParagraph(
-                    heading: "Przygotowanie listy utworów",
-                    body: "W lewym panelu przełącz na 'Plan'. Utwórz nowy plan na mszę lub spotkanie i przeciągaj pieśni z biblioteki. Naciśnięcie spacji na końcu utworu płynnie przełącza do kolejnej pieśni z planu!"
+                    heading: L("Przygotowanie listy utworów"),
+                    body: L("W lewym panelu przełącz na 'Plan'. Utwórz nowy plan na mszę lub spotkanie i przeciągaj pieśni z biblioteki. Naciśnięcie spacji na końcu utworu płynnie przełącza do kolejnej pieśni z planu!")
                 )
             ]
         ),
         UserManualSection(
             id: "import",
-            title: "8. Import i Eksport",
+            title: L("8. Import i Eksport"),
             icon: "tray.and.arrow.down",
             content: [
                 ManualParagraph(
-                    heading: "Formaty Holyrics, OpenLyrics, JSON i TXT",
-                    body: "W oknie Import/Eksport (Cmd I) możesz importować bazy Holyrics (.mufl, .muf), pliki tekstowe .txt (pojedyncze i całe foldery), pliki JSON oraz XML.",
-                    tip: "Aplikacja automatycznie naprawia polskie litery z kodowań Windows-1250 i ISO-8859-2 oraz wykrywa duplikaty."
+                    heading: L("Formaty Holyrics, OpenLyrics, JSON i TXT"),
+                    body: L("W oknie Import/Eksport (Cmd I) możesz importować bazy Holyrics (.mufl, .muf), pliki tekstowe .txt (pojedyncze i całe foldery), pliki JSON oraz XML."),
+                    tip: L("Aplikacja automatycznie naprawia polskie litery z kodowań Windows-1250 i ISO-8859-2 oraz wykrywa duplikaty.")
                 )
             ]
         ),
         UserManualSection(
             id: "backup",
-            title: "9. Kopie Zapasowe i Dysk Google",
+            title: L("9. Kopie Zapasowe i Dysk Google"),
             icon: "archivebox.fill",
             content: [
                 ManualParagraph(
-                    heading: "Pełny backup (.cantatebackup)",
-                    body: "Kopia zapasowa zabezpiecza całą bazę pieśni, chwyty, plany, ustawienia, planszę standby, języki i loga."
+                    heading: L("Pełny backup (.cantatebackup)"),
+                    body: L("Kopia zapasowa zabezpiecza całą bazę pieśni, chwyty, plany, ustawienia, planszę standby, języki i loga.")
                 ),
                 ManualParagraph(
-                    heading: "Integracja z Google Drive",
-                    body: "Po autoryzacji Google OAuth w Ustawieniach, kopie są automatycznie przesyłane do dedykowanego folderu CantatePresenter_Backups w chmurze.",
-                    tip: "Włącz opcję 'Automatyczny backup przy zamykaniu', aby program tworzył kopię po każdym użyciu."
+                    heading: L("Integracja z Google Drive"),
+                    body: L("Po autoryzacji Google OAuth w Ustawieniach, kopie są automatycznie przesyłane do dedykowanego folderu CantatePresenter_Backups w chmurze."),
+                    tip: L("Włącz opcję 'Automatyczny backup przy zamykaniu', aby program tworzył kopię po każdym użyciu.")
                 )
             ]
         ),
         UserManualSection(
             id: "shortcuts",
-            title: "10. Skróty Klawiszowe",
+            title: L("10. Skróty Klawiszowe"),
             icon: "keyboard",
             content: [
                 ManualParagraph(
-                    heading: "Szybkie sterowanie prezentacją",
-                    body: "Domyślne skróty prezentacji (zmienisz je w Ustawieniach → Skróty klawiszowe) oraz klawisze stałe. \(KeyboardRouter.shortcutsNote)",
+                    heading: L("Szybkie sterowanie prezentacją"),
+                    body: L("Domyślne skróty prezentacji (zmienisz je w Ustawieniach → Skróty klawiszowe) oraz klawisze stałe. {0}", KeyboardRouter.shortcutsNote),
                     shortcuts: [
-                        ("Spacja", "Następny slajd / następna pieśń z planu"),
-                        ("Enter", "Uruchomienie projekcji zaznaczonej pieśni"),
-                        ("[ / ]", "Poprzednia / następna pieśń z planu"),
-                        ("B", "Włącz/Wyłącz czarny ekran"),
-                        ("C", "Włącz/Wyłącz ukrycie tekstu")
+                        (L("Spacja"), L("Następny slajd / następna pieśń z planu")),
+                        (L("Enter"), L("Uruchomienie projekcji zaznaczonej pieśni")),
+                        ("[ / ]", L("Poprzednia / następna pieśń z planu")),
+                        ("B", L("Włącz/Wyłącz czarny ekran")),
+                        ("C", L("Włącz/Wyłącz ukrycie tekstu"))
                     ] + KeyboardRouter.fixedKeysHelp.map { (key: $0.keys, desc: $0.action) } + [
-                        ("⌘E", "Edycja zaznaczonej pieśni"),
-                        ("⌘I", "Import pieśni"),
-                        ("⌘B", "Utwórz pełną kopię zapasową"),
-                        ("⌘?", "Instrukcja obsługi (to okno)")
+                        ("⌘E", L("Edycja zaznaczonej pieśni")),
+                        ("⌘I", L("Import pieśni")),
+                        ("⌘B", L("Utwórz pełną kopię zapasową")),
+                        ("⌘?", L("Instrukcja obsługi (to okno)"))
                     ]
                 )
             ]
@@ -226,7 +226,7 @@ public struct UserManualView: View {
                 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 8) {
-                        Text("Instrukcja Obsługi CantatePresenter")
+                        Text(L("Instrukcja Obsługi CantatePresenter"))
                             .font(.scaled(16, weight: .bold, scale: scale))
                         
                         Text("v1.0.0")
@@ -237,20 +237,20 @@ public struct UserManualView: View {
                             .foregroundColor(.blue)
                             .cornerRadius(4)
                     }
-                    Text("Podręcznik użytkownika, skróty klawiszowe i wskazówki operacyjne")
+                    Text(L("Podręcznik użytkownika, skróty klawiszowe i wskazówki operacyjne"))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
-                Button("Otwórz plik INSTRUKCJA.md") {
+                Button(L("Otwórz plik INSTRUKCJA.md")) {
                     openMarkdownFile()
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 
-                Button("GitHub") {
+                Button(L("GitHub")) {
                     if let url = URL(string: "https://github.com/andrzejoles/CantatePresenter") {
                         NSWorkspace.shared.open(url)
                     }
@@ -258,7 +258,7 @@ public struct UserManualView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 
-                Button("Zamknij") {
+                Button(L("Zamknij")) {
                     dismiss()
                 }
                 .keyboardShortcut(.defaultAction)
@@ -273,7 +273,7 @@ public struct UserManualView: View {
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
-                TextField("Szukaj w instrukcji...", text: $searchText)
+                TextField(L("Szukaj w instrukcji..."), text: $searchText)
                     .textFieldStyle(PlainTextFieldStyle())
                     .font(.scaled(12, scale: scale))
                 if !searchText.isEmpty {
@@ -343,7 +343,7 @@ public struct UserManualView: View {
                                 
                                 if let shortcuts = para.shortcuts {
                                     VStack(alignment: .leading, spacing: 6) {
-                                        Text("Skróty klawiszowe:")
+                                        Text(L("Skróty klawiszowe:"))
                                             .font(.scaled(11, weight: .semibold, scale: scale))
                                             .foregroundColor(.secondary)
                                         

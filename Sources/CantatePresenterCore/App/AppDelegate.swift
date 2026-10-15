@@ -15,9 +15,17 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         AppDelegate.shared = self
         NSApp.setActivationPolicy(.regular)
         
+        Localization.currentLanguage = DataStore.shared.settings.appLanguage
         setupMainMenu()
         setupMainWindow()
         KeyboardMonitor.shared.start()
+        NotificationCenter.default.addObserver(forName: .appLanguageDidChange, object: nil, queue: .main) { [weak self] _ in
+            // Menu i tytuł okna AppKit nie odświeżają się same jak widoki SwiftUI.
+            MainActor.assumeIsolated {
+                self?.setupMainMenu()
+                self?.mainWindow?.title = Lnow("CantatePresenter — Prezenter Pieśni & Słowa")
+            }
+        }
         
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -47,7 +55,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             defer: false
         )
         
-        window.title = "CantatePresenter — Prezenter Pieśni & Słowa"
+        window.title = Lnow("CantatePresenter — Prezenter Pieśni & Słowa")
         window.minSize = NSSize(width: 950, height: 600)
         window.contentViewController = hostingController
         window.center()
@@ -95,7 +103,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 defer: false
             )
             
-            window.title = "Instrukcja obsługi — CantatePresenter"
+            window.title = Lnow("Instrukcja obsługi — CantatePresenter")
             window.minSize = NSSize(width: 800, height: 550)
             window.contentViewController = hostingController
             window.isReleasedWhenClosed = false
@@ -136,58 +144,58 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // App Menu
         let appMenuItem = NSMenuItem()
         let appMenu = NSMenu()
-        appMenu.addItem(NSMenuItem(title: "O programie CantatePresenter", action: #selector(showAboutPanelAction), keyEquivalent: ""))
+        appMenu.addItem(NSMenuItem(title: Lnow("O programie CantatePresenter"), action: #selector(showAboutPanelAction), keyEquivalent: ""))
         appMenu.addItem(NSMenuItem.separator())
         if !AppInstallerService.shared.isInstalledInApplications {
-            appMenu.addItem(NSMenuItem(title: "Zainstaluj w folderze Programy (/Applications)...", action: #selector(installToApplicationsAction), keyEquivalent: ""))
+            appMenu.addItem(NSMenuItem(title: Lnow("Zainstaluj w folderze Programy (/Applications)..."), action: #selector(installToApplicationsAction), keyEquivalent: ""))
             appMenu.addItem(NSMenuItem.separator())
         }
-        appMenu.addItem(NSMenuItem(title: "Zakończ CantatePresenter", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        appMenu.addItem(NSMenuItem(title: Lnow("Zakończ CantatePresenter"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         appMenuItem.submenu = appMenu
         mainMenu.addItem(appMenuItem)
         
         // File Menu
         let fileMenuItem = NSMenuItem()
-        let fileMenu = NSMenu(title: "Plik")
-        fileMenu.addItem(NSMenuItem(title: "Szybki tekst na żywo...", action: #selector(quickTextAction), keyEquivalent: "t"))
+        let fileMenu = NSMenu(title: Lnow("Plik"))
+        fileMenu.addItem(NSMenuItem(title: Lnow("Szybki tekst na żywo..."), action: #selector(quickTextAction), keyEquivalent: "t"))
         fileMenu.addItem(NSMenuItem.separator())
-        fileMenu.addItem(NSMenuItem(title: "Importuj pieśni...", action: #selector(importAction), keyEquivalent: "i"))
-        fileMenu.addItem(NSMenuItem(title: "Eksportuj całą bazę (JSON)...", action: #selector(exportJSONAction), keyEquivalent: ""))
-        fileMenu.addItem(NSMenuItem(title: "Eksportuj pieśni do folderu (.txt)...", action: #selector(exportFolderAction), keyEquivalent: ""))
+        fileMenu.addItem(NSMenuItem(title: Lnow("Importuj pieśni..."), action: #selector(importAction), keyEquivalent: "i"))
+        fileMenu.addItem(NSMenuItem(title: Lnow("Eksportuj całą bazę (JSON)..."), action: #selector(exportJSONAction), keyEquivalent: ""))
+        fileMenu.addItem(NSMenuItem(title: Lnow("Eksportuj pieśni do folderu (.txt)..."), action: #selector(exportFolderAction), keyEquivalent: ""))
         fileMenu.addItem(NSMenuItem.separator())
-        fileMenu.addItem(NSMenuItem(title: "Utwórz pełną kopię zapasową (.cantatebackup)...", action: #selector(createBackupAction), keyEquivalent: "b"))
-        fileMenu.addItem(NSMenuItem(title: "Przywróć z kopii zapasowej...", action: #selector(restoreBackupAction), keyEquivalent: ""))
-        fileMenu.addItem(NSMenuItem(title: "Cofnij ostatnie przywracanie...", action: #selector(undoRestoreAction), keyEquivalent: ""))
+        fileMenu.addItem(NSMenuItem(title: Lnow("Utwórz pełną kopię zapasową (.cantatebackup)..."), action: #selector(createBackupAction), keyEquivalent: "b"))
+        fileMenu.addItem(NSMenuItem(title: Lnow("Przywróć z kopii zapasowej..."), action: #selector(restoreBackupAction), keyEquivalent: ""))
+        fileMenu.addItem(NSMenuItem(title: Lnow("Cofnij ostatnie przywracanie..."), action: #selector(undoRestoreAction), keyEquivalent: ""))
         fileMenu.addItem(NSMenuItem.separator())
-        fileMenu.addItem(NSMenuItem(title: "Zamknij okno", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w"))
+        fileMenu.addItem(NSMenuItem(title: Lnow("Zamknij okno"), action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w"))
         fileMenuItem.submenu = fileMenu
         mainMenu.addItem(fileMenuItem)
         
         // Edit Menu: bez pozycji z akcjami copy:/paste:/undo: skróty ⌘C, ⌘V, ⌘Z nie działają w polach tekstowych (W1)
         let editMenuItem = NSMenuItem()
-        let editMenu = NSMenu(title: "Edycja")
-        editMenu.addItem(NSMenuItem(title: "Cofnij", action: Selector(("undo:")), keyEquivalent: "z"))
-        let redoItem = NSMenuItem(title: "Ponów", action: Selector(("redo:")), keyEquivalent: "z")
+        let editMenu = NSMenu(title: Lnow("Edycja"))
+        editMenu.addItem(NSMenuItem(title: Lnow("Cofnij"), action: Selector(("undo:")), keyEquivalent: "z"))
+        let redoItem = NSMenuItem(title: Lnow("Ponów"), action: Selector(("redo:")), keyEquivalent: "z")
         redoItem.keyEquivalentModifierMask = [.command, .shift]
         editMenu.addItem(redoItem)
         editMenu.addItem(NSMenuItem.separator())
-        editMenu.addItem(NSMenuItem(title: "Wytnij", action: #selector(NSText.cut(_:)), keyEquivalent: "x"))
-        editMenu.addItem(NSMenuItem(title: "Kopiuj", action: #selector(NSText.copy(_:)), keyEquivalent: "c"))
-        editMenu.addItem(NSMenuItem(title: "Wklej", action: #selector(NSText.paste(_:)), keyEquivalent: "v"))
-        editMenu.addItem(NSMenuItem(title: "Usuń", action: #selector(NSText.delete(_:)), keyEquivalent: ""))
-        editMenu.addItem(NSMenuItem(title: "Zaznacz wszystko", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
+        editMenu.addItem(NSMenuItem(title: Lnow("Wytnij"), action: #selector(NSText.cut(_:)), keyEquivalent: "x"))
+        editMenu.addItem(NSMenuItem(title: Lnow("Kopiuj"), action: #selector(NSText.copy(_:)), keyEquivalent: "c"))
+        editMenu.addItem(NSMenuItem(title: Lnow("Wklej"), action: #selector(NSText.paste(_:)), keyEquivalent: "v"))
+        editMenu.addItem(NSMenuItem(title: Lnow("Usuń"), action: #selector(NSText.delete(_:)), keyEquivalent: ""))
+        editMenu.addItem(NSMenuItem(title: Lnow("Zaznacz wszystko"), action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
         editMenu.addItem(NSMenuItem.separator())
-        editMenu.addItem(NSMenuItem(title: "Szukaj pieśni", action: #selector(focusSongSearchAction), keyEquivalent: "f"))
+        editMenu.addItem(NSMenuItem(title: Lnow("Szukaj pieśni"), action: #selector(focusSongSearchAction), keyEquivalent: "f"))
         editMenuItem.submenu = editMenu
         mainMenu.addItem(editMenuItem)
         
         // View Menu (Zooming)
         let viewMenuItem = NSMenuItem()
-        let viewMenu = NSMenu(title: "Widok")
+        let viewMenu = NSMenu(title: Lnow("Widok"))
         
-        let zoomInItem = NSMenuItem(title: "Powiększ interfejs", action: #selector(zoomInAction), keyEquivalent: "+")
-        let zoomOutItem = NSMenuItem(title: "Pomniejsz interfejs", action: #selector(zoomOutAction), keyEquivalent: "-")
-        let zoomResetItem = NSMenuItem(title: "Domyślny rozmiar interfejsu (100%)", action: #selector(zoomResetAction), keyEquivalent: "0")
+        let zoomInItem = NSMenuItem(title: Lnow("Powiększ interfejs"), action: #selector(zoomInAction), keyEquivalent: "+")
+        let zoomOutItem = NSMenuItem(title: Lnow("Pomniejsz interfejs"), action: #selector(zoomOutAction), keyEquivalent: "-")
+        let zoomResetItem = NSMenuItem(title: Lnow("Domyślny rozmiar interfejsu (100%)"), action: #selector(zoomResetAction), keyEquivalent: "0")
         
         viewMenu.addItem(zoomInItem)
         viewMenu.addItem(zoomOutItem)
@@ -197,19 +205,19 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Window Menu
         let windowMenuItem = NSMenuItem()
-        let windowMenu = NSMenu(title: "Okno")
-        windowMenu.addItem(NSMenuItem(title: "Minimalizuj", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m"))
-        windowMenu.addItem(NSMenuItem(title: "Powiększ", action: #selector(NSWindow.performZoom(_:)), keyEquivalent: ""))
+        let windowMenu = NSMenu(title: Lnow("Okno"))
+        windowMenu.addItem(NSMenuItem(title: Lnow("Minimalizuj"), action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m"))
+        windowMenu.addItem(NSMenuItem(title: Lnow("Powiększ"), action: #selector(NSWindow.performZoom(_:)), keyEquivalent: ""))
         windowMenuItem.submenu = windowMenu
         mainMenu.addItem(windowMenuItem)
         
         // Help Menu
         let helpMenuItem = NSMenuItem()
-        let helpMenu = NSMenu(title: "Pomoc")
-        helpMenu.addItem(NSMenuItem(title: "Instrukcja obsługi CantatePresenter...", action: #selector(openUserManualAction), keyEquivalent: "?"))
-        helpMenu.addItem(NSMenuItem(title: "Otwórz plik INSTRUKCJA.md...", action: #selector(openInstructionMarkdownAction), keyEquivalent: ""))
+        let helpMenu = NSMenu(title: Lnow("Pomoc"))
+        helpMenu.addItem(NSMenuItem(title: Lnow("Instrukcja obsługi CantatePresenter..."), action: #selector(openUserManualAction), keyEquivalent: "?"))
+        helpMenu.addItem(NSMenuItem(title: Lnow("Otwórz plik INSTRUKCJA.md..."), action: #selector(openInstructionMarkdownAction), keyEquivalent: ""))
         helpMenu.addItem(NSMenuItem.separator())
-        helpMenu.addItem(NSMenuItem(title: "Strona projektu na GitHub...", action: #selector(openGitHubProjectAction), keyEquivalent: ""))
+        helpMenu.addItem(NSMenuItem(title: Lnow("Strona projektu na GitHub..."), action: #selector(openGitHubProjectAction), keyEquivalent: ""))
         helpMenuItem.submenu = helpMenu
         mainMenu.addItem(helpMenuItem)
         
@@ -262,22 +270,22 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         Task { @MainActor in
             let result = await BackupService.shared.restoreBackupWithOpenPanel()
             guard result.message != "Anulowano wybór pliku." else { return }
-            showInfoAlert(title: result.success ? "Przywrócono kopię zapasową" : "Nie przywrócono kopii zapasowej", message: result.message, isError: !result.success)
+            showInfoAlert(title: result.success ? Lnow("Przywrócono kopię zapasową") : Lnow("Nie przywrócono kopii zapasowej"), message: result.message, isError: !result.success)
         }
     }
     
     @MainActor @objc fileprivate func undoRestoreAction() {
         let alert = NSAlert()
-        alert.messageText = "Cofnąć ostatnie przywracanie?"
-        alert.informativeText = "Dane wrócą do stanu sprzed ostatniego przywrócenia kopii zapasowej. Dane z przywróconej kopii zostaną usunięte."
-        alert.addButton(withTitle: "Cofnij przywracanie")
-        alert.addButton(withTitle: "Anuluj")
+        alert.messageText = Lnow("Cofnąć ostatnie przywracanie?")
+        alert.informativeText = Lnow("Dane wrócą do stanu sprzed ostatniego przywrócenia kopii zapasowej. Dane z przywróconej kopii zostaną usunięte.")
+        alert.addButton(withTitle: Lnow("Cofnij przywracanie"))
+        alert.addButton(withTitle: Lnow("Anuluj"))
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         do {
             try BackupService.shared.undoLastRestore()
-            showInfoAlert(title: "Cofnięto przywracanie", message: "Przywrócono dane sprzed ostatniego przywrócenia kopii.", isError: false)
+            showInfoAlert(title: Lnow("Cofnięto przywracanie"), message: Lnow("Przywrócono dane sprzed ostatniego przywrócenia kopii."), isError: false)
         } catch {
-            showInfoAlert(title: "Nie udało się cofnąć przywracania", message: error.localizedDescription, isError: true)
+            showInfoAlert(title: Lnow("Nie udało się cofnąć przywracania"), message: error.localizedDescription, isError: true)
         }
     }
     
@@ -300,7 +308,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .center
         let credits = NSAttributedString(
-            string: "Autor: Andrzej Oles\nOpracowano we współpracy z Claude (Anthropic)",
+            string: Lnow("Autor: Andrzej Oles\nOpracowano we współpracy z Claude (Anthropic)"),
             attributes: [
                 .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize),
                 .foregroundColor: NSColor.labelColor,
@@ -381,13 +389,13 @@ private struct ExitBackupProgressView: View {
             HStack(spacing: 12) {
                 ProgressView()
                     .controlSize(.small)
-                Text("Tworzenie kopii zapasowej na Dysku Google…")
+                Text(Lnow("Tworzenie kopii zapasowej na Dysku Google…"))
                     .font(.system(size: 13, weight: .medium))
             }
-            Text("Jeśli wysyłka się nie uda, kopia zostanie zapisana lokalnie.")
+            Text(Lnow("Jeśli wysyłka się nie uda, kopia zostanie zapisana lokalnie."))
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
-            Button("Pomiń i zamknij", action: onSkip)
+            Button(Lnow("Pomiń i zamknij"), action: onSkip)
                 .keyboardShortcut(.cancelAction)
         }
         .padding(20)

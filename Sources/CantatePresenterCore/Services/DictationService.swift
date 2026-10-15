@@ -33,10 +33,10 @@ public final class DictationService: ObservableObject {
                     self?.errorMessage = nil
                 case .denied:
                     self?.isAuthorized = false
-                    self?.errorMessage = "Odmówiono dostępu do rozpoznawania mowy w Ustawieniach systemowych."
+                    self?.errorMessage = Lnow("Odmówiono dostępu do rozpoznawania mowy w Ustawieniach systemowych.")
                 case .restricted:
                     self?.isAuthorized = false
-                    self?.errorMessage = "Rozpoznawanie mowy jest ograniczone na tym urządzeniu."
+                    self?.errorMessage = Lnow("Rozpoznawanie mowy jest ograniczone na tym urządzeniu.")
                 case .notDetermined:
                     self?.isAuthorized = false
                 @unknown default:
@@ -65,7 +65,7 @@ public final class DictationService: ObservableObject {
         AVCaptureDevice.requestAccess(for: .audio) { [weak self] micGranted in
             guard micGranted else {
                 Task { @MainActor in
-                    self?.errorMessage = "Brak dostępu do mikrofonu. Nadaj uprawnienia w Ustawienia systemowe > Prywatność i ochrona > Mikrofon."
+                    self?.errorMessage = Lnow("Brak dostępu do mikrofonu. Nadaj uprawnienia w Ustawienia systemowe > Prywatność i ochrona > Mikrofon.")
                     self?.isRecording = false
                 }
                 return
@@ -74,7 +74,7 @@ public final class DictationService: ObservableObject {
             SFSpeechRecognizer.requestAuthorization { [weak self] authStatus in
                 Task { @MainActor in
                     guard authStatus == .authorized else {
-                        self?.errorMessage = "Brak uprawnień do rozpoznawania mowy. Włącz uprawnienia w Ustawieniach systemowych."
+                        self?.errorMessage = Lnow("Brak uprawnień do rozpoznawania mowy. Włącz uprawnienia w Ustawieniach systemowych.")
                         self?.isRecording = false
                         return
                     }
@@ -96,14 +96,14 @@ public final class DictationService: ObservableObject {
         speechRecognizer = SFSpeechRecognizer(locale: locale)
         
         guard let recognizer = speechRecognizer, recognizer.isAvailable else {
-            self.errorMessage = "Rozpoznawanie mowy dla języka \(localeIdentifier) nie jest obecnie dostępne na tym urządzeniu."
+            self.errorMessage = Lnow("Rozpoznawanie mowy dla języka {0} nie jest obecnie dostępne na tym urządzeniu.", localeIdentifier)
             self.isRecording = false
             return
         }
         
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
         guard let request = recognitionRequest else {
-            self.errorMessage = "Nie można utworzyć żądania rozpoznawania mowy."
+            self.errorMessage = Lnow("Nie można utworzyć żądania rozpoznawania mowy.")
             self.isRecording = false
             return
         }
@@ -118,7 +118,7 @@ public final class DictationService: ObservableObject {
         let recordingFormat = inputNode.outputFormat(forBus: 0)
         
         guard recordingFormat.sampleRate > 0 && recordingFormat.channelCount > 0 else {
-            self.errorMessage = "Nieprawidłowy format wejścia mikrofonu."
+            self.errorMessage = Lnow("Nieprawidłowy format wejścia mikrofonu.")
             self.isRecording = false
             return
         }
@@ -134,7 +134,7 @@ public final class DictationService: ObservableObject {
             try audioEngine.start()
             self.isRecording = true
         } catch {
-            self.errorMessage = "Nie udało się uruchomić silnika audio: \(error.localizedDescription)"
+            self.errorMessage = Lnow("Nie udało się uruchomić silnika audio: {0}", error.localizedDescription)
             self.isRecording = false
             return
         }

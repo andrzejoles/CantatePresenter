@@ -172,20 +172,20 @@ public enum KeyboardRouter {
 
 extension KeyboardRouter {
     /// Klawisze, których nie zmienia się w Ustawieniach; pokazywane w Ustawieniach i w instrukcji.
-    public static let fixedKeysHelp: [(keys: String, action: String)] = [
-        ("← / ↑", "Poprzedni slajd (↑ na liście pieśni: poprzednia pieśń)"),
-        ("→ / ↓", "Następny slajd (↓ na liście pieśni: następna pieśń)"),
-        ("Page Up / Page Down", "Poprzedni / następny slajd (pilot), także w polu wyszukiwania"),
-        ("Enter w oknie projekcji", "Następny slajd"),
-        ("Esc", "Zakończenie projekcji; w polu wyszukiwania: wyjście z pola"),
-        ("R", "Refren"),
-        ("1 – 9", "Zwrotka o tym numerze"),
-        ("⌘F", "Szukaj pieśni (Enter: wybór pierwszego wyniku)"),
-        ("⌘T", "Szybki tekst na żywo"),
-        ("⌘+ / ⌘− / ⌘0", "Powiększenie / pomniejszenie / domyślna skala interfejsu")
-    ]
+    public static var fixedKeysHelp: [(keys: String, action: String)] { [
+        ("← / ↑", Lnow("Poprzedni slajd (↑ na liście pieśni: poprzednia pieśń)")),
+        ("→ / ↓", Lnow("Następny slajd (↓ na liście pieśni: następna pieśń)")),
+        ("Page Up / Page Down", Lnow("Poprzedni / następny slajd (pilot), także w polu wyszukiwania")),
+        ("Enter w oknie projekcji", Lnow("Następny slajd")),
+        ("Esc", Lnow("Zakończenie projekcji; w polu wyszukiwania: wyjście z pola")),
+        ("R", Lnow("Refren")),
+        ("1 – 9", Lnow("Zwrotka o tym numerze")),
+        ("⌘F", Lnow("Szukaj pieśni (Enter: wybór pierwszego wyniku)")),
+        ("⌘T", Lnow("Szybki tekst na żywo")),
+        ("⌘+ / ⌘− / ⌘0", Lnow("Powiększenie / pomniejszenie / domyślna skala interfejsu"))
+    ] }
     
-    public static let shortcutsNote = "Skróty działają, gdy pole wyszukiwania jest nieaktywne (po starcie albo po Esc). Klawisz wybrany powyżej ma pierwszeństwo przed klawiszem stałym, np. R przypisane do czarnego ekranu przestaje włączać refren."
+    public static var shortcutsNote: String { Lnow("Skróty działają, gdy pole wyszukiwania jest nieaktywne (po starcie albo po Esc). Klawisz wybrany powyżej ma pierwszeństwo przed klawiszem stałym, np. R przypisane do czarnego ekranu przestaje włączać refren.") }
 }
 
 // MARK: - Shortcut Conflicts
@@ -195,12 +195,12 @@ extension ShortcutSettings {
     public var conflicts: [String] {
         let entries: [(String, UInt16)] = [
             ("Poprzedni slajd", prevSlideKey),
-            ("Następny slajd", nextSlideKey),
-            ("Poprzedni utwór", prevSongKey),
-            ("Następny utwór", nextSongKey),
+            (Lnow("Następny slajd"), nextSlideKey),
+            (Lnow("Poprzedni utwór"), prevSongKey),
+            (Lnow("Następny utwór"), nextSongKey),
             ("Uruchomienie prezentacji", startPresentationKey),
             ("Zatrzymanie prezentacji", stopPresentationKey),
-            ("Czarny ekran", blackScreenKey),
+            (Lnow("Czarny ekran"), blackScreenKey),
             ("Ukrycie tekstu", clearTextKey)
         ]
         var result: [String] = []
@@ -208,15 +208,15 @@ extension ShortcutSettings {
         let grouped = Dictionary(grouping: entries, by: { $0.1 })
         for (code, group) in grouped.sorted(by: { $0.key < $1.key }) where group.count > 1 {
             let names = group.map(\.0).joined(separator: ", ")
-            result.append("\(ShortcutPresets.nameForKeyCode(code)): \(names). Zadziała tylko pierwsza akcja.")
+            result.append(Lnow("{0}: {1}. Zadziała tylko pierwsza akcja.", ShortcutPresets.nameForKeyCode(code), names))
         }
         for (name, code) in entries {
             if code == KeyboardRouter.Key.r {
-                result.append("\(name) na klawiszu R: klawisz przestanie przechodzić do refrenu.")
+                result.append(Lnow("{0} na klawiszu R: klawisz przestanie przechodzić do refrenu.", name))
             } else if KeyboardRouter.Key.digits.contains(code) {
-                result.append("\(name) na klawiszu cyfry: cyfra przestanie przechodzić do zwrotki.")
+                result.append(Lnow("{0} na klawiszu cyfry: cyfra przestanie przechodzić do zwrotki.", name))
             } else if code == KeyboardRouter.Key.escape, name != "Zatrzymanie prezentacji" {
-                result.append("\(name) na klawiszu Esc: Esc przestanie kończyć projekcję.")
+                result.append(Lnow("{0} na klawiszu Esc: Esc przestanie kończyć projekcję.", name))
             }
         }
         return result

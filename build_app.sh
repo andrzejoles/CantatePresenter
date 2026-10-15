@@ -21,6 +21,15 @@ mkdir -p "$RESOURCES_DIR"
 cp "$DIR/.build/release/CantatePresenter" "$MACOS_DIR/CantatePresenter"
 chmod +x "$MACOS_DIR/CantatePresenter"
 
+# Tłumaczenia interfejsu (String Catalog, S10): paczka zasobów pakietu obok ikony w Contents/Resources.
+BIN_PATH="$(swift build -c release --show-bin-path)"
+RESOURCE_BUNDLE="$BIN_PATH/CantatePresenter_CantatePresenterCore.bundle"
+if [ ! -d "$RESOURCE_BUNDLE" ]; then
+    echo "BŁĄD: brak $RESOURCE_BUNDLE (tłumaczenia interfejsu)" >&2
+    exit 1
+fi
+cp -R "$RESOURCE_BUNDLE" "$RESOURCES_DIR/"
+
 if [ -f "$DIR/Resources/AppIcon.icns" ]; then
     cp "$DIR/Resources/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"
 fi
@@ -32,6 +41,14 @@ cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
 <dict>
     <key>CFBundleDevelopmentRegion</key>
     <string>pl</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>pl</string>
+        <string>en</string>
+        <string>de</string>
+        <string>es</string>
+        <string>uk</string>
+    </array>
     <key>CFBundleExecutable</key>
     <string>CantatePresenter</string>
     <key>CFBundleIconFile</key>

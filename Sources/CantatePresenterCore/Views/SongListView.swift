@@ -93,7 +93,7 @@ public struct SongListView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
                     
-                    TextField(searchScope == .all ? loc(.searchPlaceholder) : "Szukaj (\(searchScope.rawValue.lowercased()))...", text: $searchText)
+                    TextField(searchScope == .all ? L("Szukaj w tytule, autorze i tekście...") : L("Szukaj ({0})...", L(searchScope.rawValue).lowercased()), text: $searchText)
                         .textFieldStyle(PlainTextFieldStyle())
                         .font(.scaled(12, scale: scale))
                         .focused($isSearchFocused)
@@ -121,7 +121,7 @@ public struct SongListView: View {
                     
                     Picker("", selection: $searchScope) {
                         ForEach(Song.SearchScope.allCases) { scope in
-                            Text(scope.rawValue).tag(scope)
+                            Text(L(scope.rawValue)).tag(scope)
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
@@ -137,7 +137,7 @@ public struct SongListView: View {
                         songToEdit = nil
                         isShowingEditor = true
                     }) {
-                        Label(loc(.newSong), systemImage: "plus")
+                        Label(L("Nowa pieśń"), systemImage: "plus")
                             .font(.scaled(11, weight: .medium, scale: scale))
                     }
                     .buttonStyle(.borderedProminent)
@@ -149,18 +149,18 @@ public struct SongListView: View {
                             isShowingEditor = true
                         }
                     }) {
-                        Label("Edytuj", systemImage: "pencil")
+                        Label(L("Edytuj"), systemImage: "pencil")
                             .font(.scaled(11, weight: .medium, scale: scale))
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
                     .disabled(store.selectedSong == nil)
-                    .help("Edytuj wybraną pieśń (podwójny klik lub ⌘E)")
+                    .help(L("Edytuj wybraną pieśń (podwójny klik lub ⌘E)"))
                     
                     Button(action: {
                         isShowingImportExport = true
                     }) {
-                        Label(loc(.importExport), systemImage: "arrow.up.arrow.down")
+                        Label(L("Import/Eksport"), systemImage: "arrow.up.arrow.down")
                             .font(.scaled(11, scale: scale))
                     }
                     .buttonStyle(.bordered)
@@ -170,17 +170,17 @@ public struct SongListView: View {
                         lookupTargetSong = store.selectedSong
                         isShowingAuthorTitleLookup = true
                     }) {
-                        Label(loc(.titleAuthor), systemImage: "person.text.rectangle")
+                        Label(L("Tytuł/Autor"), systemImage: "person.text.rectangle")
                             .font(.scaled(11, scale: scale))
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help("Wyszukiwarka tytułu i autora (dla zaznaczonej lub dla wszystkich)")
+                    .help(L("Wyszukiwarka tytułu i autora (dla zaznaczonej lub dla wszystkich)"))
                     
                     Button(action: {
                         isShowingOnlineSearch = true
                     }) {
-                        Label(loc(.online), systemImage: "globe")
+                        Label(L("Online"), systemImage: "globe")
                             .font(.scaled(11, scale: scale))
                     }
                     .buttonStyle(.bordered)
@@ -189,12 +189,12 @@ public struct SongListView: View {
                     Button(action: {
                         NotificationCenter.default.post(name: NSNotification.Name("OpenQuickTextSheet"), object: nil)
                     }) {
-                        Label("Szybki tekst", systemImage: "bolt.fill")
+                        Label(L("Szybki tekst"), systemImage: "bolt.fill")
                             .font(.scaled(11, scale: scale))
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help("Wyświetl natychmiast dowolny tekst lub ogłoszenie bez zapisywania w bazie (⌘T)")
+                    .help(L("Wyświetl natychmiast dowolny tekst lub ogłoszenie bez zapisywania w bazie (⌘T)"))
                     
                     Spacer()
                 }
@@ -207,11 +207,11 @@ public struct SongListView: View {
             // Sub-header: Count and Sort selector
             HStack {
                 if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
-                    Text("\(filteredSongs.count) pieśni")
+                    Text(L("{0} pieśni", filteredSongs.count))
                         .font(.scaled(10.5, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
                 } else {
-                    Text("\(filteredSongs.count) z \(store.songs.count) pieśni")
+                    Text(L("{0} z {1} pieśni", filteredSongs.count, store.songs.count))
                         .font(.scaled(10.5, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
                 }
@@ -219,22 +219,22 @@ public struct SongListView: View {
                 Spacer()
                 
                 Menu {
-                    Picker("Sortowanie", selection: $sortOrder) {
+                    Picker(L("Sortowanie"), selection: $sortOrder) {
                         ForEach(SongSortOrder.allCases) { order in
-                            Label(order.rawValue, systemImage: order.icon).tag(order)
+                            Label(L(order.rawValue), systemImage: order.icon).tag(order)
                         }
                     }
                 } label: {
                     HStack(spacing: 3) {
                         Image(systemName: "arrow.up.arrow.down")
                             .font(.system(size: 9))
-                        Text(sortOrder.rawValue)
+                        Text(L(sortOrder.rawValue))
                             .font(.scaled(10, scale: scale))
                     }
                     .foregroundColor(.secondary)
                 }
                 .menuStyle(BorderlessButtonMenuStyle())
-                .help("Zmień kolejność sortowania pieśni w bibliotece")
+                .help(L("Zmień kolejność sortowania pieśni w bibliotece"))
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 3)
@@ -263,30 +263,30 @@ public struct SongListView: View {
                         store.selectedSongId = song.id
                     })
                     .contextMenu {
-                        Button("Prezentuj teraz") {
+                        Button(L("Prezentuj teraz")) {
                             store.present(song: song, slideIndex: 0)
                         }
-                        Button("Dodaj do aktywnego planu") {
+                        Button(L("Dodaj do aktywnego planu")) {
                             store.addSongToPlan(songId: song.id)
                         }
-                        Button("Edytuj pieśń ✏️ (⌘E)") {
+                        Button(L("Edytuj pieśń ✏️ (⌘E)")) {
                             songToEdit = song
                             isShowingEditor = true
                         }
                         Divider()
-                        Button("Wyszukaj tytuł i autora online...") {
+                        Button(L("Wyszukaj tytuł i autora online...")) {
                             lookupTargetSong = song
                             isShowingAuthorTitleLookup = true
                         }
                         Divider()
-                        Button("Eksportuj jako plik tekstowy (.txt)...") {
+                        Button(L("Eksportuj jako plik tekstowy (.txt)...")) {
                             _ = SongExporter.exportSongAsTextFile(song)
                         }
-                        Button("Eksportuj jako plik JSON (.json)...") {
+                        Button(L("Eksportuj jako plik JSON (.json)...")) {
                             _ = SongExporter.exportSongsAsJSONFile([song], defaultName: song.title)
                         }
                         Divider()
-                        Button("Usuń z bazy", role: .destructive) {
+                        Button(L("Usuń z bazy"), role: .destructive) {
                             store.deleteSong(id: song.id)
                         }
                     }
@@ -298,11 +298,11 @@ public struct SongListView: View {
             
             // Footer status
             HStack {
-                Text("\(filteredSongs.count) \(loc(.songsInLibrary))")
+                Text("\(filteredSongs.count) \(L("pieśni w bibliotece"))")
                     .font(.scaled(11, scale: scale))
                     .foregroundColor(.secondary)
                 Spacer()
-                Text("Podwójny klik / ⌘E: edycja")
+                Text(L("Podwójny klik / ⌘E: edycja"))
                     .font(.scaled(10, scale: scale))
                     .foregroundColor(.secondary.opacity(0.8))
             }
@@ -346,7 +346,7 @@ private struct SongRowView: View {
                         .cornerRadius(4)
                 }
                 
-                Text("\(song.slides.count) sl.")
+                Text(L("{0} sl.", song.slides.count))
                     .font(.scaled(10, scale: scale))
                     .foregroundColor(.secondary)
             }
