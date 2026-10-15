@@ -28,6 +28,21 @@ public struct ImportProcessingResult {
     public var netUniqueCount: Int {
         return uniqueSongs.count
     }
+    
+    /// Pieśni do dodania po przeglądzie importu. Brak decyzji w mapach oznacza wartość domyślną
+    /// `shouldSkipDuplicate` z rekordu.
+    public func songsToCommit(workingSongs: [Song], duplicateSkips: [UUID: Bool], collisionSkips: [UUID: Bool]) -> [Song] {
+        let skippedCollisionIDs = Set(existingCollisions
+            .filter { collisionSkips[$0.id] ?? $0.shouldSkipDuplicate }
+            .map(\.duplicateSong.id))
+        var result = workingSongs.filter { !skippedCollisionIDs.contains($0.id) }
+        for record in duplicateRecords where !(duplicateSkips[record.id] ?? record.shouldSkipDuplicate) {
+            var copy = record.duplicateSong
+            copy.title = "\(copy.title) (wersja alternatywna)"
+            result.append(copy)
+        }
+        return result
+    }
 }
 
 public final class SongDeduplicationService {
@@ -54,6 +69,8 @@ public final class SongDeduplicationService {
     public func processAndDeduplicate(incoming: [Song], existingLibrary: [Song]) -> ImportProcessingResult {
         var enrichedList: [Song] = []
         var enrichments: [EnrichmentRecord] = []
+        // Unikalne id już na wejściu, żeby decyzje w przeglądzie importu dotyczyły jednej pieśni (W8).
+        let incoming = Song.assigningUniqueIdentifiers(incoming, existing: Set(existingLibrary.map(\.id)))
         
         // 1. Enrich metadata for all incoming songs
         for s in incoming {
@@ -185,7 +202,9 @@ public final class SongDeduplicationService {
                         primarySong: libSong,
                         duplicateSong: s,
                         reason: "Utwór o tym tytule istnieje już w bibliotece (\(sim)% zgodności)",
-                        similarityScore: sim
+                        similarityScore: sim,
+                        // Prawie identyczne pieśni (np. ponowny import własnego eksportu) domyślnie pomijamy.
+                        shouldSkipDuplicate: sim >= 90
                     ))
                 }
             }
