@@ -82,7 +82,7 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 
 ### 8. 🖼️ Plansza startowa HTML (Ekran czuwania / Standby)
 - Gdy prezentacja pieśni nie jest aktywna (np. przed nabożeństwem, w trakcie kazania lub po naciśnięciu *Zatrzymaj prezentację*), na ekranie projektora **automatycznie wyświetla się plansza powitalna HTML**.
-- W zestawie przygotowano dopracowany plik [`data/standby.html`](file:///Users/aoles/dev_gem/data/standby.html):
+- W zestawie przygotowano dopracowany plik [`data/standby.html`](data/standby.html):
   - Autorskie, nowoczesne logo wektorowe (SVG: stylizowany krzyż, otwarta księga pieśni i fale uwielbienia w gradientach indygo/błękit).
   - Nazwa aplikacji: **Holyrics Mac — Prezenter Pieśni**.
   - Wersja: **Wersja 1.0.0 (Apple Silicon Native)**.
@@ -141,7 +141,7 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 
 ## 📁 Struktura projektu
 
-Wszystkie pliki i dane aplikacji znajdują się w folderze `dev_gem`:
+Struktura repozytorium (dane użytkownika aplikacja trzyma w `~/Library/Application Support/CantatePresenter`):
 
 ```
 CantatePresenter/

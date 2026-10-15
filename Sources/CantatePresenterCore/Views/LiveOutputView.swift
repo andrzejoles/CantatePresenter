@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 
 public struct LiveOutputView: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @ObservedObject var screenManager = ScreenManager.shared
     
     public init() {}
@@ -18,11 +18,11 @@ public struct LiveOutputView: View {
     }
     
     private var presentationAspectRatio: CGFloat {
-        screenManager.targetScreenAspectRatio(for: store.settings.selectedScreenIndex)
+        screenManager.selectedScreenAspectRatio
     }
     
     private var presentationScreenSize: CGSize {
-        screenManager.targetScreenSize(for: store.settings.selectedScreenIndex)
+        screenManager.selectedScreenSize
     }
     
     public var body: some View {
@@ -34,7 +34,7 @@ public struct LiveOutputView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
                         HStack(spacing: 6) {
-                            Label("Ekran na żywo", systemImage: "display")
+                            Label(L("Ekran na żywo"), systemImage: "display")
                                 .font(.scaled(13, weight: .bold, scale: scale))
                             
                             Text(ScreenManager.formattedAspectRatio(for: presentationAspectRatio))
@@ -53,7 +53,7 @@ public struct LiveOutputView: View {
                                 Circle()
                                     .fill(Color.red)
                                     .frame(width: 8, height: 8)
-                                Text("LIVE")
+                                Text(L("LIVE"))
                                     .font(.scaled(10, weight: .bold, scale: scale))
                                     .foregroundColor(.red)
                             }
@@ -62,7 +62,7 @@ public struct LiveOutputView: View {
                             .background(Color.red.opacity(0.12))
                             .cornerRadius(4)
                         } else {
-                            Text("OFF AIR")
+                            Text(L("OFF AIR"))
                                 .font(.scaled(10, weight: .bold, scale: scale))
                                 .foregroundColor(.secondary)
                                 .padding(.horizontal, 6)
@@ -79,7 +79,7 @@ public struct LiveOutputView: View {
                         
                         if store.isBlackScreen {
                             Color.black
-                            Text("CZARNY EKRAN")
+                            Text(L("CZARNY EKRAN"))
                                 .font(.scaled(11, weight: .bold, scale: scale))
                                 .foregroundColor(.white.opacity(0.5))
                         } else if !store.isLive {
@@ -97,7 +97,7 @@ public struct LiveOutputView: View {
                                         .font(.scaled(max(11.0, size.height * 0.085), weight: .bold, scale: scale))
                                         .foregroundColor(.white)
                                     
-                                    Text("Wersja 1.0.0")
+                                    Text(L("Wersja {0}", AppVersion.current))
                                         .font(.scaled(max(8.5, size.height * 0.06), weight: .medium, scale: scale))
                                         .foregroundColor(.white.opacity(0.75))
                                 }
@@ -105,14 +105,15 @@ public struct LiveOutputView: View {
                             }
                         } else if store.isClearText {
                             bgColor
-                            Text("TEKST UKRYTY")
+                            Text(L("TEKST UKRYTY"))
                                 .font(.scaled(11, weight: .bold, scale: scale))
                                 .foregroundColor(txtColor.opacity(0.4))
                         } else if let slide = store.currentLiveSlide {
                             PresentationSlidePreviewCanvas(
                                 text: slide.text,
                                 targetScreenSize: presentationScreenSize,
-                                settings: store.settings
+                                settings: store.settings,
+                                footer: store.currentLiveCopyrightNotice
                             )
                         }
                     }
@@ -129,7 +130,7 @@ public struct LiveOutputView: View {
                                 .font(.scaled(11, weight: .medium, scale: scale))
                                 .lineLimit(1)
                             Spacer()
-                            Text("Slajd \(store.activeSlideIndex + 1)/\(song.slides.count)")
+                            Text(L("Slajd {0}/{1}", store.activeSlideIndex + 1, song.slides.count))
                                 .font(.scaled(11, scale: scale))
                                 .foregroundColor(.secondary)
                         }
@@ -140,7 +141,7 @@ public struct LiveOutputView: View {
                 VStack(spacing: 8) {
                     HStack(spacing: 8) {
                         Button(action: { store.prevSlide() }) {
-                            Label("Poprzedni", systemImage: "arrow.left")
+                            Label(L("Poprzedni"), systemImage: "arrow.left")
                                 .frame(maxWidth: .infinity)
                                 .font(.scaled(12, weight: .semibold, scale: scale))
                         }
@@ -149,7 +150,7 @@ public struct LiveOutputView: View {
                         .disabled(!store.isLive)
                         
                         Button(action: { store.nextSlide() }) {
-                            Label("Następny", systemImage: "arrow.right")
+                            Label(L("Następny"), systemImage: "arrow.right")
                                 .frame(maxWidth: .infinity)
                                 .font(.scaled(12, weight: .semibold, scale: scale))
                         }
@@ -164,7 +165,7 @@ public struct LiveOutputView: View {
                                 Circle()
                                     .fill(store.isBlackScreen ? Color.red : Color.secondary.opacity(0.4))
                                     .frame(width: 8, height: 8)
-                                Text("Czarny (B)")
+                                Text(L("Czarny (B)"))
                                     .font(.scaled(11, scale: scale))
                             }
                             .frame(maxWidth: .infinity)
@@ -177,7 +178,7 @@ public struct LiveOutputView: View {
                                 Circle()
                                     .fill(store.isClearText ? Color.orange : Color.secondary.opacity(0.4))
                                     .frame(width: 8, height: 8)
-                                Text("Czysty (C)")
+                                Text(L("Czysty (C)"))
                                     .font(.scaled(11, scale: scale))
                             }
                             .frame(maxWidth: .infinity)
@@ -191,7 +192,7 @@ public struct LiveOutputView: View {
                                     .foregroundColor(.red)
                             }
                             .buttonStyle(.bordered)
-                            .help("Zatrzymaj prezentację")
+                            .help(L("Zatrzymaj prezentację"))
                         }
                     }
                 }
@@ -202,7 +203,7 @@ public struct LiveOutputView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
                         HStack(spacing: 6) {
-                            Label("Podgląd następnego slajdu", systemImage: "arrow.forward.square")
+                            Label(L("Podgląd następnego slajdu"), systemImage: "arrow.forward.square")
                                 .font(.scaled(13, weight: .bold, scale: scale))
                             
                             Text(ScreenManager.formattedAspectRatio(for: presentationAspectRatio))
@@ -217,7 +218,7 @@ public struct LiveOutputView: View {
                         Spacer()
                         
                         if nextSlide != nil {
-                            Text("NASTĘPNY")
+                            Text(L("NASTĘPNY"))
                                 .font(.scaled(10, weight: .bold, scale: scale))
                                 .foregroundColor(.orange)
                                 .padding(.horizontal, 6)
@@ -225,7 +226,7 @@ public struct LiveOutputView: View {
                                 .background(Color.orange.opacity(0.12))
                                 .cornerRadius(4)
                         } else {
-                            Text("KONIEC")
+                            Text(L("KONIEC"))
                                 .font(.scaled(10, weight: .bold, scale: scale))
                                 .foregroundColor(.secondary)
                                 .padding(.horizontal, 6)
@@ -243,7 +244,7 @@ public struct LiveOutputView: View {
                                 targetScreenSize: presentationScreenSize,
                                 settings: store.settings,
                                 isDimmed: true,
-                                label: next.label
+                                label: next.displayLabel
                             )
                         } else {
                             Color(NSColor.controlBackgroundColor)
@@ -251,7 +252,7 @@ public struct LiveOutputView: View {
                                 Image(systemName: "flag.checkered")
                                     .font(.system(size: 20))
                                     .foregroundColor(.secondary.opacity(0.5))
-                                Text(store.isLive ? "Brak kolejnego slajdu (Koniec pieśni)" : "Brak aktywnej prezentacji")
+                                Text(store.isLive ? L("Brak kolejnego slajdu (Koniec pieśni)") : L("Brak aktywnej prezentacji"))
                                     .font(.scaled(11, scale: scale))
                                     .foregroundColor(.secondary)
                             }
@@ -268,11 +269,11 @@ public struct LiveOutputView: View {
                     
                     if let next = nextSlide {
                         HStack {
-                            Text("Następny: \(next.label)")
+                            Text(L("Następny: {0}", next.displayLabel))
                                 .font(.scaled(11, weight: .medium, scale: scale))
                                 .foregroundColor(.secondary)
                             Spacer()
-                            Text("\(next.lines.count) linie")
+                            Text(L("{0} linie", next.lines.count))
                                 .font(.scaled(10, scale: scale))
                                 .foregroundColor(.secondary)
                         }
@@ -284,21 +285,22 @@ public struct LiveOutputView: View {
                 // MARK: - Section 4: Multi-screen Selection & Display Controller
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Label("Ekrany i Projektor", systemImage: "sparkles.tv")
+                        Label(L("Ekrany i Projektor"), systemImage: "sparkles.tv")
                             .font(.scaled(13, weight: .bold, scale: scale))
                         Spacer()
                         Button(action: { screenManager.refreshScreens() }) {
                             Image(systemName: "arrow.clockwise")
                         }
                         .buttonStyle(PlainButtonStyle())
-                        .help("Odśwież listę monitorów")
+                        .help(L("Odśwież listę monitorów"))
                     }
                     
-                    Picker("Docelowy ekran:", selection: Binding(
-                        get: { store.settings.selectedScreenIndex },
-                        set: {
-                            store.settings.selectedScreenIndex = $0
-                            store.saveSettings()
+                    Picker(L("Docelowy ekran:"), selection: Binding(
+                        get: { _ = store.settings.selectedScreenID; return screenManager.selectedScreenItemID ?? 0 },
+                        set: { index in
+                            if let item = screenManager.availableScreens.first(where: { $0.id == index }) {
+                                screenManager.selectScreen(item)
+                            }
                         }
                     )) {
                         ForEach(screenManager.availableScreens) { screen in
@@ -311,11 +313,11 @@ public struct LiveOutputView: View {
                     // Launch buttons
                     VStack(spacing: 6) {
                         Button(action: {
-                            screenManager.togglePresentation(on: store.settings.selectedScreenIndex)
+                            screenManager.togglePresentation()
                         }) {
                             HStack {
                                 Image(systemName: screenManager.isPresentationActive ? "stop.circle.fill" : "play.rectangle.fill")
-                                Text(screenManager.isPresentationActive ? "Zatrzymaj pełny ekran" : "Prezentuj na pełnym ekranie")
+                                Text(screenManager.isPresentationActive ? L("Zatrzymaj pełny ekran") : L("Prezentuj na pełnym ekranie"))
                                     .font(.scaled(12, weight: .semibold, scale: scale))
                             }
                             .frame(maxWidth: .infinity)
@@ -328,7 +330,7 @@ public struct LiveOutputView: View {
                         }) {
                             HStack {
                                 Image(systemName: screenManager.isWindowedPreviewActive ? "xmark.circle" : "macwindow.badge.plus")
-                                Text(screenManager.isWindowedPreviewActive ? "Zamknij okno testowe" : "Otwórz okno testowe")
+                                Text(screenManager.isWindowedPreviewActive ? L("Zamknij okno testowe") : L("Otwórz okno testowe"))
                                     .font(.scaled(11, scale: scale))
                             }
                             .frame(maxWidth: .infinity)
@@ -341,19 +343,5 @@ public struct LiveOutputView: View {
         }
         .background(Color(NSColor.windowBackgroundColor))
     }
-    
-    private func customFont(name: String, size: CGFloat, isBold: Bool) -> Font {
-        if name == "System" || name == "SF Pro" {
-            return .system(size: size, weight: isBold ? .bold : .regular)
-        }
-        return .custom(name, size: size).weight(isBold ? .bold : .regular)
-    }
-    
-    private func alignmentForString(_ alignment: String) -> TextAlignment {
-        switch alignment.lowercased() {
-        case "left", "lewo": return .leading
-        case "right", "prawo": return .trailing
-        default: return .center
-        }
-    }
 }
+

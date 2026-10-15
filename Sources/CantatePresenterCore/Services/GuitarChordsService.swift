@@ -81,6 +81,10 @@ public final class GuitarChordsService {
         return results
     }
     
+    // Kompilowane raz (N3). Inline chords in parens like (CG) or (a e), and in brackets like [C] or [G].
+    private static let inlineParensChordRegex = try! NSRegularExpression(pattern: #"\(([A-Ha-h0-9#b\s/]{1,8})\)"#)
+    private static let inlineBracketsChordRegex = try! NSRegularExpression(pattern: #"\[([A-Ha-h0-9#b/]{1,6})\]"#)
+    
     /// Extracts chords from raw lyrics text, returning both cleaned lyrics (for projection) and extracted chords sheet (for musicians)
     public func extractChordsAndCleanLyrics(_ raw: String) -> (cleanLyrics: String, extractedChords: String?) {
         let lines = raw.components(separatedBy: .newlines)
@@ -88,15 +92,11 @@ public final class GuitarChordsService {
         var chordSheetLines: [String] = []
         var foundAnyChords = false
         
-        // Regex for inline chords in parens like (CG) or (a e)
-        let inlineParensChordRegex = try? NSRegularExpression(pattern: #"\(([A-Ha-h0-9#b\s/]{1,8})\)"#, options: [])
-        // Regex for inline chords in brackets like [C] or [G]
-        let inlineBracketsChordRegex = try? NSRegularExpression(pattern: #"\[([A-Ha-h0-9#b/]{1,6})\]"#, options: [])
+        let inlineParensChordRegex: NSRegularExpression? = Self.inlineParensChordRegex
+        let inlineBracketsChordRegex: NSRegularExpression? = Self.inlineBracketsChordRegex
         
         for line in lines {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
-            let nsLine = line as NSString
-            let range = NSRange(location: 0, length: nsLine.length)
             
             // Check if entire line is just chords (also Fis, Es, x2, | separators)
             if !trimmed.isEmpty && ChordTransposer.isChordLine(line) {

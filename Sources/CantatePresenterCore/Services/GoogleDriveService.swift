@@ -40,7 +40,7 @@ public final class GoogleDriveService {
     
     private func bundledClient() throws -> GoogleOAuth.Client {
         guard let client = GoogleOAuth.Client.bundled else {
-            throw NSError(domain: "GoogleDrive", code: 1, userInfo: [NSLocalizedDescriptionKey: "Ta wersja aplikacji nie ma skonfigurowanego logowania Google."])
+            throw NSError(domain: "GoogleDrive", code: 1, userInfo: [NSLocalizedDescriptionKey: Lnow("Ta wersja aplikacji nie ma skonfigurowanego logowania Google.")])
         }
         return client
     }
@@ -58,7 +58,7 @@ public final class GoogleDriveService {
         let redirectURI = "http://127.0.0.1:\(port)"
         
         guard let authURL = GoogleOAuth.authorizationURL(clientId: client.id, redirectURI: redirectURI, codeChallenge: pkce.challenge, state: state) else {
-            throw NSError(domain: "GoogleDrive", code: 1, userInfo: [NSLocalizedDescriptionKey: "Nie można zbudować adresu logowania Google."])
+            throw NSError(domain: "GoogleDrive", code: 1, userInfo: [NSLocalizedDescriptionKey: Lnow("Nie można zbudować adresu logowania Google.")])
         }
         await MainActor.run { _ = NSWorkspace.shared.open(authURL) }
         
@@ -75,13 +75,13 @@ public final class GoogleDriveService {
         ])
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-            let errorText = String(data: data, encoding: .utf8) ?? "Błąd sieci"
-            throw NSError(domain: "GoogleDrive", code: 2, userInfo: [NSLocalizedDescriptionKey: "Błąd wymiany kodu autoryzacji: \(errorText)"])
+            let errorText = String(data: data, encoding: .utf8) ?? Lnow("Błąd sieci")
+            throw NSError(domain: "GoogleDrive", code: 2, userInfo: [NSLocalizedDescriptionKey: Lnow("Błąd wymiany kodu autoryzacji: {0}", errorText)])
         }
         // Google pozwala odznaczyć poszczególne uprawnienia na ekranie zgody; bez Dysku kopie nie zadziałają.
         let grantedScopes = ((try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["scope"] as? String) ?? ""
         guard grantedScopes.isEmpty || grantedScopes.contains("https://www.googleapis.com/auth/drive.file") else {
-            throw NSError(domain: "GoogleDrive", code: 17, userInfo: [NSLocalizedDescriptionKey: "Nie udzielono dostępu do Dysku Google. Połącz ponownie i na ekranie zgody zaznacz dostęp do plików na Dysku."])
+            throw NSError(domain: "GoogleDrive", code: 17, userInfo: [NSLocalizedDescriptionKey: Lnow("Nie udzielono dostępu do Dysku Google. Połącz ponownie i na ekranie zgody zaznacz dostęp do plików na Dysku.")])
         }
         var credentials = credentialStore.load()
         try credentials.apply(tokenResponse: data)
@@ -119,7 +119,7 @@ public final class GoogleDriveService {
             return credentials.accessToken
         }
         guard !credentials.refreshToken.isEmpty else {
-            throw NSError(domain: "GoogleDrive", code: 4, userInfo: [NSLocalizedDescriptionKey: "Brak połączenia z kontem Google. Połącz konto w Ustawieniach → Dysk Google."])
+            throw NSError(domain: "GoogleDrive", code: 4, userInfo: [NSLocalizedDescriptionKey: Lnow("Brak połączenia z kontem Google. Połącz konto w Ustawieniach → Dysk Google.")])
         }
         let client = try bundledClient()
         
@@ -131,8 +131,8 @@ public final class GoogleDriveService {
         ])
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-            let errorText = String(data: data, encoding: .utf8) ?? "Błąd odświeżania"
-            throw NSError(domain: "GoogleDrive", code: 6, userInfo: [NSLocalizedDescriptionKey: "Nie udało się odświeżyć tokenu Google: \(errorText)"])
+            let errorText = String(data: data, encoding: .utf8) ?? Lnow("Błąd odświeżania")
+            throw NSError(domain: "GoogleDrive", code: 6, userInfo: [NSLocalizedDescriptionKey: Lnow("Nie udało się odświeżyć tokenu Google: {0}", errorText)])
         }
         try credentials.apply(tokenResponse: data)
         try credentialStore.save(credentials)
@@ -145,7 +145,7 @@ public final class GoogleDriveService {
             send: { request in
                 let (data, response) = try await URLSession.shared.data(for: request)
                 guard let httpResponse = response as? HTTPURLResponse else {
-                    throw NSError(domain: "GoogleDrive", code: 16, userInfo: [NSLocalizedDescriptionKey: "Nieprawidłowa odpowiedź serwera Google"])
+                    throw NSError(domain: "GoogleDrive", code: 16, userInfo: [NSLocalizedDescriptionKey: Lnow("Nieprawidłowa odpowiedź serwera Google")])
                 }
                 return (data, httpResponse)
             }
@@ -166,15 +166,15 @@ public final class GoogleDriveService {
         let hint: String
         switch reason {
         case "accessNotConfigured", "SERVICE_DISABLED":
-            hint = "Google Drive API nie jest włączone w projekcie Google Cloud aplikacji."
+            hint = Lnow("Google Drive API nie jest włączone w projekcie Google Cloud aplikacji.")
         case "insufficientPermissions", "ACCESS_TOKEN_SCOPE_INSUFFICIENT":
-            hint = "Brak zgody na dostęp do Dysku. Rozłącz konto, połącz ponownie i zaznacz dostęp do plików na Dysku."
+            hint = Lnow("Brak zgody na dostęp do Dysku. Rozłącz konto, połącz ponownie i zaznacz dostęp do plików na Dysku.")
         case "authError", "UNAUTHENTICATED":
-            hint = "Sesja Google wygasła. Rozłącz konto i połącz ponownie."
+            hint = Lnow("Sesja Google wygasła. Rozłącz konto i połącz ponownie.")
         default:
             hint = ""
         }
-        let text = [summary + " (HTTP \(status)).", hint, message.isEmpty ? "" : "Odpowiedź Google: \(message)"]
+        let text = [summary + " (HTTP \(status)).", hint, message.isEmpty ? "" : Lnow("Odpowiedź Google: {0}", message)]
             .filter { !$0.isEmpty }
             .joined(separator: " ")
         return NSError(domain: "GoogleDrive", code: code, userInfo: [NSLocalizedDescriptionKey: text])
@@ -192,7 +192,7 @@ public final class GoogleDriveService {
         let query = "name = '\(Self.escapeQueryValue(folderName))' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
         guard let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let searchURL = URL(string: "\(driveFilesEndpoint)?q=\(encodedQuery)&fields=files(id,name)") else {
-            throw NSError(domain: "GoogleDrive", code: 7, userInfo: [NSLocalizedDescriptionKey: "Błąd zapytania folderu"])
+            throw NSError(domain: "GoogleDrive", code: 7, userInfo: [NSLocalizedDescriptionKey: Lnow("Błąd zapytania folderu")])
         }
         
         let searchReq = URLRequest(url: searchURL)
@@ -207,7 +207,7 @@ public final class GoogleDriveService {
         
         // 2. Folder not found — create it
         guard let createURL = URL(string: driveFilesEndpoint) else {
-            throw NSError(domain: "GoogleDrive", code: 8, userInfo: [NSLocalizedDescriptionKey: "Błąd URL tworzenia folderu"])
+            throw NSError(domain: "GoogleDrive", code: 8, userInfo: [NSLocalizedDescriptionKey: Lnow("Błąd URL tworzenia folderu")])
         }
         
         var createReq = URLRequest(url: createURL)
@@ -217,7 +217,7 @@ public final class GoogleDriveService {
         let folderMeta: [String: Any] = [
             "name": folderName,
             "mimeType": "application/vnd.google-apps.folder",
-            "description": "Kopie zapasowe bazy pieśni i ustawień aplikacji CantatePresenter"
+            "description": Lnow("Kopie zapasowe bazy pieśni i ustawień aplikacji CantatePresenter")
         ]
         createReq.httpBody = try JSONSerialization.data(withJSONObject: folderMeta)
         
@@ -225,7 +225,7 @@ public final class GoogleDriveService {
         guard (200...299).contains(createHttpResp.statusCode),
               let createJson = try? JSONSerialization.jsonObject(with: createData) as? [String: Any],
               let newId = createJson["id"] as? String else {
-            throw Self.apiError(code: 9, "Nie udało się utworzyć folderu kopii zapasowych na Dysku Google", status: createHttpResp.statusCode, data: createData)
+            throw Self.apiError(code: 9, Lnow("Nie udało się utworzyć folderu kopii zapasowych na Dysku Google"), status: createHttpResp.statusCode, data: createData)
         }
         
         return newId
@@ -239,7 +239,7 @@ public final class GoogleDriveService {
         let folderId = try await getOrCreateBackupsFolder(folderName: folderName)
         
         guard let uploadURL = URL(string: driveUploadEndpoint) else {
-            throw NSError(domain: "GoogleDrive", code: 10, userInfo: [NSLocalizedDescriptionKey: "Błąd URL wysyłki"])
+            throw NSError(domain: "GoogleDrive", code: 10, userInfo: [NSLocalizedDescriptionKey: Lnow("Błąd URL wysyłki")])
         }
         
         let boundary = "-------CantateBackupBoundary\(UUID().uuidString)"
@@ -252,7 +252,7 @@ public final class GoogleDriveService {
             "name": archiveURL.lastPathComponent,
             "parents": [folderId],
             "mimeType": "application/zip",
-            "description": "CantatePresenter Pełny Backup (baza pieśni, chwyty, ustawienia, standby, języki, loga)"
+            "description": Lnow("CantatePresenter Pełny Backup (baza pieśni, chwyty, ustawienia, standby, języki, loga)")
         ]
         let metadataData = try JSONSerialization.data(withJSONObject: metadata)
         
@@ -274,7 +274,7 @@ public final class GoogleDriveService {
         guard (200...299).contains(httpResponse.statusCode),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let fileId = json["id"] as? String else {
-            throw Self.apiError(code: 11, "Błąd przesyłania kopii na Dysk Google", status: httpResponse.statusCode, data: data)
+            throw Self.apiError(code: 11, Lnow("Błąd przesyłania kopii na Dysk Google"), status: httpResponse.statusCode, data: data)
         }
         
         let name = json["name"] as? String ?? archiveURL.lastPathComponent
@@ -305,7 +305,7 @@ public final class GoogleDriveService {
         let query = "'\(Self.escapeQueryValue(folderId))' in parents and trashed = false"
         guard let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let listURL = URL(string: "\(driveFilesEndpoint)?q=\(encodedQuery)&fields=files(id,name,size,createdTime,modifiedTime)&orderBy=createdTime%20desc") else {
-            throw NSError(domain: "GoogleDrive", code: 12, userInfo: [NSLocalizedDescriptionKey: "Błąd URL listy plików"])
+            throw NSError(domain: "GoogleDrive", code: 12, userInfo: [NSLocalizedDescriptionKey: Lnow("Błąd URL listy plików")])
         }
         
         let request = URLRequest(url: listURL)
@@ -314,7 +314,7 @@ public final class GoogleDriveService {
         guard (200...299).contains(httpResponse.statusCode),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let files = json["files"] as? [[String: Any]] else {
-            throw Self.apiError(code: 13, "Błąd odczytu listy kopii z Dysku Google", status: httpResponse.statusCode, data: data)
+            throw Self.apiError(code: 13, Lnow("Błąd odczytu listy kopii z Dysku Google"), status: httpResponse.statusCode, data: data)
         }
         
         let isoFormatter = ISO8601DateFormatter()
@@ -333,14 +333,14 @@ public final class GoogleDriveService {
     public func downloadBackupFromDrive(fileId: String, fileName: String) async throws -> URL {
         guard let encodedId = fileId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
               let downloadURL = URL(string: "\(driveFilesEndpoint)/\(encodedId)?alt=media") else {
-            throw NSError(domain: "GoogleDrive", code: 14, userInfo: [NSLocalizedDescriptionKey: "Błąd URL pobierania"])
+            throw NSError(domain: "GoogleDrive", code: 14, userInfo: [NSLocalizedDescriptionKey: Lnow("Błąd URL pobierania")])
         }
         
         let request = URLRequest(url: downloadURL)
         
         let (data, httpResponse) = try await requester.data(for: request)
         guard (200...299).contains(httpResponse.statusCode) else {
-            throw Self.apiError(code: 15, "Błąd pobierania kopii z Dysku Google", status: httpResponse.statusCode, data: data)
+            throw Self.apiError(code: 15, Lnow("Błąd pobierania kopii z Dysku Google"), status: httpResponse.statusCode, data: data)
         }
         
         // Nazwa z Dysku nie trafia do ścieżki (W3): mogłaby zawierać "/" lub "..".

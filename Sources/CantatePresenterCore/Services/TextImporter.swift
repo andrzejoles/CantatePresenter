@@ -12,6 +12,10 @@ public struct TextImporter {
         return importedSongs
     }
     
+    /// Rozszerzenia plików rozpoznawane przy imporcie (także w oknie wyboru plików).
+    public static let supportedExtensions: [String] = ["txt", "json", "muf", "mufl", "hly", "holyrics", "xml", "zip", "usr"]
+        + SongSelectImporter.chordProExtensions.sorted()
+    
     /// Imports songs from a single URL (supports Holyrics .muf/.mufl/.hly, .txt, .json, .xml, or directories)
     public static func importFromURL(_ url: URL) -> [Song] {
         var isDir: ObjCBool = false
@@ -21,7 +25,7 @@ public struct TextImporter {
             if let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.isRegularFileKey]) {
                 for case let fileURL as URL in enumerator {
                     let ext = fileURL.pathExtension.lowercased()
-                    let supportedExts = ["txt", "json", "muf", "mufl", "hly", "holyrics", "xml", "zip"]
+                    let supportedExts = supportedExtensions
                     if supportedExts.contains(ext) {
                         songsFromFolder.append(contentsOf: importFromURL(fileURL))
                     }
@@ -56,7 +60,20 @@ public struct TextImporter {
             }
         }
         
-        // 3. Default text file parsing
+        // 3. Pliki z CCLI SongSelect (.usr, ChordPro, tekst ze stopką „CCLI Song #”)
+        if ext == "usr" || SongSelectImporter.chordProExtensions.contains(ext) {
+            guard let text = readTextWithBestEncoding(from: url) else { return [] }
+            if ext == "usr" {
+                return SongSelectImporter.parseUSR(text).map { [$0] } ?? []
+            }
+            return [SongSelectImporter.parseChordPro(text, fallbackTitle: url.deletingPathExtension().lastPathComponent)]
+        }
+        if ext == "txt", let text = readTextWithBestEncoding(from: url), SongSelectImporter.isSongSelectText(text),
+           let song = SongSelectImporter.parseText(text) {
+            return [song]
+        }
+        
+        // 4. Default text file parsing
         if let song = parseFile(at: url) {
             return [song]
         }

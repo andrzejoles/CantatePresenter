@@ -41,6 +41,7 @@ public struct AppPaths: Equatable {
     public var settingsFile: URL { dataDirectory.appendingPathComponent("settings.json") }
     public var customLanguagesFile: URL { dataDirectory.appendingPathComponent("custom_languages.json") }
     public var standbyFile: URL { dataDirectory.appendingPathComponent("standby.html") }
+    public var ccliUsageFile: URL { dataDirectory.appendingPathComponent("ccli_usage.json") }
 
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "persistence")
 
@@ -132,5 +133,18 @@ public struct AppPaths: Equatable {
         } catch {
             logger.error("Nie można utworzyć katalogu danych \(directory.path, privacy: .public): \(String(describing: error), privacy: .public)")
         }
+    }
+}
+
+// MARK: - User Guide File
+
+extension AppPaths {
+    /// `INSTRUKCJA.md` dołączona do aplikacji przez `build_app.sh` (S11); przy `swift run` plik z bieżącego katalogu.
+    public static var userGuideFile: URL? {
+        if let bundled = Bundle.main.url(forResource: "INSTRUKCJA", withExtension: "md") {
+            return bundled
+        }
+        let local = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("INSTRUKCJA.md")
+        return FileManager.default.fileExists(atPath: local.path) ? local : nil
     }
 }

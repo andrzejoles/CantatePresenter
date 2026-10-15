@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 
 public struct GoogleDriveBackupsSheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @Binding var isPresented: Bool
     
     @State private var remoteBackups: [RemoteBackupItem] = []
@@ -27,11 +27,11 @@ public struct GoogleDriveBackupsSheet: View {
                     Image(systemName: "externaldrive.badge.icloud")
                         .font(.scaled(18, weight: .bold, scale: scale))
                         .foregroundColor(.blue)
-                    Text("Kopie zapasowe na Dysku Google")
+                    Text(L("Kopie zapasowe na Dysku Google"))
                         .font(.scaled(16, weight: .bold, scale: scale))
                 }
                 Spacer()
-                Button("Zamknij") {
+                Button(L("Zamknij")) {
                     isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
@@ -43,7 +43,7 @@ public struct GoogleDriveBackupsSheet: View {
             
             // Subtitle & Folder
             HStack {
-                Text("Folder na dysku: ")
+                Text(L("Folder na dysku: "))
                     .font(.scaled(11, weight: .medium, scale: scale))
                     .foregroundColor(.secondary)
                 + Text(store.settings.googleDrive.targetFolder)
@@ -54,7 +54,7 @@ public struct GoogleDriveBackupsSheet: View {
                 Button(action: {
                     Task { await loadBackups() }
                 }) {
-                    Label("Odśwież", systemImage: "arrow.clockwise")
+                    Label(L("Odśwież"), systemImage: "arrow.clockwise")
                         .font(.scaled(11, scale: scale))
                 }
                 .buttonStyle(.bordered)
@@ -97,7 +97,7 @@ public struct GoogleDriveBackupsSheet: View {
             if isLoading {
                 VStack(spacing: 12) {
                     ProgressView()
-                    Text("Wczytywanie listy kopii zapasowych z Dysku Google...")
+                    Text(L("Wczytywanie listy kopii zapasowych z Dysku Google..."))
                         .font(.scaled(12, scale: scale))
                         .foregroundColor(.secondary)
                 }
@@ -107,9 +107,9 @@ public struct GoogleDriveBackupsSheet: View {
                     Image(systemName: "tray")
                         .font(.scaled(36, scale: scale))
                         .foregroundColor(.secondary.opacity(0.6))
-                    Text("Brak zapisanych kopii zapasowych w folderze '\(store.settings.googleDrive.targetFolder)'")
+                    Text(L("Brak zapisanych kopii zapasowych w folderze '{0}'", store.settings.googleDrive.targetFolder))
                         .font(.scaled(13, weight: .medium, scale: scale))
-                    Text("Kliknij 'Wyślij bieżący backup na Dysk Google' w Ustawieniach, aby utworzyć pierwszą kopię w chmurze.")
+                    Text(L("Kliknij 'Wyślij bieżący backup na Dysk Google' w Ustawieniach, aby utworzyć pierwszą kopię w chmurze."))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -144,7 +144,7 @@ public struct GoogleDriveBackupsSheet: View {
                             Button(action: {
                                 Task { await restoreItem(item) }
                             }) {
-                                Label("Przywróć tę kopię", systemImage: "arrow.counterclockwise.circle.fill")
+                                Label(L("Przywróć tę kopię"), systemImage: "arrow.counterclockwise.circle.fill")
                                     .font(.scaled(11, weight: .medium, scale: scale))
                             }
                             .buttonStyle(.borderedProminent)
@@ -185,11 +185,11 @@ public struct GoogleDriveBackupsSheet: View {
             let manifest = try await GoogleDriveService.shared.restoreFromDrive(fileId: item.id, fileName: item.name)
             self.isRestoring = false
             self.restoringFileId = nil
-            self.successMessage = "Pomyślnie przywrócono stan programu z Dysku Google! (Pieśni: \(manifest.songsCount), Plany: \(manifest.plansCount))"
+            self.successMessage = L("Pomyślnie przywrócono stan programu z Dysku Google! (Pieśni: {0}, Plany: {1})", manifest.songsCount, manifest.plansCount)
         } catch {
             self.isRestoring = false
             self.restoringFileId = nil
-            self.errorMessage = "Błąd przywracania z Dysku Google: \(error.localizedDescription)"
+            self.errorMessage = L("Błąd przywracania z Dysku Google: {0}", error.localizedDescription)
         }
     }
 }

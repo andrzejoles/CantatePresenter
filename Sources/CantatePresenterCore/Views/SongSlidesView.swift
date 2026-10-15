@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 public struct SongSlidesView: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @Binding var isShowingEditor: Bool
     @Binding var songToEdit: Song?
     
@@ -29,11 +29,11 @@ public struct SongSlidesView: View {
                             Circle()
                                 .fill(Color.red)
                                 .frame(width: 8, height: 8)
-                            Text("PROJEKTOR: Trwa projekcja '\(liveSong.title)' (slajd \(store.activeSlideIndex + 1)/\(liveSong.slides.count))")
+                            Text(L("PROJEKTOR: Trwa projekcja '{0}' (slajd {1}/{2})", liveSong.title, store.activeSlideIndex + 1, liveSong.slides.count))
                                 .font(.scaled(11, weight: .bold, scale: scale))
                                 .foregroundColor(.red)
                             Spacer()
-                            Button("Wróć do prezentowanej pieśni") {
+                            Button(L("Wróć do prezentowanej pieśni")) {
                                 store.selectedSongId = liveSong.id
                             }
                             .buttonStyle(.bordered)
@@ -79,7 +79,7 @@ public struct SongSlidesView: View {
                                 Button(action: {
                                     store.present(song: song, slideIndex: 0)
                                 }) {
-                                    Label("Prezentuj", systemImage: "play.fill")
+                                    Label(L("Prezentuj"), systemImage: "play.fill")
                                         .font(.scaled(12, weight: .semibold, scale: scale))
                                 }
                                 .buttonStyle(.borderedProminent)
@@ -87,7 +87,7 @@ public struct SongSlidesView: View {
                                 Button(action: {
                                     store.addSongToPlan(songId: song.id)
                                 }) {
-                                    Label("+ Do planu", systemImage: "text.badge.plus")
+                                    Label(L("+ Do planu"), systemImage: "text.badge.plus")
                                         .font(.scaled(12, scale: scale))
                                 }
                                 .buttonStyle(.bordered)
@@ -95,7 +95,7 @@ public struct SongSlidesView: View {
                                 Button(action: {
                                     isShowingChordsModal = true
                                 }) {
-                                    Label(song.chords != nil ? "Chwyty (✓)" : "Chwyty", systemImage: "guitars")
+                                    Label(song.chords != nil ? L("Chwyty (✓)") : L("Chwyty"), systemImage: "guitars")
                                         .font(.scaled(12, scale: scale))
                                 }
                                 .buttonStyle(.bordered)
@@ -105,12 +105,12 @@ public struct SongSlidesView: View {
                                     songToEdit = song
                                     isShowingEditor = true
                                 }) {
-                                    Label("Edytuj pieśń i chwyty", systemImage: "pencil.line")
+                                    Label(L("Edytuj pieśń i chwyty"), systemImage: "pencil.line")
                                         .font(.scaled(12, weight: .medium, scale: scale))
                                 }
                                 .buttonStyle(.bordered)
                                 .keyboardShortcut("e", modifiers: [.command])
-                                .help("Edytuj słowa, sekcje i chwyty wybranej pieśni (⌘E)")
+                                .help(L("Edytuj słowa, sekcje i chwyty wybranej pieśni (⌘E)"))
                             }
                         }
                         
@@ -161,7 +161,7 @@ public struct SongSlidesView: View {
                     Image(systemName: "music.note.list")
                         .font(.system(size: 48))
                         .foregroundColor(.secondary.opacity(0.4))
-                    Text("Wybierz pieśń z biblioteki po lewej stronie")
+                    Text(L("Wybierz pieśń z biblioteki po lewej stronie"))
                         .font(.scaled(14, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
                     Spacer()
@@ -211,7 +211,7 @@ private struct SlideCardView: View {
                         .foregroundColor(.white)
                         .cornerRadius(3)
                     
-                    Text(slide.label)
+                    Text(slide.displayLabel)
                         .font(.scaled(12, weight: .bold, scale: scale))
                         .foregroundColor(isLive ? .green : .primary)
                 }
@@ -229,7 +229,7 @@ private struct SlideCardView: View {
                         Circle()
                             .fill(Color.red)
                             .frame(width: 8, height: 8)
-                        Text("NA EKRANIE")
+                        Text(L("NA EKRANIE"))
                             .font(.scaled(10, weight: .bold, scale: scale))
                             .foregroundColor(.red)
                     }

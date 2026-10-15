@@ -35,7 +35,7 @@ Okno główne programu podzielone jest na 3 intuicyjne strefy:
 
 ### Projekcja na monitorze zewnętrznym lub projektorze
 1. W prawym panelu w sekcji **Ekrany i Projektor** wybierz podłączony wyświetlacz (np. projektor HDMI, telewizor lub monitor zewnętrzny).
-2. Kliknij **Prezentuj na pełnym ekranie** (`⌘P`).
+2. Kliknij **Prezentuj na pełnym ekranie**.
 3. Wybierz dowolną pieśń z biblioteki lub planu i kliknij na slajd, aby natychmiast rozpocząć wyświetlanie.
 
 ### Prezentacja na pojedynczym ekranie (Single-Screen Mode)
@@ -44,7 +44,7 @@ Okno główne programu podzielone jest na 3 intuicyjne strefy:
 * W trakcie projekcji na pojedynczym ekranie na starcie wyświetla się dyskretna podpowiedź informująca o klawiszu `ESC`.
 
 ### Kontrola w trakcie projekcji
-* **Następny slajd**: Klawisz `Spacja`, `Strzałka w prawo`, `Strzałka w dół` lub `Page Down`.
+* **Następny slajd**: Klawisz `Spacja`, `Strzałka w prawo`, `Strzałka w dół`, `Page Down` lub `Enter`.
 * **Poprzedni slajd**: `Strzałka w lewo`, `Strzałka w górę` lub `Page Up`.
 * **Czarny ekran (Black Screen)**: Klawisz **`B`** — natychmiast wygasza rzutnik do czerni (np. na czas modlitwy w ciszy lub kazania).
 * **Ukrycie tekstu (Clear Text)**: Klawisz **`C`** — zachowuje tło/planszę, ukrywając sam tekst pieśni.
@@ -57,7 +57,7 @@ Okno główne programu podzielone jest na 3 intuicyjne strefy:
 Gdy żadna pieśń nie jest prezentowana na żywo, projektor wyświetla elegancką planszę czuwania z subtelną animacją ambientową i zegarem.
 
 ### Wybór oficjalnego logo:
-1. Otwórz menu **Ustawienia** (`⌘,`) i kliknij **Wybierz inne logo z galerii...**.
+1. Otwórz **Ustawienia** i kliknij **Wybierz inne logo z galerii...**.
 2. W galerii dostępnych jest **23 profesjonalnych propozycji**, w tym:
    * **Oficjalne logo Equipes Notre-Dame (END)** (oryginalne pobrane ze strony end.org.pl: ryba i obrączki przymierza),
    * Złota gitara akustyczna z rozetą i strunami,
@@ -73,7 +73,7 @@ Gdy żadna pieśń nie jest prezentowana na żywo, projektor wyświetla eleganck
 ## 4. Baza Pieśni i Zaawansowany Edytor
 
 ### Dodawanie i edycja pieśni
-* Kliknij **Nowa pieśń** (`⌘N`), aby otworzyć edytor nowego utworu.
+* Kliknij **Nowa pieśń**, aby otworzyć edytor nowego utworu.
 * Kliknij **Edytuj** (`⌘E`) lub dwukrotnie kliknij w pieśń na liście, aby zmodyfikować istniejącą pieśń.
 
 ### Obsługiwane sekcje utworu
@@ -165,24 +165,38 @@ Aplikacja jest w pełni przystosowana do pracy międzynarodowej:
 
 ## 11. Tabela Skrótów Klawiszowych
 
+Skróty prezentacji działają, gdy pole wyszukiwania jest nieaktywne (po uruchomieniu aplikacji albo po naciśnięciu `Esc` w polu). Pole aktywujesz kliknięciem albo `⌘ F`. Skróty z pierwszej tabeli zmienisz w **Ustawieniach → Skróty klawiszowe**; wybrany tam klawisz ma pierwszeństwo przed klawiszem stałym.
+
+**Domyślne skróty (do zmiany w Ustawieniach)**
+
 | Skrót | Działanie |
 |---|---|
-| **Spacja** / **→** / **↓** / **Enter** | Następny slajd / Następna pieśń w planie |
-| **←** / **↑** | Poprzedni slajd |
-| **ESC** | Wyjście z prezentacji na pełnym ekranie (w trybie 1 ekranu) |
+| **Spacja** | Następny slajd / następna pieśń w planie |
+| **Enter** | Uruchomienie projekcji zaznaczonej pieśni |
+| **[** / **]** | Poprzednia / następna pieśń z planu |
 | **B** | Przełączenie czarnego ekranu (Black Screen) |
 | **C** | Ukrycie tekstu (Clear Text) |
-| **⌘ P** | Włącz / Wyłącz prezentację na projektorze |
-| **⌘ T** | Otwórz / Zamknij okno testowe podglądu |
-| **⌘ N** | Dodaj nową pieśń |
+| **Esc** | Zakończenie projekcji |
+
+**Klawisze stałe**
+
+| Skrót | Działanie |
+|---|---|
+| **←** / **↑** | Poprzedni slajd (**↑** na liście pieśni: poprzednia pieśń) |
+| **→** / **↓** | Następny slajd (**↓** na liście pieśni: następna pieśń) |
+| **Page Up** / **Page Down** | Poprzedni / następny slajd (pilot), także w polu wyszukiwania |
+| **Enter** w oknie projekcji | Następny slajd |
+| **Esc** w polu wyszukiwania | Wyjście z pola |
+| **R** | Refren |
+| **1 – 9** | Zwrotka o tym numerze |
+| **⌘ F** | Szukaj pieśni (**Enter**: wybór pierwszego wyniku) |
+| **⌘ T** | Szybki tekst na żywo |
 | **⌘ E** | Edytuj zaznaczoną pieśń |
-| **⌘ F** | Aktywuj pasek wyszukiwania w bibliotece |
-| **⌘ I** | Otwórz okno Importu i Eksportu |
+| **⌘ I** | Import pieśni |
 | **⌘ B** | Utwórz pełną kopię zapasową (.cantatebackup) |
-| **⌘ ,** | Otwórz Ustawienia aplikacji |
-| **⌘ ?** / **F1** | Otwórz Instrukcję obsługi |
+| **⌘ ?** | Instrukcja obsługi |
 | **⌘ +** / **⌘ -** / **⌘ 0** | Powiększenie / Pomniejszenie / Reset skali interfejsu (100%) |
-| **⌘ Q** | Zakończenie programu (z opcją auto-backupu na Google Drive) |
+| **⌘ Q** | Zakończenie programu (z kopią na Dysk Google, jeśli włączona) |
 
 ---
 

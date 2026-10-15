@@ -3,7 +3,7 @@ import SwiftUI
 import WebKit
 
 public struct LogoGallerySheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @Binding var isPresented: Bool
     
     @State private var selectedLogoId: String = ""
@@ -20,14 +20,14 @@ public struct LogoGallerySheet: View {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Galeria propozycji logo aplikacji")
+                    Text(L("Galeria propozycji logo aplikacji"))
                         .font(.scaled(16, weight: .bold, scale: scale))
-                    Text("Wybierz logo, które będzie reprezentować program na planszy czuwania (standby) i w materiałach")
+                    Text(L("Wybierz logo, które będzie reprezentować program na planszy czuwania (standby) i w materiałach"))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                 }
                 Spacer()
-                Button("Gotowe") {
+                Button(L("Gotowe")) {
                     isPresented = false
                 }
                 .keyboardShortcut(.defaultAction)
@@ -62,7 +62,7 @@ public struct LogoGallerySheet: View {
                             scale: scale,
                             onSelect: {
                                 store.updateActiveLogo(id: logo.id)
-                                successNotice = "Ustawiono aktywne logo: \(logo.name)"
+                                successNotice = L("Ustawiono aktywne logo: {0}", logo.name)
                             }
                         )
                     }
@@ -98,7 +98,7 @@ public struct LogoCardView: View {
                 if isSelected {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
-                        Text("Aktywne")
+                        Text(L("Aktywne"))
                     }
                     .font(.system(size: 10, weight: .bold))
                     .padding(.horizontal, 7)
@@ -131,7 +131,7 @@ public struct LogoCardView: View {
             }
             
             Button(action: onSelect) {
-                Text(isSelected ? "Wybrane jako główne" : "Wybierz to logo")
+                Text(isSelected ? L("Wybrane jako główne") : L("Wybierz to logo"))
                     .font(.scaled(11, weight: .medium, scale: scale))
                     .frame(maxWidth: .infinity)
             }

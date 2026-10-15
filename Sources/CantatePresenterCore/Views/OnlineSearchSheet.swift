@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 public struct OnlineSearchSheet: View {
-    @ObservedObject var store = DataStore.shared
+    @Bindable var store = DataStore.shared
     @Binding var isPresented: Bool
     
     @State private var query: String = ""
@@ -31,10 +31,10 @@ public struct OnlineSearchSheet: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Text("Wyszukiwanie pieśni religijnych w internecie")
+                Text(L("Wyszukiwanie pieśni religijnych w internecie"))
                     .font(.scaled(16, weight: .bold, scale: scale))
                 Spacer()
-                Button("Zamknij") {
+                Button(L("Zamknij")) {
                     isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
@@ -49,7 +49,7 @@ public struct OnlineSearchSheet: View {
                 HStack {
                     Image(systemName: "globe")
                         .foregroundColor(.secondary)
-                    TextField("Wpisz tytuł lub słowa pieśni (np. Barka, Oceany, Dotknij Panie)...", text: $query)
+                    TextField(L("Wpisz tytuł lub słowa pieśni (np. Kiedy ranne wstają zorze)..."), text: $query)
                         .textFieldStyle(PlainTextFieldStyle())
                         .font(.scaled(13, scale: scale))
                         .onSubmit {
@@ -70,7 +70,7 @@ public struct OnlineSearchSheet: View {
                 .background(Color(NSColor.controlBackgroundColor))
                 .cornerRadius(8)
                 
-                Picker("Język:", selection: $language) {
+                Picker(L("Język:"), selection: $language) {
                     ForEach(LanguagePresets.searchLanguages) { choice in
                         Text(choice.name).tag(choice.code)
                     }
@@ -84,14 +84,27 @@ public struct OnlineSearchSheet: View {
                             .controlSize(.small)
                             .frame(width: 50)
                     } else {
-                        Text("Szukaj")
+                        Text(L("Szukaj"))
                             .frame(width: 50)
                     }
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(query.trimmingCharacters(in: .whitespaces).isEmpty || isSearching)
+                
+                Button(action: openSongSelect) {
+                    Label(L("Szukaj w SongSelect"), systemImage: "arrow.up.right.square")
+                }
+                .help(L("Otwiera wyszukiwanie CCLI SongSelect w przeglądarce. Pobrany plik (.txt lub ChordPro) zaimportujesz przez Import/Eksport."))
             }
-            .padding(14)
+            .padding(.horizontal, 14)
+            .padding(.top, 14)
+            
+            Text(L("Źródło: Wikiźródła. Tradycyjne pieśni w domenie publicznej lub na wolnej licencji; adres strony zostaje zapisany w pieśni."))
+                .font(.scaled(11, scale: scale))
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
             
             Divider()
             
@@ -100,7 +113,7 @@ public struct OnlineSearchSheet: View {
                 VStack(spacing: 12) {
                     Spacer()
                     ProgressView()
-                    Text("Przeszukiwanie serwisów z pieśniami chrześcijańskimi...")
+                    Text(L("Przeszukiwanie Wikiźródeł..."))
                         .font(.scaled(13, scale: scale))
                         .foregroundColor(.secondary)
                     Spacer()
@@ -111,7 +124,7 @@ public struct OnlineSearchSheet: View {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 44))
                         .foregroundColor(.secondary.opacity(0.3))
-                    Text(query.isEmpty ? "Wpisz tytuł lub fragment tekstu i kliknij 'Szukaj'" : "Nie znaleziono pieśni dla podanej frazy")
+                    Text(query.isEmpty ? L("Wpisz tytuł lub fragment tekstu i kliknij 'Szukaj'") : L("Nie znaleziono pieśni dla podanej frazy"))
                         .font(.scaled(13, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
                     Spacer()
@@ -168,12 +181,12 @@ public struct OnlineSearchSheet: View {
                             // Review & Edit Before Import Box
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack(spacing: 8) {
-                                    Text("Tytuł:")
+                                    Text(L("Tytuł:"))
                                         .font(.scaled(11, weight: .bold, scale: scale))
                                         .foregroundColor(.secondary)
                                         .frame(width: 45, alignment: .leading)
                                     
-                                    TextField("Tytuł pieśni", text: $editedTitle)
+                                    TextField(L("Tytuł pieśni"), text: $editedTitle)
                                         .textFieldStyle(RoundedBorderTextFieldStyle())
                                         .font(.scaled(13, weight: .semibold, scale: scale))
                                     
@@ -182,33 +195,33 @@ public struct OnlineSearchSheet: View {
                                     Button(action: {
                                         importSong(selected)
                                     }) {
-                                        Label("Importuj do programu", systemImage: "arrow.down.doc.fill")
+                                        Label(L("Importuj do programu"), systemImage: "arrow.down.doc.fill")
                                             .font(.scaled(12, weight: .semibold, scale: scale))
                                     }
                                     .buttonStyle(.borderedProminent)
                                 }
                                 
                                 HStack(spacing: 8) {
-                                    Text("Autor:")
+                                    Text(L("Autor:"))
                                         .font(.scaled(11, weight: .bold, scale: scale))
                                         .foregroundColor(.secondary)
                                         .frame(width: 45, alignment: .leading)
                                     
-                                    Toggle("Importuj proponowanego autora:", isOn: $importAuthor)
+                                    Toggle(L("Importuj proponowanego autora:"), isOn: $importAuthor)
                                         .font(.scaled(11, weight: .medium, scale: scale))
                                     
                                     if importAuthor {
-                                        TextField("Autor / Wykonawca", text: $editedAuthor)
+                                        TextField(L("Autor / Wykonawca"), text: $editedAuthor)
                                             .textFieldStyle(RoundedBorderTextFieldStyle())
                                             .font(.scaled(11, scale: scale))
                                     } else {
                                         HStack(spacing: 4) {
                                             Image(systemName: "person.crop.circle.badge.questionmark")
                                                 .foregroundColor(.orange)
-                                            Text("Zostanie zapisany jako:")
+                                            Text(L("Zostanie zapisany jako:"))
                                                 .font(.scaled(11, scale: scale))
                                                 .foregroundColor(.secondary)
-                                            Text("\"Nieznany\"")
+                                            Text(L("\"Nieznany\""))
                                                 .font(.scaled(11, weight: .bold, scale: scale))
                                                 .foregroundColor(.orange)
                                         }
@@ -223,6 +236,26 @@ public struct OnlineSearchSheet: View {
                             .background(Color(NSColor.controlBackgroundColor))
                             .cornerRadius(8)
                             
+                            HStack(spacing: 8) {
+                                if let license = selected.license {
+                                    Label(license, systemImage: "checkmark.seal")
+                                        .font(.scaled(11, scale: scale))
+                                        .foregroundColor(.green)
+                                }
+                                Text(selected.snippet)
+                                    .font(.scaled(11, scale: scale))
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                Spacer()
+                                if let link = selected.url, let url = URL(string: link) {
+                                    Link(destination: url) {
+                                        Label(L("Otwórz źródło"), systemImage: "arrow.up.right.square")
+                                            .font(.scaled(11, scale: scale))
+                                    }
+                                }
+                            }
+                            
                             Divider()
                             
                             ScrollView {
@@ -230,7 +263,7 @@ public struct OnlineSearchSheet: View {
                                     let slides = Song.parseLyrics(selected.lyrics)
                                     ForEach(Array(slides.enumerated()), id: \.element.id) { idx, slide in
                                         VStack(alignment: .leading, spacing: 3) {
-                                            Text(slide.label)
+                                            Text(slide.displayLabel)
                                                 .font(.scaled(10, weight: .bold, scale: scale))
                                                 .foregroundColor(.orange)
                                             Text(slide.text)
@@ -244,7 +277,7 @@ public struct OnlineSearchSheet: View {
                                 }
                             }
                         } else {
-                            Text("Wybierz pieśń z listy, aby zobaczyć podgląd")
+                            Text(L("Wybierz pieśń z listy, aby zobaczyć podgląd"))
                                 .font(.scaled(12, scale: scale))
                                 .foregroundColor(.secondary)
                         }
@@ -279,23 +312,32 @@ public struct OnlineSearchSheet: View {
         }
     }
     
+    private func openSongSelect() {
+        let clean = query.trimmingCharacters(in: .whitespaces)
+        if let url = SongSelectImporter.searchURL(query: clean) {
+            NSWorkspace.shared.open(url)
+        }
+    }
+    
     private func importSong(_ result: OnlineSearchResult) {
         let finalTitle = editedTitle.trimmingCharacters(in: .whitespaces).isEmpty ? result.title : editedTitle.trimmingCharacters(in: .whitespaces)
         
         let finalAuthor: String
         if importAuthor {
             let trimmed = editedAuthor.trimmingCharacters(in: .whitespaces)
-            finalAuthor = trimmed.isEmpty ? "Nieznany" : trimmed
+            finalAuthor = trimmed.isEmpty ? L("Nieznany") : trimmed
         } else {
-            finalAuthor = "Nieznany"
+            finalAuthor = L("Nieznany")
         }
         
-        let newSong = Song(
+        var newSong = Song(
             title: finalTitle,
             author: finalAuthor,
-            tags: ["Import z sieci", result.source],
+            tags: [result.source],
             rawLyrics: result.lyrics
         )
+        newSong.source = result.url
+        newSong.copyright = result.license
         store.addSong(newSong)
         isPresented = false
     }

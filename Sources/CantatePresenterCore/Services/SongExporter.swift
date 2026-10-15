@@ -52,8 +52,8 @@ public struct SongExporter {
         // Clean filename from title
         let safeName = sanitizeFilename(song.title)
         panel.nameFieldStringValue = "\(safeName).txt"
-        panel.prompt = "Eksportuj pieśń"
-        panel.message = "Wybierz miejsce zapisu pliku tekstowego z pieśnią"
+        panel.prompt = Lnow("Eksportuj pieśń")
+        panel.message = Lnow("Wybierz miejsce zapisu pliku tekstowego z pieśnią")
         
         if panel.runModal() == .OK, let url = panel.url {
             let text = songToText(song)
@@ -78,8 +78,8 @@ public struct SongExporter {
         
         let dateStr = Date().formatted(date: .numeric, time: .omitted).replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ".", with: "-")
         panel.nameFieldStringValue = "\(defaultName)_\(dateStr).json"
-        panel.prompt = "Eksportuj bazę JSON"
-        panel.message = "Zapisz kopię zapasową bazy pieśni do formatu JSON"
+        panel.prompt = Lnow("Eksportuj bazę JSON")
+        panel.message = Lnow("Zapisz kopię zapasową bazy pieśni do formatu JSON")
         
         if panel.runModal() == .OK, let url = panel.url {
             do {
@@ -100,8 +100,8 @@ public struct SongExporter {
         panel.canChooseDirectories = true
         panel.canCreateDirectories = true
         panel.allowsMultipleSelection = false
-        panel.prompt = "Eksportuj do tego folderu"
-        panel.message = "Wybierz folder, do którego zostaną zapisane pliki tekstowe pieśni"
+        panel.prompt = Lnow("Eksportuj do tego folderu")
+        panel.message = Lnow("Wybierz folder, do którego zostaną zapisane pliki tekstowe pieśni")
         
         guard panel.runModal() == .OK, let folderURL = panel.url else {
             return 0
