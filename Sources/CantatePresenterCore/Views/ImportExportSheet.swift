@@ -487,9 +487,11 @@ public struct ImportExportSheet: View {
     
     private func restoreLocalBackupAction() {
         statusMessage = nil
-        let res = BackupService.shared.restoreBackupWithOpenPanel()
-        isSuccessStatus = res.success
-        statusMessage = res.message
+        Task {
+            let res = await BackupService.shared.restoreBackupWithOpenPanel()
+            isSuccessStatus = res.success
+            statusMessage = res.message
+        }
     }
     
     private func uploadToGoogleDriveAction() {
