@@ -73,13 +73,13 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] **N10** Skrypty budowania ukrywają błędy podpisu; wersja w trzech miejscach.
 - [x] **S8** Logo wstawiane regexem i zapisywane do `standby.html` (dwie kopie logiki); przy okazji tłumaczenie tekstów planszy („Wersja”, „GOTOWY DO PROJEKCJI”).
 - [ ] **S9** Wyszukiwanie „online”: fragmenty z DuckDuckGo zapisywane jako tekst pieśni, scrapowanie niezgodne z regulaminem. Wymaga decyzji, co z funkcji zostaje.
-- [ ] **N2** Ustawienia typowane stringami (`"left"`, `"lewo"`) → enumy z tolerancyjnym dekoderem.
-- [ ] **N3** Ostatni regex kompilowany w pętli (`HolyricsImporter`).
-- [ ] **N4** Dyktowanie: podwójny callback, mylący komentarz o rozpoznawaniu na urządzeniu.
-- [ ] **N5** Import Holyrics gubi tonację; XML parsowany regexem.
-- [ ] **N6** Przestarzałe API (ostrzeżenia kompilatora).
-- [ ] **N7** Pozostałe ciche `try?` przy zapisie (np. własne języki).
-- [ ] **N8** Indeks deduplikacji nieaktualizowany po zamianie pieśni głównej.
+- [x] **N2** Ustawienia typowane stringami (`"left"`, `"lewo"`) → enumy z tolerancyjnym dekoderem.
+- [x] **N3** Ostatni regex kompilowany w pętli (`HolyricsImporter`).
+- [x] **N4** Dyktowanie: podwójny callback, mylący komentarz o rozpoznawaniu na urządzeniu.
+- [x] **N5** Import Holyrics gubi tonację; XML parsowany regexem.
+- [x] **N6** Przestarzałe API (ostrzeżenia kompilatora).
+- [x] **N7** Pozostałe ciche `try?` przy zapisie (np. własne języki).
+- [x] **N8** Indeks deduplikacji nieaktualizowany po zamianie pieśni głównej.
 - [ ] **CI** Budowanie i testy na GitHubie.
 - [ ] PR etapu 3 (`stage3-quality`); nowe instalatory w `dist/` (obecne są sprzed poprawek K1).
 
