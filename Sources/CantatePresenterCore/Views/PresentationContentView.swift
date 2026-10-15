@@ -95,7 +95,10 @@ public struct PresentationContentView: View {
                         HStack {
                             Spacer()
                             Button(action: {
-                                ScreenManager.shared.stopPresentation()
+                                // Zamknięcie po zakończeniu obsługi kliknięcia: przycisk leży w zamykanym oknie.
+                                DispatchQueue.main.async {
+                                    ScreenManager.shared.stopPresentation()
+                                }
                             }) {
                                 HStack(spacing: 6) {
                                     Image(systemName: "keyboard")

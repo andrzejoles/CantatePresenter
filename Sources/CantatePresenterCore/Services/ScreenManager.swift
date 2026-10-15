@@ -129,6 +129,9 @@ public final class ScreenManager: ObservableObject {
             screen: targetScreen
         )
         
+        // Okno trzymamy w `presentationWindow`; domyślne zwolnienie przy `close()` dawało podwójne
+        // zwolnienie i awarię po kliknięciu przycisku wyjścia w samym oknie projekcji.
+        window.isReleasedWhenClosed = false
         window.level = .screenSaver
         window.isOpaque = true
         window.hasShadow = false
