@@ -23,10 +23,10 @@ public struct SongSearchIndex {
             sourceAuthor = song.author
             sourceTags = song.tags
             sourceLyrics = song.rawLyrics
-            title = Song.foldString(song.title) as NSString
-            author = Song.foldString(song.author) as NSString
-            tags = song.tags.map { Song.foldString($0) as NSString }
-            lyrics = Song.foldString(song.rawLyrics) as NSString
+            title = Song.searchFold(song.title) as NSString
+            author = Song.searchFold(song.author) as NSString
+            tags = song.tags.map { Song.searchFold($0) as NSString }
+            lyrics = Song.searchFold(song.rawLyrics) as NSString
         }
         
         func isCurrent(for song: Song) -> Bool {
@@ -57,7 +57,7 @@ public struct SongSearchIndex {
     }
     
     public func filter(_ songs: [Song], query: String, scope: Song.SearchScope) -> [Song] {
-        let folded = Song.foldString(query)
+        let folded = Song.searchFold(query)
         guard !folded.isEmpty else { return songs }
         return songs.filter { song in
             guard let entry = entries[song.id], entry.isCurrent(for: song) else {
