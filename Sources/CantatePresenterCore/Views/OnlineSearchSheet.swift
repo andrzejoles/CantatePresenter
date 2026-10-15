@@ -90,6 +90,11 @@ public struct OnlineSearchSheet: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(query.trimmingCharacters(in: .whitespaces).isEmpty || isSearching)
+                
+                Button(action: openSongSelect) {
+                    Label(L("Szukaj w SongSelect"), systemImage: "arrow.up.right.square")
+                }
+                .help(L("Otwiera wyszukiwanie CCLI SongSelect w przeglądarce. Pobrany plik (.txt lub ChordPro) zaimportujesz przez Import/Eksport."))
             }
             .padding(.horizontal, 14)
             .padding(.top, 14)
@@ -304,6 +309,13 @@ public struct OnlineSearchSheet: View {
                 }
                 self.isSearching = false
             }
+        }
+    }
+    
+    private func openSongSelect() {
+        let clean = query.trimmingCharacters(in: .whitespaces)
+        if let url = SongSelectImporter.searchURL(query: clean) {
+            NSWorkspace.shared.open(url)
         }
     }
     

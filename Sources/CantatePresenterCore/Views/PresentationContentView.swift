@@ -45,7 +45,8 @@ public struct PresentationContentView: View {
                         marginPercent: settings.marginPercent
                     )
                     
-                    SlideTextView(text: slide.text, settings: settings, fontSize: optimalSize, containerSize: size)
+                    SlideTextView(text: slide.text, settings: settings, fontSize: optimalSize, containerSize: size,
+                                  footer: store.currentLiveCopyrightNotice)
                 }
                 
                 // Subtle overlay banner for windowed preview

@@ -96,6 +96,16 @@ public enum VerticalTextAlignment: String, Codable, CaseIterable {
     }
 }
 
+/// Gdzie pokazywać informację o prawach autorskich (©, numer CCLI) przy pieśniach z numerem CCLI.
+public enum CopyrightNoticePlacement: String, Codable, CaseIterable {
+    case none, firstSlide, lastSlide, allSlides
+    
+    public init(from decoder: Decoder) throws {
+        let value = try decoder.singleValueContainer().decode(String.self)
+        self = CopyrightNoticePlacement(rawValue: value) ?? .firstSlide
+    }
+}
+
 public struct AppSettings: Codable, Equatable {
     public var selectedScreenIndex: Int
     /// Ekran projekcji po identyfikatorze i nazwie (S1); `selectedScreenIndex` tylko dla starych plików.
@@ -122,6 +132,9 @@ public struct AppSettings: Codable, Equatable {
     /// wymaga pobranego modelu mowy i włączonego dyktowania w systemie.
     public var dictationOnDeviceOnly: Bool = false
     public var activeLogoId: String // "light_of_glory", etc.
+    /// Numer licencji CCLI parafii (CCLI License #), dopisywany do informacji o prawach na slajdzie.
+    public var ccliLicenseNumber: String = ""
+    public var copyrightNoticePlacement: CopyrightNoticePlacement = .firstSlide
     public var googleDrive: GoogleDriveSettings
     
     public init(
@@ -192,6 +205,8 @@ public struct AppSettings: Codable, Equatable {
         self.dictationLanguage = try container.decodeIfPresent(String.self, forKey: .dictationLanguage) ?? "pl-PL"
         self.dictationOnDeviceOnly = try container.decodeIfPresent(Bool.self, forKey: .dictationOnDeviceOnly) ?? false
         self.activeLogoId = try container.decodeIfPresent(String.self, forKey: .activeLogoId) ?? "light_of_glory"
+        self.ccliLicenseNumber = try container.decodeIfPresent(String.self, forKey: .ccliLicenseNumber) ?? ""
+        self.copyrightNoticePlacement = try container.decodeIfPresent(CopyrightNoticePlacement.self, forKey: .copyrightNoticePlacement) ?? .firstSlide
         self.googleDrive = try container.decodeIfPresent(GoogleDriveSettings.self, forKey: .googleDrive) ?? GoogleDriveSettings()
     }
 }

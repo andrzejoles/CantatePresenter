@@ -13,6 +13,8 @@ public struct SongEditorView: View {
     @State private var tagsString: String = ""
     @State private var rawLyrics: String = ""
     @State private var chords: String = ""
+    @State private var copyright: String = ""
+    @State private var ccliNumber: String = ""
     @State private var editorTab: Int = 0 // 0: Tekst & Slajdy, 1: Chwyty gitarowe
     @State private var isShowingChordsSearch: Bool = false
     
@@ -94,6 +96,23 @@ public struct SongEditorView: View {
                         TextField(L("np. D, G, Am"), text: $key)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .frame(width: 90)
+                    }
+                }
+                
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(L("Prawa autorskie (©)"))
+                            .font(.scaled(11, weight: .semibold, scale: scale))
+                        TextField(L("np. © 2024 Wydawnictwo, domena publiczna"), text: $copyright)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(L("Numer CCLI"))
+                            .font(.scaled(11, weight: .semibold, scale: scale))
+                        TextField("1234567", text: $ccliNumber)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 110)
                     }
                 }
                 
@@ -279,6 +298,8 @@ public struct SongEditorView: View {
                 self.tagsString = song.tags.joined(separator: ", ")
                 self.rawLyrics = song.rawLyrics
                 self.chords = song.chords ?? ""
+                self.copyright = song.copyright ?? ""
+                self.ccliNumber = song.ccliNumber ?? ""
             }
         }
         .sheet(isPresented: $isShowingChordsSearch) {
@@ -307,6 +328,8 @@ public struct SongEditorView: View {
             .filter { !$0.isEmpty }
         
         let finalChords = chords.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : chords
+        let cleanCopyright = copyright.trimmingCharacters(in: .whitespaces)
+        let cleanCCLI = ccliNumber.trimmingCharacters(in: .whitespaces)
         
         if let existing = existingSong {
             var updated = existing
@@ -317,9 +340,11 @@ public struct SongEditorView: View {
             updated.rawLyrics = rawLyrics
             updated.chords = finalChords
             updated.slides = Song.parseLyrics(rawLyrics)
+            updated.copyright = cleanCopyright.isEmpty ? nil : cleanCopyright
+            updated.ccliNumber = cleanCCLI.isEmpty ? nil : cleanCCLI
             store.updateSong(updated)
         } else {
-            let newSong = Song(
+            var newSong = Song(
                 title: cleanTitle,
                 author: author.trimmingCharacters(in: .whitespaces),
                 key: key.trimmingCharacters(in: .whitespaces),
@@ -327,6 +352,8 @@ public struct SongEditorView: View {
                 rawLyrics: rawLyrics,
                 chords: finalChords
             )
+            newSong.copyright = cleanCopyright.isEmpty ? nil : cleanCopyright
+            newSong.ccliNumber = cleanCCLI.isEmpty ? nil : cleanCCLI
             store.addSong(newSong)
         }
     }

@@ -9,19 +9,22 @@ public struct PresentationSlidePreviewCanvas: View {
     public let settings: AppSettings
     public var isDimmed: Bool = false
     public var label: String? = nil
+    public var footer: String? = nil
     
     public init(
         text: String,
         targetScreenSize: CGSize,
         settings: AppSettings,
         isDimmed: Bool = false,
-        label: String? = nil
+        label: String? = nil,
+        footer: String? = nil
     ) {
         self.text = text
         self.targetScreenSize = targetScreenSize
         self.settings = settings
         self.isDimmed = isDimmed
         self.label = label
+        self.footer = footer
     }
     
     public var body: some View {
@@ -57,7 +60,8 @@ public struct PresentationSlidePreviewCanvas: View {
                     fontSize: previewFontSize,
                     containerSize: size,
                     scaleFactor: scaleFactor,
-                    isDimmed: isDimmed
+                    isDimmed: isDimmed,
+                    footer: footer
                 )
                 
                 if let label = label {

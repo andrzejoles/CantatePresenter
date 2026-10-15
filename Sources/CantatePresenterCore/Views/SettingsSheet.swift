@@ -686,6 +686,36 @@ public struct SettingsSheet: View {
                         .padding(8)
                     }
                     
+                    // MARK: - CCLI
+                    GroupBox(label: Label(L("Licencja CCLI i prawa autorskie"), systemImage: "c.circle")) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text(L("Numer licencji CCLI parafii:"))
+                                    .font(.scaled(12, weight: .medium, scale: scale))
+                                    .frame(width: 220, alignment: .leading)
+                                TextField("1234567", text: $store.settings.ccliLicenseNumber)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .frame(width: 140)
+                                Spacer()
+                            }
+                            
+                            Picker(L("Informacja o prawach na slajdzie:"), selection: $store.settings.copyrightNoticePlacement) {
+                                Text(L("Na pierwszym slajdzie")).tag(CopyrightNoticePlacement.firstSlide)
+                                Text(L("Na ostatnim slajdzie")).tag(CopyrightNoticePlacement.lastSlide)
+                                Text(L("Na każdym slajdzie")).tag(CopyrightNoticePlacement.allSlides)
+                                Text(L("Nie pokazuj")).tag(CopyrightNoticePlacement.none)
+                            }
+                            .font(.scaled(12, scale: scale))
+                            .frame(maxWidth: 460)
+                            
+                            Text(L("Dotyczy pieśni z numerem CCLI (np. zaimportowanych z SongSelect). Licencja CCLI wymaga pokazania tytułu, autorów, praw autorskich i numeru licencji przy wyświetlaniu tekstu."))
+                                .font(.scaled(11, scale: scale))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(8)
+                    }
+                    
                     // MARK: - Operator UI Zoom
                     GroupBox(label: Label(L("Wielkość elementów interfejsu (UI Scale)"), systemImage: "plus.magnifyingglass")) {
                         VStack(spacing: 12) {

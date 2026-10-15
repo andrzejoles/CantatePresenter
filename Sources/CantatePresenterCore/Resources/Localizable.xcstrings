@@ -3809,6 +3809,34 @@
         }
       }
     },
+    "Dotyczy pieśni z numerem CCLI (np. zaimportowanych z SongSelect). Licencja CCLI wymaga pokazania tytułu, autorów, praw autorskich i numeru licencji przy wyświetlaniu tekstu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applies to songs with a CCLI number (e.g. imported from SongSelect). The CCLI license requires showing the title, authors, copyright and license number when lyrics are displayed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gilt für Lieder mit CCLI-Nummer (z. B. aus SongSelect importiert). Die CCLI-Lizenz verlangt, beim Anzeigen des Textes Titel, Autoren, Urheberrecht und Lizenznummer zu zeigen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se aplica a los cantos con número CCLI (p. ej. importados de SongSelect). La licencia CCLI exige mostrar el título, los autores, los derechos de autor y el número de licencia al proyectar la letra."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Стосується пісень із номером CCLI (напр. імпортованих із SongSelect). Ліцензія CCLI вимагає показувати назву, авторів, авторські права й номер ліцензії під час показу тексту."
+          }
+        }
+      }
+    },
     "Dyktowanie działa bezpośrednio w wyszukiwarkach (biblioteka, online, autor/tytuł) oraz w edytorze nowej pieśni (tytuł, autor i treść zwrotek).": {
       "localizations": {
         "en": {
@@ -5517,6 +5545,34 @@
         }
       }
     },
+    "Informacja o prawach na slajdzie:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copyright notice on slides:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urheberrechtshinweis auf Folien:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aviso de derechos en las diapositivas:"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Інформація про права на слайді:"
+          }
+        }
+      }
+    },
     "Instrukcja Obsługi CantatePresenter": {
       "localizations": {
         "en": {
@@ -7057,6 +7113,62 @@
         }
       }
     },
+    "Licencja CCLI i prawa autorskie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CCLI license and copyright"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CCLI-Lizenz und Urheberrecht"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencia CCLI y derechos de autor"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ліцензія CCLI та авторські права"
+          }
+        }
+      }
+    },
+    "Licencja CCLI nr {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CCLI License # {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CCLI-Lizenz {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencia CCLI n.º {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ліцензія CCLI № {0}"
+          }
+        }
+      }
+    },
     "Licencja: zobacz stronę źródła": {
       "localizations": {
         "en": {
@@ -7417,6 +7529,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "НАСТУПНИЙ"
+          }
+        }
+      }
+    },
+    "Na każdym slajdzie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On every slide"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf jeder Folie"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En cada diapositiva"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На кожному слайді"
+          }
+        }
+      }
+    },
+    "Na ostatnim slajdzie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On the last slide"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf der letzten Folie"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En la última diapositiva"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На останньому слайді"
+          }
+        }
+      }
+    },
+    "Na pierwszym slajdzie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On the first slide"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf der ersten Folie"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En la primera diapositiva"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На першому слайді"
           }
         }
       }
@@ -7949,6 +8145,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не вдається створити адресу входу Google."
+          }
+        }
+      }
+    },
+    "Nie pokazuj": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't show"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht anzeigen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No mostrar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не показувати"
           }
         }
       }
@@ -8569,6 +8793,62 @@
         }
       }
     },
+    "Numer CCLI": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CCLI number"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CCLI-Nummer"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Número CCLI"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Номер CCLI"
+          }
+        }
+      }
+    },
+    "Numer licencji CCLI parafii:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Church CCLI license number:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CCLI-Lizenznummer der Gemeinde:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Número de licencia CCLI de la parroquia:"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Номер ліцензії CCLI парафії:"
+          }
+        }
+      }
+    },
     "O programie CantatePresenter": {
       "localizations": {
         "en": {
@@ -9045,6 +9325,34 @@
         }
       }
     },
+    "Otwiera wyszukiwanie CCLI SongSelect w przeglądarce. Pobrany plik (.txt lub ChordPro) zaimportujesz przez Import/Eksport.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens CCLI SongSelect search in the browser. Import the downloaded file (.txt or ChordPro) via Import/Export."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet die CCLI-SongSelect-Suche im Browser. Die heruntergeladene Datei (.txt oder ChordPro) importierst du über Import/Export."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre la búsqueda de CCLI SongSelect en el navegador. Importa el archivo descargado (.txt o ChordPro) en Importar/Exportar."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відкриває пошук CCLI SongSelect у браузері. Завантажений файл (.txt або ChordPro) імпортуйте через Імпорт/Експорт."
+          }
+        }
+      }
+    },
     "Otwórz okno testowe": {
       "localizations": {
         "en": {
@@ -9405,6 +9713,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Пісень у базі"
+          }
+        }
+      }
+    },
+    "Pieśń CCLI nr {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CCLI Song # {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CCLI-Liednummer {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canción CCLI n.º {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пісня CCLI № {0}"
           }
         }
       }
@@ -11141,6 +11477,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Під’єднано до облікового запису Google: {0}."
+          }
+        }
+      }
+    },
+    "Prawa autorskie (©)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copyright (©)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urheberrecht (©)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Derechos de autor (©)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Авторські права (©)"
           }
         }
       }
@@ -13157,6 +13521,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Шукати пісні (Enter: вибрати перший результат)"
+          }
+        }
+      }
+    },
+    "Szukaj w SongSelect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search SongSelect"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In SongSelect suchen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar en SongSelect"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шукати в SongSelect"
           }
         }
       }
@@ -18561,6 +18953,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "напр. Прославлення, Молодіжні, СДМ"
+          }
+        }
+      }
+    },
+    "np. © 2024 Wydawnictwo, domena publiczna": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. © 2024 Publisher, public domain"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "z. B. © 2024 Verlag, gemeinfrei"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "p. ej. © 2024 Editorial, dominio público"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "напр. © 2024 Видавництво, суспільне надбання"
           }
         }
       }

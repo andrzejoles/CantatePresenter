@@ -15,14 +15,17 @@ public struct SlideTextView: View {
     public let containerSize: CGSize
     public var scaleFactor: CGFloat = 1.0
     public var isDimmed: Bool = false
+    /// Informacja o prawach autorskich (CCLI) drobnym drukiem przy dolnej krawędzi; nie wpływa na Auto-Fit.
+    public var footer: String? = nil
     
-    public init(text: String, settings: AppSettings, fontSize: CGFloat, containerSize: CGSize, scaleFactor: CGFloat = 1.0, isDimmed: Bool = false) {
+    public init(text: String, settings: AppSettings, fontSize: CGFloat, containerSize: CGSize, scaleFactor: CGFloat = 1.0, isDimmed: Bool = false, footer: String? = nil) {
         self.text = text
         self.settings = settings
         self.fontSize = fontSize
         self.containerSize = containerSize
         self.scaleFactor = scaleFactor
         self.isDimmed = isDimmed
+        self.footer = footer
     }
     
     public var body: some View {
@@ -55,6 +58,17 @@ public struct SlideTextView: View {
             }
         }
         .frame(width: containerSize.width, height: containerSize.height)
+        .overlay(alignment: .bottom) {
+            if let footer, !footer.isEmpty {
+                Text(footer)
+                    .font(.system(size: max(5, containerSize.height * 0.022)))
+                    .foregroundColor(Color(hex: settings.textColorHex).opacity(isDimmed ? 0.45 : 0.75))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .padding(.horizontal, containerSize.width * 0.04)
+                    .padding(.bottom, containerSize.height * 0.012)
+            }
+        }
     }
     
     /// Ta sama czcionka co w pomiarze Auto-Fit.

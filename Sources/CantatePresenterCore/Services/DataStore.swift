@@ -159,6 +159,12 @@ public final class DataStore {
         return song.slides[activeSlideIndex]
     }
     
+    /// Informacja o prawach autorskich dla bieżącego slajdu (pieśni z numerem CCLI).
+    public var currentLiveCopyrightNotice: String? {
+        guard let song = activeSong else { return nil }
+        return CopyrightNotice.text(for: song, slideIndex: activeSlideIndex, settings: settings)
+    }
+    
     // MARK: - Persistence
     public func loadSongs() {
         switch fileStore.load([Song].self, from: songsFileURL) {
