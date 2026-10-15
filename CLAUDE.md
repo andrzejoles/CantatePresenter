@@ -38,7 +38,7 @@ Kluczowe elementy:
 - `Song.parseLyrics` dzieli tekst na slajdy (bloki rozdzielone pustą linią, nagłówki `[Zwrotka 1]`, `[Refren]`, `R:` itd.).
 - Import: `TextImporter` → `HolyricsImporter` → `HolyricsJavaDeserializer` (pliki `.mufl`/`.muf` to Java ObjectStream) → `SongDeduplicationService` → `ImportReviewSheet`.
 - Kopie: `BackupService` (ZIP przez `/usr/bin/ditto`), `GoogleDriveService` (REST).
-- Klawiatura: lokalne monitory `NSEvent` w `MainView.setupGlobalKeyMonitor` i `ScreenManager`, plus `PresentationWindow.keyDown`.
+- Klawiatura: jeden `KeyboardMonitor` (rejestrowany w `AppDelegate`) i czysta logika `KeyboardRouter` (K3, W5). Działa tylko w oknie głównym bez arkusza i bez fokusu w polu tekstowym oraz w `PresentationWindow`. Skróty z ustawień mają pierwszeństwo przed stałymi klawiszami (strzałki, Page Up/Down, Esc, R, cyfry).
 
 ### Dane
 
@@ -93,7 +93,7 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 ## Pułapki
 
 - Brak menu Edycja w `AppDelegate.setupMainMenu`: ⌘C/⌘V/⌘Z nie działają w polach tekstowych, dopóki W1 nie zostanie naprawione.
-- Esc jest obsługiwany w pięciu miejscach (monitor `ScreenManager`, `PresentationWindow.cancelOperation`/`performKeyEquivalent`/`keyDown`, `PresentationWKWebView`) oraz w monitorze `MainView`. Zmieniając jedno, sprawdź pozostałe.
+- Nie dodawaj nowych monitorów `NSEvent` ani `keyDown` dla skrótów prezentacji; wszystko idzie przez `KeyboardRouter`. Okno testowe podglądu i okno instrukcji celowo nie są obsługiwane.
 - `DataStore.updateActiveLogo` nadpisuje `standby.html` w katalogu danych. Pliki `data/*.json` w repozytorium są śledzone przez git; po K2 aplikacja ich nie zmienia, ale nie commituj ich przypadkiem po ręcznych próbach.
 - Stara wersja aplikacji (sprzed K1) wczytuje bibliotekę z błędem dat i nadpisuje ją przykładami. Nie uruchamiaj starych buildów na prawdziwych danych.
 - Twarde ścieżki `/Users/aoles/dev_gem/...` w `ImportExportSheet.swift` i `AppDelegate.swift` (S11).

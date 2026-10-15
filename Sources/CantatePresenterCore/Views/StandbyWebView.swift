@@ -4,27 +4,8 @@ import WebKit
 import AppKit
 
 final class PresentationWKWebView: WKWebView {
+    // Nie przejmuje fokusu, więc klawisze trafiają do `KeyboardMonitor` jako okno projekcji.
     override var acceptsFirstResponder: Bool { false }
-    
-    override func performKeyEquivalent(with event: NSEvent) -> Bool {
-        if event.keyCode == 53 { // ESC
-            Task { @MainActor in
-                ScreenManager.shared.stopPresentation()
-            }
-            return true
-        }
-        return super.performKeyEquivalent(with: event)
-    }
-    
-    override func keyDown(with event: NSEvent) {
-        if event.keyCode == 53 { // ESC
-            Task { @MainActor in
-                ScreenManager.shared.stopPresentation()
-            }
-            return
-        }
-        super.keyDown(with: event)
-    }
 }
 
 public struct StandbyWebView: NSViewRepresentable {
