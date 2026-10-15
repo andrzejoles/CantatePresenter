@@ -766,9 +766,11 @@ public struct SettingsSheet: View {
     
     private func restoreLocalBackupAction() {
         backupStatusMessage = nil
-        let res = BackupService.shared.restoreBackupWithOpenPanel()
-        isBackupSuccess = res.success
-        backupStatusMessage = res.message
+        Task {
+            let res = await BackupService.shared.restoreBackupWithOpenPanel()
+            isBackupSuccess = res.success
+            backupStatusMessage = res.message
+        }
     }
     
     private func uploadToGoogleDriveAction() {

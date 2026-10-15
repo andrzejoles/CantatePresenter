@@ -148,6 +148,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         fileMenu.addItem(NSMenuItem.separator())
         fileMenu.addItem(NSMenuItem(title: "Utwórz pełną kopię zapasową (.cantatebackup)...", action: #selector(createBackupAction), keyEquivalent: "b"))
         fileMenu.addItem(NSMenuItem(title: "Przywróć z kopii zapasowej...", action: #selector(restoreBackupAction), keyEquivalent: ""))
+        fileMenu.addItem(NSMenuItem(title: "Cofnij ostatnie przywracanie...", action: #selector(undoRestoreAction), keyEquivalent: ""))
         fileMenu.addItem(NSMenuItem.separator())
         fileMenu.addItem(NSMenuItem(title: "Zamknij okno", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w"))
         fileMenuItem.submenu = fileMenu
@@ -252,9 +253,35 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc private func restoreBackupAction() {
         Task { @MainActor in
-            _ = BackupService.shared.restoreBackupWithOpenPanel()
+            let result = await BackupService.shared.restoreBackupWithOpenPanel()
+            guard result.message != "Anulowano wybór pliku." else { return }
+            showInfoAlert(title: result.success ? "Przywrócono kopię zapasową" : "Nie przywrócono kopii zapasowej", message: result.message, isError: !result.success)
         }
     }
+    
+    @MainActor @objc fileprivate func undoRestoreAction() {
+        let alert = NSAlert()
+        alert.messageText = "Cofnąć ostatnie przywracanie?"
+        alert.informativeText = "Dane wrócą do stanu sprzed ostatniego przywrócenia kopii zapasowej. Dane z przywróconej kopii zostaną usunięte."
+        alert.addButton(withTitle: "Cofnij przywracanie")
+        alert.addButton(withTitle: "Anuluj")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        do {
+            try BackupService.shared.undoLastRestore()
+            showInfoAlert(title: "Cofnięto przywracanie", message: "Przywrócono dane sprzed ostatniego przywrócenia kopii.", isError: false)
+        } catch {
+            showInfoAlert(title: "Nie udało się cofnąć przywracania", message: error.localizedDescription, isError: true)
+        }
+    }
+    
+    private func showInfoAlert(title: String, message: String, isError: Bool) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = isError ? .warning : .informational
+        alert.runModal()
+    }
+
     
     @objc private func quickTextAction() {
         NotificationCenter.default.post(name: NSNotification.Name("OpenQuickTextSheet"), object: nil)
@@ -300,6 +327,16 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.level = .modalPanel
         panel.contentView = NSHostingView(rootView: ExitBackupProgressView(onSkip: onSkip))
         return panel
+    }
+}
+
+// MARK: - Menu Validation
+extension AppDelegate: NSMenuItemValidation {
+    public func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(undoRestoreAction) {
+            return BackupService.shared.canUndoRestore
+        }
+        return true
     }
 }
 
