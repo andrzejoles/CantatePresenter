@@ -565,9 +565,9 @@ public struct SettingsSheet: View {
                                     .frame(width: 140, alignment: .leading)
                                 
                                 Picker("", selection: $store.settings.textAlignment) {
-                                    Text(L("Środek")).tag("center")
-                                    Text(L("Do lewej")).tag("left")
-                                    Text(L("Do prawej")).tag("right")
+                                    Text(L("Środek")).tag(HorizontalTextAlignment.center)
+                                    Text(L("Do lewej")).tag(HorizontalTextAlignment.left)
+                                    Text(L("Do prawej")).tag(HorizontalTextAlignment.right)
                                 }
                                 .pickerStyle(SegmentedPickerStyle())
                             }
@@ -578,8 +578,9 @@ public struct SettingsSheet: View {
                                     .frame(width: 140, alignment: .leading)
                                 
                                 Picker("", selection: $store.settings.verticalAlignment) {
-                                    Text(L("Środek")).tag("center")
-                                    Text(L("Góra")).tag("top")
+                                    Text(L("Góra")).tag(VerticalTextAlignment.top)
+                                    Text(L("Środek")).tag(VerticalTextAlignment.center)
+                                    Text(L("Dół")).tag(VerticalTextAlignment.bottom)
                                 }
                                 .pickerStyle(SegmentedPickerStyle())
                             }

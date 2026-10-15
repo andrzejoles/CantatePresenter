@@ -31,7 +31,7 @@ public struct SlideTextView: View {
         let shadowOffset = max(0.5, 2.0 * scaleFactor)
         
         VStack(alignment: alignment.horizontal) {
-            if settings.verticalAlignment == "bottom" {
+            if settings.verticalAlignment == .bottom {
                 Spacer()
             }
             
@@ -50,7 +50,7 @@ public struct SlideTextView: View {
                 .padding(.horizontal, containerSize.width * CGFloat(settings.marginPercent))
                 .padding(.vertical, containerSize.height * CGFloat(settings.marginPercent))
             
-            if settings.verticalAlignment == "top" {
+            if settings.verticalAlignment == .top {
                 Spacer()
             }
         }
@@ -65,19 +65,19 @@ public struct SlideTextView: View {
 
 // MARK: - Slide Alignment
 
-/// Wyrównanie z ustawień (`"left"`/`"lewo"`, `"right"`/`"prawo"`, inaczej środek) w trzech postaciach SwiftUI.
+/// Wyrównanie z ustawień w trzech postaciach SwiftUI.
 public struct SlideAlignment: Equatable {
     public let horizontal: HorizontalAlignment
     public let text: TextAlignment
     public let frame: Alignment
     
-    public init(_ value: String) {
-        switch value.lowercased() {
-        case "left", "lewo":
+    public init(_ value: HorizontalTextAlignment) {
+        switch value {
+        case .left:
             (horizontal, text, frame) = (.leading, .leading, .leading)
-        case "right", "prawo":
+        case .right:
             (horizontal, text, frame) = (.trailing, .trailing, .trailing)
-        default:
+        case .center:
             (horizontal, text, frame) = (.center, .center, .center)
         }
     }
