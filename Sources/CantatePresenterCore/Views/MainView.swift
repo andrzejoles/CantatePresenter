@@ -10,6 +10,7 @@ public struct MainView: View {
     @State private var isShowingEditor: Bool = false
     @State private var isShowingOnlineSearch: Bool = false
     @State private var isShowingImportExport: Bool = false
+    @State private var importExportStartsImport: Bool = false
     @State private var isShowingAuthorTitleLookup: Bool = false
     @State private var isShowingSettings: Bool = false
     @State private var isShowingQuickText: Bool = false
@@ -218,8 +219,8 @@ public struct MainView: View {
         .sheet(isPresented: $isShowingAuthorTitleLookup) {
             AuthorTitleLookupSheet(isPresented: $isShowingAuthorTitleLookup, initialSong: lookupTargetSong)
         }
-        .sheet(isPresented: $isShowingImportExport) {
-            ImportExportSheet(isPresented: $isShowingImportExport)
+        .sheet(isPresented: $isShowingImportExport, onDismiss: { importExportStartsImport = false }) {
+            ImportExportSheet(isPresented: $isShowingImportExport, startsImportOnAppear: importExportStartsImport)
         }
         .sheet(isPresented: $isShowingSettings) {
             SettingsSheet(isPresented: $isShowingSettings)
@@ -248,8 +249,18 @@ public struct MainView: View {
         } message: { issue in
             Text(issue.message)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openImportFlow)) { _ in
+            guard !isShowingImportExport else { return }
+            importExportStartsImport = true
+            isShowingImportExport = true
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenQuickTextSheet"))) { _ in
             isShowingQuickText = true
         }
     }
+}
+
+extension Notification.Name {
+    /// Plik → Importuj pieśni: ten sam przepływ co w oknie Import/Eksport (S3).
+    static let openImportFlow = Notification.Name("OpenImportFlow")
 }

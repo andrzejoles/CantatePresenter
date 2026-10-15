@@ -51,3 +51,27 @@ struct SongParseLyricsTests {
         #expect(slides[0].text.isEmpty)
     }
 }
+
+// MARK: - S7: nagłówki sekcji
+
+@Suite("Song.parseLyrics: nagłówki (S7)")
+struct SongSectionHeaderTests {
+    @Test("[Pre-Chorus] i [Przed-refren] to przedrefren, nie refren", arguments: ["[Pre-Chorus]", "[Przed-refren]", "[Przedrefren]", "Pre-chorus:"])
+    func preChorusHeaders(header: String) throws {
+        let slides = Song.parseLyrics("\(header)\nCoraz bliżej\n\n[Refren]\nAlleluja")
+
+        try #require(slides.count == 2)
+        #expect(slides[0].type == .preChorus)
+        #expect(slides[1].type == .chorus)
+        #expect(slides[1].label == "Refren")
+    }
+
+    @Test("Pozostałe nagłówki bez zmian")
+    func otherHeaders() {
+        let raw = "[Zwrotka 1]\nA\n\n[Refren]\nB\n\n[Bridge]\nC\n\n[Coda]\nD\n\n[Przejście]\nE\n\n[Intro]\nF\n\n[Zakończenie]\nG\n\n[Refren]\nH"
+        let slides = Song.parseLyrics(raw)
+
+        #expect(slides.map(\.type) == [.verse, .chorus, .bridge, .coda, .interlude, .intro, .ending, .chorus])
+        #expect(slides.last?.label == "Refren 2")
+    }
+}

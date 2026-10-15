@@ -136,30 +136,20 @@ public final class BackupService {
     
     // MARK: - Restore Backup Package
     
-    /// Restores complete app state from a `.holyricsbackup` or `.zip` archive.
-    public func restoreBackup(from archiveURL: URL) throws -> BackupManifest {
+    /// Restores app data from a `.cantatebackup`, `.holyricsbackup` or `.zip` archive (S5: see `BackupRestorer`).
+    /// The archive is unpacked off the main thread, validated, and swapped in as a whole; the previous data
+    /// directory is kept so the restore can be undone.
+    public func restoreBackup(from archiveURL: URL) async throws -> BackupManifest {
         let fileManager = FileManager.default
         guard fileManager.fileExists(atPath: archiveURL.path) else {
             throw NSError(domain: "HolyricsMacBackup", code: 2, userInfo: [NSLocalizedDescriptionKey: "Wskazany plik kopii zapasowej nie istnieje: \(archiveURL.lastPathComponent)"])
         }
         
-        let extractDir = fileManager.temporaryDirectory.appendingPathComponent("HolyricsRestore_\(UUID().uuidString)")
-        try fileManager.createDirectory(at: extractDir, withIntermediateDirectories: true)
-        
+        let extractDir = fileManager.temporaryDirectory.appendingPathComponent("CantateRestore_\(UUID().uuidString)")
         defer {
             try? fileManager.removeItem(at: extractDir)
         }
-        
-        // Unpack archive using macOS ditto
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
-        process.arguments = ["-x", "-k", archiveURL.path, extractDir.path]
-        try process.run()
-        process.waitUntilExit()
-        
-        guard process.terminationStatus == 0 else {
-            throw NSError(domain: "HolyricsMacBackup", code: 3, userInfo: [NSLocalizedDescriptionKey: "Błąd rozpakowywania archiwum kopii zapasowej (kod ditto: \(process.terminationStatus))"])
-        }
+        try await BackupRestorer.unzip(archiveURL, to: extractDir)
         
         // Locate manifest.json (in root or nested)
         var manifestURL = extractDir.appendingPathComponent("manifest.json")
@@ -177,47 +167,41 @@ public final class BackupService {
         }
         
         var manifest: BackupManifest? = nil
-        if fileManager.fileExists(atPath: manifestURL.path),
-           let data = try? Data(contentsOf: manifestURL) {
+        if let data = try? Data(contentsOf: manifestURL) {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             manifest = try? decoder.decode(BackupManifest.self, from: data)
         }
         
-        // Safety Snapshot of current data directory
-        let backupSnapshotDir = fileManager.temporaryDirectory.appendingPathComponent("HolyricsDataRollback_\(UUID().uuidString)")
-        if fileManager.fileExists(atPath: dataDirectory.path) {
-            try? fileManager.copyItem(at: dataDirectory, to: backupSnapshotDir)
-        }
+        let result = try BackupRestorer(dataDirectory: dataDirectory).restore(fromExtracted: contentRoot)
+        reloadStores()
         
-        // Copy restored files into dataDirectory
-        let items = try fileManager.contentsOfDirectory(at: contentRoot, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
-        for item in items {
-            let itemName = item.lastPathComponent
-            if itemName == "manifest.json" { continue }
-            
-            let targetURL = dataDirectory.appendingPathComponent(itemName)
-            if fileManager.fileExists(atPath: targetURL.path) {
-                try? fileManager.removeItem(at: targetURL)
-            }
-            try fileManager.copyItem(at: item, to: targetURL)
-        }
-        
-        // Reload all app stores on MainActor
+        return manifest ?? BackupManifest(
+            songsCount: result.songsCount,
+            plansCount: result.plansCount,
+            activeLogoId: "unknown",
+            appLanguage: "pl",
+            includedFiles: BackupRestorer.allowedItems
+        )
+    }
+    
+    public var canUndoRestore: Bool {
+        BackupRestorer(dataDirectory: dataDirectory).canUndo
+    }
+    
+    /// Wraca do danych sprzed ostatniego przywracania kopii.
+    public func undoLastRestore() throws {
+        try BackupRestorer(dataDirectory: dataDirectory).undoLastRestore()
+        reloadStores()
+    }
+    
+    private func reloadStores() {
         let store = DataStore.shared
         store.loadSettings()
         store.loadSongs()
         store.loadPlans()
         store.updateActiveLogo(id: store.settings.activeLogoId)
         LocalizationService.shared.loadCustomLanguages()
-        
-        return manifest ?? BackupManifest(
-            songsCount: 0,
-            plansCount: 0,
-            activeLogoId: "unknown",
-            appLanguage: "pl",
-            includedFiles: items.map { $0.lastPathComponent }
-        )
     }
     
     // MARK: - Save Dialog Helper
@@ -260,7 +244,7 @@ public final class BackupService {
     
     // MARK: - Open Dialog Helper
     
-    public func restoreBackupWithOpenPanel() -> (success: Bool, message: String) {
+    public func restoreBackupWithOpenPanel() async -> (success: Bool, message: String) {
         let openPanel = NSOpenPanel()
         openPanel.title = "Wybierz plik kopii zapasowej do przywrócenia"
         openPanel.message = "Wskaż plik .cantatebackup, .holyricsbackup lub .zip zawierający kopię bazy CantatePresenter"
@@ -275,12 +259,12 @@ public final class BackupService {
         
         if openPanel.runModal() == .OK, let selectedURL = openPanel.url {
             do {
-                let manifest = try restoreBackup(from: selectedURL)
+                let manifest = try await restoreBackup(from: selectedURL)
                 let dateFormatter = DateFormatter()
                 dateFormatter.dateStyle = .medium
                 dateFormatter.timeStyle = .short
                 let dateStr = dateFormatter.string(from: manifest.createdAt)
-                return (true, "Pomyślnie przywrócono stan aplikacji z kopii z dnia \(dateStr) (pieśni: \(manifest.songsCount), plany: \(manifest.plansCount)).")
+                return (true, "Pomyślnie przywrócono stan aplikacji z kopii z dnia \(dateStr) (pieśni: \(manifest.songsCount), plany: \(manifest.plansCount)). Poprzednie dane zachowano: Plik → Cofnij ostatnie przywracanie.")
             } catch {
                 return (false, "Błąd przywracania: \(error.localizedDescription)")
             }
