@@ -44,7 +44,7 @@ Kluczowe elementy:
 
 ### Dane
 
-Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `standby.html`, `logos/`, `templates/`, `history/` (5 ostatnich wersji przed zapisem, K1).
+Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `ccli_usage.json`, `standby.html`, `logos/`, `templates/`, `history/` (5 ostatnich wersji przed zapisem, K1).
 
 Przy pierwszym uruchomieniu, gdy w Application Support nie ma `songs.json`/`plans.json`/`settings.json`, dane są **kopiowane** ze starej lokalizacji (`data/` obok pakietu .app, a przy `swift run` z bieżącego katalogu). Stary katalog zostaje. Jeśli kopiowanie się nie uda, aplikacja w tej sesji używa starego katalogu i pokazuje alert.
 
@@ -74,8 +74,8 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] **S8** Logo wstawiane regexem i zapisywane do `standby.html` (dwie kopie logiki); przy okazji tłumaczenie tekstów planszy („Wersja”, „GOTOWY DO PROJEKCJI”).
 - [x] **S9** Wyszukiwanie „online”: decyzja właściciela: źródła z jasną licencją. Wikiźródła przez API MediaWiki (`OnlineSearchService`, `WikisourceParser`), źródło i licencja zapisywane w pieśni (`Song.source`, `copyright`, `ccliNumber`). DuckDuckGo, LRCLIB i wbudowany katalog usunięte. Giszowiec.org odrzucony (brak licencji i API).
 - [x] **CCLI SongSelect** (konto płatne parafii): API partnerskie zamknięte dla nowych aplikacji, więc import plików z SongSelect (`SongSelectImporter`: `.txt`, `.usr`, ChordPro), przycisk „Szukaj w SongSelect” (przeglądarka), numer licencji CCLI w Ustawieniach, linia © i numer CCLI na slajdzie (`CopyrightNotice`, rysowana w `SlideTextView`, poza Auto-Fit), pola © i CCLI w edytorze.
-- [ ] **Raport użycia CCLI**: zapis wyświetlonych pieśni z numerem CCLI i eksport do CSV do ręcznego zgłoszenia.
-- [ ] Decyzja właściciela: prośba do CCLI o klucz partnera API (pełna integracja: logowanie, wyszukiwanie i import w aplikacji, automatyczne raportowanie).
+- [x] **Raport użycia CCLI**: `DataStore.ccliUsage` (`ccli_usage.json`, raz na pieśń dziennie przy `present(song:)`), eksport CSV w Ustawieniach (`CCLIUsageReport`).
+- Decyzja właściciela (2026-10-15): bez klucza partnera API CCLI; nie prosić CCLI o dostęp i nie pobierać z SongSelect automatycznie.
 - [x] **N2** Ustawienia typowane stringami (`"left"`, `"lewo"`) → enumy z tolerancyjnym dekoderem.
 - [x] **N3** Ostatni regex kompilowany w pętli (`HolyricsImporter`).
 - [x] **N4** Dyktowanie: podwójny callback, mylący komentarz o rozpoznawaniu na urządzeniu.

@@ -4537,6 +4537,34 @@
         }
       }
     },
+    "Eksportuj raport CCLI (CSV)...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export CCLI report (CSV)..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CCLI-Bericht exportieren (CSV)..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar informe CCLI (CSV)..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Експортувати звіт CCLI (CSV)..."
+          }
+        }
+      }
+    },
     "Eksportuj słownik do tłumaczenia (JSON dla AI)...": {
       "localizations": {
         "en": {
@@ -6045,6 +6073,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "КІНЕЦЬ"
+          }
+        }
+      }
+    },
+    "Każda pieśń z numerem CCLI jest zapisywana raz dziennie, gdy trafi na ekran. Plik CSV pomoże zgłosić użycie na stronie CCLI.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each song with a CCLI number is recorded once a day when it is shown. The CSV file helps you report usage on the CCLI website."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jedes Lied mit CCLI-Nummer wird einmal pro Tag erfasst, wenn es angezeigt wird. Die CSV-Datei hilft beim Melden der Nutzung auf der CCLI-Website."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada canto con número CCLI se registra una vez al día cuando se proyecta. El archivo CSV te ayuda a informar el uso en el sitio web de CCLI."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кожна пісня з номером CCLI записується раз на день, коли з’являється на екрані. Файл CSV допоможе повідомити про використання на сайті CCLI."
           }
         }
       }
@@ -12489,6 +12545,34 @@
         }
       }
     },
+    "Raport użycia: zapisane wyświetlenia: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usage report: recorded displays: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nutzungsbericht: erfasste Anzeigen: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informe de uso: proyecciones registradas: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Звіт про використання: збережено показів: {0}"
+          }
+        }
+      }
+    },
     "Refren": {
       "localizations": {
         "en": {
@@ -18113,6 +18197,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Закрити тестове вікно"
+          }
+        }
+      }
+    },
+    "Zapisano raport: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report saved: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bericht gespeichert: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informe guardado: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Звіт збережено: {0}"
           }
         }
       }

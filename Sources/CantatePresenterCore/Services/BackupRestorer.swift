@@ -38,7 +38,8 @@ public struct BackupRestorer {
     }
 
     public static let allowedItems = [
-        "songs.json", "plans.json", "settings.json", "custom_languages.json", "standby.html", "logos", "templates"
+        "songs.json", "plans.json", "settings.json", "custom_languages.json", "standby.html", "logos", "templates",
+        "ccli_usage.json"
     ]
     public static let previousStatesLimit = 3
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "backup")
