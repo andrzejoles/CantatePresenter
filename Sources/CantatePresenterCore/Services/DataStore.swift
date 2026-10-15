@@ -440,8 +440,8 @@ public final class DataStore {
     
     public func jumpToVerse(number: Int) {
         guard let song = activeSong else { return }
-        let targetLabel = "Zwrotka \(number)"
-        if let idx = song.slides.firstIndex(where: { $0.label.lowercased().contains(targetLabel.lowercased()) }) {
+        // Po numerze zwrotki, nie po polskiej etykiecie (S10).
+        if let idx = song.slides.firstIndex(where: { $0.type == .verse && $0.number == number }) {
             jumpToSlide(index: idx)
         } else if number - 1 < song.slides.count {
             jumpToSlide(index: number - 1)

@@ -273,7 +273,9 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
             
             let text = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
             if !text.isEmpty {
-                slides.append(SongSlide(type: type, label: label, text: text))
+                let numbered: Set<SlideType> = [.verse, .chorus, .bridge, .coda, .interlude, .ending]
+                let number = SongSlide.trailingNumber(in: label) ?? (numbered.contains(type) ? 1 : nil)
+                slides.append(SongSlide(type: type, label: label, text: text, number: number))
             }
         }
         
