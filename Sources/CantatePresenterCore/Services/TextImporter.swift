@@ -126,41 +126,59 @@ public struct TextImporter {
         )
     }
     
-    /// Reads text file trying UTF-8, Windows-1250 (common for Polish songs), and ISO-8859-2
+    /// Reads text file trying UTF-8 and the common Polish single-byte encodings (S6)
     public static func readTextWithBestEncoding(from url: URL) -> String? {
         guard let data = try? Data(contentsOf: url) else { return nil }
-        
-        var decodedString: String? = nil
-        
-        // 1. Try UTF-8
-        if let str = String(data: data, encoding: .utf8) {
-            decodedString = str
-        }
-        // 2. Try Windows-1250 (Central European / Polish Windows standard)
-        else {
-            let windows1250 = CFStringEncoding(CFStringEncodings.windowsLatin2.rawValue)
-            let nsWindows1250 = CFStringConvertEncodingToNSStringEncoding(windows1250)
-            if let str = String(data: data, encoding: String.Encoding(rawValue: nsWindows1250)) {
-                decodedString = str
+        return decodeText(data)
+    }
+    
+    /// Kodowania jednobajtowe próbowane, gdy plik nie jest poprawnym UTF-8. Kolejność rozstrzyga remisy.
+    private static let singleByteCandidates: [String.Encoding] = [
+        CFStringEncodings.windowsLatin2, .isoLatin2, .macCentralEurRoman
+    ].map { String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding($0.rawValue))) }
+        + [.macOSRoman]
+    
+    private static let polishLetters = Set("ąćęłńóśźżĄĆĘŁŃÓŚŹŻ")
+    /// Znaki typowe dla złego kodowania polskiego tekstu, np. ISO-8859-2 czytane jako Windows-1250 („ą” → „±”, „ś” → „¶”).
+    private static let suspiciousCharacters = Set("±¶¼¦¬ˇ˘˝˙¤§¨®°µ·¸ŠšŤťŽľĽĹĺŕŔřŘůŮ∂∑∏√∞≈≠≤≥◊ﬁﬂ")
+    
+    /// Dekoduje tekst: UTF-8, a jeśli to niemożliwe, to kodowanie jednobajtowe z najlepszym wynikiem
+    /// (najwięcej polskich liter, najmniej znaków podejrzanych i sterujących). Wcześniej Windows-1250
+    /// prawie zawsze „się udawało”, więc ISO-8859-2 nie było nigdy próbowane.
+    public static func decodeText(_ data: Data) -> String? {
+        if var utf8 = String(data: data, encoding: .utf8) {
+            if utf8.hasPrefix("\u{FEFF}") {
+                utf8.removeFirst()
             }
-            // 3. Try ISO Latin 2 (ISO-8859-2)
-            else {
-                let isoLatin2 = CFStringEncoding(CFStringEncodings.isoLatin2.rawValue)
-                let nsIsoLatin2 = CFStringConvertEncodingToNSStringEncoding(isoLatin2)
-                if let str = String(data: data, encoding: String.Encoding(rawValue: nsIsoLatin2)) {
-                    decodedString = str
-                }
-                // 4. Fallback to ASCII / MacOSRoman
-                else if let str = String(data: data, encoding: .macOSRoman) {
-                    decodedString = str
-                } else {
-                    decodedString = String(data: data, encoding: .ascii)
-                }
-            }
+            return PolishEncodingService.shared.repairMojibake(utf8)
         }
         
-        guard let finalString = decodedString else { return nil }
-        return PolishEncodingService.shared.repairMojibake(finalString)
+        func score(_ text: String) -> Int {
+            var result = 0
+            for character in text {
+                if polishLetters.contains(character) {
+                    result += 2
+                } else if suspiciousCharacters.contains(character) {
+                    result -= 3
+                } else if let scalar = character.unicodeScalars.first,
+                          scalar.properties.generalCategory == .control,
+                          !"\n\r\t".unicodeScalars.contains(scalar) {
+                    result -= 5
+                }
+            }
+            return result
+        }
+        
+        let best = singleByteCandidates
+            .compactMap { String(data: data, encoding: $0) }
+            .enumerated()
+            .max { lhs, rhs in
+                let (left, right) = (score(lhs.element), score(rhs.element))
+                // Przy remisie wygrywa wcześniejszy kandydat.
+                return left == right ? lhs.offset > rhs.offset : left < right
+            }?.element
+        guard let decoded = best ?? String(data: data, encoding: .ascii) else { return nil }
+        return PolishEncodingService.shared.repairMojibake(decoded)
     }
     
     /// Decodes songs from JSON Data supporting multiple date strategies, single song, arrays, and wrapper objects
