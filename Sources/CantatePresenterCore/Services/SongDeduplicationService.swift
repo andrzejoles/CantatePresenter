@@ -155,6 +155,14 @@ public final class SongDeduplicationService {
                     uniqueIncoming[matchIdx] = candidate
                     uniqueTokens[matchIdx] = cTokens
                     uniqueFoldedLyrics[matchIdx] = cLyricsFolded
+                    // Nowa pieśń główna musi być w indeksach, inaczej jej kolejne kopie przejdą niezauważone (N8).
+                    func addIndex(_ index: inout [String: [Int]], _ key: String) {
+                        guard !key.isEmpty, !(index[key]?.contains(matchIdx) ?? false) else { return }
+                        index[key, default: []].append(matchIdx)
+                    }
+                    addIndex(&titleToIndices, cTitleFolded)
+                    addIndex(&prefixToIndices, cPrefix)
+                    addIndex(&fullLyricsToIndices, cLyricsFolded)
                     duplicates.append(DuplicateRecord(
                         primarySong: candidate,
                         duplicateSong: replaced,
@@ -188,16 +196,21 @@ public final class SongDeduplicationService {
         // 3. Fast Collision Check against Existing Library
         var existingCollisions: [DuplicateRecord] = []
         if !existingLibrary.isEmpty {
-            var libTitleMap: [String: Song] = [:]
+            // Wszystkie pieśni o danym tytule, nie tylko ostatnia (N8).
+            var libTitleMap: [String: [Song]] = [:]
             for libSong in existingLibrary {
-                libTitleMap[Song.foldString(libSong.title)] = libSong
+                libTitleMap[Song.foldString(libSong.title), default: []].append(libSong)
             }
             
             for (i, s) in uniqueIncoming.enumerated() {
                 let sTitleFolded = Song.foldString(s.title)
-                if let libSong = libTitleMap[sTitleFolded] {
-                    let libTokens = SongDeduplicationService.lyricsTokens(Song.foldString(libSong.rawLyrics))
-                    let sim = SongDeduplicationService.tokenSimilarity(uniqueTokens[i], libTokens)
+                let candidates = (libTitleMap[sTitleFolded] ?? []).map { libSong in
+                    (song: libSong, sim: SongDeduplicationService.tokenSimilarity(
+                        uniqueTokens[i], SongDeduplicationService.lyricsTokens(Song.foldString(libSong.rawLyrics))))
+                }
+                if let best = candidates.max(by: { $0.sim < $1.sim }) {
+                    let libSong = best.song
+                    let sim = best.sim
                     existingCollisions.append(DuplicateRecord(
                         primarySong: libSong,
                         duplicateSong: s,
