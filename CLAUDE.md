@@ -73,7 +73,9 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] **N10** Skrypty budowania ukrywają błędy podpisu; wersja w trzech miejscach.
 - [x] **S8** Logo wstawiane regexem i zapisywane do `standby.html` (dwie kopie logiki); przy okazji tłumaczenie tekstów planszy („Wersja”, „GOTOWY DO PROJEKCJI”).
 - [x] **S9** Wyszukiwanie „online”: decyzja właściciela: źródła z jasną licencją. Wikiźródła przez API MediaWiki (`OnlineSearchService`, `WikisourceParser`), źródło i licencja zapisywane w pieśni (`Song.source`, `copyright`, `ccliNumber`). DuckDuckGo, LRCLIB i wbudowany katalog usunięte. Giszowiec.org odrzucony (brak licencji i API).
-- [ ] **CCLI SongSelect** (konto płatne parafii): API partnerskie zamknięte dla nowych aplikacji, więc import plików z SongSelect (`.txt`, ChordPro `.pro`, `.usr`), wyszukiwanie w przeglądarce, numer licencji CCLI w Ustawieniach, linia © i numer CCLI na slajdzie, raport użycia. Prośba do CCLI o klucz partnera to decyzja właściciela.
+- [x] **CCLI SongSelect** (konto płatne parafii): API partnerskie zamknięte dla nowych aplikacji, więc import plików z SongSelect (`SongSelectImporter`: `.txt`, `.usr`, ChordPro), przycisk „Szukaj w SongSelect” (przeglądarka), numer licencji CCLI w Ustawieniach, linia © i numer CCLI na slajdzie (`CopyrightNotice`, rysowana w `SlideTextView`, poza Auto-Fit), pola © i CCLI w edytorze.
+- [ ] **Raport użycia CCLI**: zapis wyświetlonych pieśni z numerem CCLI i eksport do CSV do ręcznego zgłoszenia.
+- [ ] Decyzja właściciela: prośba do CCLI o klucz partnera API (pełna integracja: logowanie, wyszukiwanie i import w aplikacji, automatyczne raportowanie).
 - [x] **N2** Ustawienia typowane stringami (`"left"`, `"lewo"`) → enumy z tolerancyjnym dekoderem.
 - [x] **N3** Ostatni regex kompilowany w pętli (`HolyricsImporter`).
 - [x] **N4** Dyktowanie: podwójny callback, mylący komentarz o rozpoznawaniu na urządzeniu.

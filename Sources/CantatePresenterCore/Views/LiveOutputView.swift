@@ -112,7 +112,8 @@ public struct LiveOutputView: View {
                             PresentationSlidePreviewCanvas(
                                 text: slide.text,
                                 targetScreenSize: presentationScreenSize,
-                                settings: store.settings
+                                settings: store.settings,
+                                footer: store.currentLiveCopyrightNotice
                             )
                         }
                     }
