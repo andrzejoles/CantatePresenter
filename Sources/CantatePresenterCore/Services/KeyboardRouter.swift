@@ -18,6 +18,8 @@ public enum KeyboardAction: Equatable {
     case zoomIn
     case zoomOut
     case zoomReset
+    /// Opuszczenie pola wyszukiwania (Esc), żeby kolejne klawisze sterowały slajdami.
+    case endTextEditing
 }
 
 // MARK: - Keyboard Router
@@ -29,7 +31,10 @@ public enum KeyboardAction: Equatable {
 /// więc np. Esc zamyka arkusz Ustawień zamiast przerywać projekcję.
 public enum KeyboardRouter {
     public enum Focus: Equatable {
+        /// Jednowierszowe pole (np. wyszukiwanie): klawisze do pisania trafiają do pola.
         case text
+        /// Wielowierszowy tekst: wszystkie klawisze trafiają do pola.
+        case multilineText
         case list
         case other
     }
@@ -71,6 +76,8 @@ public enum KeyboardRouter {
         static let r: UInt16 = 15
         /// Kody klawiszy cyfr 1–9 w górnym rzędzie.
         static let digits: Set<UInt16> = [18, 19, 20, 21, 23, 22, 26, 28, 25]
+        /// Klawisze, które nie piszą w polu tekstowym: Page Up/Down (piloty do prezentacji), Home/End, F1–F12.
+        static let nonTyping: Set<UInt16> = [116, 121, 115, 119, 122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111]
     }
 
     // MARK: - Context
@@ -79,7 +86,7 @@ public enum KeyboardRouter {
         guard !state.hasAttachedSheet else { return nil }
         switch state.kind {
         case .main:
-            return state.focus == .text ? nil : .mainWindow(focus: state.focus)
+            return state.focus == .multilineText ? nil : .mainWindow(focus: state.focus)
         case .presentation:
             return .presentationWindow
         case .other:
@@ -98,6 +105,14 @@ public enum KeyboardRouter {
         shortcuts: ShortcutSettings,
         context: Context
     ) -> KeyboardAction? {
+        // W polu wyszukiwania obsługujemy tylko klawisze, które nic nie piszą, i Esc do wyjścia z pola.
+        if context == .mainWindow(focus: .text) {
+            if keyCode == Key.escape && !command {
+                return .endTextEditing
+            }
+            guard !command, Key.nonTyping.contains(keyCode) else { return nil }
+        }
+        
         if command {
             guard case .mainWindow = context else { return nil }
             switch characters {
@@ -151,6 +166,26 @@ public enum KeyboardRouter {
             return nil
         }
     }
+}
+
+// MARK: - Fixed Keys Help
+
+extension KeyboardRouter {
+    /// Klawisze, których nie zmienia się w Ustawieniach; pokazywane w Ustawieniach i w instrukcji.
+    public static let fixedKeysHelp: [(keys: String, action: String)] = [
+        ("← / ↑", "Poprzedni slajd (↑ na liście pieśni: poprzednia pieśń)"),
+        ("→ / ↓", "Następny slajd (↓ na liście pieśni: następna pieśń)"),
+        ("Page Up / Page Down", "Poprzedni / następny slajd (pilot), także w polu wyszukiwania"),
+        ("Enter w oknie projekcji", "Następny slajd"),
+        ("Esc", "Zakończenie projekcji; w polu wyszukiwania: wyjście z pola"),
+        ("R", "Refren"),
+        ("1 – 9", "Zwrotka o tym numerze"),
+        ("⌘F", "Szukaj pieśni (Enter: wybór pierwszego wyniku)"),
+        ("⌘T", "Szybki tekst na żywo"),
+        ("⌘+ / ⌘− / ⌘0", "Powiększenie / pomniejszenie / domyślna skala interfejsu")
+    ]
+    
+    public static let shortcutsNote = "Skróty działają, gdy pole wyszukiwania jest nieaktywne (po starcie albo po Esc). Klawisz wybrany powyżej ma pierwszeństwo przed klawiszem stałym, np. R przypisane do czarnego ekranu przestaje włączać refren."
 }
 
 // MARK: - Shortcut Conflicts
@@ -232,6 +267,10 @@ public final class KeyboardMonitor {
         ) else {
             return false
         }
+        if action == .endTextEditing {
+            window.makeFirstResponder(nil)
+            return true
+        }
         perform(action, in: context)
         return true
     }
@@ -248,6 +287,9 @@ public final class KeyboardMonitor {
 
         let focus: KeyboardRouter.Focus
         switch window.firstResponder {
+        case let textView as NSTextView:
+            // Pole jednowierszowe edytuje współdzielony „field editor”.
+            focus = textView.isFieldEditor ? .text : .multilineText
         case is NSText, is NSTextField:
             focus = .text
         case is NSTableView:
@@ -274,6 +316,8 @@ public final class KeyboardMonitor {
         case .zoomIn: store.zoomInUI()
         case .zoomOut: store.zoomOutUI()
         case .zoomReset: store.resetZoomUI()
+        case .endTextEditing:
+            break
         case .quickText:
             NotificationCenter.default.post(name: NSNotification.Name("OpenQuickTextSheet"), object: nil)
         case .startPresentation:
