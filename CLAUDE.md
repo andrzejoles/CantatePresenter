@@ -15,7 +15,8 @@ xed .                       # otwarcie pakietu w Xcode
 swift test                  # testy (Swift Testing, wymaga pełnego Xcode)
 ```
 
-- `swift run` działa, ale wtedy katalog danych to `./data` względem bieżącego katalogu terminala, a mikrofon/dyktowanie nie mają uprawnień (brak Info.plist). Do sprawdzania funkcji używaj `./build_app.sh` + `open`.
+- `swift run` działa, ale mikrofon/dyktowanie nie mają wtedy uprawnień (brak Info.plist). Do sprawdzania funkcji używaj `./build_app.sh` + `open`.
+- Próby na kopii danych: `CANTATE_DATA_DIR=/ścieżka/do/kopii CantatePresenter.app/Contents/MacOS/CantatePresenter`. Zmiana `HOME` **nie** przekierowuje Application Support.
 - Nie ma lintera ani formatera w projekcie. Trzymaj się stylu istniejącego kodu.
 
 ## Architektura
@@ -41,9 +42,13 @@ Kluczowe elementy:
 
 ### Dane
 
-Obecnie katalog `data/` jest wyznaczany jako folder **obok pakietu .app** (albo bieżący katalog przy `swift run`). Ta logika jest powielona w `DataStore`, `LocalizationService`, `BackupService`, `StandbyWebView` i `AppDelegate`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `standby.html`, `logos/`.
+Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `standby.html`, `logos/`, `templates/`, `history/` (5 ostatnich wersji przed zapisem, K1).
 
-Docelowo (uwaga K2 z przeglądu): `~/Library/Application Support/CantatePresenter` przez jeden typ `AppPaths` z migracją ze starej lokalizacji.
+Przy pierwszym uruchomieniu, gdy w Application Support nie ma `songs.json`/`plans.json`/`settings.json`, dane są **kopiowane** ze starej lokalizacji (`data/` obok pakietu .app, a przy `swift run` z bieżącego katalogu). Stary katalog zostaje. Jeśli kopiowanie się nie uda, aplikacja w tej sesji używa starego katalogu i pokazuje alert.
+
+Odczyt i zapis JSON tylko przez `JSONFileStore` (K1): nieczytelny plik nie jest nadpisywany, trafia do `<nazwa>.corrupt-<data>.json`, a zapis do niego jest zablokowany do udanego wczytania.
+
+`data/` w repozytorium to już tylko stara lokalizacja i źródło migracji; aplikacja go nie modyfikuje.
 
 ## Plan prac: przegląd kodu
 
@@ -67,7 +72,7 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 - Po każdej zmianie: `swift build`, a gdy istnieją testy, `swift test`.
 - Zmiany w UI, klawiaturze, oknach lub projekcji sprawdzaj w działającej aplikacji (`./build_app.sh && open CantatePresenter.app`). Bez drugiego monitora użyj „Otwórz okno testowe” w prawym panelu.
 - Scenariusze do ręcznego sprawdzenia przy K3/W5: Esc przy otwartym arkuszu Ustawień w trakcie projekcji nie może zatrzymać projekcji; Enter w arkuszu nie może jej uruchomić; strzałki na liście pieśni zmieniają zaznaczenie.
-- Przed testami na prawdziwej bibliotece zrób kopię `data/` (albo Application Support po K2).
+- Przed testami na prawdziwej bibliotece zrób kopię `~/Library/Application Support/CantatePresenter`, a najlepiej pracuj na kopii przez `CANTATE_DATA_DIR`.
 
 ## Konwencje
 
@@ -89,7 +94,8 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 
 - Brak menu Edycja w `AppDelegate.setupMainMenu`: ⌘C/⌘V/⌘Z nie działają w polach tekstowych, dopóki W1 nie zostanie naprawione.
 - Esc jest obsługiwany w pięciu miejscach (monitor `ScreenManager`, `PresentationWindow.cancelOperation`/`performKeyEquivalent`/`keyDown`, `PresentationWKWebView`) oraz w monitorze `MainView`. Zmieniając jedno, sprawdź pozostałe.
-- `DataStore.updateActiveLogo` nadpisuje `data/standby.html` na dysku; pliki `data/*.json` i `standby.html` są śledzone przez git i zmieniają się przy uruchomieniu. Nie commituj ich przypadkiem.
+- `DataStore.updateActiveLogo` nadpisuje `standby.html` w katalogu danych. Pliki `data/*.json` w repozytorium są śledzone przez git; po K2 aplikacja ich nie zmienia, ale nie commituj ich przypadkiem po ręcznych próbach.
+- Stara wersja aplikacji (sprzed K1) wczytuje bibliotekę z błędem dat i nadpisuje ją przykładami. Nie uruchamiaj starych buildów na prawdziwych danych.
 - Twarde ścieżki `/Users/aoles/dev_gem/...` w `ImportExportSheet.swift` i `AppDelegate.swift` (S11).
 - `Models/ENDLogoAsset.swift` to ~50 KB base64; nie czytaj go w całości.
 - `Package.swift` nie deklaruje zasobów; `data/` i `Resources/AppIcon.icns` są kopiowane ręcznie przez `build_app.sh`.

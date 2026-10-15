@@ -68,16 +68,12 @@ public struct StandbyWebView: NSViewRepresentable {
     
     private func loadHTML(into webView: WKWebView) {
         let fileManager = FileManager.default
-        let bundleURL = Bundle.main.bundleURL
-        let projectFolder = bundleURL.pathExtension == "app"
-            ? bundleURL.deletingLastPathComponent()
-            : URL(fileURLWithPath: fileManager.currentDirectoryPath)
         
         let targetURL: URL
         if !htmlPath.isEmpty && fileManager.fileExists(atPath: htmlPath) {
             targetURL = URL(fileURLWithPath: htmlPath)
         } else {
-            let defaultURL = projectFolder.appendingPathComponent("data/standby.html")
+            let defaultURL = AppPaths.shared.standbyFile
             if fileManager.fileExists(atPath: defaultURL.path) {
                 targetURL = defaultURL
             } else {

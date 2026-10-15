@@ -869,11 +869,7 @@ public struct SettingsSheet: View {
         if !path.isEmpty && fileManager.fileExists(atPath: path) {
             url = URL(fileURLWithPath: path)
         } else {
-            let bundleURL = Bundle.main.bundleURL
-            let projectFolder = bundleURL.pathExtension == "app"
-                ? bundleURL.deletingLastPathComponent()
-                : URL(fileURLWithPath: fileManager.currentDirectoryPath)
-            url = projectFolder.appendingPathComponent("data/standby.html")
+            url = AppPaths.shared.standbyFile
         }
         NSWorkspace.shared.open(url)
     }

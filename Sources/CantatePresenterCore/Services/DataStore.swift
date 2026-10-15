@@ -11,6 +11,8 @@ public struct PersistenceIssue: Identifiable, Equatable {
         /// Pliku nie da się odczytać; zapis do niego jest zablokowany do czasu udanego wczytania.
         case unreadable
         case saveFailed
+        /// Nie udało się przenieść danych do Application Support (K2); `fileName` to stary katalog.
+        case migrationFailed
     }
     
     public let id = UUID()
@@ -23,6 +25,7 @@ public struct PersistenceIssue: Identifiable, Equatable {
         switch kind {
         case .unreadable: return "Nie można odczytać pliku \(fileName)"
         case .saveFailed: return "Nie można zapisać pliku \(fileName)"
+        case .migrationFailed: return "Nie udało się przenieść danych"
         }
     }
     
@@ -33,6 +36,8 @@ public struct PersistenceIssue: Identifiable, Equatable {
             return "Plik jest uszkodzony albo ma nieznany format. Aplikacja go nie nadpisze: zmiany w tej części danych nie będą zapisywane do czasu przywrócenia kopii lub ponownego uruchomienia.\n\n\(copy)Szczegóły: \(errorDescription)"
         case .saveFailed:
             return "Ostatnie zmiany mogą nie zostać zachowane.\n\nSzczegóły: \(errorDescription)"
+        case .migrationFailed:
+            return "Biblioteka nie została skopiowana do folderu Application Support. W tej sesji aplikacja używa dotychczasowego katalogu:\n\(fileName)\n\nSzczegóły: \(errorDescription)"
         }
     }
 }
@@ -70,22 +75,27 @@ public final class DataStore: ObservableObject {
     private let settingsFileURL: URL
     
     public convenience init() {
-        // Data directory inside current working directory or bundle path
-        let bundleURL = Bundle.main.bundleURL
-        let projectFolder: URL
-        if bundleURL.pathExtension == "app" {
-            projectFolder = bundleURL.deletingLastPathComponent()
-        } else {
-            projectFolder = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-        }
-        self.init(dataDirectory: projectFolder.appendingPathComponent("data"))
+        self.init(paths: AppPaths.shared)
     }
     
-    init(dataDirectory baseURL: URL) {
-        self.dataDirectory = baseURL
-        self.songsFileURL = baseURL.appendingPathComponent("songs.json")
-        self.plansFileURL = baseURL.appendingPathComponent("plans.json")
-        self.settingsFileURL = baseURL.appendingPathComponent("settings.json")
+    convenience init(dataDirectory: URL) {
+        self.init(paths: AppPaths(dataDirectory: dataDirectory))
+    }
+    
+    init(paths: AppPaths) {
+        self.dataDirectory = paths.dataDirectory
+        self.songsFileURL = paths.songsFile
+        self.plansFileURL = paths.plansFile
+        self.settingsFileURL = paths.settingsFile
+        
+        if case .failed(let legacy, let error) = paths.migration {
+            persistenceIssues.append(PersistenceIssue(
+                kind: .migrationFailed,
+                fileName: legacy.path,
+                quarantinedCopy: nil,
+                errorDescription: error
+            ))
+        }
         
         createDataDirectoryIfNeeded()
         loadSettings()
