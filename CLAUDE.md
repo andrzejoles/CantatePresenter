@@ -12,7 +12,8 @@ swift build -c release      # build release (używany przez build_app.sh)
 open CantatePresenter.app   # uruchomienie już zbudowanej aplikacji
 ./build_installer.sh        # PKG + DMG do dist/
 xed .                       # otwarcie pakietu w Xcode
-swift test                  # testy (Swift Testing, wymaga pełnego Xcode)
+swift test                  # testy (Swift Testing, wymaga pełnego Xcode); to samo robi CI na GitHubie
+gh run list --limit 3       # wyniki CI (gh zalogowane, token z uprawnieniem workflow)
 ```
 
 - `swift run` działa, ale mikrofon/dyktowanie nie mają wtedy uprawnień (brak Info.plist). Do sprawdzania funkcji używaj `./build_app.sh` + `open`.
@@ -83,8 +84,8 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] **N6** Przestarzałe API (ostrzeżenia kompilatora).
 - [x] **N7** Pozostałe ciche `try?` przy zapisie (np. własne języki).
 - [x] **N8** Indeks deduplikacji nieaktualizowany po zamianie pieśni głównej.
-- [ ] **CI** Budowanie i testy na GitHubie: workflow `.github/workflows/ci.yml` gotowy na gałęzi `ci-workflow`. GitHub odrzuca push, bo token gita nie ma uprawnienia `workflow`; po zalogowaniu `gh auth login` (albo tokenie z `workflow`) scalić gałąź i wypchnąć.
-- [ ] PR etapu 3 (`stage3-quality`).
+- [x] **CI** `.github/workflows/ci.yml`: `swift build`, `swift test`, `build_app.sh` i `codesign --verify` na najnowszym Xcode runnera macOS (2026-10-15: Xcode 26.6). Starsze SwiftPM nie kompilują `Localizable.xcstrings` do `.lproj`; `Localization.rawCatalog` czyta wtedy katalog JSON.
+- [x] PR etapu 3 (#4).
 - [x] Nowe instalatory w `dist/` (2026-10-15, wersja 1.0.0, kompilacja 70; `dist/` jest w `.gitignore`).
 
 Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
