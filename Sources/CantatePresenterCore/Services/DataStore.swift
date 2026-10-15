@@ -208,9 +208,23 @@ public final class DataStore: ObservableObject {
         case .loaded(let decoded):
             unlock(settingsFileURL)
             self.settings = decoded
+            if settings.googleDrive.hasLegacySecrets {
+                migrateGoogleSecrets()
+            }
         case .unreadable(let error, let copy):
             lock(settingsFileURL, error: error, quarantinedCopy: copy)
             self.settings = AppSettings()
+        }
+    }
+    
+    /// Tokeny i sekret Google ze starego `settings.json` trafiają do Pęku kluczy, a plik jest zapisywany bez nich (W4).
+    private func migrateGoogleSecrets() {
+        do {
+            try settings.googleDrive.migrateLegacySecrets(into: GoogleCredentialStore.shared)
+            saveSettings()
+        } catch {
+            // Bez zapisu: sekrety zostają w pliku do następnej udanej próby, zamiast przepaść.
+            Self.logger.error("Migracja danych Google do Pęku kluczy nie powiodła się: \(String(describing: error), privacy: .public)")
         }
     }
     

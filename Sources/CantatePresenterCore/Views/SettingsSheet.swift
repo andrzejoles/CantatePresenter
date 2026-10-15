@@ -13,11 +13,10 @@ public struct SettingsSheet: View {
     @State private var translationNotice: String? = nil
     @State private var isShowingGoogleDriveBackups: Bool = false
     @State private var isUploadingToDrive: Bool = false
-    @State private var isAuthorizingDrive: Bool = false
-    @State private var driveAuthCodeInput: String = ""
+    @State private var isSigningInDrive: Bool = false
+    @State private var isDriveSignedIn: Bool = false
     @State private var backupStatusMessage: String? = nil
     @State private var isBackupSuccess: Bool = true
-    @State private var showDriveCredentials: Bool = false
     
     public init(isPresented: Binding<Bool>) {
         self._isPresented = isPresented
@@ -317,7 +316,7 @@ public struct SettingsSheet: View {
                                     Spacer()
                                     
                                     if store.settings.googleDrive.isEnabled {
-                                        Text(store.settings.googleDrive.accountEmail.isEmpty ? "andrzej.oles.tel@gmail.com" : store.settings.googleDrive.accountEmail)
+                                        Text(isDriveSignedIn ? (store.settings.googleDrive.accountEmail.isEmpty ? "Połączono" : store.settings.googleDrive.accountEmail) : "Nie połączono")
                                             .font(.scaled(10, weight: .bold, scale: scale))
                                             .padding(.horizontal, 8)
                                             .padding(.vertical, 3)
@@ -329,14 +328,37 @@ public struct SettingsSheet: View {
                                 
                                 if store.settings.googleDrive.isEnabled {
                                     VStack(alignment: .leading, spacing: 10) {
-                                        // Account Email
-                                        HStack {
+                                        // Account connection (W3: logowanie w przeglądarce, loopback + PKCE)
+                                        HStack(spacing: 8) {
                                             Text("Konto Google:")
                                                 .font(.scaled(11, weight: .medium, scale: scale))
                                                 .frame(width: 140, alignment: .leading)
-                                            TextField("np. andrzej.oles.tel@gmail.com", text: $store.settings.googleDrive.accountEmail)
-                                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                            Text(isDriveSignedIn ? (store.settings.googleDrive.accountEmail.isEmpty ? "połączono" : store.settings.googleDrive.accountEmail) : "nie połączono")
                                                 .font(.scaled(11, scale: scale))
+                                                .foregroundColor(isDriveSignedIn ? .primary : .secondary)
+                                            Spacer()
+                                            if isSigningInDrive {
+                                                ProgressView()
+                                                    .controlSize(.small)
+                                                Text("Dokończ logowanie w przeglądarce...")
+                                                    .font(.scaled(10, scale: scale))
+                                                    .foregroundColor(.secondary)
+                                            } else if isDriveSignedIn {
+                                                Button("Rozłącz", action: disconnectGoogleAccount)
+                                                    .buttonStyle(.bordered)
+                                                    .controlSize(.small)
+                                            } else if GoogleDriveService.shared.isSignInAvailable {
+                                                Button(action: connectGoogleAccount) {
+                                                    Label("Połącz z kontem Google...", systemImage: "person.badge.key")
+                                                        .font(.scaled(11, scale: scale))
+                                                }
+                                                .buttonStyle(.borderedProminent)
+                                                .controlSize(.small)
+                                            } else {
+                                                Text("Logowanie Google niedostępne w tej wersji aplikacji")
+                                                    .font(.scaled(10, scale: scale))
+                                                    .foregroundColor(.secondary)
+                                            }
                                         }
                                         
                                         // Action buttons for Google Drive
@@ -374,76 +396,14 @@ public struct SettingsSheet: View {
                                         }
                                         .toggleStyle(CheckboxToggleStyle())
                                         
-                                        // Credentials Disclosure
-                                        DisclosureGroup(isExpanded: $showDriveCredentials) {
-                                            VStack(alignment: .leading, spacing: 8) {
-                                                Text("Dane dostępowe Google Drive API (opcjonalne, dla własnego projektu w Google Cloud Console):")
-                                                    .font(.scaled(10, scale: scale))
-                                                    .foregroundColor(.secondary)
-                                                
-                                                HStack {
-                                                    Text("Client ID:")
-                                                        .font(.scaled(10, scale: scale))
-                                                        .frame(width: 90, alignment: .leading)
-                                                    TextField("Client ID z Google Cloud Console", text: $store.settings.googleDrive.clientId)
-                                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                                                        .font(.scaled(10, scale: scale))
-                                                }
-                                                
-                                                HStack {
-                                                    Text("Client Secret:")
-                                                        .font(.scaled(10, scale: scale))
-                                                        .frame(width: 90, alignment: .leading)
-                                                    SecureField("Client Secret", text: $store.settings.googleDrive.clientSecret)
-                                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                                                        .font(.scaled(10, scale: scale))
-                                                }
-                                                
-                                                HStack {
-                                                    Text("Token dostępowy:")
-                                                        .font(.scaled(10, scale: scale))
-                                                        .frame(width: 90, alignment: .leading)
-                                                    SecureField("Access Token / OAuth Token", text: $store.settings.googleDrive.accessToken)
-                                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                                                        .font(.scaled(10, scale: scale))
-                                                }
-                                                
-                                                HStack {
-                                                    Text("Folder w chmurze:")
-                                                        .font(.scaled(10, scale: scale))
-                                                        .frame(width: 90, alignment: .leading)
-                                                    TextField("CantatePresenter_Backups", text: $store.settings.googleDrive.targetFolder)
-                                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                                                        .font(.scaled(10, scale: scale))
-                                                }
-                                                
-                                                HStack(spacing: 8) {
-                                                    Button(action: authorizeGoogleOAuthInBrowser) {
-                                                        Label("Autoryzuj w przeglądarce (Google OAuth)...", systemImage: "globe")
-                                                            .font(.scaled(10, scale: scale))
-                                                    }
-                                                    .buttonStyle(.bordered)
-                                                    .controlSize(.mini)
-                                                    
-                                                    if isAuthorizingDrive {
-                                                        TextField("Wklej kod autoryzacji z Google", text: $driveAuthCodeInput)
-                                                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                                                            .font(.scaled(10, scale: scale))
-                                                        Button("Zatwierdź kod") {
-                                                            submitDriveAuthCode()
-                                                        }
-                                                        .buttonStyle(.borderedProminent)
-                                                        .controlSize(.mini)
-                                                    }
-                                                }
-                                            }
-                                            .padding(8)
-                                            .background(Color(NSColor.controlBackgroundColor).opacity(0.3))
-                                            .cornerRadius(6)
-                                        } label: {
-                                            Text("Zaawansowane dane logowania Google API (Client ID / Token)...")
-                                                .font(.scaled(10, weight: .medium, scale: scale))
-                                                .foregroundColor(.blue)
+                                        // Folder na Dysku Google użytkownika
+                                        HStack {
+                                            Text("Folder na Dysku:")
+                                                .font(.scaled(11, weight: .medium, scale: scale))
+                                                .frame(width: 140, alignment: .leading)
+                                            TextField("CantatePresenter_Backups", text: $store.settings.googleDrive.targetFolder)
+                                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                                .font(.scaled(11, scale: scale))
                                         }
                                     }
                                     .padding(.leading, 18)
@@ -749,6 +709,7 @@ public struct SettingsSheet: View {
             GoogleDriveBackupsSheet(isPresented: $isShowingGoogleDriveBackups)
         }
         .onAppear {
+            refreshDriveState()
             self.availableFonts = AutoFitEngine.availableSystemFonts()
         }
     }
@@ -798,53 +759,36 @@ public struct SettingsSheet: View {
         }
     }
     
-    private func authorizeGoogleOAuthInBrowser() {
-        let clientId = store.settings.googleDrive.clientId.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !clientId.isEmpty else {
-            backupStatusMessage = "Wpisz swój Client ID z Google Cloud Console przed uruchomieniem przeglądarki."
-            isBackupSuccess = false
-            return
-        }
-        
-        if let authURL = GoogleDriveService.shared.generateOAuthURL(clientId: clientId) {
-            isAuthorizingDrive = true
-            NSWorkspace.shared.open(authURL)
-            backupStatusMessage = "Otwarto okno logowania Google w przeglądarce. Po zatwierdzeniu skopiuj wygenerowany kod i wklej w polu poniżej."
-            isBackupSuccess = true
+    private func refreshDriveState() {
+        isDriveSignedIn = GoogleDriveService.shared.isSignedIn
+    }
+    
+    private func connectGoogleAccount() {
+        backupStatusMessage = nil
+        isSigningInDrive = true
+        Task {
+            do {
+                let email = try await GoogleDriveService.shared.signIn()
+                store.settings.googleDrive.accountEmail = email
+                store.saveSettings()
+                isBackupSuccess = true
+                backupStatusMessage = email.isEmpty ? "Połączono z kontem Google." : "Połączono z kontem Google: \(email)."
+            } catch {
+                isBackupSuccess = false
+                backupStatusMessage = "Nie udało się połączyć z kontem Google: \(error.localizedDescription)"
+            }
+            isSigningInDrive = false
+            refreshDriveState()
         }
     }
     
-    private func submitDriveAuthCode() {
-        let code = driveAuthCodeInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !code.isEmpty else { return }
-        
-        Task {
-            do {
-                let res = try await GoogleDriveService.shared.exchangeCodeForTokens(
-                    code: code,
-                    clientId: store.settings.googleDrive.clientId,
-                    clientSecret: store.settings.googleDrive.clientSecret
-                )
-                
-                await MainActor.run {
-                    self.store.settings.googleDrive.accessToken = res.accessToken
-                    self.store.settings.googleDrive.refreshToken = res.refreshToken
-                    if !res.email.isEmpty {
-                        self.store.settings.googleDrive.accountEmail = res.email
-                    }
-                    self.store.saveSettings()
-                    self.isAuthorizingDrive = false
-                    self.driveAuthCodeInput = ""
-                    self.isBackupSuccess = true
-                    self.backupStatusMessage = "Pomyślnie połączono z kontem Google: \(store.settings.googleDrive.accountEmail)!"
-                }
-            } catch {
-                await MainActor.run {
-                    self.isBackupSuccess = false
-                    self.backupStatusMessage = "Błąd autoryzacji kodu Google: \(error.localizedDescription)"
-                }
-            }
-        }
+    private func disconnectGoogleAccount() {
+        GoogleDriveService.shared.signOut()
+        store.settings.googleDrive.accountEmail = ""
+        store.saveSettings()
+        refreshDriveState()
+        isBackupSuccess = true
+        backupStatusMessage = "Rozłączono konto Google. Tokeny usunięto z Pęku kluczy."
     }
     
     private func shortcutRow(title: String, selection: Binding<UInt16>, scale: Double) -> some View {

@@ -25,73 +25,77 @@ public struct RemoteBackupItem: Identifiable, Codable {
 public final class GoogleDriveService {
     public static let shared = GoogleDriveService()
     
-    private let tokenEndpoint = "https://oauth2.googleapis.com/token"
     private let driveFilesEndpoint = "https://www.googleapis.com/drive/v3/files"
     private let driveUploadEndpoint = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
     private let userInfoEndpoint = "https://www.googleapis.com/oauth2/v2/userinfo"
     
     private init() {}
     
-    // MARK: - OAuth URL Generator
+    private let credentialStore = GoogleCredentialStore.shared
     
-    /// Generates standard Google OAuth 2.0 authorization URL for Desktop apps
-    public func generateOAuthURL(clientId: String) -> URL? {
-        guard !clientId.isEmpty else { return nil }
-        var components = URLComponents(string: "https://accounts.google.com/o/oauth2/v2/auth")
-        components?.queryItems = [
-            URLQueryItem(name: "client_id", value: clientId),
-            URLQueryItem(name: "redirect_uri", value: "urn:ietf:wg:oauth:2.0:oob"),
-            URLQueryItem(name: "response_type", value: "code"),
-            URLQueryItem(name: "scope", value: "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email"),
-            URLQueryItem(name: "access_type", value: "offline"),
-            URLQueryItem(name: "prompt", value: "consent")
-        ]
-        return components?.url
+    // MARK: - Sign In (W3: loopback + PKCE)
+    
+    /// Czy ta kompilacja ma wbudowanego klienta OAuth (patrz `build_app.sh`).
+    public var isSignInAvailable: Bool { GoogleOAuth.Client.bundled != nil }
+    
+    private func bundledClient() throws -> GoogleOAuth.Client {
+        guard let client = GoogleOAuth.Client.bundled else {
+            throw NSError(domain: "GoogleDrive", code: 1, userInfo: [NSLocalizedDescriptionKey: "Ta wersja aplikacji nie ma skonfigurowanego logowania Google."])
+        }
+        return client
     }
     
-    // MARK: - Code to Tokens Exchange
-    
-    public func exchangeCodeForTokens(code: String, clientId: String, clientSecret: String) async throws -> (accessToken: String, refreshToken: String, email: String) {
-        guard let url = URL(string: tokenEndpoint) else {
-            throw NSError(domain: "GoogleDrive", code: 1, userInfo: [NSLocalizedDescriptionKey: "Nieprawidłowy adres tokenu"])
+    /// Otwiera logowanie Google w przeglądarce, odbiera kod na lokalnym porcie i zapisuje tokeny w Pęku kluczy.
+    /// Użytkownik loguje się własnym kontem; kopie trafiają na jego Dysk. Zwraca adres e-mail konta.
+    public func signIn() async throws -> String {
+        let client = try bundledClient()
+        
+        let pkce = GoogleOAuth.PKCE()
+        let state = GoogleOAuth.randomState()
+        let server = GoogleOAuth.LoopbackServer()
+        let port = try await server.start()
+        defer { server.stop() }
+        let redirectURI = "http://127.0.0.1:\(port)"
+        
+        guard let authURL = GoogleOAuth.authorizationURL(clientId: client.id, redirectURI: redirectURI, codeChallenge: pkce.challenge, state: state) else {
+            throw NSError(domain: "GoogleDrive", code: 1, userInfo: [NSLocalizedDescriptionKey: "Nie można zbudować adresu logowania Google."])
         }
+        await MainActor.run { _ = NSWorkspace.shared.open(authURL) }
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        let callback = try await server.waitForCallback(timeout: .seconds(300))
+        guard callback.state == state else { throw GoogleOAuth.OAuthError.stateMismatch }
         
-        let params = [
-            "code": code.trimmingCharacters(in: .whitespacesAndNewlines),
-            "client_id": clientId.trimmingCharacters(in: .whitespacesAndNewlines),
-            "client_secret": clientSecret.trimmingCharacters(in: .whitespacesAndNewlines),
-            "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
+        let request = GoogleOAuth.tokenRequest([
+            "code": callback.code,
+            "client_id": client.id,
+            "client_secret": client.secret,
+            "code_verifier": pkce.verifier,
+            "redirect_uri": redirectURI,
             "grant_type": "authorization_code"
-        ]
-        
-        let bodyString = params.map { "\($0.key)=\($0.value.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? "")" }.joined(separator: "&")
-        request.httpBody = bodyString.data(using: .utf8)
-        
+        ])
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
             let errorText = String(data: data, encoding: .utf8) ?? "Błąd sieci"
             throw NSError(domain: "GoogleDrive", code: 2, userInfo: [NSLocalizedDescriptionKey: "Błąd wymiany kodu autoryzacji: \(errorText)"])
         }
-        
-        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let accessToken = json["access_token"] as? String else {
-            throw NSError(domain: "GoogleDrive", code: 3, userInfo: [NSLocalizedDescriptionKey: "Brak access_token w odpowiedzi"])
+        // Google pozwala odznaczyć poszczególne uprawnienia na ekranie zgody; bez Dysku kopie nie zadziałają.
+        let grantedScopes = ((try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["scope"] as? String) ?? ""
+        guard grantedScopes.isEmpty || grantedScopes.contains("https://www.googleapis.com/auth/drive.file") else {
+            throw NSError(domain: "GoogleDrive", code: 17, userInfo: [NSLocalizedDescriptionKey: "Nie udzielono dostępu do Dysku Google. Połącz ponownie i na ekranie zgody zaznacz dostęp do plików na Dysku."])
         }
+        var credentials = credentialStore.load()
+        try credentials.apply(tokenResponse: data)
+        try credentialStore.save(credentials)
         
-        let refreshToken = json["refresh_token"] as? String ?? ""
-        
-        // Fetch user email
-        var userEmail = ""
-        if let email = try? await fetchUserEmail(accessToken: accessToken) {
-            userEmail = email
-        }
-        
-        return (accessToken, refreshToken, userEmail)
+        return (try? await fetchUserEmail(accessToken: credentials.accessToken)) ?? ""
     }
+    
+    /// Usuwa tokeny użytkownika z Pęku kluczy.
+    public func signOut() {
+        credentialStore.clear()
+    }
+    
+    public var isSignedIn: Bool { credentialStore.load().isSignedIn }
     
     public func fetchUserEmail(accessToken: String) async throws -> String {
         guard let url = URL(string: userInfoEndpoint) else { return "" }
@@ -106,71 +110,95 @@ public final class GoogleDriveService {
         return email
     }
     
-    // MARK: - Token Refresh
+    // MARK: - Token Refresh (W3)
     
-    public func getValidAccessToken() async throws -> String {
-        let store = await MainActor.run { DataStore.shared }
-        let settings = await MainActor.run { store.settings.googleDrive }
-        
-        // If access token is provided and non-empty, test or return it
-        if !settings.accessToken.isEmpty {
-            // If we have refreshToken, try refreshing if needed or return current
-            return settings.accessToken
+    /// Zwraca ważny token; odświeża go przed wygaśnięciem albo na żądanie (po 401).
+    public func getValidAccessToken(forceRefresh: Bool = false) async throws -> String {
+        var credentials = credentialStore.load()
+        if !forceRefresh && !credentials.needsRefresh() {
+            return credentials.accessToken
         }
-        
-        guard !settings.refreshToken.isEmpty, !settings.clientId.isEmpty, !settings.clientSecret.isEmpty else {
-            throw NSError(domain: "GoogleDrive", code: 4, userInfo: [NSLocalizedDescriptionKey: "Brak poświadczeń Google Drive. Skonfiguruj Client ID, Client Secret lub Token w Ustawieniach."])
+        guard !credentials.refreshToken.isEmpty else {
+            throw NSError(domain: "GoogleDrive", code: 4, userInfo: [NSLocalizedDescriptionKey: "Brak połączenia z kontem Google. Połącz konto w Ustawieniach → Dysk Google."])
         }
+        let client = try bundledClient()
         
-        guard let url = URL(string: tokenEndpoint) else {
-            throw NSError(domain: "GoogleDrive", code: 5, userInfo: [NSLocalizedDescriptionKey: "Nieprawidłowy adres tokenu"])
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        
-        let params = [
-            "client_id": settings.clientId,
-            "client_secret": settings.clientSecret,
-            "refresh_token": settings.refreshToken,
+        let request = GoogleOAuth.tokenRequest([
+            "client_id": client.id,
+            "client_secret": client.secret,
+            "refresh_token": credentials.refreshToken,
             "grant_type": "refresh_token"
-        ]
-        let bodyString = params.map { "\($0.key)=\($0.value.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? "")" }.joined(separator: "&")
-        request.httpBody = bodyString.data(using: .utf8)
-        
+        ])
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode),
-              let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let newAccessToken = json["access_token"] as? String else {
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
             let errorText = String(data: data, encoding: .utf8) ?? "Błąd odświeżania"
             throw NSError(domain: "GoogleDrive", code: 6, userInfo: [NSLocalizedDescriptionKey: "Nie udało się odświeżyć tokenu Google: \(errorText)"])
         }
-        
-        // Save new access token
-        await MainActor.run {
-            store.settings.googleDrive.accessToken = newAccessToken
-            store.saveSettings()
+        try credentials.apply(tokenResponse: data)
+        try credentialStore.save(credentials)
+        return credentials.accessToken
+    }
+    
+    private var requester: GoogleOAuth.AuthorizedRequester {
+        GoogleOAuth.AuthorizedRequester(
+            token: { [unowned self] forceRefresh in try await self.getValidAccessToken(forceRefresh: forceRefresh) },
+            send: { request in
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw NSError(domain: "GoogleDrive", code: 16, userInfo: [NSLocalizedDescriptionKey: "Nieprawidłowa odpowiedź serwera Google"])
+                }
+                return (data, httpResponse)
+            }
+        )
+    }
+    
+    /// Błąd API Dysku z powodem podanym przez Google i wskazówką dla typowych przyczyn.
+    static func apiError(code: Int, _ summary: String, status: Int, data: Data) -> NSError {
+        var reason = ""
+        var message = String(data: data, encoding: .utf8) ?? ""
+        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let error = json["error"] as? [String: Any] {
+            message = error["message"] as? String ?? message
+            let errors = error["errors"] as? [[String: Any]]
+            let details = error["details"] as? [[String: Any]]
+            reason = (errors?.first?["reason"] as? String) ?? (details?.compactMap { $0["reason"] as? String }.first) ?? ""
         }
-        
-        return newAccessToken
+        let hint: String
+        switch reason {
+        case "accessNotConfigured", "SERVICE_DISABLED":
+            hint = "Google Drive API nie jest włączone w projekcie Google Cloud aplikacji."
+        case "insufficientPermissions", "ACCESS_TOKEN_SCOPE_INSUFFICIENT":
+            hint = "Brak zgody na dostęp do Dysku. Rozłącz konto, połącz ponownie i zaznacz dostęp do plików na Dysku."
+        case "authError", "UNAUTHENTICATED":
+            hint = "Sesja Google wygasła. Rozłącz konto i połącz ponownie."
+        default:
+            hint = ""
+        }
+        let text = [summary + " (HTTP \(status)).", hint, message.isEmpty ? "" : "Odpowiedź Google: \(message)"]
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        return NSError(domain: "GoogleDrive", code: code, userInfo: [NSLocalizedDescriptionKey: text])
+    }
+    
+    /// Wartość w zapytaniu `q` Dysku Google: escapowanie `\` i `'` (W3).
+    public static func escapeQueryValue(_ value: String) -> String {
+        value.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "'", with: "\\'")
     }
     
     // MARK: - Folder Management
     
-    public func getOrCreateBackupsFolder(accessToken: String, folderName: String = "CantatePresenter_Backups") async throws -> String {
+    public func getOrCreateBackupsFolder(folderName: String = "CantatePresenter_Backups") async throws -> String {
         // 1. Search for existing folder
-        let query = "name = '\(folderName)' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
+        let query = "name = '\(Self.escapeQueryValue(folderName))' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
         guard let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let searchURL = URL(string: "\(driveFilesEndpoint)?q=\(encodedQuery)&fields=files(id,name)") else {
             throw NSError(domain: "GoogleDrive", code: 7, userInfo: [NSLocalizedDescriptionKey: "Błąd zapytania folderu"])
         }
         
-        var searchReq = URLRequest(url: searchURL)
-        searchReq.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let searchReq = URLRequest(url: searchURL)
         
-        let (data, response) = try await URLSession.shared.data(for: searchReq)
-        if let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode),
+        let (data, httpResponse) = try await requester.data(for: searchReq)
+        if (200...299).contains(httpResponse.statusCode),
            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
            let files = json["files"] as? [[String: Any]], let first = files.first,
            let id = first["id"] as? String {
@@ -184,7 +212,6 @@ public final class GoogleDriveService {
         
         var createReq = URLRequest(url: createURL)
         createReq.httpMethod = "POST"
-        createReq.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         createReq.setValue("application/json; charset=UTF-8", forHTTPHeaderField: "Content-Type")
         
         let folderMeta: [String: Any] = [
@@ -194,11 +221,11 @@ public final class GoogleDriveService {
         ]
         createReq.httpBody = try JSONSerialization.data(withJSONObject: folderMeta)
         
-        let (createData, createResp) = try await URLSession.shared.data(for: createReq)
-        guard let createHttpResp = createResp as? HTTPURLResponse, (200...299).contains(createHttpResp.statusCode),
+        let (createData, createHttpResp) = try await requester.data(for: createReq)
+        guard (200...299).contains(createHttpResp.statusCode),
               let createJson = try? JSONSerialization.jsonObject(with: createData) as? [String: Any],
               let newId = createJson["id"] as? String else {
-            throw NSError(domain: "GoogleDrive", code: 9, userInfo: [NSLocalizedDescriptionKey: "Nie udało się utworzyć folderu kopii zapasowych na Google Drive"])
+            throw Self.apiError(code: 9, "Nie udało się utworzyć folderu kopii zapasowych na Dysku Google", status: createHttpResp.statusCode, data: createData)
         }
         
         return newId
@@ -207,10 +234,9 @@ public final class GoogleDriveService {
     // MARK: - Upload Backup to Google Drive
     
     public func uploadBackupToDrive(archiveURL: URL) async throws -> RemoteBackupItem {
-        let token = try await getValidAccessToken()
         let store = await MainActor.run { DataStore.shared }
         let folderName = await MainActor.run { store.settings.googleDrive.targetFolder.isEmpty ? "CantatePresenter_Backups" : store.settings.googleDrive.targetFolder }
-        let folderId = try await getOrCreateBackupsFolder(accessToken: token, folderName: folderName)
+        let folderId = try await getOrCreateBackupsFolder(folderName: folderName)
         
         guard let uploadURL = URL(string: driveUploadEndpoint) else {
             throw NSError(domain: "GoogleDrive", code: 10, userInfo: [NSLocalizedDescriptionKey: "Błąd URL wysyłki"])
@@ -219,7 +245,6 @@ public final class GoogleDriveService {
         let boundary = "-------CantateBackupBoundary\(UUID().uuidString)"
         var request = URLRequest(url: uploadURL)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("multipart/related; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
         // Metadata Part
@@ -245,12 +270,11 @@ public final class GoogleDriveService {
         
         request.httpBody = body
         
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode),
+        let (data, httpResponse) = try await requester.data(for: request)
+        guard (200...299).contains(httpResponse.statusCode),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let fileId = json["id"] as? String else {
-            let errorText = String(data: data, encoding: .utf8) ?? "Błąd wysyłania"
-            throw NSError(domain: "GoogleDrive", code: 11, userInfo: [NSLocalizedDescriptionKey: "Błąd przesyłania do Google Drive: \(errorText)"])
+            throw Self.apiError(code: 11, "Błąd przesyłania kopii na Dysk Google", status: httpResponse.statusCode, data: data)
         }
         
         let name = json["name"] as? String ?? archiveURL.lastPathComponent
@@ -274,26 +298,23 @@ public final class GoogleDriveService {
     // MARK: - List Remote Backups
     
     public func listBackupsFromDrive() async throws -> [RemoteBackupItem] {
-        let token = try await getValidAccessToken()
         let store = await MainActor.run { DataStore.shared }
         let folderName = await MainActor.run { store.settings.googleDrive.targetFolder.isEmpty ? "CantatePresenter_Backups" : store.settings.googleDrive.targetFolder }
-        let folderId = try await getOrCreateBackupsFolder(accessToken: token, folderName: folderName)
+        let folderId = try await getOrCreateBackupsFolder(folderName: folderName)
         
-        let query = "'\(folderId)' in parents and trashed = false"
+        let query = "'\(Self.escapeQueryValue(folderId))' in parents and trashed = false"
         guard let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let listURL = URL(string: "\(driveFilesEndpoint)?q=\(encodedQuery)&fields=files(id,name,size,createdTime,modifiedTime)&orderBy=createdTime%20desc") else {
             throw NSError(domain: "GoogleDrive", code: 12, userInfo: [NSLocalizedDescriptionKey: "Błąd URL listy plików"])
         }
         
-        var request = URLRequest(url: listURL)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let request = URLRequest(url: listURL)
         
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode),
+        let (data, httpResponse) = try await requester.data(for: request)
+        guard (200...299).contains(httpResponse.statusCode),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let files = json["files"] as? [[String: Any]] else {
-            let errorText = String(data: data, encoding: .utf8) ?? "Błąd pobierania listy"
-            throw NSError(domain: "GoogleDrive", code: 13, userInfo: [NSLocalizedDescriptionKey: "Błąd odczytu listy z Google Drive: \(errorText)"])
+            throw Self.apiError(code: 13, "Błąd odczytu listy kopii z Dysku Google", status: httpResponse.statusCode, data: data)
         }
         
         let isoFormatter = ISO8601DateFormatter()
@@ -310,23 +331,20 @@ public final class GoogleDriveService {
     // MARK: - Download & Restore from Google Drive
     
     public func downloadBackupFromDrive(fileId: String, fileName: String) async throws -> URL {
-        let token = try await getValidAccessToken()
-        guard let downloadURL = URL(string: "\(driveFilesEndpoint)/\(fileId)?alt=media") else {
+        guard let encodedId = fileId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              let downloadURL = URL(string: "\(driveFilesEndpoint)/\(encodedId)?alt=media") else {
             throw NSError(domain: "GoogleDrive", code: 14, userInfo: [NSLocalizedDescriptionKey: "Błąd URL pobierania"])
         }
         
-        var request = URLRequest(url: downloadURL)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let request = URLRequest(url: downloadURL)
         
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-            throw NSError(domain: "GoogleDrive", code: 15, userInfo: [NSLocalizedDescriptionKey: "Błąd pobierania pliku z Google Drive"])
+        let (data, httpResponse) = try await requester.data(for: request)
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw Self.apiError(code: 15, "Błąd pobierania kopii z Dysku Google", status: httpResponse.statusCode, data: data)
         }
         
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-        if FileManager.default.fileExists(atPath: tempURL.path) {
-            try? FileManager.default.removeItem(at: tempURL)
-        }
+        // Nazwa z Dysku nie trafia do ścieżki (W3): mogłaby zawierać "/" lub "..".
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("CantateDriveBackup_\(UUID().uuidString).cantatebackup")
         try data.write(to: tempURL)
         return tempURL
     }
