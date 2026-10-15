@@ -27,7 +27,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate()
     }
     
     public func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -312,7 +312,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             ]
         )
         NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate()
     }
     
     @objc private func quickTextAction() {

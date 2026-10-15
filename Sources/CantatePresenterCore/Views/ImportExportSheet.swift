@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 public struct ImportExportSheet: View {
     @Bindable var store = DataStore.shared
@@ -358,7 +359,8 @@ public struct ImportExportSheet: View {
         panel.canChooseFiles = !chooseDirectories
         panel.canChooseDirectories = chooseDirectories
         panel.allowsMultipleSelection = true
-        panel.allowedFileTypes = ["txt", "json", "muf", "mufl", "hly", "holyrics", "xml", "zip"]
+        // allowedContentTypes zamiast przestarzałego allowedFileTypes (N6); .mufl itp. jako typy z rozszerzenia.
+        panel.allowedContentTypes = ["txt", "json", "muf", "mufl", "hly", "holyrics", "xml", "zip"].compactMap { UTType(filenameExtension: $0) }
         panel.prompt = L("Wybierz do analizy")
         panel.message = L("Wybierz pliki Holyrics (.mufl), pliki tekstowe lub archiwa")
         

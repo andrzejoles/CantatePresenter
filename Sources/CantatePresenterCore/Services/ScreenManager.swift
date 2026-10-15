@@ -196,7 +196,7 @@ public final class ScreenManager: ObservableObject {
         
         // Restore focus to the main app window
         guard restoringMainWindow else { return }
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate()
         if let main = AppDelegate.shared?.mainWindow {
             main.makeKeyAndOrderFront(nil)
         } else if let mainWindow = NSApp.windows.first(where: { $0.isVisible && $0 != self.windowedPreviewWindow }) {

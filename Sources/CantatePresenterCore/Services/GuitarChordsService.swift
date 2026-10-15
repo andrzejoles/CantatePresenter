@@ -97,8 +97,6 @@ public final class GuitarChordsService {
         
         for line in lines {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
-            let nsLine = line as NSString
-            let range = NSRange(location: 0, length: nsLine.length)
             
             // Check if entire line is just chords (also Fis, Es, x2, | separators)
             if !trimmed.isEmpty && ChordTransposer.isChordLine(line) {
