@@ -1205,6 +1205,34 @@
         }
       }
     },
+    "Autor: Andrzej Oles · we współpracy z Claude (Anthropic)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author: Andrzej Oles · in collaboration with Claude (Anthropic)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autor: Andrzej Oles · in Zusammenarbeit mit Claude (Anthropic)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autor: Andrzej Oles · en colaboración con Claude (Anthropic)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автор: Andrzej Oles · у співпраці з Claude (Anthropic)"
+          }
+        }
+      }
+    },
     "Autorzy & Polskie litery ({0})": {
       "localizations": {
         "en": {
