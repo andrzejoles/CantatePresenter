@@ -93,6 +93,17 @@ public final class ScreenManager: ObservableObject {
         targetScreenAspectRatio(for: DataStore.shared.settings.selectedScreenIndex)
     }
     
+    public func targetScreenSize(for index: Int) -> CGSize {
+        guard let screen = targetScreen(for: index), screen.frame.width > 0, screen.frame.height > 0 else {
+            return CGSize(width: 1920, height: 1080)
+        }
+        return screen.frame.size
+    }
+    
+    public var selectedScreenSize: CGSize {
+        targetScreenSize(for: DataStore.shared.settings.selectedScreenIndex)
+    }
+    
     public static func formattedAspectRatio(for ratio: CGFloat) -> String {
         if abs(ratio - 16.0 / 9.0) < 0.03 { return "16:9" }
         if abs(ratio - 16.0 / 10.0) < 0.08 { return "16:10" }
@@ -212,7 +223,7 @@ public final class ScreenManager: ObservableObject {
         
         window.title = "Podgląd projekcji (Okno testowe)"
         window.minSize = NSSize(width: 400, height: 250)
-        window.backgroundColor = .black
+        window.backgroundColor = NSColor.black
         window.contentViewController = hostingController
         window.isReleasedWhenClosed = false
         
@@ -227,7 +238,7 @@ public final class ScreenManager: ObservableObject {
             }
         }
         
-        window.makeKeyAndOrderFront(nil)
+        window.makeKeyAndOrderFront(nil as Any?)
         self.windowedPreviewWindow = window
         self.isWindowedPreviewActive = true
     }
