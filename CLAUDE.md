@@ -12,7 +12,7 @@ swift build -c release      # build release (używany przez build_app.sh)
 open CantatePresenter.app   # uruchomienie już zbudowanej aplikacji
 ./build_installer.sh        # PKG + DMG do dist/
 xed .                       # otwarcie pakietu w Xcode
-swift test                  # testy, gdy powstanie cel testowy (patrz „Testy”)
+swift test                  # testy (Swift Testing, wymaga pełnego Xcode)
 ```
 
 - `swift run` działa, ale wtedy katalog danych to `./data` względem bieżącego katalogu terminala, a mikrofon/dyktowanie nie mają uprawnień (brak Info.plist). Do sprawdzania funkcji używaj `./build_app.sh` + `open`.
@@ -21,8 +21,9 @@ swift test                  # testy, gdy powstanie cel testowy (patrz „Testy�
 ## Architektura
 
 ```
-Sources/CantatePresenter/
-  main.swift, App/AppDelegate.swift   start, ręcznie budowane NSMenu, okno główne, zamykanie
+Sources/CantatePresenter/main.swift  cel wykonywalny: tylko start NSApplication
+Sources/CantatePresenterCore/        biblioteka z całym kodem aplikacji
+  App/AppDelegate.swift  ręcznie budowane NSMenu, okno główne, zamykanie
   Models/        Song, SongSlide (SlideType), ServicePlan, AppSettings (+ShortcutSettings, GoogleDriveSettings), LogoPreset
   Services/      logika i I/O, prawie wszystko jako singletony `.shared`
   Views/         SwiftUI; MainView = 3 panele HSplitView + pasek skrótów
@@ -55,7 +56,7 @@ Kolejność, jeden PR na etap:
 
 ## Testy
 
-Projekt nie ma jeszcze celu testowego. Zalecany pierwszy krok: wydzielić kod do biblioteki `CantatePresenterCore`, zostawić w celu wykonywalnym tylko `main.swift`, dodać `.testTarget(name: "CantatePresenterCoreTests", dependencies: ["CantatePresenterCore"])` i używać Swift Testing (`import Testing`). Wymaga pełnego Xcode, nie samych Command Line Tools.
+Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTests/`) testuje bibliotekę `CantatePresenterCore` przez `@testable import`, więc typy nie muszą być `public`. Używaj Swift Testing (`import Testing`, `@Suite`, `@Test`, `#expect`); przed indeksowaniem wyników używaj `try #require(...)`, bo przekroczenie zakresu wywraca cały proces testowy. Wymaga pełnego Xcode, nie samych Command Line Tools.
 
 - Priorytet testów: `Song.parseLyrics`, `GuitarChordsService.transpose`, `HolyricsJavaDeserializer` (pliki z `data/holyrics_samples/` oraz ich obcięte/uszkodzone kopie), `TextImporter.readTextWithBestEncoding`, deduplikacja, zgodność wstecz dekoderów modeli (stary JSON musi się wczytać).
 - Testy nigdy nie mogą czytać ani zapisywać prawdziwego katalogu danych. Ścieżki wstrzykuj, używaj katalogów tymczasowych.
