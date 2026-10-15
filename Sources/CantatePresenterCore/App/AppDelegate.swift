@@ -224,13 +224,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    /// Analiza w tle, przegląd duplikatów i jeden zapis, jak w oknie Import/Eksport (S3).
     @objc private func importAction() {
-        Task { @MainActor in
-            let songs = TextImporter.pickFilesForImport()
-            for s in songs {
-                DataStore.shared.addSong(s)
-            }
-        }
+        NotificationCenter.default.post(name: .openImportFlow, object: nil)
     }
     
     @objc private func exportJSONAction() {

@@ -24,8 +24,13 @@ public struct ImportExportSheet: View {
     
     private let sampleMuflPath = "/Users/aoles/dev_gem/2026-10-14_16-19-00.mufl"
     
-    public init(isPresented: Binding<Bool>) {
+    /// Po otwarciu od razu pokazuje wybór plików do importu (pozycja menu Plik → Importuj pieśni, S3).
+    private let startsImportOnAppear: Bool
+    
+    public init(isPresented: Binding<Bool>, startsImportOnAppear: Bool = false) {
         self._isPresented = isPresented
+        self.startsImportOnAppear = startsImportOnAppear
+        self._selectedTab = State(initialValue: startsImportOnAppear ? 1 : 0)
     }
     
     private var selectedSong: Song? {
@@ -60,6 +65,13 @@ public struct ImportExportSheet: View {
             } else {
                 mainImportExportContent(scale: scale)
                     .frame(minWidth: 640, minHeight: 520)
+            }
+        }
+        .onAppear {
+            guard startsImportOnAppear else { return }
+            // Panel wyboru dopiero po pokazaniu arkusza.
+            DispatchQueue.main.async {
+                pickAndProcessFiles(chooseDirectories: false)
             }
         }
     }

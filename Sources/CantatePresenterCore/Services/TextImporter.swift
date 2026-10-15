@@ -268,21 +268,4 @@ public struct TextImporter {
         
         return []
     }
-    
-    /// Prompts native file dialog to pick .txt or .json files or a folder
-    @MainActor
-    public static func pickFilesForImport() -> [Song] {
-        let panel = NSOpenPanel()
-        panel.canChooseFiles = true
-        panel.canChooseDirectories = true
-        panel.allowsMultipleSelection = true
-        panel.allowedFileTypes = ["txt", "json", "muf", "mufl", "hly", "holyrics", "xml", "zip"]
-        panel.prompt = "Importuj pieśni"
-        panel.message = "Wybierz pliki Holyrics (.muf, .mufl, .hly), pliki tekstowe (.txt), XML, JSON lub archiwum ZIP"
-        
-        if panel.runModal() == .OK {
-            return importFiles(from: panel.urls)
-        }
-        return []
-    }
 }
