@@ -68,7 +68,7 @@ Stan na 2026-10-15: etapy 1 i 2 scalone (PR #1, #2, #3); w etapie 3 zrobione S2,
 Z przeglądu kodu (kolejność proponowana):
 - [ ] **S1** Projekcja po odłączeniu projektora: zapamiętywać ekran po `CGDirectDisplayID`, po zniknięciu ukryć okno projekcji zamiast przenosić je na ekran operatora, wrócić po ponownym podłączeniu.
 - [ ] **S11** Twarde ścieżki `/Users/aoles/dev_gem/...` w kodzie i README; `INSTRUKCJA.md` i próbka jako zasoby pakietu.
-- [ ] **N11** Po „szybkim tekście” następna pieśń to pierwsza z planu zamiast kolejnej.
+- [x] **N11** Po „szybkim tekście” następna pieśń to pierwsza z planu zamiast kolejnej.
 - [ ] **N9** Higiena repozytorium (pliki danych i próbki w gicie, `.gitignore`).
 - [ ] **N10** Skrypty budowania ukrywają błędy podpisu; wersja w trzech miejscach.
 - [ ] **S8** Logo wstawiane regexem i zapisywane do `standby.html` (dwie kopie logiki); przy okazji tłumaczenie tekstów planszy („Wersja”, „GOTOWY DO PROJEKCJI”).
