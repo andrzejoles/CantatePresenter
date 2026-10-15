@@ -3585,6 +3585,34 @@
         }
       }
     },
+    "Domena publiczna": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public domain"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemeinfrei"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dominio público"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Суспільне надбання"
+          }
+        }
+      }
+    },
     "Domyślna": {
       "localizations": {
         "en": {
@@ -7001,6 +7029,34 @@
         }
       }
     },
+    "Licencja: zobacz stronę źródła": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License: see the source page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lizenz: siehe Quellseite"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencia: consulta la página de origen"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ліцензія: дивіться сторінку джерела"
+          }
+        }
+      }
+    },
     "Logowanie Google niedostępne w tej wersji aplikacji": {
       "localizations": {
         "en": {
@@ -9069,6 +9125,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Відкрити файл екрана в редакторі / браузері"
+          }
+        }
+      }
+    },
+    "Otwórz źródło": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open source page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quelle öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir la fuente"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відкрити джерело"
           }
         }
       }
@@ -11589,6 +11673,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вивантаження копії в хмару..."
+          }
+        }
+      }
+    },
+    "Przeszukiwanie Wikiźródeł...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Searching Wikisource..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wikisource wird durchsucht..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscando en Wikisource..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пошук у Вікіджерелах..."
           }
         }
       }
@@ -15233,6 +15345,34 @@
         }
       }
     },
+    "Wikiźródła": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wikisource"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wikisource"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wikisource"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вікіджерела"
+          }
+        }
+      }
+    },
     "Wklej": {
       "localizations": {
         "en": {
@@ -15425,6 +15565,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Введіть назву або слова пісні (напр. Barka, Oceany, Dotknij Panie)..."
+          }
+        }
+      }
+    },
+    "Wpisz tytuł lub słowa pieśni (np. Kiedy ranne wstają zorze)...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type a song title or words (e.g. Amazing Grace)..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel oder Text eingeben (z. B. Großer Gott, wir loben dich)..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribe el título o la letra (p. ej. Cantemos al Amor de los amores)..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Введіть назву або слова пісні (напр. Боже великий, єдиний)..."
           }
         }
       }
@@ -18869,6 +19037,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Посередині"
+          }
+        }
+      }
+    },
+    "Źródło: Wikiźródła. Tradycyjne pieśni w domenie publicznej lub na wolnej licencji; adres strony zostaje zapisany w pieśni.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source: Wikisource. Traditional hymns in the public domain or under a free license; the page address is saved with the song."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quelle: Wikisource. Traditionelle Lieder, gemeinfrei oder unter freier Lizenz; die Seitenadresse wird im Lied gespeichert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fuente: Wikisource. Cantos tradicionales de dominio público o con licencia libre; la dirección de la página se guarda en el canto."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Джерело: Вікіджерела. Традиційні пісні в суспільному надбанні або під вільною ліцензією; адреса сторінки зберігається в пісні."
           }
         }
       }

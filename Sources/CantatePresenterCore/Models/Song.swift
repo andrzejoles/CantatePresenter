@@ -11,6 +11,12 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
     public var slides: [SongSlide]
     public var createdAt: Date
     public var updatedAt: Date
+    /// Skąd pochodzi tekst (adres strony, np. Wikiźródła albo SongSelect); `nil` dla pieśni wpisanych ręcznie (S9).
+    public var source: String?
+    /// Informacja o prawach autorskich lub licencji, np. „Domena publiczna” albo linia © z SongSelect.
+    public var copyright: String?
+    /// Numer pieśni w katalogu CCLI.
+    public var ccliNumber: String?
     
     public init(
         id: UUID = UUID(),
@@ -45,6 +51,7 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
     // dodane w przyszłości nie spowodują, że stara biblioteka przestanie się wczytywać (K1).
     private enum CodingKeys: String, CodingKey {
         case id, title, author, key, tags, rawLyrics, chords, slides, createdAt, updatedAt
+        case source, copyright, ccliNumber
     }
     
     public init(from decoder: Decoder) throws {
@@ -60,6 +67,14 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
         self.slides = slides.isEmpty && !rawLyrics.isEmpty ? Song.parseLyrics(rawLyrics) : slides
         self.createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
         self.updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? createdAt
+        self.source = try container.decodeIfPresent(String.self, forKey: .source)
+        self.copyright = try container.decodeIfPresent(String.self, forKey: .copyright)
+        // Numer CCLI bywa zapisywany jako liczba (inne programy), więc przyjmujemy oba typy.
+        if let text = try? container.decodeIfPresent(String.self, forKey: .ccliNumber) {
+            self.ccliNumber = text
+        } else if let number = try? container.decodeIfPresent(Int.self, forKey: .ccliNumber) {
+            self.ccliNumber = String(number)
+        }
     }
     
     // MARK: - Unique Identifiers
