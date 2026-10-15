@@ -22,6 +22,7 @@ public enum SongSortOrder: String, CaseIterable, Identifiable {
 public struct SongListView: View {
     @Bindable var store = DataStore.shared
     @State private var searchText: String = ""
+    @FocusState private var isSearchFocused: Bool
     @State private var searchScope: Song.SearchScope = .all
     @AppStorage("song_list_sort_order") private var sortOrder: SongSortOrder = .titleAsc
     @Binding var isShowingEditor: Bool
@@ -95,6 +96,17 @@ public struct SongListView: View {
                     TextField(searchScope == .all ? loc(.searchPlaceholder) : "Szukaj (\(searchScope.rawValue.lowercased()))...", text: $searchText)
                         .textFieldStyle(PlainTextFieldStyle())
                         .font(.scaled(12, scale: scale))
+                        .focused($isSearchFocused)
+                        .onReceive(NotificationCenter.default.publisher(for: .focusSongSearchField)) { _ in
+                            isSearchFocused = true
+                        }
+                        .onSubmit {
+                            // Enter: zaznacz pierwszy wynik i wyjdź z pola, żeby klawisze znów sterowały slajdami.
+                            if let first = filteredSongs.first {
+                                store.selectedSongId = first.id
+                            }
+                            NSApp.keyWindow?.makeFirstResponder(nil)
+                        }
                     
                     if !searchText.isEmpty {
                         Button(action: { searchText = "" }) {

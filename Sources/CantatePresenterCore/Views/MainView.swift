@@ -249,6 +249,13 @@ public struct MainView: View {
         } message: { issue in
             Text(issue.message)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .focusSongSearch)) { _ in
+            selectedLeftTab = 0
+            // Lista pieśni może dopiero się pojawić po przełączeniu zakładki.
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .focusSongSearchField, object: nil)
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .openImportFlow)) { _ in
             guard !isShowingImportExport else { return }
             importExportStartsImport = true
@@ -263,4 +270,7 @@ public struct MainView: View {
 extension Notification.Name {
     /// Plik → Importuj pieśni: ten sam przepływ co w oknie Import/Eksport (S3).
     static let openImportFlow = Notification.Name("OpenImportFlow")
+    /// Edycja → Szukaj pieśni (⌘F): przełącza na Bibliotekę i aktywuje pole wyszukiwania.
+    static let focusSongSearch = Notification.Name("FocusSongSearch")
+    static let focusSongSearchField = Notification.Name("FocusSongSearchField")
 }

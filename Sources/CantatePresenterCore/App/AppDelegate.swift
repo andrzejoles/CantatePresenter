@@ -54,6 +54,15 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         window.makeKeyAndOrderFront(nil)
         
         self.mainWindow = window
+        // SwiftUI daje fokus pierwszemu polu tekstowemu (wyszukiwanie), przez co klawisze pisały w nim
+        // zamiast sterować slajdami. Pole staje się aktywne dopiero po kliknięciu.
+        for delay in [0.0, 0.3] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak window] in
+                if window?.firstResponder is NSTextView {
+                    window?.makeFirstResponder(nil)
+                }
+            }
+        }
         AppInstallerService.shared.promptToInstallIfNecessary()
     }
     
@@ -143,7 +152,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         fileMenu.addItem(NSMenuItem(title: "Szybki tekst na żywo...", action: #selector(quickTextAction), keyEquivalent: "t"))
         fileMenu.addItem(NSMenuItem.separator())
         fileMenu.addItem(NSMenuItem(title: "Importuj pieśni...", action: #selector(importAction), keyEquivalent: "i"))
-        fileMenu.addItem(NSMenuItem(title: "Eksportuj całą bazę (JSON)...", action: #selector(exportJSONAction), keyEquivalent: "e"))
+        fileMenu.addItem(NSMenuItem(title: "Eksportuj całą bazę (JSON)...", action: #selector(exportJSONAction), keyEquivalent: ""))
         fileMenu.addItem(NSMenuItem(title: "Eksportuj pieśni do folderu (.txt)...", action: #selector(exportFolderAction), keyEquivalent: ""))
         fileMenu.addItem(NSMenuItem.separator())
         fileMenu.addItem(NSMenuItem(title: "Utwórz pełną kopię zapasową (.cantatebackup)...", action: #selector(createBackupAction), keyEquivalent: "b"))
@@ -167,6 +176,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         editMenu.addItem(NSMenuItem(title: "Wklej", action: #selector(NSText.paste(_:)), keyEquivalent: "v"))
         editMenu.addItem(NSMenuItem(title: "Usuń", action: #selector(NSText.delete(_:)), keyEquivalent: ""))
         editMenu.addItem(NSMenuItem(title: "Zaznacz wszystko", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
+        editMenu.addItem(NSMenuItem.separator())
+        editMenu.addItem(NSMenuItem(title: "Szukaj pieśni", action: #selector(focusSongSearchAction), keyEquivalent: "f"))
         editMenuItem.submenu = editMenu
         mainMenu.addItem(editMenuItem)
         
@@ -279,6 +290,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     
+    @objc fileprivate func focusSongSearchAction() {
+        mainWindow?.makeKeyAndOrderFront(nil)
+        NotificationCenter.default.post(name: .focusSongSearch, object: nil)
+    }
+    
     @objc private func quickTextAction() {
         NotificationCenter.default.post(name: NSNotification.Name("OpenQuickTextSheet"), object: nil)
     }
@@ -331,6 +347,10 @@ extension AppDelegate: NSMenuItemValidation {
     public func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         if menuItem.action == #selector(undoRestoreAction) {
             return BackupService.shared.canUndoRestore
+        }
+        if menuItem.action == #selector(focusSongSearchAction) {
+            // Nie przy otwartym arkuszu (np. Ustawieniach).
+            return mainWindow?.attachedSheet == nil
         }
         return true
     }

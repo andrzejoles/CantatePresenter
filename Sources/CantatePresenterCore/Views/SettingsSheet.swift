@@ -487,6 +487,30 @@ public struct SettingsSheet: View {
                                 .cornerRadius(6)
                             }
                             
+                            // Klawisze stałe (K3/W5) i działanie przy polu wyszukiwania
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Klawisze stałe")
+                                    .font(.scaled(11, weight: .semibold, scale: scale))
+                                ForEach(KeyboardRouter.fixedKeysHelp, id: \.keys) { item in
+                                    HStack(alignment: .top) {
+                                        Text(item.keys)
+                                            .font(.scaled(11, weight: .medium, scale: scale))
+                                            .frame(width: 200, alignment: .leading)
+                                        Text(item.action)
+                                            .font(.scaled(11, scale: scale))
+                                            .foregroundColor(.secondary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                }
+                                Text(KeyboardRouter.shortcutsNote)
+                                    .font(.scaled(10, scale: scale))
+                                    .foregroundColor(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .padding(.top, 4)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, 4)
+                            
                             HStack {
                                 Spacer()
                                 Button("Przywróć domyślne skróty") {

@@ -54,16 +54,16 @@ public struct UserManualView: View {
             content: [
                 ManualParagraph(
                     heading: "Prezentacja na projektorze lub monitorze",
-                    body: "Wybierz docelowy monitor w prawym panelu i kliknij 'Prezentuj na pełnym ekranie' (Cmd P). Kliknięcie w dowolny slajd włącza projekcję na żywo.",
-                    tip: "Możesz także włączyć 'Okno testowe' (Cmd T), aby testować wygląd slajdów bez podłączania projektora."
+                    body: "Wybierz docelowy monitor w prawym panelu i kliknij 'Prezentuj na pełnym ekranie'. Kliknięcie w dowolny slajd włącza projekcję na żywo.",
+                    tip: "Możesz także otworzyć 'Okno testowe' w prawym panelu, aby testować wygląd slajdów bez podłączania projektora."
                 ),
                 ManualParagraph(
                     heading: "Prezentacja na jednym ekranie & Wyjście ESC",
                     body: "Gdy podłączony jest tylko 1 ekran, prezentacja uruchamia się w trybie pełnoekranowym na Twoim Macu. Naciśnij w dowolnym momencie klawisz ESC, aby natychmiast wrócić do aplikacji.",
                     shortcuts: [
                         ("ESC", "Natychmiastowe wyjście z pełnego ekranu"),
-                        ("Spacja / → / ↓", "Przejście do następnego slajdu"),
-                        ("← / ↑", "Przejście do poprzedniego slajdu"),
+                        ("Spacja / → / ↓ / Page Down / Enter", "Przejście do następnego slajdu"),
+                        ("← / ↑ / Page Up", "Przejście do poprzedniego slajdu"),
                         ("B", "Czarny ekran (Black Screen)"),
                         ("C", "Ukrycie tekstu (Clear Text)")
                     ]
@@ -82,7 +82,7 @@ public struct UserManualView: View {
                 ),
                 ManualParagraph(
                     heading: "Galeria 23 propozycji logo",
-                    body: "W Ustawieniach (Cmd ,) dostępna jest bogata galeria logotypów, w tym oficjalne logo Equipes Notre-Dame (END: ryba i obrączki przymierza), złota gitara akustyczna, Lira Dawidowa, klucz wiolinowy z korektorem, harfa i fale harmoniczne."
+                    body: "W Ustawieniach dostępna jest bogata galeria logotypów, w tym oficjalne logo Equipes Notre-Dame (END: ryba i obrączki przymierza), złota gitara akustyczna, Lira Dawidowa, klucz wiolinowy z korektorem, harfa i fale harmoniczne."
                 )
             ]
         ),
@@ -93,7 +93,7 @@ public struct UserManualView: View {
             content: [
                 ManualParagraph(
                     heading: "Edycja istniejących pieśni i dodawanie nowych",
-                    body: "Kliknij 'Nowa pieśń' (Cmd N) lub wybierz pieśń i kliknij 'Edytuj' (Cmd E). Edytor posiada podgląd podziału na slajdy na żywo."
+                    body: "Kliknij 'Nowa pieśń' lub wybierz pieśń i kliknij 'Edytuj' (Cmd E). Edytor posiada podgląd podziału na slajdy na żywo."
                 ),
                 ManualParagraph(
                     heading: "Obsługiwane sekcje utworu",
@@ -175,22 +175,18 @@ public struct UserManualView: View {
             content: [
                 ManualParagraph(
                     heading: "Szybkie sterowanie prezentacją",
-                    body: "Lista najważniejszych skrótów klawiaturowych:",
+                    body: "Domyślne skróty prezentacji (zmienisz je w Ustawieniach → Skróty klawiszowe) oraz klawisze stałe. \(KeyboardRouter.shortcutsNote)",
                     shortcuts: [
-                        ("Spacja / → / ↓", "Następny slajd / Następna pieśń"),
-                        ("← / ↑", "Poprzedni slajd"),
-                        ("ESC", "Wyjście z prezentacji (tryb 1 ekranu)"),
+                        ("Spacja", "Następny slajd / następna pieśń z planu"),
+                        ("Enter", "Uruchomienie projekcji zaznaczonej pieśni"),
+                        ("[ / ]", "Poprzednia / następna pieśń z planu"),
                         ("B", "Włącz/Wyłącz czarny ekran"),
-                        ("C", "Włącz/Wyłącz ukrycie tekstu"),
-                        ("Cmd P", "Włącz/Wyłącz prezentację na projektorze"),
-                        ("Cmd T", "Okno testowe projekcji"),
-                        ("Cmd N", "Nowa pieśń"),
-                        ("Cmd E", "Edycja zaznaczonej pieśni"),
-                        ("Cmd F", "Wyszukiwanie w bibliotece"),
-                        ("Cmd I", "Import i Eksport pieśni"),
-                        ("Cmd B", "Utwórz pełną kopię zapasową"),
-                        ("Cmd ,", "Ustawienia programu"),
-                        ("Cmd ?", "Instrukcja obsługi (to okno)")
+                        ("C", "Włącz/Wyłącz ukrycie tekstu")
+                    ] + KeyboardRouter.fixedKeysHelp.map { (key: $0.keys, desc: $0.action) } + [
+                        ("⌘E", "Edycja zaznaczonej pieśni"),
+                        ("⌘I", "Import pieśni"),
+                        ("⌘B", "Utwórz pełną kopię zapasową"),
+                        ("⌘?", "Instrukcja obsługi (to okno)")
                     ]
                 )
             ]

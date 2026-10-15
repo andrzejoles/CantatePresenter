@@ -27,10 +27,34 @@ struct KeyboardRouterTests {
         #expect(KeyboardRouter.context(for: state) == nil)
     }
 
-    @Test("Fokus w polu tekstowym: router nie obsługuje klawiszy")
-    func textFocusBlocksRouting() {
-        let state = KeyboardRouter.KeyWindowState(kind: .main, hasAttachedSheet: false, focus: .text)
+    @Test("Wielowierszowe pole tekstowe: router nie obsługuje klawiszy")
+    func multilineTextFocusBlocksRouting() {
+        let state = KeyboardRouter.KeyWindowState(kind: .main, hasAttachedSheet: false, focus: .multilineText)
         #expect(KeyboardRouter.context(for: state) == nil)
+    }
+
+    @Test("Pole wyszukiwania: litery, Spacja i strzałki do pisania; Page Up/Down przełączają slajdy; Esc opuszcza pole")
+    func searchFieldFocus() {
+        let search = KeyboardRouter.Context.mainWindow(focus: .text)
+        #expect(KeyboardRouter.context(for: .init(kind: .main, hasAttachedSheet: false, focus: .text)) == search)
+        #expect(action(49, " ", in: search) == nil)
+        #expect(action(11, "b", in: search) == nil)
+        #expect(action(15, "r", in: search) == nil)
+        #expect(action(20, "3", in: search) == nil)
+        #expect(action(123, in: search) == nil)
+        #expect(action(124, in: search) == nil)
+        #expect(action(36, "\r", in: search) == nil)
+        #expect(action(121, in: search) == .nextSlide)
+        #expect(action(116, in: search) == .prevSlide)
+        #expect(action(53, in: search) == .endTextEditing)
+        #expect(action(17, "t", command: true, in: search) == nil)
+    }
+
+    @Test("Pole wyszukiwania: skrót z ustawień na klawiszu, który nie pisze (F5), działa")
+    func searchFieldNonTypingShortcut() {
+        var custom = ShortcutSettings()
+        custom.nextSlideKey = 96 // F5
+        #expect(action(96, shortcuts: custom, in: .mainWindow(focus: .text)) == .nextSlide)
     }
 
     @Test("Inne okna (arkusz, instrukcja, okno testowe): router nie obsługuje klawiszy")
