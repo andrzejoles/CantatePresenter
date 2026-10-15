@@ -1,28 +1,38 @@
 #!/usr/bin/env bash
 # Testy wersji webowej w Chrome bez okna (bez Node.js i bez zależności).
-# Serwer statyczny (web/tools/serve.py) udostępnia web/, shared/ i VERSION, bo testy czytają shared/fixtures.
+# web/tools/serve.py serwuje web/, shared/ i VERSION; strona testów wysyła wynik do serwera,
+# a ten zapisuje go do pliku. Czekamy na plik w zwykłym czasie (wirtualny czas Chrome psuje strumienie).
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CHROME="${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
-PORT="${PORT:-$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1])')}"
-PROFILE="$(mktemp -d)"
+PORT="${PORT:-$(python3 -I -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1])')}"
+WORK="$(mktemp -d)"
+RESULT="$WORK/result.json"
+TIMEOUT="${TIMEOUT:-90}"
 
-python3 -I "$ROOT/web/tools/serve.py" "$PORT" >/dev/null 2>&1 &
+python3 -I "$ROOT/web/tools/serve.py" "$PORT" "$RESULT" >/dev/null 2>&1 &
 SERVER=$!
-trap 'kill $SERVER 2>/dev/null; rm -rf "$PROFILE"' EXIT
+CHROME_PID=""
+cleanup() {
+  [ -n "$CHROME_PID" ] && kill "$CHROME_PID" 2>/dev/null || true
+  kill "$SERVER" 2>/dev/null || true
+  rm -rf "$WORK"
+}
+trap cleanup EXIT
 for _ in $(seq 1 100); do curl -s -o /dev/null "http://127.0.0.1:$PORT/VERSION" && break; sleep 0.1; done
 
-DOM="$("$CHROME" --headless=new --disable-gpu --no-first-run --user-data-dir="$PROFILE" \
-  --virtual-time-budget=60000 --dump-dom "http://127.0.0.1:$PORT/web/tests/index.html" 2>/dev/null)"
-RESULT="$(printf '%s' "$DOM" | python3 -c 'import sys,re,html; m=re.search(r"<pre id=\"result\">(.*?)</pre>", sys.stdin.read(), re.S); print(html.unescape(m.group(1)) if m else "")')"
+"$CHROME" --headless=new --disable-gpu --no-first-run --no-default-browser-check --user-data-dir="$WORK/profile" \
+  "http://127.0.0.1:$PORT/web/tests/index.html" >/dev/null 2>&1 &
+CHROME_PID=$!
 
-python3 - "$RESULT" <<'PY'
+for _ in $(seq 1 $((TIMEOUT * 10))); do [ -s "$RESULT" ] && break; sleep 0.1; done
+
+python3 -I - "$RESULT" <<'PY'
 import json, sys
-raw = sys.argv[1]
 try:
-    result = json.loads(raw)
-except ValueError:
-    print("Testy się nie wykonały:", raw[:500] or "(brak wyniku)")
+    result = json.load(open(sys.argv[1]))
+except (OSError, ValueError):
+    print("Testy się nie wykonały (brak wyniku w czasie)")
     sys.exit(1)
 for failure in result["failures"]:
     print("✘", failure["name"])

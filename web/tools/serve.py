@@ -5,7 +5,8 @@ Serwuje wyłącznie web/, shared/ i VERSION z repozytorium (nigdy np. google-oau
 http.server przy starcie pyta DNS o nazwę komputera (socket.getfqdn), co w niektórych sieciach
 trwa kilkadziesiąt sekund; tutaj tego zapytania nie ma.
 
-Użycie: python3 -I web/tools/serve.py PORT
+Użycie: python3 -I web/tools/serve.py PORT [PLIK_WYNIKU]
+Z PLIK_WYNIKU strona testów wysyła wynik (POST /__test-result), a serwer zapisuje go do pliku.
 """
 import http.server
 import os
@@ -16,6 +17,7 @@ from functools import partial
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ALLOWED = ("web/", "shared/")
 ALLOWED_FILES = ("VERSION",)
+RESULT_FILE = None
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -42,6 +44,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         pass
 
+    def do_POST(self):
+        if self.path != "/__test-result" or not RESULT_FILE:
+            self.send_error(404)
+            return
+        length = min(int(self.headers.get("Content-Length", "0")), 1_000_000)
+        with open(RESULT_FILE, "wb") as output:
+            output.write(self.rfile.read(length))
+        self.send_response(204)
+        self.end_headers()
+
 
 class Server(socketserver.ThreadingMixIn, http.server.HTTPServer):
     daemon_threads = True
@@ -54,6 +66,7 @@ class Server(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
 if __name__ == "__main__":
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
+    RESULT_FILE = sys.argv[2] if len(sys.argv) > 2 else None
     with Server(("127.0.0.1", port), partial(Handler, directory=ROOT)) as server:
         print(f"http://127.0.0.1:{server.server_port}/web/", flush=True)
         server.serve_forever()
