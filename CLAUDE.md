@@ -93,6 +93,10 @@ Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
 Nowe funkcje:
 - [ ] **Sterowanie ze smartfona** (pilot: następny/poprzedni slajd, czarny ekran, wybór pieśni z planu). Musi działać na **iOS i Androidzie**, więc najpierw wybrać technologię. Kandydaci: aplikacja webowa serwowana przez Maca w sieci lokalnej (HTTP + WebSocket, wejście przez kod QR, bez sklepów z aplikacjami), aplikacja natywna lub wieloplatformowa (sklepy, wyższy koszt), Bluetooth HID (bez instalacji, ale tylko proste klawisze). Uwzględnić parowanie i zabezpieczenie (PIN/token), działanie bez internetu i uprawnienia sieci lokalnej w macOS.
 
+- [ ] **Wersja webowa od nowa** w najlepszych technologiach dla przeglądarki (do wyboru, np. TypeScript + nowoczesny framework, PWA działająca offline, dane w IndexedDB, okno projekcji jako drugie okno przeglądarki lub Presentation API). **Bez Google Drive**: kopia zapasowa tylko do pliku i z pliku. Istniejąca gałąź `origin/web` co najwyżej jako punkt odniesienia.
+- [ ] **Wersja na Windows od nowa** w najlepszych technologiach dla Windows (do wyboru, np. .NET + WinUI 3), z obsługą wielu monitorów i projektora. Istniejąca gałąź `origin/windows` co najwyżej jako punkt odniesienia.
+- [ ] Wspólne dla wersji macOS, web i Windows, żeby wygląd i działanie były możliwie spójne: ten sam format danych i kopii zapasowej (`songs.json`, `plans.json`, kody `SlideType`, `.cantatebackup`), te same tłumaczenia (eksport z `Localizable.xcstrings`), ta sama logika podziału tekstu na slajdy, transpozycji, Auto-Fit i skrótów klawiszowych. Rozważyć wspólny zestaw plików testowych (wejście → oczekiwany wynik) sprawdzany we wszystkich wersjach.
+
 Weryfikacja przez właściciela:
 - [ ] Przejrzenie tłumaczeń interfejsu (en, de, es, uk), najlepiej z osobami znającymi język.
 
