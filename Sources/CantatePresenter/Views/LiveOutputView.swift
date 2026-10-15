@@ -21,6 +21,10 @@ public struct LiveOutputView: View {
         screenManager.targetScreenAspectRatio(for: store.settings.selectedScreenIndex)
     }
     
+    private var presentationScreenSize: CGSize {
+        screenManager.targetScreenSize(for: store.settings.selectedScreenIndex)
+    }
+    
     public var body: some View {
         let scale = store.settings.uiScale
         
@@ -79,37 +83,37 @@ public struct LiveOutputView: View {
                                 .font(.scaled(11, weight: .bold, scale: scale))
                                 .foregroundColor(.white.opacity(0.5))
                         } else if !store.isLive {
-                            Color(hex: "#0b0f19")
-                            VStack(spacing: 4) {
-                                let activeLogo = LogoCatalog.getById(store.settings.activeLogoId)
-                                SVGThumbnailView(svgString: activeLogo.svgContent)
-                                    .frame(width: 58, height: 58)
-                                    .cornerRadius(6)
-                                
-                                Text("CantatePresenter")
-                                    .font(.scaled(12, weight: .bold, scale: scale))
-                                    .foregroundColor(.white)
-                                
-                                Text("Wersja 1.0.0")
-                                    .font(.scaled(9, weight: .medium, scale: scale))
-                                    .foregroundColor(.white.opacity(0.75))
+                            GeometryReader { geo in
+                                let size = geo.size
+                                let logoDim = min(80.0, max(44.0, size.height * 0.38))
+                                Color(hex: "#0b0f19")
+                                VStack(spacing: max(2.0, size.height * 0.025)) {
+                                    let activeLogo = LogoCatalog.getById(store.settings.activeLogoId)
+                                    SVGThumbnailView(svgString: activeLogo.svgContent)
+                                        .frame(width: logoDim, height: logoDim)
+                                        .cornerRadius(6)
+                                    
+                                    Text("CantatePresenter")
+                                        .font(.scaled(max(11.0, size.height * 0.085), weight: .bold, scale: scale))
+                                        .foregroundColor(.white)
+                                    
+                                    Text("Wersja 1.0.0")
+                                        .font(.scaled(max(8.5, size.height * 0.06), weight: .medium, scale: scale))
+                                        .foregroundColor(.white.opacity(0.75))
+                                }
+                                .frame(width: size.width, height: size.height)
                             }
-                            .padding(6)
                         } else if store.isClearText {
                             bgColor
                             Text("TEKST UKRYTY")
                                 .font(.scaled(11, weight: .bold, scale: scale))
                                 .foregroundColor(txtColor.opacity(0.4))
                         } else if let slide = store.currentLiveSlide {
-                            bgColor
-                            Text(slide.text)
-                                .font(customFont(name: store.settings.fontFamily, size: 14 * CGFloat(scale), isBold: store.settings.isBold))
-                                .foregroundColor(txtColor)
-                                .multilineTextAlignment(alignmentForString(store.settings.textAlignment))
-                                .shadow(color: store.settings.hasShadow ? Color.black.opacity(0.8) : Color.clear, radius: 2, x: 1, y: 1)
-                                .padding(12)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .minimumScaleFactor(0.6)
+                            PresentationSlidePreviewCanvas(
+                                text: slide.text,
+                                targetScreenSize: presentationScreenSize,
+                                settings: store.settings
+                            )
                         }
                     }
                     .aspectRatio(presentationAspectRatio, contentMode: .fit)
@@ -233,38 +237,14 @@ public struct LiveOutputView: View {
                     
                     // Presentation Screen Aspect Ratio Mini Screen for NEXT slide (grayed out preview)
                     ZStack {
-                        let bgColor = Color(hex: store.settings.backgroundColorHex)
-                        let txtColor = Color(hex: store.settings.textColorHex)
-                        
                         if let next = nextSlide {
-                            bgColor
-                            
-                            // Dimmed overlay to give a clean grayed-out effect
-                            Color.black.opacity(0.2)
-                            
-                            VStack {
-                                HStack {
-                                    Text(next.label)
-                                        .font(.scaled(9, weight: .bold, scale: scale))
-                                        .padding(.horizontal, 5)
-                                        .padding(.vertical, 2)
-                                        .background(Color.black.opacity(0.6))
-                                        .foregroundColor(.orange)
-                                        .cornerRadius(4)
-                                    Spacer()
-                                }
-                                Spacer()
-                            }
-                            .padding(8)
-                            
-                            Text(next.text)
-                                .font(customFont(name: store.settings.fontFamily, size: 13 * CGFloat(scale), isBold: store.settings.isBold))
-                                .foregroundColor(txtColor.opacity(0.55))
-                                .multilineTextAlignment(alignmentForString(store.settings.textAlignment))
-                                .shadow(color: store.settings.hasShadow ? Color.black.opacity(0.4) : Color.clear, radius: 2, x: 1, y: 1)
-                                .padding(12)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .minimumScaleFactor(0.6)
+                            PresentationSlidePreviewCanvas(
+                                text: next.text,
+                                targetScreenSize: presentationScreenSize,
+                                settings: store.settings,
+                                isDimmed: true,
+                                label: next.label
+                            )
                         } else {
                             Color(NSColor.controlBackgroundColor)
                             VStack(spacing: 6) {
