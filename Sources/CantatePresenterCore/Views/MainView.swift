@@ -96,6 +96,12 @@ public struct MainView: View {
                 .help(L("Wyświetl natychmiast dowolny tekst lub ogłoszenie bez zapisywania w bazie (⌘T)"))
                 .keyboardShortcut("t", modifiers: [.command])
                 
+                // Akcje biblioteki (wcześniej ciasno pod wyszukiwarką). Przy wąskim oknie same ikony z podpowiedzią.
+                ViewThatFits(in: .horizontal) {
+                    libraryActions(scale: scale, showTitles: true)
+                    libraryActions(scale: scale, showTitles: false)
+                }
+                
                 Spacer()
                 
                 // UI Scale Controls (Essential requirement)
@@ -283,6 +289,70 @@ public struct MainView: View {
             isShowingQuickText = true
         }
     }
+
+    @ViewBuilder
+    private func libraryActions(scale: CGFloat, showTitles: Bool) -> some View {
+        HStack(spacing: 5) {
+            Button(action: {
+                songToEdit = nil
+                isShowingEditor = true
+            }) {
+                Label(L("Nowa pieśń"), systemImage: "plus")
+                    .labelStyle(LibraryActionLabelStyle(showTitle: showTitles))
+                    .font(.scaled(11, weight: .medium, scale: scale))
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            .help(L("Nowa pieśń"))
+            
+            Button(action: {
+                if let selected = store.selectedSong {
+                    songToEdit = selected
+                    isShowingEditor = true
+                }
+            }) {
+                Label(L("Edytuj"), systemImage: "pencil")
+                    .labelStyle(LibraryActionLabelStyle(showTitle: showTitles))
+                    .font(.scaled(11, weight: .medium, scale: scale))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .disabled(store.selectedSong == nil)
+            .help(L("Edytuj wybraną pieśń (podwójny klik lub ⌘E)"))
+            
+            Button(action: { isShowingImportExport = true }) {
+                Label(L("Import/Eksport"), systemImage: "arrow.up.arrow.down")
+                    .labelStyle(LibraryActionLabelStyle(showTitle: showTitles))
+                    .font(.scaled(11, scale: scale))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help(L("Import/Eksport"))
+            
+            Button(action: {
+                lookupTargetSong = store.selectedSong
+                isShowingAuthorTitleLookup = true
+            }) {
+                Label(L("Tytuł/Autor"), systemImage: "person.text.rectangle")
+                    .labelStyle(LibraryActionLabelStyle(showTitle: showTitles))
+                    .font(.scaled(11, scale: scale))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help(L("Wyszukiwarka tytułu i autora (dla zaznaczonej lub dla wszystkich)"))
+            
+            Button(action: { isShowingOnlineSearch = true }) {
+                Label(L("Online"), systemImage: "globe")
+                    .labelStyle(LibraryActionLabelStyle(showTitle: showTitles))
+                    .font(.scaled(11, scale: scale))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help(L("Wyszukiwanie pieśni religijnych w internecie"))
+                }
+        .fixedSize()
+    }
+
 }
 
 extension Notification.Name {
@@ -291,4 +361,20 @@ extension Notification.Name {
     /// Edycja → Szukaj pieśni (⌘F): przełącza na Bibliotekę i aktywuje pole wyszukiwania.
     static let focusSongSearch = Notification.Name("FocusSongSearch")
     static let focusSongSearchField = Notification.Name("FocusSongSearchField")
+}
+
+/// Etykieta przycisku z napisem albo sama ikona (wąskie okno); napis zostaje jako podpowiedź.
+struct LibraryActionLabelStyle: LabelStyle {
+    let showTitle: Bool
+    
+    func makeBody(configuration: Configuration) -> some View {
+        if showTitle {
+            HStack(spacing: 4) {
+                configuration.icon
+                configuration.title
+            }
+        } else {
+            configuration.icon
+        }
+    }
 }
