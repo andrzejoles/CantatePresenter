@@ -41,6 +41,7 @@ public struct AppPaths: Equatable {
     public var settingsFile: URL { dataDirectory.appendingPathComponent("settings.json") }
     public var customLanguagesFile: URL { dataDirectory.appendingPathComponent("custom_languages.json") }
     public var standbyFile: URL { dataDirectory.appendingPathComponent("standby.html") }
+    public var ccliUsageFile: URL { dataDirectory.appendingPathComponent("ccli_usage.json") }
 
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "persistence")
 

@@ -71,7 +71,8 @@ public final class BackupService {
             "plans.json",
             "settings.json",
             "standby.html",
-            "custom_languages.json"
+            "custom_languages.json",
+            "ccli_usage.json"
         ]
         
         for fileName in filesToInclude {
@@ -200,6 +201,7 @@ public final class BackupService {
         store.loadSettings()
         store.loadSongs()
         store.loadPlans()
+        store.loadCCLIUsage()
         store.updateActiveLogo(id: store.settings.activeLogoId)
         LocalizationService.shared.loadCustomLanguages()
     }

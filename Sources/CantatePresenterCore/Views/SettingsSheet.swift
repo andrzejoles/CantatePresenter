@@ -11,6 +11,7 @@ public struct SettingsSheet: View {
     @State private var testDictationText: String = ""
     @State private var isShowingLogoGallery: Bool = false
     @State private var translationNotice: String? = nil
+    @State private var ccliReportNotice: String? = nil
     @State private var isShowingGoogleDriveBackups: Bool = false
     @State private var isUploadingToDrive: Bool = false
     @State private var isSigningInDrive: Bool = false
@@ -712,6 +713,29 @@ public struct SettingsSheet: View {
                                 .font(.scaled(11, scale: scale))
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
+                            
+                            Divider()
+                            
+                            HStack {
+                                Text(L("Raport użycia: zapisane wyświetlenia: {0}", store.ccliUsage.count))
+                                    .font(.scaled(12, weight: .medium, scale: scale))
+                                Spacer()
+                                Button(action: exportCCLIReport) {
+                                    Label(L("Eksportuj raport CCLI (CSV)..."), systemImage: "tablecells")
+                                }
+                                .disabled(store.ccliUsage.isEmpty)
+                            }
+                            
+                            Text(L("Każda pieśń z numerem CCLI jest zapisywana raz dziennie, gdy trafi na ekran. Plik CSV pomoże zgłosić użycie na stronie CCLI."))
+                                .font(.scaled(11, scale: scale))
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            
+                            if let notice = ccliReportNotice {
+                                Text(notice)
+                                    .font(.scaled(11, scale: scale))
+                                    .foregroundColor(.secondary)
+                            }
                         }
                         .padding(8)
                     }
@@ -900,6 +924,25 @@ public struct SettingsSheet: View {
             url = AppPaths.shared.standbyFile
         }
         NSWorkspace.shared.open(url)
+    }
+    
+    // MARK: - CCLI Report
+    private func exportCCLIReport() {
+        let panel = NSSavePanel()
+        panel.title = L("Eksportuj raport CCLI (CSV)...")
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        panel.nameFieldStringValue = "CCLI_usage_\(formatter.string(from: Date())).csv"
+        panel.allowedContentTypes = [.commaSeparatedText]
+        panel.prompt = L("Eksportuj")
+        
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try CCLIUsageReport.csv(store.ccliUsage).write(to: url, atomically: true, encoding: .utf8)
+            ccliReportNotice = L("Zapisano raport: {0}", url.lastPathComponent)
+        } catch {
+            ccliReportNotice = L("Błąd zapisu pliku: {0}", error.localizedDescription)
+        }
     }
     
     // MARK: - Translation Export & Import

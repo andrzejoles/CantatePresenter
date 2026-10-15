@@ -87,6 +87,9 @@ public final class DataStore {
     
     private let dataDirectory: URL
     private let songsFileURL: URL
+    private let ccliUsageFileURL: URL
+    /// Wyświetlenia pieśni z numerem CCLI do raportu (eksport CSV w Ustawieniach).
+    public private(set) var ccliUsage: [CCLIUsageEntry] = []
     private let plansFileURL: URL
     private let settingsFileURL: URL
     
@@ -101,6 +104,7 @@ public final class DataStore {
     init(paths: AppPaths) {
         self.dataDirectory = paths.dataDirectory
         self.songsFileURL = paths.songsFile
+        self.ccliUsageFileURL = paths.ccliUsageFile
         self.plansFileURL = paths.plansFile
         self.settingsFileURL = paths.settingsFile
         
@@ -117,6 +121,7 @@ public final class DataStore {
         loadSettings()
         loadSongs()
         loadPlans()
+        loadCCLIUsage()
     }
     
     private func createDataDirectoryIfNeeded() {
@@ -212,6 +217,30 @@ public final class DataStore {
         if activePlanId == nil {
             activePlanId = plans.first?.id
         }
+    }
+    
+    public func loadCCLIUsage() {
+        switch fileStore.load([CCLIUsageEntry].self, from: ccliUsageFileURL) {
+        case .missing:
+            unlock(ccliUsageFileURL)
+            ccliUsage = []
+        case .loaded(let decoded):
+            unlock(ccliUsageFileURL)
+            ccliUsage = decoded
+        case .unreadable(let error, let copy):
+            lock(ccliUsageFileURL, error: error, quarantinedCopy: copy)
+            ccliUsage = []
+        }
+    }
+    
+    /// Zapisuje wyświetlenie pieśni z numerem CCLI (raz na pieśń dziennie).
+    func recordCCLIUsage(for song: Song, at date: Date = Date()) {
+        guard let entry = CCLIUsageReport.entry(for: song, at: date, existing: ccliUsage) else { return }
+        ccliUsage.append(entry)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        encoder.dateEncodingStrategy = .iso8601
+        persist(ccliUsage, to: ccliUsageFileURL, encoder: encoder)
     }
     
     public func savePlans() {
@@ -400,6 +429,7 @@ public final class DataStore {
         self.activeSong = song
         self.activeSlideIndex = min(max(0, slideIndex), max(0, song.slides.count - 1))
         self.isLive = true
+        recordCCLIUsage(for: song)
         self.isBlackScreen = false
         self.isClearText = false
     }
