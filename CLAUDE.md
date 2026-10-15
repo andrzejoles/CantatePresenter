@@ -83,8 +83,9 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] **N6** Przestarzałe API (ostrzeżenia kompilatora).
 - [x] **N7** Pozostałe ciche `try?` przy zapisie (np. własne języki).
 - [x] **N8** Indeks deduplikacji nieaktualizowany po zamianie pieśni głównej.
-- [ ] **CI** Budowanie i testy na GitHubie.
-- [ ] PR etapu 3 (`stage3-quality`); nowe instalatory w `dist/` (obecne są sprzed poprawek K1).
+- [ ] **CI** Budowanie i testy na GitHubie: workflow `.github/workflows/ci.yml` gotowy na gałęzi `ci-workflow`. GitHub odrzuca push, bo token gita nie ma uprawnienia `workflow`; po zalogowaniu `gh auth login` (albo tokenie z `workflow`) scalić gałąź i wypchnąć.
+- [ ] PR etapu 3 (`stage3-quality`).
+- [x] Nowe instalatory w `dist/` (2026-10-15, wersja 1.0.0, kompilacja 70; `dist/` jest w `.gitignore`).
 
 Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
 - [ ] Przepisanie historii gita: usunięcie `2026-10-14_16-19-00.mufl` i adresu e-mail z dawnych wersji `data/settings.json`.
