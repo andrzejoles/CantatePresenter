@@ -16,3 +16,10 @@ dist/
 # Kopie rotacyjne i kwarantanna plików danych (K1)
 data/history/
 data/*.corrupt-*.json
+
+# Ustawienia użytkownika (adres konta Google) nie trafiają do repozytorium (W4)
+data/settings.json
+
+# Klient OAuth Google pobrany z Google Cloud Console; wbudowywany przez build_app.sh (W3)
+google-oauth-client.json
+client_secret_*.json
