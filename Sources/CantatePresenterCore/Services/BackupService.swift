@@ -46,14 +46,7 @@ public final class BackupService {
     private init() {}
     
     private var dataDirectory: URL {
-        let bundleURL = Bundle.main.bundleURL
-        let projectFolder: URL
-        if bundleURL.pathExtension == "app" {
-            projectFolder = bundleURL.deletingLastPathComponent()
-        } else {
-            projectFolder = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-        }
-        return projectFolder.appendingPathComponent("data")
+        AppPaths.shared.dataDirectory
     }
     
     // MARK: - Create Full Backup Package

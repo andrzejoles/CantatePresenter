@@ -393,14 +393,7 @@ public final class LocalizationService: ObservableObject {
     private let customLanguagesURL: URL
     
     public init() {
-        let bundleURL = Bundle.main.bundleURL
-        let projectFolder: URL
-        if bundleURL.pathExtension == "app" {
-            projectFolder = bundleURL.deletingLastPathComponent()
-        } else {
-            projectFolder = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-        }
-        self.customLanguagesURL = projectFolder.appendingPathComponent("data/custom_languages.json")
+        self.customLanguagesURL = AppPaths.shared.customLanguagesFile
         loadCustomLanguages()
     }
     
