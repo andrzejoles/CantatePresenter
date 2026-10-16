@@ -17,7 +17,7 @@ export async function request(path, options = {}) {
   return response;
 }
 
-/** @returns {Promise<{data: Record<string, any>, revisions: Record<string, number>, locked: string[], canUndoRestore: boolean}>} */
+/** @returns {Promise<{data: Record<string, any>, revisions: Record<string, number>, locked: string[], canUndoRestore: boolean, newerSchema?: number | null}>} */
 export async function fetchData() {
   const response = await request("/api/data");
   if (!response.ok) throw new Error(`HTTP ${response.status}`);

@@ -170,6 +170,9 @@ const PLACEMENTS = new Set(["none", "firstSlide", "lastSlide", "allSlides"]);
  * Ustawienia z JSON; pola tylko z macOS (np. ekran, Dysk Google) zostają bez zmian, żeby kopia wróciła na Maca cała.
  * @param {any} raw
  */
+/** Wersja formatu danych, jak DataSchema.current w macOS (pole schemaVersion w settings.json). */
+export const SCHEMA_VERSION = 1;
+
 export function normalizeSettings(raw) {
   const input = raw && typeof raw === "object" ? raw : {};
   const d = DEFAULT_SETTINGS;
@@ -197,6 +200,7 @@ export function normalizeSettings(raw) {
     ccliLicenseNumber: str(input.ccliLicenseNumber, d.ccliLicenseNumber),
     copyrightNoticePlacement: PLACEMENTS.has(input.copyrightNoticePlacement) ? input.copyrightNoticePlacement : d.copyrightNoticePlacement,
     shortcuts,
+    schemaVersion: SCHEMA_VERSION,
   };
 }
 

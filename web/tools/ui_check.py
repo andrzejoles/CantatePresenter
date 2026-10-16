@@ -97,6 +97,8 @@ try:
     check("Enter: start projekcji", browser.evaluate("document.querySelector('.live-head .pill').classList.contains('on')"))
     browser.key("ArrowRight", "ArrowRight")
     check("strzałka w prawo: następny slajd", browser.evaluate("[...document.querySelectorAll('.slide-card')].findIndex(c => c.classList.contains('live'))") == 1)
+    # Podgląd rysuje się po zmianie slajdu asynchronicznie; bez czekania test bywał niestabilny.
+    browser.wait_for("document.querySelector('.preview.live .slide-text > div') !== null")
     check("tekst mieści się w podglądzie (Auto-Fit)", browser.evaluate(
         "(() => { const p = document.querySelector('.preview.live'); const t = p.querySelector('.slide-text > div'); if (!t) return false; const a = p.getBoundingClientRect(), b = t.getBoundingClientRect(); return b.top >= a.top - 1 && b.bottom <= a.bottom + 1 && b.width <= a.width + 1; })()"))
     browser.key("KeyB", "b", "b")

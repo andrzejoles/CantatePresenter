@@ -49,6 +49,8 @@ Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Supp
 
 Przy pierwszym uruchomieniu, gdy w Application Support nie ma `songs.json`/`plans.json`/`settings.json`, dane są **kopiowane** ze starej lokalizacji (`data/` obok pakietu .app, a przy `swift run` z bieżącego katalogu). Stary katalog zostaje. Jeśli kopiowanie się nie uda, aplikacja w tej sesji używa starego katalogu i pokazuje alert.
 
+Wersja formatu (`DataSchema`, obecnie 1): pole `schemaVersion` w `settings.json` i w `manifest.json` kopii; `songs.json` i `plans.json` zostają tablicami. Brak pola = 0 (ten sam format), migracja w `DataSchema.migrate`. Dane lub kopia z nowszą wersją: tylko odczyt (`PersistenceIssue.newerSchema`), przywracanie odrzucone. Tak samo w wersji webowej (`SCHEMA_VERSION` w `storage.py` i `models.js`). Zmiana formatu = nowy numer + krok migracji we wszystkich wersjach.
+
 Odczyt i zapis JSON tylko przez `JSONFileStore` (K1): nieczytelny plik nie jest nadpisywany, trafia do `<nazwa>.corrupt-<data>.json`, a zapis do niego jest zablokowany do udanego wczytania.
 
 `data/` w repozytorium to już tylko stara lokalizacja i źródło migracji; aplikacja go nie modyfikuje.
@@ -93,7 +95,7 @@ Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
 - [ ] Podpis Developer ID i notaryzacja (płatne konto Apple Developer).
 - [ ] Automatyczne aktualizacje (Sparkle, nowa zależność).
 - [ ] Weryfikacja aplikacji w Google (zniesienie limitu 100 testerów i ostrzeżenia przy logowaniu; wymaga m.in. polityki prywatności).
-- [ ] Pole `schemaVersion` w plikach danych (zmiana formatu z migracją).
+- [x] Pole `schemaVersion` (decyzja 2026-10-16: tak): w `settings.json` i manifeście kopii, bez zmiany kształtu pozostałych plików; nowsze dane tylko do odczytu.
 
 Nowe funkcje:
 - [x] **Ekran dla muzyków** (z raportu, pomysły na rozwój; dodany 2026-10-15): bieżący i następny slajd z chwytami nad tekstem. Okno na Macu (`MusicianView`, `MusicianWindowManager`, przycisk „Muzycy”) i podgląd na tabletach przez serwer pilota (`/stage`, osobny token tylko do odczytu, `MusicianStagePage`). Wspólny model `MusicianStage`; dopasowanie arkusza do slajdu `ChordSheet` (po słowach, z pożyczaniem chwytów pierwszej zwrotki, chwyty w nawiasach), wzorzec w `shared/fixtures/chordsheet.json`. Do zrobienia: ten sam ekran w wersji webowej.

@@ -7,7 +7,7 @@ import { AppUI } from "./ui.js";
 import { SAMPLE_SONGS } from "./samples.js";
 import { openChannel } from "./channel.js";
 import { loadCatalog, setLanguage, t } from "../i18n.js";
-import { normalizeSong, normalizePlan, normalizeSettings, createSong } from "../core/models.js";
+import { normalizeSong, normalizePlan, normalizeSettings, createSong, SCHEMA_VERSION } from "../core/models.js";
 import { keyboardAction, MAC_KEY_CODES } from "../core/keyboard.js";
 import { decodeText, parseTextSong } from "../core/importText.js";
 import { isSongSelectText, parseText, parseUSR, parseChordPro, CHORDPRO_EXTENSIONS } from "../core/songselect.js";
@@ -60,7 +60,9 @@ const store = new Store({
   translate: t,
 });
 if (firstRun) { store.saveSongs(); store.savePlans(); store.saveSettings(); }
-if (snapshot.locked.length) {
+if (snapshot.newerSchema) {
+  setTimeout(() => alert(t("Bibliotekę zapisała nowsza wersja CantatePresenter (format danych {0}, ta wersja obsługuje {1}). Pieśni i plany można wyświetlać, ale zmiany nie będą zapisywane, żeby nie uszkodzić danych. Zaktualizuj aplikację.", snapshot.newerSchema, SCHEMA_VERSION)), 0);
+} else if (snapshot.locked.length) {
   setTimeout(() => alert(t("Na serwerze są nieczytelne pliki danych ({0}). Zapis do nich jest zablokowany; kopia uszkodzonego pliku jest w katalogu danych.", snapshot.locked.join(", "))), 0);
 }
 
@@ -175,9 +177,10 @@ async function restoreBackup(file) {
     ui.toast(t("Przywrócono kopię: {0} pieśni, {1} planów.", backup.songs.length, backup.plans.length));
   } catch (error) {
     if (error instanceof api.UnauthorizedError) return api.goToLogin();
-    const messages = { notArchive: "To nie jest plik kopii zapasowej (.cantatebackup lub .zip).", noSongs: "Kopia zapasowa nie zawiera pliku songs.json.", unreadable: "Kopia zapasowa jest uszkodzona: {0}" };
+    const messages = { notArchive: "To nie jest plik kopii zapasowej (.cantatebackup lub .zip).", noSongs: "Kopia zapasowa nie zawiera pliku songs.json.", unreadable: "Kopia zapasowa jest uszkodzona: {0}",
+      newerSchema: "Kopię zapisała nowsza wersja CantatePresenter (format danych {0}, ta wersja obsługuje {1}). Zaktualizuj aplikację przed przywróceniem." };
     const code = error instanceof BackupError ? error.code : "unreadable";
-    ui.toast(t(messages[code], error instanceof Error ? error.message : String(error)));
+    ui.toast(t(messages[code], error instanceof Error ? error.message : String(error), SCHEMA_VERSION));
   }
 }
 

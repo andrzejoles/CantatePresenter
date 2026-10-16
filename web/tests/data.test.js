@@ -1,6 +1,6 @@
 // @ts-check
 import { test, equal, ok, fixture } from "./harness.js";
-import { normalizeSong, normalizePlan, normalizeSettings, parseDate, createSong, copyrightNotice } from "../src/core/models.js";
+import { normalizeSong, normalizePlan, normalizeSettings, parseDate, createSong, copyrightNotice, SCHEMA_VERSION } from "../src/core/models.js";
 import { createZip, readZip, crc32 } from "../src/core/zip.js";
 import { createBackup, readBackup, backupFileName, BackupError } from "../src/core/backup.js";
 import { keyboardAction, MAC_KEY_CODES } from "../src/core/keyboard.js";
@@ -95,6 +95,21 @@ test("Kopia bez songs.json albo nie-ZIP: czytelny błąd", async () => {
   equal(code, "notArchive");
   try { await readBackup(await createZip([{ path: "x.txt", data: "x" }])); } catch (e) { code = e instanceof BackupError ? e.code : "?"; }
   equal(code, "noSongs");
+});
+
+test("Wersja formatu danych: zapisywana w ustawieniach i manifeście, nowsza kopia odrzucana", async () => {
+  equal(SCHEMA_VERSION, 1);
+  equal(normalizeSettings({}).schemaVersion, SCHEMA_VERSION);
+  const zip = await createBackup({ songs: [], plans: [], settings: normalizeSettings({}) });
+  const files = await readZip(zip);
+  equal(JSON.parse(new TextDecoder().decode(files.get("manifest.json"))).schemaVersion, SCHEMA_VERSION);
+  for (const [name, content] of [["settings.json", '{"schemaVersion":99}'], ["manifest.json", '{"schemaVersion":5}']]) {
+    let code = "";
+    try {
+      await readBackup(await createZip([{ path: "songs.json", data: "[]" }, { path: name, data: content }]));
+    } catch (e) { code = e instanceof BackupError ? e.code : "?"; }
+    equal(code, "newerSchema", name);
+  }
 });
 
 test("Informacja o prawach CCLI na slajdzie", () => {

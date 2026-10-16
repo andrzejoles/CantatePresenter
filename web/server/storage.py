@@ -14,6 +14,9 @@ KINDS = ("songs", "plans", "settings", "extraFiles")
 # extraFiles: pliki z kopii macOS, których wersja webowa nie używa (logo, raport CCLI); ścieżka → base64.
 OBJECT_KINDS = ("settings", "extraFiles")
 HISTORY_LIMIT = 5
+# Wersja formatu danych, jak DataSchema.current w macOS: pole schemaVersion w settings.json.
+# Dane z nowszej wersji są tylko do odczytu, żeby nie zgubić pól, których ta wersja nie zna.
+SCHEMA_VERSION = 1
 MAX_BODY = 50 * 1024 * 1024
 
 
@@ -65,10 +68,23 @@ class Storage:
                 self.locked.add(kind)
                 return None
 
+    @staticmethod
+    def schema_version_of(settings) -> int:
+        value = settings.get("schemaVersion", 0) if isinstance(settings, dict) else 0
+        return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+    def newer_schema(self) -> int | None:
+        """Numer formatu, gdy dane zapisała nowsza wersja aplikacji; inaczej None."""
+        version = self.schema_version_of(self.load("settings"))
+        return version if version > SCHEMA_VERSION else None
+
     def snapshot(self) -> dict:
         with self.lock:
+            newer = self.newer_schema()
+            locked = set(KINDS) if newer else self.locked
             return {"data": {kind: self.load(kind) for kind in KINDS}, "revisions": dict(self.revisions),
-                    "locked": sorted(self.locked), "canUndoRestore": os.path.exists(self.before_restore_path)}
+                    "locked": sorted(locked), "canUndoRestore": os.path.exists(self.before_restore_path),
+                    "newerSchema": newer, "schemaVersion": SCHEMA_VERSION}
 
     @property
     def before_restore_path(self) -> str:
@@ -76,7 +92,11 @@ class Storage:
 
     def restore(self, data: dict) -> dict:
         """Podmienia dane z kopii; poprzedni stan zostaje w before-restore.json (do cofnięcia)."""
+        if self.schema_version_of(data.get("settings")) > SCHEMA_VERSION:
+            raise ValueError("newer schema")
         with self.lock:
+            if self.newer_schema():
+                raise PermissionError("newer schema")
             current = {kind: self.load(kind) for kind in KINDS}
             self._write_atomic(self.before_restore_path, json.dumps(current, ensure_ascii=False).encode())
             return {kind: self.save(kind, data.get(kind, {} if kind in OBJECT_KINDS else []), None) for kind in KINDS}
@@ -99,7 +119,7 @@ class Storage:
         if not isinstance(value, dict if kind in OBJECT_KINDS else list):
             raise ValueError("invalid shape")
         with self.lock:
-            if kind in self.locked:
+            if kind in self.locked or self.newer_schema():
                 raise PermissionError(kind)
             if expected_revision is not None and expected_revision != self.revisions[kind]:
                 raise Conflict(kind)

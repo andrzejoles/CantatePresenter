@@ -2,7 +2,7 @@
 // Kopia zapasowa .cantatebackup zgodna z wersją macOS: ZIP z songs.json, plans.json, settings.json i manifest.json.
 
 import { createZip, readZip } from "./zip.js";
-import { normalizeSong, normalizePlan, normalizeSettings, isoDate } from "./models.js";
+import { normalizeSong, normalizePlan, normalizeSettings, isoDate, SCHEMA_VERSION } from "./models.js";
 import { APP_VERSION } from "../version.js";
 
 /**
@@ -48,6 +48,7 @@ export async function createBackup(content, comment) {
     activeLogoId: content.settings.activeLogoId,
     appLanguage: content.settings.appLanguage,
     includedFiles: included,
+    schemaVersion: SCHEMA_VERSION,
     ...(comment ? { comment } : {}),
   };
   files.push({ path: "manifest.json", data: JSON.stringify(manifest, Object.keys(manifest).sort(), 2) });
@@ -56,7 +57,7 @@ export async function createBackup(content, comment) {
 
 /** Błąd kopii z kodem do przetłumaczenia w interfejsie. */
 export class BackupError extends Error {
-  /** @param {"notArchive" | "noSongs" | "unreadable"} code @param {string} [detail] */
+  /** @param {"notArchive" | "noSongs" | "unreadable" | "newerSchema"} code @param {string} [detail] */
   constructor(code, detail = "") {
     super(detail || code);
     this.code = code;
@@ -92,6 +93,11 @@ export async function readBackup(blob) {
       throw new BackupError("unreadable", `${name}: ${error}`);
     }
   };
+  // Kopia z nowszej wersji aplikacji: pola, których ta wersja nie zna, zginęłyby przy zapisie.
+  for (const name of ["manifest.json", "settings.json"]) {
+    const version = json(name)?.schemaVersion;
+    if (Number.isInteger(version) && version > SCHEMA_VERSION) throw new BackupError("newerSchema", String(version));
+  }
   const songs = json("songs.json");
   if (!Array.isArray(songs)) throw new BackupError("unreadable", "songs.json");
   const plans = json("plans.json");
