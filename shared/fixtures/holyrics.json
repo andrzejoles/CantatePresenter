@@ -1,0 +1,79 @@
+{
+  "files" : [
+    {
+      "file" : "holyrics-music-list.mufl",
+      "songs" : [
+        {
+          "author" : "Autor Testowy",
+          "key" : "D",
+          "rawLyrics" : "[Zwrotka 1]\nIdziemy razem przez pola,\nsłońce nad nami świeci.\n\n[Refren]\nŚpiewaj radośnie,\nniech się niesie.",
+          "tags" : [
+            "Import Holyrics",
+            "Wejście"
+          ],
+          "title" : "Idziemy razem"
+        },
+        {
+          "author" : "Zespół Przykładowy",
+          "key" : "",
+          "rawLyrics" : "[Zwrotka]\nNad cichą łąką wieczór\n\n[Bridge]\nGwiazdy nad nami\n\n[Zakończenie]\nAmen",
+          "tags" : [
+            "Import Holyrics"
+          ],
+          "title" : "Cicha łąka"
+        },
+        {
+          "author" : "",
+          "key" : "Em",
+          "rawLyrics" : "[Wstęp]\nLa la la\n\n[Przed-refren]\nJuż za chwilę\n\n[Solo gitary]\nTylko muzyka",
+          "tags" : [
+            "Import Holyrics"
+          ],
+          "title" : "Pieśń Holyrics"
+        }
+      ]
+    },
+    {
+      "file" : "holyrics-tagged.muf",
+      "songs" : [
+        {
+          "author" : "Autor Tekstowy",
+          "key" : "G",
+          "rawLyrics" : "[Zwrotka 1]\nPierwszy wiersz tekstu\nDrugi wiersz tekstu\n\n[Refren]\nRefren &amp; koniec",
+          "tags" : [
+            "Import Holyrics",
+            "Wieczór",
+            "Spokojne"
+          ],
+          "title" : "Pieśń z pliku tekstowego"
+        }
+      ]
+    },
+    {
+      "file" : "holyrics-export.xml",
+      "songs" : [
+        {
+          "author" : "Autor XML",
+          "key" : "A",
+          "rawLyrics" : "[Zwrotka 1]\nTekst &amp; więcej",
+          "tags" : [
+            "Import Holyrics XML"
+          ],
+          "title" : "Pieśń z XML"
+        },
+        {
+          "author" : "",
+          "key" : "",
+          "rawLyrics" : "Jedna linia",
+          "tags" : [
+            "Import Holyrics XML"
+          ],
+          "title" : "Druga & ostatnia"
+        }
+      ]
+    }
+  ],
+  "invalidStreams" : [
+    "holyrics-music-list-truncated.mufl"
+  ]
+}

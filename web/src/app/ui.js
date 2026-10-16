@@ -4,10 +4,16 @@
 import { h, replace } from "./dom.js";
 import { t, LANGUAGES } from "../i18n.js";
 import { songMatches, matchingSnippet, SearchScope } from "../core/text.js";
-import { shortBadge, polishName } from "../core/lyrics.js";
+import { shortBadge } from "../core/lyrics.js";
 import { transpose } from "../core/chords.js";
 import { keyName } from "../core/keyboard.js";
 import { renderScreen } from "./slide.js";
+import { slideLabel } from "./labels.js";
+import { searchWikisource } from "../core/wikisource.js";
+import { searchURL } from "../core/songselect.js";
+import { qrSVG } from "../core/qr.js";
+import { request } from "../api.js";
+import { allLogos, logoById, svgDataURL } from "./logos.js";
 import { APP_VERSION } from "../version.js";
 
 /**
@@ -18,17 +24,12 @@ import { APP_VERSION } from "../version.js";
  *   targetSize: () => {width: number, height: number},
  *   importFiles: (files: FileList | File[]) => Promise<void>, exportBackup: () => Promise<void>,
  *   restoreBackup: (file: File) => Promise<void>, undoRestore: () => Promise<void>, canUndoRestore: () => boolean,
- *   exportSongText: (song: Song) => void, user: string, logout: () => void,
+ *   exportSongText: (song: Song) => void, user: string, logout: () => void, openMusicians: () => void,
+ *   exportCCLIReport: () => void,
  * }} Actions
  */
 
-/** Etykieta slajdu w języku interfejsu: domyślne („Zwrotka 2”) tłumaczone, własne bez zmian. @param {{type: string, label: string, number?: number}} slide */
-export function slideLabel(slide) {
-  const base = polishName[/** @type {keyof typeof polishName} */ (slide.type)] ?? slide.label;
-  if (slide.label === base) return t(base);
-  if (slide.number !== undefined && slide.label === `${base} ${slide.number}`) return `${t(base)} ${slide.number}`;
-  return slide.label;
-}
+export { slideLabel };
 
 /** Nazwa pieśni do listy; pusta → „Bez tytułu”. @param {Song} song */
 const titleOf = (song) => song.title || t("Bez tytułu");
@@ -101,10 +102,12 @@ export class AppUI {
       h("button", { onclick: () => this.openEditor(null), title: t("Nowa pieśń") }, "＋ ", t("Nowa pieśń")),
       h("button", { onclick: () => store.selectedSong && this.openEditor(store.selectedSong), disabled: !store.selectedSong || store.selectedSong === store.temporarySong, title: t("Edytuj") }, "✎ ", t("Edytuj")),
       h("button", { onclick: () => this.openImportExport(), title: t("Import/Eksport") }, "⇅ ", t("Import/Eksport")),
+      h("button", { onclick: () => this.openOnlineSearch(), title: t("Wyszukiwanie pieśni religijnych w internecie") }, "🌐 ", t("Online")),
+      h("button", { onclick: () => this.actions.openMusicians(), title: t("Ekran dla muzyków: chwyty nad tekstem. Na tabletach otwórz {0} i zaloguj się.", `${location.origin}/musicians.html`) }, "🎸 ", t("Muzycy")),
       h("div", { class: "spacer" }),
       h("span", { class: "zoom" }, t("Rozmiar UI"),
         h("button", { onclick: () => zoom(-0.05), title: "−" }, "A−"), `${scale}%`, h("button", { onclick: () => zoom(0.05), title: "+" }, "A+")),
-      h("span", { class: "user-chip", title: t("Zalogowany użytkownik") }, `👤 ${this.actions.user}`),
+      h("button", { class: "user-chip", title: t("Konto: hasło i weryfikacja dwuetapowa"), onclick: () => this.openAccount() }, `👤 ${this.actions.user}`),
       h("button", { onclick: () => this.actions.logout(), title: t("Wyloguj") }, t("Wyloguj")),
       h("button", { onclick: () => this.openSettings(), title: t("Ustawienia") }, "⚙"),
       h("button", { onclick: () => this.openAbout(), title: t("O programie") }, "?"));
@@ -272,7 +275,17 @@ export class AppUI {
       isLive: store.isLive, isBlackScreen: store.isBlackScreen, isClearText: store.isClearText,
       text: store.currentLiveSlide?.text ?? "", notice: store.currentCopyrightNotice, settings: store.settings,
       standbyTitle: "CantatePresenter", standbySubtitle: t("Wersja {0}", APP_VERSION),
+      standbyLogo: this.logoURL(), standbyReady: t("GOTOWY DO PROJEKCJI • OCZEKIWANIE NA PREZENTACJĘ"),
+      standbyCredits: t("Autor: Andrzej Oles · we współpracy z Claude (Anthropic)"),
     };
+  }
+
+  /** Obrazek wybranego logo planszy (liczony raz na zmianę logo). */
+  logoURL() {
+    const logo = logoById(this.store.settings.activeLogoId);
+    if (!logo) return "";
+    if (this.cachedLogo?.id !== logo.id) this.cachedLogo = { id: logo.id, url: svgDataURL(logo.svg) };
+    return this.cachedLogo.url;
   }
 
   renderRight() {
@@ -396,6 +409,161 @@ export class AppUI {
     title.focus();
   }
 
+  /** Wikiźródła (domena publiczna i wolne licencje) oraz odnośnik do CCLI SongSelect, jak w macOS. */
+  openOnlineSearch() {
+    const s = this.store.settings;
+    const languages = /** @type {[string, string][]} */ ([["pl", "Polski"], ["en", "English"], ["de", "Deutsch"], ["es", "Español"], ["uk", "Українська"], ["la", "Latina"]]);
+    const query = /** @type {HTMLInputElement} */ (h("input", { type: "search", placeholder: t("Wpisz tytuł lub słowa pieśni (np. Kiedy ranne wstają zorze)..."), autocomplete: "off" }));
+    const language = /** @type {HTMLSelectElement} */ (h("select", null,
+      languages.map(([code, name]) => h("option", { value: code, selected: code === (s.onlineSearchLanguage ?? "pl") }, name))));
+    const list = h("div", { class: "online-results" });
+    const preview = h("div", { class: "online-preview" }, h("div", { class: "empty" }, t("Wybierz pieśń z listy, aby zobaczyć podgląd")));
+    /** @type {import("../core/wikisource.js").WikisourceResult[]} */
+    let results = [];
+    let serial = 0;
+    const licenseLabel = (/** @type {string} */ license) => license === "publicDomain" ? t("Domena publiczna") : license === "ccBySA" ? "CC BY-SA" : t("Licencja: zobacz stronę źródła");
+
+    /** @param {import("../core/wikisource.js").WikisourceResult} result */
+    const show = (result) => {
+      const title = /** @type {HTMLInputElement} */ (h("input", { type: "text", value: result.title }));
+      const author = /** @type {HTMLInputElement} */ (h("input", { type: "text", value: result.author }));
+      replace(preview,
+        h("label", { class: "field" }, h("span", null, t("Tytuł:")), title),
+        h("label", { class: "field" }, h("span", null, t("Autor:")), author),
+        h("div", { class: "hint-text" }, `${t("Wikiźródła")} · ${licenseLabel(result.license)} · `, h("a", { href: result.url, target: "_blank", rel: "noopener noreferrer" }, t("Otwórz źródło"))),
+        h("pre", { class: "online-lyrics" }, result.lyrics),
+        h("button", { class: "primary", onclick: () => {
+          const song = this.store.addSong({ title: title.value.trim() || result.title, author: author.value.trim() || t("Nieznany"), tags: [t("Wikiźródła")], rawLyrics: result.lyrics });
+          this.store.updateSong({ ...song, source: result.url, copyright: licenseLabel(result.license) });
+          this.toast(t("Dodano do biblioteki: {0}", song.title));
+          dialog.close();
+        } }, t("Importuj do programu")));
+    };
+
+    const run = async () => {
+      const text = query.value.trim();
+      if (!text) return;
+      this.store.updateSettings({ onlineSearchLanguage: language.value });
+      const mine = ++serial;
+      replace(list, h("div", { class: "empty" }, t("Przeszukiwanie Wikiźródeł...")));
+      try {
+        results = await searchWikisource(text, language.value);
+      } catch (error) {
+        results = [];
+        if (mine === serial) replace(list, h("div", { class: "empty" }, t("Błąd połączenia: {0}", String(error))));
+        return;
+      }
+      if (mine !== serial) return;
+      if (!results.length) { replace(list, h("div", { class: "empty" }, t("Nie znaleziono pieśni dla podanej frazy"))); return; }
+      replace(list, results.map((result, index) => h("button", { class: "online-item", onclick: (/** @type {Event} */ e) => {
+        list.querySelectorAll(".online-item").forEach((b) => b.classList.toggle("selected", b === e.currentTarget));
+        show(results[index]);
+      } }, h("b", null, result.title), h("span", { class: "muted" }, [result.author, result.page].filter(Boolean).join(" · ")))));
+    };
+    query.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); run(); } });
+
+    const dialog = this.dialog(t("Wyszukiwanie pieśni religijnych w internecie"), [
+      h("div", { class: "row" }, h("label", { class: "field", style: { flex: "1" } }, h("span", null, t("Tytuł pieśni")), query),
+        h("label", { class: "field", style: { flex: "0 0 150px", minWidth: "150px" } }, h("span", null, t("Język:")), language),
+        h("button", { class: "primary", style: { alignSelf: "flex-end" }, onclick: run }, t("Szukaj"))),
+      h("div", { class: "hint-text" }, t("Źródło: Wikiźródła. Tradycyjne pieśni w domenie publicznej lub na wolnej licencji; adres strony zostaje zapisany w pieśni.")),
+      h("div", { class: "online-grid" }, list, preview),
+      h("div", { class: "row", style: { alignItems: "center" } },
+        h("a", { class: "button-link", href: searchURL(query.value || ""), target: "_blank", rel: "noopener noreferrer",
+          onclick: (/** @type {Event} */ e) => { /** @type {HTMLAnchorElement} */ (e.currentTarget).href = searchURL(query.value.trim()); } }, t("Szukaj w SongSelect")),
+        h("span", { class: "hint-text" }, t("Otwiera wyszukiwanie CCLI SongSelect w przeglądarce. Pobrany plik (.txt lub ChordPro) zaimportujesz przez Import/Eksport.")))],
+    [h("button", { onclick: () => dialog.close() }, t("Zamknij"))]);
+    dialog.classList.add("wide-dialog");
+    query.focus();
+  }
+
+  /** Konto: zmiana hasła, nowa aplikacja uwierzytelniająca, nowe kody zapasowe. Każda zmiana wymaga obecnego hasła. */
+  async openAccount() {
+    /** @param {string} path @param {unknown} body */
+    const post = async (path, body) => {
+      const response = await request(path, { method: "POST", body: JSON.stringify(body) });
+      return { status: response.status, data: await response.json().catch(() => ({})) };
+    };
+    /** @param {number} status */
+    const failure = (status) => status === 401 ? t("Nieprawidłowe hasło.") : status === 429 ? t("Zbyt wiele nieudanych prób. Spróbuj ponownie za 15 minut.") : t("Błąd serwera ({0}).", status);
+    let info = { backupCodesLeft: 0, minPasswordLength: 10 };
+    try { info = await (await request("/api/account")).json(); } catch { /* pokaż okno z wartościami domyślnymi */ }
+
+    const password = (/** @type {string} */ autocomplete) => /** @type {HTMLInputElement} */ (h("input", { type: "password", autocomplete }));
+    const current = password("current-password");
+    const fresh = password("new-password");
+    const repeat = password("new-password");
+    const message = h("div", { class: "hint-text", role: "status" });
+    const factorArea = h("div");
+    const say = (/** @type {string} */ text) => { message.textContent = text; };
+
+    /** @param {string[]} codes */
+    const showCodes = (codes) => {
+      const download = () => {
+        const blob = new Blob([`CantatePresenter: ${t("kody zapasowe")}\n\n${codes.join("\n")}\n`], { type: "text/plain;charset=utf-8" });
+        const link = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "cantate-kody-zapasowe.txt" });
+        link.click();
+      };
+      replace(factorArea,
+        h("p", null, t("Zapisz te kody w bezpiecznym miejscu. Każdy działa raz, gdy nie masz dostępu do aplikacji uwierzytelniającej. Nie zostaną pokazane ponownie.")),
+        h("ul", { class: "backup-codes" }, codes.map((c) => h("li", null, h("code", null, c)))),
+        h("button", { onclick: download }, t("Pobierz jako plik")));
+    };
+
+    const changePassword = async () => {
+      if (fresh.value.length < info.minPasswordLength) return say(t("Hasło musi mieć co najmniej {0} znaków.", info.minPasswordLength));
+      if (fresh.value !== repeat.value) return say(t("Nowe hasła nie są takie same."));
+      const { status } = await post("/api/account/password", { current: current.value, new: fresh.value });
+      if (status !== 200) return say(failure(status));
+      current.value = fresh.value = repeat.value = "";
+      say(t("Hasło zmienione. Inne urządzenia zostały wylogowane."));
+    };
+
+    const newAuthenticator = async () => {
+      const { status, data } = await post("/api/account/totp/start", { current: current.value });
+      if (status !== 200) return say(failure(status));
+      const code = /** @type {HTMLInputElement} */ (h("input", { type: "text", inputmode: "numeric", autocomplete: "one-time-code", maxlength: "6", class: "code-input" }));
+      const confirmCode = async () => {
+        const result = await post("/api/account/totp/confirm", { code: code.value });
+        if (result.status !== 200) return say(result.status === 401 ? t("Nieprawidłowy kod. Sprawdź, czy czas w telefonie jest ustawiony automatycznie.") : failure(result.status));
+        say(t("Nowa aplikacja uwierzytelniająca jest aktywna. Inne urządzenia zostały wylogowane."));
+        showCodes(result.data.backupCodes);
+      };
+      code.addEventListener("keydown", (event) => { if (event.key === "Enter") confirmCode(); });
+      say("");
+      replace(factorArea,
+        h("p", null, t("Zeskanuj kod QR nową aplikacją uwierzytelniającą i wpisz pokazany w niej kod. Do czasu potwierdzenia działa dotychczasowa aplikacja.")),
+        h("div", { class: "qr" }, qrSVG(data.uri, 200)),
+        h("details", null, h("summary", null, t("Nie możesz zeskanować? Wpisz klucz ręcznie")), h("code", { class: "secret" }, String(data.secret).replace(/(.{4})/g, "$1 ").trim())),
+        h("label", { class: "field" }, h("span", null, t("Kod z aplikacji")), code),
+        h("button", { class: "primary", onclick: confirmCode }, t("Włącz weryfikację dwuetapową")));
+      code.focus();
+    };
+
+    const newCodes = async () => {
+      const { status, data } = await post("/api/account/backup-codes", { current: current.value });
+      if (status !== 200) return say(failure(status));
+      say(t("Nowe kody zapasowe. Poprzednie przestały działać."));
+      showCodes(data.backupCodes);
+    };
+
+    const field = (/** @type {string} */ label, /** @type {HTMLElement} */ input) => h("label", { class: "field" }, h("span", null, label), input);
+    const dialog = this.dialog(t("Konto: {0}", this.actions.user), [
+      h("div", { class: "group" }, field(t("Obecne hasło (wymagane do każdej zmiany)"), current)),
+      h("div", { class: "group" }, h("h3", null, t("Zmiana hasła")),
+        h("div", { class: "row" }, field(t("Nowe hasło"), fresh), field(t("Powtórz nowe hasło"), repeat)),
+        h("button", { onclick: changePassword }, t("Zmień hasło"))),
+      h("div", { class: "group" }, h("h3", null, t("Weryfikacja dwuetapowa")),
+        h("div", { class: "hint-text" }, t("Pozostałe kody zapasowe: {0}", info.backupCodesLeft)),
+        h("div", { class: "row" },
+          h("button", { onclick: newAuthenticator }, t("Nowa aplikacja uwierzytelniająca...")),
+          h("button", { onclick: newCodes }, t("Nowe kody zapasowe"))),
+        factorArea),
+      message],
+    [h("button", { class: "primary", onclick: () => dialog.close() }, t("Gotowe"))]);
+    current.focus();
+  }
+
   openSettings() {
     const { store } = this;
     const s = store.settings;
@@ -428,11 +596,23 @@ export class AppUI {
       h("div", { class: "group" }, h("h3", null, t("Marginesy i interlinia")),
         h("label", { class: "field" }, marginLabel, range(s.marginPercent, 0.03, 0.18, 0.01, (v) => { marginLabel.textContent = t("Margines ekranu: {0}%", Math.round(v * 100)); update({ marginPercent: v }); })),
         h("label", { class: "field" }, spacingLabel, range(s.lineSpacingFactor, 1, 1.5, 0.05, (v) => { spacingLabel.textContent = t("Interlinia: {0}x", v.toFixed(2)); update({ lineSpacingFactor: v }); }))),
+      h("div", { class: "group" }, h("h3", null, t("Galeria propozycji logo aplikacji")),
+        h("div", { class: "logo-grid" }, allLogos().map((logo) => h("button", {
+          class: `logo-choice${logo.id === s.activeLogoId ? " selected" : ""}`, title: logo.name,
+          onclick: (/** @type {Event} */ e) => {
+            update({ activeLogoId: logo.id });
+            /** @type {HTMLElement} */ (e.currentTarget).parentElement?.querySelectorAll(".logo-choice").forEach((b) => b.classList.toggle("selected", b === e.currentTarget));
+          },
+        }, h("img", { src: svgDataURL(logo.svg), alt: "" }), h("span", null, logo.name))))),
       h("div", { class: "group" }, h("h3", null, t("Licencja CCLI i prawa autorskie")),
         h("div", { class: "row" },
           field(t("Numer licencji CCLI parafii:"), h("input", { type: "text", value: s.ccliLicenseNumber, placeholder: "1234567", onchange: (/** @type {Event} */ e) => update({ ccliLicenseNumber: /** @type {HTMLInputElement} */ (e.target).value.trim() }) })),
           field(t("Informacja o prawach na slajdzie:"), select(s.copyrightNoticePlacement, [["firstSlide", t("Na pierwszym slajdzie")], ["lastSlide", t("Na ostatnim slajdzie")], ["allSlides", t("Na każdym slajdzie")], ["none", t("Nie pokazuj")]], (v) => update({ copyrightNoticePlacement: v })))),
-        h("div", { class: "hint-text" }, t("Dotyczy pieśni z numerem CCLI (np. zaimportowanych z SongSelect). Licencja CCLI wymaga pokazania tytułu, autorów, praw autorskich i numeru licencji przy wyświetlaniu tekstu."))),
+        h("div", { class: "hint-text" }, t("Dotyczy pieśni z numerem CCLI (np. zaimportowanych z SongSelect). Licencja CCLI wymaga pokazania tytułu, autorów, praw autorskich i numeru licencji przy wyświetlaniu tekstu.")),
+        h("div", { class: "row", style: { alignItems: "center" } },
+          h("span", { class: "ccli-count" }, t("Raport użycia: zapisane wyświetlenia: {0}", store.ccliUsage.length)),
+          h("button", { class: "ccli-export", disabled: !store.ccliUsage.length, onclick: () => this.actions.exportCCLIReport() }, t("Eksportuj raport CCLI (CSV)..."))),
+        h("div", { class: "hint-text" }, t("Każda pieśń z numerem CCLI jest zapisywana raz dziennie, gdy trafi na ekran. Plik CSV pomoże zgłosić użycie na stronie CCLI."))),
       h("div", { class: "group" }, h("h3", null, t("Skróty klawiszowe sterowania prezentacją")),
         h("div", { class: "hint-text" }, t("Skróty są wspólne z wersją macOS (zapisywane w kopii zapasowej). Stałe klawisze: strzałki, Page Up/Down, Esc, R (refren), 1–9 (zwrotka).")),
         h("div", { class: "row" }, shortcutRows.map(([k, label]) => h("div", { class: "shortcut" }, h("kbd", null, keyName(/** @type {any} */ (s.shortcuts)[k])), t(label)))))],
@@ -440,14 +620,14 @@ export class AppUI {
   }
 
   openImportExport() {
-    const files = /** @type {HTMLInputElement} */ (h("input", { type: "file", multiple: true, accept: ".txt,.json,.pro,.cho,.chopro,.chordpro,.usr", hidden: true,
+    const files = /** @type {HTMLInputElement} */ (h("input", { type: "file", multiple: true, accept: ".txt,.json,.pro,.cho,.chopro,.chordpro,.usr,.mufl,.muf,.hly,.holyrics,.zip,.xml", hidden: true,
       onchange: async () => { if (files.files?.length) { await this.actions.importFiles(files.files); dialog.close(); } } }));
     const backup = /** @type {HTMLInputElement} */ (h("input", { type: "file", accept: ".cantatebackup,.zip", hidden: true,
       onchange: async () => { const file = backup.files?.[0]; if (file) { await this.actions.restoreBackup(file); dialog.close(); } } }));
     const song = this.store.selectedSong;
     const dialog = this.dialog(t("Import/Eksport"), [
       h("div", { class: "group" }, h("h3", null, t("Import pieśni")),
-        h("div", { class: "hint-text" }, t("Pliki tekstowe (.txt, dowolne kodowanie), JSON z wersji macOS oraz pliki z CCLI SongSelect (.txt, .usr, ChordPro .pro). Bazy Holyrics importuj w wersji macOS.")),
+        h("div", { class: "hint-text" }, t("Pliki tekstowe (.txt, dowolne kodowanie), JSON z wersji macOS, bazy Holyrics (.mufl, .muf, .hly, XML) oraz pliki z CCLI SongSelect (.txt, .usr, ChordPro .pro). Pieśni, które już są w bibliotece, są pomijane.")),
         h("div", null, h("button", { class: "primary", onclick: () => files.click() }, t("Wybierz pliki...")), files)),
       h("div", { class: "group" }, h("h3", null, t("Kopia zapasowa")),
         h("div", { class: "hint-text" }, t("Plik .cantatebackup działa tak samo w wersji macOS i webowej: zawiera bibliotekę, plany i ustawienia.")),

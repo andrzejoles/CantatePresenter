@@ -4,16 +4,18 @@
 
 import { normalizeSettings, createSong, createPlan, isoDate, slidesFromLyrics, uuid, copyrightNotice } from "../core/models.js";
 import { searchFold } from "../core/text.js";
+import { usageEntry } from "../core/ccli.js";
 
 /**
  * @typedef {import("../core/models.js").Song} Song
  * @typedef {import("../core/models.js").ServicePlan} ServicePlan
  * @typedef {ReturnType<typeof normalizeSettings>} Settings
- * @typedef {(kind: "songs" | "plans" | "settings", value: unknown) => void} Persist
+ * @typedef {import("../core/ccli.js").CCLIUsageEntry} CCLIUsageEntry
+ * @typedef {(kind: "songs" | "plans" | "settings" | "ccliUsage", value: unknown) => void} Persist
  */
 
 export class Store {
-  /** @param {{songs?: Song[], plans?: ServicePlan[], settings?: Settings, persist?: Persist, translate?: (k: string, ...a: unknown[]) => string}} [initial] */
+  /** @param {{songs?: Song[], plans?: ServicePlan[], settings?: Settings, ccliUsage?: CCLIUsageEntry[], persist?: Persist, translate?: (k: string, ...a: unknown[]) => string}} [initial] */
   constructor(initial = {}) {
     /** @type {Song[]} */
     this.songs = initial.songs ?? [];
@@ -21,6 +23,8 @@ export class Store {
     this.plans = initial.plans ?? [];
     /** @type {Settings} */
     this.settings = initial.settings ?? normalizeSettings({});
+    /** Wyświetlenia pieśni z numerem CCLI do raportu (eksport CSV w Ustawieniach). @type {CCLIUsageEntry[]} */
+    this.ccliUsage = initial.ccliUsage ?? [];
     /** @type {string | null} */
     this.activePlanId = this.plans[0]?.id ?? null;
     /** @type {string | null} */
@@ -198,9 +202,18 @@ export class Store {
     this.activeSong = song;
     this.activeSlideIndex = Math.min(Math.max(0, slideIndex), Math.max(0, song.slides.length - 1));
     this.isLive = true;
+    this.recordCCLIUsage(song);
     this.isBlackScreen = false;
     this.isClearText = false;
     this.changed("live");
+  }
+
+  /** Zapis wyświetlenia pieśni z numerem CCLI (raz na pieśń dziennie). @param {Song} song @param {Date} [date] */
+  recordCCLIUsage(song, date = new Date()) {
+    const entry = usageEntry(song, date, this.ccliUsage);
+    if (!entry) return;
+    this.ccliUsage = [...this.ccliUsage, entry];
+    this.persist("ccliUsage", this.ccliUsage);
   }
 
   /** Tekst na ekran bez zapisywania w bibliotece. @param {string} text @param {string} [title] */
@@ -322,13 +335,14 @@ export class Store {
 
   /**
    * Podmienia wszystkie dane (przywrócenie kopii). Bez `persist`, gdy serwer zapisał je już sam.
-   * @param {{songs: Song[], plans: ServicePlan[], settings: Settings}} data @param {{persist?: boolean}} [options]
+   * @param {{songs: Song[], plans: ServicePlan[], settings: Settings, ccliUsage?: CCLIUsageEntry[]}} data @param {{persist?: boolean}} [options]
    */
   replaceAll(data, options = {}) {
     this.stopLive();
     this.songs = data.songs;
     this.plans = data.plans;
     this.settings = data.settings;
+    this.ccliUsage = data.ccliUsage ?? [];
     this.activePlanId = this.plans[0]?.id ?? null;
     this.selectedSongId = this.songs[0]?.id ?? null;
     this.activeSong = null;
@@ -337,6 +351,7 @@ export class Store {
       this.persist("songs", this.songs);
       this.persist("plans", this.plans);
       this.persist("settings", this.settings);
+      this.persist("ccliUsage", this.ccliUsage);
     }
     this.changed("all");
   }

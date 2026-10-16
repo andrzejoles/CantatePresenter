@@ -1513,6 +1513,34 @@
         }
       }
     },
+    "Bibliotekę zapisała nowsza wersja CantatePresenter (format danych {0}, ta wersja obsługuje {1}). Pieśni i plany można wyświetlać, ale zmiany nie będą zapisywane, żeby nie uszkodzić danych. Zaktualizuj aplikację.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The library was saved by a newer version of CantatePresenter (data format {0}, this version supports {1}). Songs and plans can be shown, but changes will not be saved so the data is not damaged. Please update the app."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Bibliothek wurde von einer neueren Version von CantatePresenter gespeichert (Datenformat {0}, diese Version unterstützt {1}). Lieder und Pläne können angezeigt werden, Änderungen werden aber nicht gespeichert, damit die Daten nicht beschädigt werden. Bitte aktualisiere die App."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La biblioteca fue guardada por una versión más reciente de CantatePresenter (formato de datos {0}, esta versión admite {1}). Los cantos y planes se pueden mostrar, pero los cambios no se guardarán para no dañar los datos. Actualiza la aplicación."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Бібліотеку збережено новішою версією CantatePresenter (формат даних {0}, ця версія підтримує {1}). Пісні та плани можна показувати, але зміни не зберігатимуться, щоб не пошкодити дані. Оновіть застосунок."
+          }
+        }
+      }
+    },
     "Brak access_token w odpowiedzi Google": {
       "localizations": {
         "en": {
@@ -1845,6 +1873,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Немає з’єднання з обліковим записом Google. Під’єднайте обліковий запис у Налаштуваннях → Google Диск."
+          }
+        }
+      }
+    },
+    "Brak połączenia z serwerem. Ekran pokaże zmiany po ponownym połączeniu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection to the server. The screen will update once the connection is back."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Verbindung zum Server. Der Bildschirm wird aktualisiert, sobald die Verbindung wieder besteht."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin conexión con el servidor. La pantalla se actualizará cuando vuelva la conexión."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає з'єднання із сервером. Екран оновиться після відновлення з'єднання."
           }
         }
       }
@@ -2297,6 +2353,34 @@
         }
       }
     },
+    "Błąd połączenia: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection error: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindungsfehler: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error de conexión: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помилка з'єднання: {0}"
+          }
+        }
+      }
+    },
     "Błąd przesyłania kopii na Dysk Google": {
       "localizations": {
         "en": {
@@ -2405,6 +2489,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Помилка розпакування архіву резервної копії (код ditto: {0})."
+          }
+        }
+      }
+    },
+    "Błąd serwera ({0}).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server error ({0})."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serverfehler ({0})."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error del servidor ({0})."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помилка сервера ({0})."
           }
         }
       }
@@ -3669,6 +3781,34 @@
         }
       }
     },
+    "Dane z nowszej wersji aplikacji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data from a newer version of the app"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten aus einer neueren App-Version"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos de una versión más reciente de la aplicación"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дані з новішої версії застосунку"
+          }
+        }
+      }
+    },
     "Dane zmieniono na innym urządzeniu. Wczytać najnowszą wersję? Ostatnia zmiana na tym komputerze nie zostanie zapisana.": {
       "localizations": {
         "en": {
@@ -4029,6 +4169,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Додати до плану"
+          }
+        }
+      }
+    },
+    "Dodano do biblioteki: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to the library: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zur Bibliothek hinzugefügt: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadido a la biblioteca: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додано до бібліотеки: {0}"
           }
         }
       }
@@ -4785,6 +4953,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Екран для музикантів: поточний слайд з акордами (вікно для окремого монітора)"
+          }
+        }
+      }
+    },
+    "Ekran dla muzyków: chwyty nad tekstem. Na tabletach otwórz {0} i zaloguj się.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musicians' screen: chords above the lyrics. On tablets open {0} and sign in."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildschirm für Musiker: Akkorde über dem Text. Auf Tablets {0} öffnen und anmelden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pantalla para músicos: acordes sobre la letra. En tabletas abre {0} e inicia sesión."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Екран для музикантів: акорди над текстом. На планшетах відкрийте {0} і увійдіть."
           }
         }
       }
@@ -5849,6 +6045,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Пароль"
+          }
+        }
+      }
+    },
+    "Hasło musi mieć co najmniej {0} znaków.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The password must have at least {0} characters."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Passwort muss mindestens {0} Zeichen haben."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La contraseña debe tener al menos {0} caracteres."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пароль має містити щонайменше {0} символів."
+          }
+        }
+      }
+    },
+    "Hasło zmienione. Inne urządzenia zostały wylogowane.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password changed. Other devices have been signed out."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passwort geändert. Andere Geräte wurden abgemeldet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña cambiada. Se ha cerrado la sesión en los demás dispositivos."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пароль змінено. Інші пристрої вийшли з облікового запису."
           }
         }
       }
@@ -7729,6 +7981,62 @@
         }
       }
     },
+    "Konto: hasło i weryfikacja dwuetapowa": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account: password and two-step verification"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto: Passwort und Bestätigung in zwei Schritten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta: contraseña y verificación en dos pasos"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обліковий запис: пароль і двоетапна перевірка"
+          }
+        }
+      }
+    },
+    "Konto: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обліковий запис: {0}"
+          }
+        }
+      }
+    },
     "Kopia pliku: {0}.\n\n": {
       "localizations": {
         "en": {
@@ -8061,6 +8369,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Копіювати"
+          }
+        }
+      }
+    },
+    "Kopię zapisała nowsza wersja CantatePresenter (format danych {0}, ta wersja obsługuje {1}). Zaktualizuj aplikację przed przywróceniem.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The backup was made by a newer version of CantatePresenter (data format {0}, this version supports {1}). Update the app before restoring."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Sicherung stammt von einer neueren Version von CantatePresenter (Datenformat {0}, diese Version unterstützt {1}). Aktualisiere die App vor der Wiederherstellung."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copia la creó una versión más reciente de CantatePresenter (formato de datos {0}, esta versión admite {1}). Actualiza la aplicación antes de restaurar."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Копію створено новішою версією CantatePresenter (формат даних {0}, ця версія підтримує {1}). Оновіть застосунок перед відновленням."
           }
         }
       }
@@ -9969,6 +10305,34 @@
         }
       }
     },
+    "Nieczytelne pliki: {0}.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unreadable files: {0}."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht lesbare Dateien: {0}."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivos ilegibles: {0}."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нечитабельні файли: {0}."
+          }
+        }
+      }
+    },
     "Niedziela - Zestaw pieśni": {
       "localizations": {
         "en": {
@@ -10049,6 +10413,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Неправильні дані для входу."
+          }
+        }
+      }
+    },
+    "Nieprawidłowe hasło.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incorrect password."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falsches Passwort."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña incorrecta."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неправильний пароль."
           }
         }
       }
@@ -10221,6 +10613,62 @@
         }
       }
     },
+    "Nowa aplikacja uwierzytelniająca jest aktywna. Inne urządzenia zostały wylogowane.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The new authenticator app is active. Other devices have been signed out."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die neue Authenticator-App ist aktiv. Andere Geräte wurden abgemeldet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La nueva aplicación de autenticación está activa. Se ha cerrado la sesión en los demás dispositivos."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новий застосунок автентифікації активний. Інші пристрої вийшли з облікового запису."
+          }
+        }
+      }
+    },
+    "Nowa aplikacja uwierzytelniająca...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New authenticator app..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Authenticator-App..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva aplicación de autenticación..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новий застосунок автентифікації..."
+          }
+        }
+      }
+    },
     "Nowa pieśń": {
       "localizations": {
         "en": {
@@ -10245,6 +10693,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "Нова пісня"
+          }
+        }
+      }
+    },
+    "Nowe hasła nie są takie same.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The new passwords do not match."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die neuen Passwörter stimmen nicht überein."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las contraseñas nuevas no coinciden."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нові паролі не збігаються."
+          }
+        }
+      }
+    },
+    "Nowe hasło": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New password"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Passwort"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva contraseña"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новий пароль"
+          }
+        }
+      }
+    },
+    "Nowe kody zapasowe": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New backup codes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Ersatzcodes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevos códigos de respaldo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нові резервні коди"
+          }
+        }
+      }
+    },
+    "Nowe kody zapasowe. Poprzednie przestały działać.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New backup codes. The previous ones no longer work."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Ersatzcodes. Die bisherigen funktionieren nicht mehr."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevos códigos de respaldo. Los anteriores ya no funcionan."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нові резервні коди. Попередні більше не діють."
           }
         }
       }
@@ -10497,6 +11057,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "ВІКНО ПОПЕРЕДНЬОГО ПЕРЕГЛЯДУ ПРОЄКЦІЇ"
+          }
+        }
+      }
+    },
+    "Obecne hasło (wymagane do każdej zmiany)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current password (required for every change)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelles Passwort (für jede Änderung erforderlich)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña actual (necesaria para cada cambio)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поточний пароль (потрібен для кожної зміни)"
           }
         }
       }
@@ -11929,6 +12517,34 @@
         }
       }
     },
+    "Pliki tekstowe (.txt, dowolne kodowanie), JSON z wersji macOS, bazy Holyrics (.mufl, .muf, .hly, XML) oraz pliki z CCLI SongSelect (.txt, .usr, ChordPro .pro). Pieśni, które już są w bibliotece, są pomijane.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text files (.txt, any encoding), JSON from the macOS version, Holyrics libraries (.mufl, .muf, .hly, XML) and CCLI SongSelect files (.txt, .usr, ChordPro .pro). Songs already in the library are skipped."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Textdateien (.txt, beliebige Kodierung), JSON aus der macOS-Version, Holyrics-Bibliotheken (.mufl, .muf, .hly, XML) und Dateien aus CCLI SongSelect (.txt, .usr, ChordPro .pro). Lieder, die schon in der Bibliothek sind, werden übersprungen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivos de texto (.txt, cualquier codificación), JSON de la versión macOS, bibliotecas de Holyrics (.mufl, .muf, .hly, XML) y archivos de CCLI SongSelect (.txt, .usr, ChordPro .pro). Los cantos que ya están en la biblioteca se omiten."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текстові файли (.txt, будь-яке кодування), JSON з версії macOS, бібліотеки Holyrics (.mufl, .muf, .hly, XML) і файли з CCLI SongSelect (.txt, .usr, ChordPro .pro). Пісні, які вже є в бібліотеці, пропускаються."
+          }
+        }
+      }
+    },
     "Po autoryzacji Google OAuth w Ustawieniach, kopie są automatycznie przesyłane do dedykowanego folderu CantatePresenter_Backups w chmurze.": {
       "localizations": {
         "en": {
@@ -12317,6 +12933,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Польська (пісні польською)"
+          }
+        }
+      }
+    },
+    "Pominięto duplikaty: {0}.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicates skipped: {0}."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersprungene Duplikate: {0}."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicados omitidos: {0}."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пропущено дублікатів: {0}."
           }
         }
       }
@@ -13325,6 +13969,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Збільшення / зменшення / стандартний масштаб інтерфейсу"
+          }
+        }
+      }
+    },
+    "Powtórz nowe hasło": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeat the new password"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Passwort wiederholen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repite la nueva contraseña"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторіть новий пароль"
+          }
+        }
+      }
+    },
+    "Pozostałe kody zapasowe: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup codes left: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbleibende Ersatzcodes: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Códigos de respaldo restantes: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Залишилось резервних кодів: {0}"
           }
         }
       }
@@ -15453,6 +16153,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Пробіл / → / ↓ / Page Down / Enter"
+          }
+        }
+      }
+    },
+    "Sprawdź uaktualnienia...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for Updates..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Updates suchen..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar actualizaciones..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перевірити оновлення..."
           }
         }
       }
@@ -22009,6 +22737,34 @@
         }
       }
     },
+    "Zeskanuj kod QR nową aplikacją uwierzytelniającą i wpisz pokazany w niej kod. Do czasu potwierdzenia działa dotychczasowa aplikacja.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the QR code with the new authenticator app and enter the code it shows. Until you confirm, the current app keeps working."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanne den QR-Code mit der neuen Authenticator-App und gib den angezeigten Code ein. Bis zur Bestätigung funktioniert die bisherige App weiter."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanea el código QR con la nueva aplicación de autenticación e introduce el código que muestra. Hasta que confirmes, la aplicación actual sigue funcionando."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відскануйте QR-код новим застосунком автентифікації та введіть показаний код. До підтвердження працює попередній застосунок."
+          }
+        }
+      }
+    },
     "Zeskanuj kod aparatem telefonu albo wpisz adres w przeglądarce:": {
       "localizations": {
         "en": {
@@ -22065,6 +22821,34 @@
         }
       }
     },
+    "Zmiana hasła": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change password"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passwort ändern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar contraseña"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зміна пароля"
+          }
+        }
+      }
+    },
     "Zmień / Szukaj chwytów online": {
       "localizations": {
         "en": {
@@ -22089,6 +22873,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Змінити / Шукати акорди онлайн"
+          }
+        }
+      }
+    },
+    "Zmień hasło": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change password"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passwort ändern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar contraseña"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Змінити пароль"
           }
         }
       }

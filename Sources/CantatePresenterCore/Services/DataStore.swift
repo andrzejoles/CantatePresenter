@@ -13,6 +13,8 @@ public struct PersistenceIssue: Identifiable, Equatable {
         case saveFailed
         /// Nie udało się przenieść danych do Application Support (K2); `fileName` to stary katalog.
         case migrationFailed
+        /// Dane zapisała nowsza wersja aplikacji (`DataSchema`); `fileName` to numer tej wersji formatu. Nic nie jest zapisywane.
+        case newerSchema
     }
     
     public let id = UUID()
@@ -26,6 +28,7 @@ public struct PersistenceIssue: Identifiable, Equatable {
         case .unreadable: return Lnow("Nie można odczytać pliku {0}", fileName)
         case .saveFailed: return Lnow("Nie można zapisać pliku {0}", fileName)
         case .migrationFailed: return Lnow("Nie udało się przenieść danych")
+        case .newerSchema: return Lnow("Dane z nowszej wersji aplikacji")
         }
     }
     
@@ -38,6 +41,8 @@ public struct PersistenceIssue: Identifiable, Equatable {
             return Lnow("Ostatnie zmiany mogą nie zostać zachowane.\n\nSzczegóły: {0}", errorDescription)
         case .migrationFailed:
             return Lnow("Biblioteka nie została skopiowana do folderu Application Support. W tej sesji aplikacja używa dotychczasowego katalogu:\n{0}\n\nSzczegóły: {1}", fileName, errorDescription)
+        case .newerSchema:
+            return Lnow("Bibliotekę zapisała nowsza wersja CantatePresenter (format danych {0}, ta wersja obsługuje {1}). Pieśni i plany można wyświetlać, ale zmiany nie będą zapisywane, żeby nie uszkodzić danych. Zaktualizuj aplikację.", fileName, DataSchema.current)
         }
     }
 }
@@ -81,6 +86,8 @@ public final class DataStore {
     private let fileStore = JSONFileStore()
     /// Pliki, których nie udało się odczytać; zapis do nich jest wstrzymany, żeby ich nie nadpisać.
     @ObservationIgnored private var lockedFileNames: Set<String> = []
+    /// Dane z nowszej wersji formatu (`DataSchema`): wszystkie zapisy pominięte.
+    @ObservationIgnored public private(set) var isReadOnlyNewerSchema = false
     /// Ostatnia pieśń z aktywnego planu; po „szybkim tekście” poprzednia/następna pieśń liczy się od niej (N11).
     @ObservationIgnored private var lastPlanSongId: UUID?
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "persistence")
@@ -259,12 +266,33 @@ public final class DataStore {
         case .loaded(let decoded):
             unlock(settingsFileURL)
             self.settings = decoded
+            applySchemaVersion(decoded.schemaVersion)
             if settings.googleDrive.hasLegacySecrets {
                 migrateGoogleSecrets()
             }
         case .unreadable(let error, let copy):
             lock(settingsFileURL, error: error, quarantinedCopy: copy)
             self.settings = AppSettings()
+        }
+    }
+    
+    /// Starsze dane: migracja i zapis bieżącej wersji; nowsze: tryb tylko do odczytu.
+    private func applySchemaVersion(_ version: Int) {
+        persistenceIssues.removeAll { $0.kind == .newerSchema }
+        isReadOnlyNewerSchema = version > DataSchema.current
+        if isReadOnlyNewerSchema {
+            Self.logger.error("Dane w formacie \(version), obsługiwany \(DataSchema.current): tylko odczyt")
+            persistenceIssues.append(PersistenceIssue(kind: .newerSchema, fileName: String(version), quarantinedCopy: nil, errorDescription: ""))
+            return
+        }
+        guard version < DataSchema.current else { return }
+        do {
+            let steps = try DataSchema.migrate(from: version, in: dataDirectory)
+            Self.logger.notice("Migracja danych: \(steps.joined(separator: ", "), privacy: .public)")
+            settings.schemaVersion = DataSchema.current
+            saveSettings()
+        } catch {
+            Self.logger.error("Migracja danych nie powiodła się: \(String(describing: error), privacy: .public)")
         }
     }
     
@@ -291,6 +319,10 @@ public final class DataStore {
     
     private func persist<Value: Encodable>(_ value: Value, to url: URL, encoder: JSONEncoder) {
         let fileName = url.lastPathComponent
+        guard !isReadOnlyNewerSchema else {
+            Self.logger.warning("Pominięto zapis \(fileName, privacy: .public): dane z nowszej wersji aplikacji")
+            return
+        }
         guard !lockedFileNames.contains(fileName) else {
             Self.logger.warning("Pominięto zapis \(fileName, privacy: .public): plik był nieczytelny przy wczytywaniu")
             return

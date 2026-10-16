@@ -26,3 +26,7 @@ client_secret_*.json
 
 # Python
 __pycache__/
+
+# Wersja liczona z commitów (scripts/version.sh); pliki tylko do kopii bez gita
+/VERSION
+/web/VERSION

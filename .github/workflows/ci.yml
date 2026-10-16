@@ -42,6 +42,9 @@ jobs:
       - name: Web UI check with login and TOTP (headless Chrome)
         run: python3 -I web/tools/ui_check.py
 
+      - name: Web UI check over real HTTPS (temporary certificate)
+        run: python3 -I web/tools/ui_check.py --tls
+
       - name: Remote control page check (headless Chrome)
         run: python3 -I web/tools/remote_check.py
 

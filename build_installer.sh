@@ -4,7 +4,7 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
-VERSION="$(tr -d '[:space:]' < "$DIR/VERSION")"
+VERSION="$("$DIR/scripts/version.sh")"
 APP_NAME="CantatePresenter.app"
 DIST_DIR="$DIR/dist"
 
@@ -23,10 +23,14 @@ mkdir -p "$DIST_DIR"
 echo ""
 echo "[2/4] Generowanie instalatora Apple PKG (kreator instalacji do /Applications)..."
 PKG_OUTPUT="$DIST_DIR/CantatePresenter-$VERSION.pkg"
+# Podpis instalatora: CANTATE_INSTALLER_IDENTITY="Developer ID Installer: … (TEAMID)" (docs/RELEASE.md).
+PKG_SIGN=()
+if [ -n "${CANTATE_INSTALLER_IDENTITY:-}" ]; then PKG_SIGN=(--sign "$CANTATE_INSTALLER_IDENTITY" --timestamp); fi
 pkgbuild --component "$DIR/$APP_NAME" \
          --install-location /Applications \
          --identifier com.cantate.presenter \
          --version "$VERSION" \
+         ${PKG_SIGN[@]+"${PKG_SIGN[@]}"} \
          "$PKG_OUTPUT"
 cp "$PKG_OUTPUT" "$DIST_DIR/CantatePresenter-Installer.pkg"
 echo "  -> Utworzono: $PKG_OUTPUT"
@@ -78,6 +82,14 @@ hdiutil create -volname "CantatePresenter" \
                "$DMG_OUTPUT"
 
 rm -rf "$STAGING_DIR"
+if [ -n "${CANTATE_SIGN_IDENTITY:-}" ] && [ "$CANTATE_SIGN_IDENTITY" != "-" ]; then
+    codesign --force --timestamp --sign "$CANTATE_SIGN_IDENTITY" "$DMG_OUTPUT"
+fi
+# Notaryzacja, gdy jest profil notarytool (bez niej Gatekeeper ostrzega przy pierwszym uruchomieniu).
+if [ -n "${CANTATE_NOTARY_PROFILE:-}" ]; then
+    "$DIR/scripts/notarize.sh" "$DMG_OUTPUT" "$PKG_OUTPUT"
+    cp "$PKG_OUTPUT" "$DIST_DIR/CantatePresenter-Installer.pkg"
+fi
 cp "$DMG_OUTPUT" "$DIST_DIR/CantatePresenter.dmg"
 echo "  -> Utworzono: $DMG_OUTPUT"
 

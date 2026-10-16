@@ -7,13 +7,21 @@ import { AppUI } from "./ui.js";
 import { SAMPLE_SONGS } from "./samples.js";
 import { openChannel } from "./channel.js";
 import { loadCatalog, setLanguage, t } from "../i18n.js";
-import { normalizeSong, normalizePlan, normalizeSettings, createSong } from "../core/models.js";
+import { normalizeSong, normalizePlan, normalizeSettings, createSong, SCHEMA_VERSION } from "../core/models.js";
 import { keyboardAction, MAC_KEY_CODES } from "../core/keyboard.js";
 import { decodeText, parseTextSong } from "../core/importText.js";
 import { isSongSelectText, parseText, parseUSR, parseChordPro, CHORDPRO_EXTENSIONS } from "../core/songselect.js";
 import { createBackup, readBackup, backupFileName, BackupError } from "../core/backup.js";
+import { stageSource } from "../core/stage.js";
+import { normalizeUsageEntry, usageCSV } from "../core/ccli.js";
+import { loadLogos } from "./logos.js";
+import { readHolyricsFile, HOLYRICS_EXTENSIONS } from "../core/holyrics.js";
+import { searchFold } from "../core/text.js";
 
-await loadCatalog(new URL("../../i18n/Localizable.xcstrings", import.meta.url)).catch((error) => console.error("Tłumaczenia:", error));
+await Promise.all([
+  loadCatalog(new URL("../../i18n/Localizable.xcstrings", import.meta.url)).catch((error) => console.error("Tłumaczenia:", error)),
+  loadLogos().catch((error) => console.error("Logo:", error)),
+]);
 
 // MARK: - Dane (prywatny serwer)
 
@@ -52,15 +60,29 @@ const decodeExtra = (encoded) => new Map(Object.entries(encoded ?? {}).map(([pat
 /** @param {Map<string, Uint8Array>} files */
 const encodeExtra = (files) => Object.fromEntries([...files].map(([path, bytes]) => [path, btoa(Array.from(bytes, (b) => String.fromCharCode(b)).join(""))]));
 let extraFiles = decodeExtra(stored.extraFiles);
+// Raport CCLI: osobny plik na serwerze; starsze dane miały go w plikach z kopii macOS (extraFiles).
+let ccliUsage = Array.isArray(stored.ccliUsage) ? stored.ccliUsage.map(normalizeUsageEntry) : [];
+const legacyUsage = extraFiles.get("ccli_usage.json");
+let migrateUsage = false;
+if (legacyUsage) {
+  try {
+    const parsed = JSON.parse(new TextDecoder().decode(legacyUsage));
+    if (!Array.isArray(stored.ccliUsage) && Array.isArray(parsed)) { ccliUsage = parsed.map(normalizeUsageEntry); migrateUsage = true; }
+  } catch { /* uszkodzony plik zostaje w extraFiles */ }
+  if (Array.isArray(stored.ccliUsage) || migrateUsage) extraFiles.delete("ccli_usage.json");
+}
 let undoAvailable = snapshot.canUndoRestore;
 
 const store = new Store({
-  songs, plans: /** @type {any} */ (plans), settings,
+  songs, plans: /** @type {any} */ (plans), settings, ccliUsage,
   persist: (kind, value) => saver.schedule(kind, value),
   translate: t,
 });
 if (firstRun) { store.saveSongs(); store.savePlans(); store.saveSettings(); }
-if (snapshot.locked.length) {
+if (migrateUsage) { saver.schedule("ccliUsage", store.ccliUsage); saver.schedule("extraFiles", encodeExtra(extraFiles)); }
+if (snapshot.newerSchema) {
+  setTimeout(() => alert(t("Bibliotekę zapisała nowsza wersja CantatePresenter (format danych {0}, ta wersja obsługuje {1}). Pieśni i plany można wyświetlać, ale zmiany nie będą zapisywane, żeby nie uszkodzić danych. Zaktualizuj aplikację.", snapshot.newerSchema, SCHEMA_VERSION)), 0);
+} else if (snapshot.locked.length) {
   setTimeout(() => alert(t("Na serwerze są nieczytelne pliki danych ({0}). Zapis do nich jest zablokowany; kopia uszkodzonego pliku jest w katalogu danych.", snapshot.locked.join(", "))), 0);
 }
 
@@ -74,11 +96,35 @@ let targetSize = { width: 1920, height: 1080 };
 function broadcast() {
   if (!ui) return;
   channel.postMessage({ type: "state", state: ui.screenState() });
+  publishStage();
+}
+
+// MARK: - Ekran dla muzyków
+
+let lastStage = "";
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let stageTimer;
+/** Stan dla muzyków: od razu do okien na tym komputerze, z krótkim opóźnieniem na serwer (tablety). */
+function publishStage(force = false) {
+  const source = stageSource(store);
+  const signature = JSON.stringify({ ...source, updatedAt: 0 });
+  if (!force && signature === lastStage) return;
+  lastStage = signature;
+  channel.postMessage({ type: "stage", source });
+  clearTimeout(stageTimer);
+  stageTimer = setTimeout(() => {
+    api.request("/api/live", { method: "POST", body: JSON.stringify(source) }).catch(() => { /* tablety odświeżą się przy następnej zmianie */ });
+  }, 150);
+}
+
+function openMusicians() {
+  window.open(new URL("../../musicians.html", import.meta.url), "cantate-musicians", "popup,width=1100,height=760");
 }
 
 channel.onmessage = (event) => {
   const message = event.data;
   if (message?.type === "hello") broadcast();
+  else if (message?.type === "stage-hello") publishStage(true);
   else if (message?.type === "size" && message.width > 100 && message.height > 100) {
     targetSize = { width: message.width, height: message.height };
     ui.renderRight();
@@ -125,9 +171,13 @@ async function importFiles(files) {
   for (const file of Array.from(files)) {
     const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
     const baseName = file.name.replace(/\.[^.]+$/, "");
-    const text = decodeText(new Uint8Array(await file.arrayBuffer()));
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const text = decodeText(bytes);
     try {
-      if (extension === "json") {
+      if (HOLYRICS_EXTENSIONS.has(extension) || extension === "xml") {
+        const songs = await readHolyricsFile(bytes, file.name);
+        if (songs.length) imported.push(...songs.map((song) => createSong(song))); else skipped++;
+      } else if (extension === "json") {
         const data = JSON.parse(text);
         const list = Array.isArray(data) ? data : Array.isArray(data?.songs) ? data.songs : [data];
         imported.push(...list.filter((x) => x && typeof x === "object" && typeof x.title === "string").map(normalizeSong));
@@ -148,13 +198,26 @@ async function importFiles(files) {
       skipped++;
     }
   }
-  if (imported.length) store.addSongs(imported);
-  ui.toast(skipped ? t("Zaimportowano {0} pieśni, pominięto {1} plików.", imported.length, skipped) : t("Zaimportowano {0} pieśni.", imported.length));
+  // Te same pieśni (tytuł i tekst bez znaków diakrytycznych i interpunkcji) już w bibliotece albo dwa razy w imporcie są pomijane.
+  const signature = (/** @type {{title: string, rawLyrics: string}} */ song) => `${searchFold(song.title)}\n${searchFold(song.rawLyrics)}`;
+  const known = new Set(store.songs.map(signature));
+  const unique = imported.filter((song) => {
+    const key = signature(song);
+    if (known.has(key)) return false;
+    known.add(key);
+    return true;
+  });
+  const duplicates = imported.length - unique.length;
+  if (unique.length) store.addSongs(unique);
+  const parts = [t("Zaimportowano {0} pieśni.", unique.length)];
+  if (duplicates) parts.push(t("Pominięto duplikaty: {0}.", duplicates));
+  if (skipped) parts.push(t("Nieczytelne pliki: {0}.", skipped));
+  ui.toast(parts.join(" "));
 }
 
 async function exportBackup() {
   await saver.flushAll();
-  const blob = await createBackup({ songs: store.songs, plans: store.plans, settings: store.settings, extraFiles });
+  const blob = await createBackup({ songs: store.songs, plans: store.plans, settings: store.settings, ccliUsage: store.ccliUsage, extraFiles });
   download(blob, backupFileName());
 }
 
@@ -165,7 +228,7 @@ async function restoreBackup(file) {
     if (!confirm(t("Przywrócić kopię? Obecna biblioteka ({0} pieśni) zostanie zastąpiona przez {1} pieśni z kopii. Poprzedni stan można przywrócić przyciskiem „Cofnij ostatnie przywrócenie”.", store.songs.length, backup.songs.length))) return;
     await saver.flushAll();
     const files = backup.extraFiles ?? new Map();
-    const result = await api.restoreOnServer({ songs: backup.songs, plans: backup.plans, settings: backup.settings, extraFiles: encodeExtra(files) });
+    const result = await api.restoreOnServer({ songs: backup.songs, plans: backup.plans, settings: backup.settings, ccliUsage: backup.ccliUsage ?? [], extraFiles: encodeExtra(files) });
     Object.assign(snapshot.revisions, result.revisions);
     extraFiles = files;
     undoAvailable = true;
@@ -175,15 +238,22 @@ async function restoreBackup(file) {
     ui.toast(t("Przywrócono kopię: {0} pieśni, {1} planów.", backup.songs.length, backup.plans.length));
   } catch (error) {
     if (error instanceof api.UnauthorizedError) return api.goToLogin();
-    const messages = { notArchive: "To nie jest plik kopii zapasowej (.cantatebackup lub .zip).", noSongs: "Kopia zapasowa nie zawiera pliku songs.json.", unreadable: "Kopia zapasowa jest uszkodzona: {0}" };
+    const messages = { notArchive: "To nie jest plik kopii zapasowej (.cantatebackup lub .zip).", noSongs: "Kopia zapasowa nie zawiera pliku songs.json.", unreadable: "Kopia zapasowa jest uszkodzona: {0}",
+      newerSchema: "Kopię zapisała nowsza wersja CantatePresenter (format danych {0}, ta wersja obsługuje {1}). Zaktualizuj aplikację przed przywróceniem." };
     const code = error instanceof BackupError ? error.code : "unreadable";
-    ui.toast(t(messages[code], error instanceof Error ? error.message : String(error)));
+    ui.toast(t(messages[code], error instanceof Error ? error.message : String(error), SCHEMA_VERSION));
   }
 }
 
 async function undoRestore() {
   await saver.flushAll();
   if (await api.undoRestoreOnServer()) location.reload();
+}
+
+function exportCCLIReport() {
+  const now = new Date();
+  const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  download(new Blob([usageCSV(store.ccliUsage)], { type: "text/csv;charset=utf-8" }), `CCLI_usage_${stamp}.csv`);
 }
 
 /** @param {import("../core/models.js").Song} song */
@@ -200,7 +270,7 @@ var ui = new AppUI(store, {
   closeProjector: () => { projector?.close(); projector = null; ui.renderRight(); },
   isProjectorOpen: () => Boolean(projector && !projector.closed),
   targetSize: () => targetSize,
-  importFiles, exportBackup, restoreBackup, undoRestore, exportSongText,
+  importFiles, exportBackup, restoreBackup, undoRestore, exportSongText, openMusicians, exportCCLIReport,
   canUndoRestore: () => undoAvailable,
   user: session.user,
   logout: async () => { await saver.flushAll(); api.logout(); },
@@ -208,6 +278,7 @@ var ui = new AppUI(store, {
 ui.mount(/** @type {HTMLElement} */ (document.getElementById("app")));
 store.subscribe((reason) => {
   if (["live", "settings", "songs", "all"].includes(reason)) broadcast();
+  else if (reason === "plans") publishStage();
   if (reason === "settings") setLanguage(store.settings.appLanguage);
 });
 broadcast();

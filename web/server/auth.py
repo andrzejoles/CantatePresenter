@@ -195,6 +195,14 @@ class Users:
                     return True
             return False
 
+    def regenerate_backup_codes(self, name: str) -> list[str]:
+        """Nowe kody zapasowe; poprzednie przestają działać."""
+        with self.lock:
+            codes = new_backup_codes()
+            self.users[name]["backupCodes"] = [hash_backup_code(c) for c in codes]
+            self.save()
+            return codes
+
     def enroll_totp(self, name: str, secret: str, code: str) -> list[str] | None:
         """Potwierdza konfigurację aplikacji kodem; zwraca kody zapasowe (pokazywane raz)."""
         with self.lock:
