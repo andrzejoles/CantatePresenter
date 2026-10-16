@@ -422,12 +422,20 @@ public sealed partial class MainWindow : Window
         if (song.Key.Length > 0) titleRow.Children.Add(new Border { Child = new TextBlock { Text = song.Key, FontWeight = FontWeights.Bold }, Padding = new Thickness(6, 2, 6, 2), CornerRadius = new CornerRadius(4), VerticalAlignment = VerticalAlignment.Center, Background = (Brush)Application.Current.Resources["AccentFillColorTertiaryBrush"] });
         head.Children.Add(titleRow);
         head.Children.Add(new TextBlock { Text = song.Author.Length > 0 ? song.Author : L("Autor nieznany"), Opacity = 0.65, TextTrimming = TextTrimming.CharacterEllipsis });
-        var buttons = new VariableSizedWrapGrid { Orientation = Orientation.Horizontal, ItemHeight = 40 };
+        // Siatka 2×2 o równych kolumnach: przyciski mieszczą się w wąskim panelu i nie są ucinane.
+        var buttons = new Grid { ColumnSpacing = 6, RowSpacing = 6, MaxWidth = 480, HorizontalAlignment = HorizontalAlignment.Left };
+        buttons.ColumnDefinitions.Add(new ColumnDefinition());
+        buttons.ColumnDefinitions.Add(new ColumnDefinition());
+        buttons.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        buttons.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         void HeadButton(string text, RoutedEventHandler click, bool enabled = true, bool accent = false)
         {
-            var b = new Button { Content = text, IsEnabled = enabled, Margin = new Thickness(0, 0, 6, 6) };
+            var b = new Button { Content = new TextBlock { Text = text, TextTrimming = TextTrimming.CharacterEllipsis }, IsEnabled = enabled, HorizontalAlignment = HorizontalAlignment.Stretch };
+            ToolTipService.SetToolTip(b, text);
             if (accent) b.Style = (Style)Application.Current.Resources["AccentButtonStyle"];
             b.Click += click;
+            Grid.SetRow(b, buttons.Children.Count / 2);
+            Grid.SetColumn(b, buttons.Children.Count % 2);
             buttons.Children.Add(b);
         }
         HeadButton("▶ " + L("Prezentuj"), (_, _) => library.Present(song), accent: true);
