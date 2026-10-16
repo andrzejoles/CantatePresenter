@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Aplikacja WinUI 3 (Windows App SDK), bez pakietu MSIX: rozpakowany katalog lub ZIP z wydania. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>CantatePresenter.WinUI</RootNamespace>
+    <AssemblyName>CantatePresenter</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Version>1.0.0</Version>
+    <Product>CantatePresenter</Product>
+    <Company>Andrzej Oles</Company>
+    <Copyright>© 2026 Andrzej Oles. Opracowano we współpracy z Claude (Anthropic).</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250205002" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CantatePresenter.Core\CantatePresenter.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Wspólne z macOS i wersją webową: tłumaczenia, logo planszy, instrukcja. -->
+    <Content Include="..\..\..\Sources\CantatePresenterCore\Resources\Localizable.xcstrings" Link="Resources\Localizable.xcstrings" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\web\logos.json" Link="Resources\logos.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\app.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
