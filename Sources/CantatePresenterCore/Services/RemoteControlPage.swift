@@ -1,0 +1,182 @@
+import Foundation
+
+// MARK: - Remote Control Page
+
+/// Strona pilota dla telefonu (iOS i Android, zwykła przeglądarka). Wszystkie teksty przychodzą w stanie (`labels`)
+/// w języku interfejsu aplikacji, więc strona nie ma własnych tłumaczeń. Tekst wstawiany tylko przez `textContent`.
+enum RemoteControlPage {
+    static func html(language: String) -> String {
+        template.replacingOccurrences(of: "{{LANG}}", with: language.filter { $0.isLetter || $0 == "-" })
+    }
+    
+    private static let template = #"""
+<!doctype html>
+<html lang="{{LANG}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111214">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="referrer" content="no-referrer">
+<title>CantatePresenter</title>
+<style>
+:root { --bg:#111214; --panel:#1c1d21; --line:#2c2e34; --text:#f2f2f4; --muted:#9a9ca5; --accent:#2f80ed; --live:#e5484d; --on:#f5a524; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { margin:0; background:var(--bg); color:var(--text); font:16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { padding:max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+header { min-width:0; display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+#dot { width:10px; height:10px; border-radius:50%; background:var(--muted); flex:none; }
+#dot.live { background:var(--live); }
+#song { min-width:0; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#banner { display:none; background:#5a1d1f; color:#ffd7d8; border-radius:10px; padding:10px 12px; margin-bottom:10px; }
+#banner.show { display:block; }
+#screen { overflow-wrap:anywhere; background:#000; border:1px solid var(--line); border-radius:12px; min-height:150px; padding:16px; display:flex; align-items:center; justify-content:center; text-align:center; white-space:pre-line; font-size:20px; font-weight:600; touch-action:pan-y; user-select:none; }
+#screen.dim { color:var(--muted); font-weight:400; font-size:16px; }
+.row { display:grid; gap:8px; margin-top:10px; }
+.nav { grid-template-columns:minmax(0, 1fr) minmax(0, 2fr); }
+.three { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+.two { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+button { appearance:none; border:1px solid var(--line); background:var(--panel); color:var(--text); border-radius:12px; padding:14px 8px; font:inherit; font-weight:600; min-height:52px; }
+button:active { transform:scale(0.98); }
+button.primary { background:var(--accent); border-color:var(--accent); font-size:20px; min-height:76px; }
+button.big { min-height:76px; font-size:18px; }
+button.on { background:var(--on); border-color:var(--on); color:#111; }
+button:disabled { opacity:0.45; }
+h2 { font-size:13px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin:18px 0 8px; font-weight:600; }
+.list { display:flex; flex-direction:column; gap:6px; }
+.item { min-width:0; text-align:left; display:flex; gap:10px; align-items:baseline; min-height:48px; padding:10px 12px; font-weight:400; }
+.item b { flex:none; font-weight:600; }
+.item span { min-width:0; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.item.current { border-color:var(--accent); background:#16263d; }
+.item.current span { color:var(--text); }
+</style>
+</head>
+<body>
+<header><div id="dot"></div><div id="song">CantatePresenter</div></header>
+<div id="banner"></div>
+<div id="screen" class="dim"></div>
+<div class="row nav">
+  <button id="previous" class="big" data-command="previous"></button>
+  <button id="next" class="primary" data-command="next"></button>
+</div>
+<div class="row three">
+  <button id="black" data-command="black"></button>
+  <button id="clearText" data-command="clearText"></button>
+  <button id="stop" data-command="stop"></button>
+</div>
+<h2 id="slidesTitle"></h2>
+<div id="slides" class="list"></div>
+<h2 id="planTitle"></h2>
+<div class="row two">
+  <button id="previousSong" data-command="previousSong"></button>
+  <button id="nextSong" data-command="nextSong"></button>
+</div>
+<div id="plan" class="list" style="margin-top:8px"></div>
+<script>
+"use strict";
+const token = new URLSearchParams(location.search).get("t") || "";
+const withToken = path => path + "?t=" + encodeURIComponent(token);
+const $ = id => document.getElementById(id);
+let lastSlides = "", lastPlan = "", labels = {};
+
+function setOnline(online) {
+  $("banner").textContent = labels.offline || "…";
+  $("banner").classList.toggle("show", !online);
+}
+
+function listItems(container, entries, signature, previous, onTap) {
+  if (signature === previous) return;
+  container.replaceChildren(...entries.map((entry, index) => {
+    const button = document.createElement("button");
+    button.className = "item";
+    const bold = document.createElement("b");
+    bold.textContent = entry.bold;
+    const span = document.createElement("span");
+    span.textContent = entry.text;
+    button.append(bold, span);
+    button.addEventListener("click", () => onTap(index));
+    return button;
+  }));
+}
+
+function mark(container, currentIndex) {
+  [...container.children].forEach((child, index) => child.classList.toggle("current", index === currentIndex));
+}
+
+function render(state) {
+  labels = state.labels || {};
+  document.title = labels.title || "CantatePresenter";
+  for (const id of ["next", "previous", "black", "clearText", "stop", "nextSong", "previousSong"]) $(id).textContent = labels[id] || id;
+  $("slidesTitle").textContent = labels.slides || "";
+  $("planTitle").textContent = (labels.plan || "") + (state.planName ? ": " + state.planName : "");
+  $("dot").classList.toggle("live", state.isLive);
+  $("song").textContent = state.songTitle || "CantatePresenter";
+
+  const screen = $("screen");
+  const hasText = state.isLive && state.slideText;
+  screen.textContent = hasText ? state.slideText : (labels.notLive || "");
+  screen.classList.toggle("dim", !hasText);
+  $("black").classList.toggle("on", state.isBlackScreen);
+  $("clearText").classList.toggle("on", state.isClearText);
+  for (const id of ["next", "previous", "black", "clearText", "stop"]) $(id).disabled = !state.isLive;
+
+  const slides = state.slides.map(s => ({ bold: s.label, text: s.preview }));
+  const slideSignature = JSON.stringify(slides);
+  listItems($("slides"), slides, slideSignature, lastSlides, index => send("slide", index));
+  lastSlides = slideSignature;
+  mark($("slides"), state.isLive ? state.slideIndex : -1);
+
+  const plan = state.plan.map((p, i) => ({ bold: String(i + 1) + ".", text: p.title }));
+  const planSignature = JSON.stringify(plan);
+  listItems($("plan"), plan, planSignature, lastPlan, index => send("planItem", index));
+  lastPlan = planSignature;
+  mark($("plan"), state.plan.findIndex(p => p.isCurrent));
+}
+
+async function refresh() {
+  try {
+    const response = await fetch(withToken("/api/state"), { cache: "no-store" });
+    if (!response.ok) throw new Error(response.status);
+    render(await response.json());
+    setOnline(true);
+  } catch (error) {
+    setOnline(false);
+  }
+}
+
+async function send(command, index) {
+  if (navigator.vibrate) navigator.vibrate(12);
+  try {
+    const response = await fetch(withToken("/api/command"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(index === undefined ? { command } : { command, index })
+    });
+    if (!response.ok) throw new Error(response.status);
+    render(await response.json());
+    setOnline(true);
+  } catch (error) {
+    setOnline(false);
+  }
+}
+
+document.querySelectorAll("button[data-command]").forEach(button =>
+  button.addEventListener("click", () => send(button.dataset.command)));
+
+let touchX = null;
+$("screen").addEventListener("touchstart", event => { touchX = event.touches[0].clientX; }, { passive: true });
+$("screen").addEventListener("touchend", event => {
+  if (touchX === null) return;
+  const dx = event.changedTouches[0].clientX - touchX;
+  touchX = null;
+  if (Math.abs(dx) > 50) send(dx < 0 ? "next" : "previous");
+});
+
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+setInterval(() => { if (!document.hidden) refresh(); }, 1000);
+refresh();
+</script>
+</body>
+</html>
+"""#
+}

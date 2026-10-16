@@ -82,6 +82,8 @@ cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
     <string>Aplikacja wymaga dostępu do mikrofonu, aby umożliwić dyktowanie tekstu nowej pieśni oraz wyszukiwanie głosowe.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
     <string>Rozpoznawanie mowy jest używane do dyktowania tekstów pieśni oraz wyszukiwania utworów głosem.</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Pilot ze smartfona łączy się z tym Macem w sieci lokalnej, żeby przełączać slajdy.</string>
 </dict>
 </plist>
 EOF
