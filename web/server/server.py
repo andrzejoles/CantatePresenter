@@ -32,6 +32,7 @@ from storage import KINDS, MAX_BODY, Conflict, Storage  # noqa: E402
 
 WEB_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APP_VERSION = appversion.current(os.path.dirname(WEB_ROOT))
+MAX_LIVE = 2 * 1024 * 1024
 SESSION_IDLE = 12 * 3600
 SESSION_MAX = 7 * 24 * 3600
 PENDING_MAX = 5 * 60
@@ -61,6 +62,8 @@ class State:
         self.trust_proxy = trust_proxy
         self.lock = threading.Lock()
         self.sessions: dict[str, dict] = {}
+        # Bieżąca projekcja dla ekranów muzyków na innych urządzeniach (tylko w pamięci).
+        self.live_source: dict | None = None
         self.pending: dict[str, dict] = {}
         self.ip_failures: dict[str, list[float]] = {}
 
@@ -196,6 +199,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if not self.current_session():
                 return self.json(401, {"error": "unauthorized"})
             return self.json(200, self.state.storage.snapshot())
+        if path == "/api/live":
+            if not self.current_session():
+                return self.json(401, {"error": "unauthorized"})
+            with self.state.lock:
+                return self.json(200, {"source": self.state.live_source})
         if path.startswith("/api/"):
             return self.json(404, {"error": "not found"})
         if path in ("/", ""):
@@ -251,6 +259,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
         session = self.current_session()
         if not session:
             return self.json(401, {"error": "unauthorized"})
+        if path == "/api/live":
+            if not isinstance(body, dict) or len(json.dumps(body)) > MAX_LIVE:
+                return self.json(400, {"error": "bad request"})
+            with self.state.lock:
+                self.state.live_source = body
+            return self.json(200, {"ok": True})
         if path == "/api/data/restore":
             return self.restore(body, session)
         if path == "/api/data/undo-restore":

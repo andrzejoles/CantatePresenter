@@ -240,6 +240,22 @@ class ServerTests(unittest.TestCase):
         third.request("POST", "/api/login", {"username": "ala", "password": PASSWORD})
         self.assertEqual(third.request("POST", "/api/login/totp", {"code": codes[0]})[0], 401, "kod zapasowy drugi raz")
 
+    def test_live_stage_relay(self):
+        """Stan dla ekranu muzyków: tylko po zalogowaniu, z CSRF, ograniczony rozmiar."""
+        anonymous = Client(self.port)
+        self.assertEqual(anonymous.request("GET", "/api/live")[0], 401)
+        self.assertEqual(anonymous.request("POST", "/api/live", {"updatedAt": 1})[0], 401)
+        client = Client(self.port)
+        self.login(client)
+        status, reply, _ = client.request("GET", "/api/live")
+        self.assertEqual((status, reply), (200, {"source": None}))
+        source = {"updatedAt": 5, "isLive": True, "song": {"title": "A", "slides": []}, "slideIndex": 0}
+        self.assertEqual(client.request("POST", "/api/live", source, csrf=False)[0], 403)
+        self.assertEqual(client.request("POST", "/api/live", source)[0], 200)
+        self.assertEqual(client.request("GET", "/api/live")[1], {"source": source})
+        self.assertEqual(client.request("POST", "/api/live", ["nie", "obiekt"])[0], 400)
+        self.assertEqual(client.request("POST", "/api/live", {"pad": "x" * 3_000_000})[0], 400)
+
     def test_wrong_password_and_lockout(self):
         client = Client(self.port)
         self.assertEqual(client.request("POST", "/api/login", {"username": "nikt", "password": "x"})[0], 401)
