@@ -42,6 +42,9 @@ jobs:
       - name: Web UI check with login and TOTP (headless Chrome)
         run: python3 -I web/tools/ui_check.py
 
+      - name: Remote control page check (headless Chrome)
+        run: python3 -I web/tools/remote_check.py
+
       - name: QR encoder check (CoreImage decoder)
         run: python3 -I web/tools/qr_check.py
 

@@ -62,6 +62,8 @@ Slajdy można przełączać telefonem (iPhone lub Android), bez instalowania apl
 1. Kliknij **Pilot** na górnym pasku i włącz przełącznik **Włącz pilota**.
 2. Zeskanuj aparatem telefonu wyświetlony kod QR (albo wpisz adres w przeglądarce telefonu).
 3. Na telefonie: **Dalej** / **Wstecz** (lub przesunięcie palcem po podglądzie), czarny ekran, ukrycie tekstu, zakończenie projekcji, wybór slajdu i pieśni z planu.
+4. **Szukaj pieśni**: wpisz tytuł, autora albo fragment tekstu (polskie znaki można pominąć) i dotknij wyniku, żeby od razu go wyświetlić.
+5. Po **Zakończ projekcję** duży przycisk zmienia się na **Wznów projekcję**: projekcja wraca do tej samej pieśni i slajdu. Dotknięcie slajdu na liście też ją wznawia, od tego slajdu.
 
 Telefon musi być w tej samej sieci Wi-Fi co Mac. Kod zawiera jednorazowy klucz dostępu: przycisk **Nowy kod** odłącza wszystkie telefony. Pilot działa, dopóki aplikacja jest otwarta.
 

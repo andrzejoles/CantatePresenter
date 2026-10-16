@@ -13777,30 +13777,30 @@
         }
       }
     },
-    "Projekcja nie jest uruchomiona. Wybierz pieśń z planu.": {
+    "Projekcja nie jest uruchomiona. Wybierz pieśń z planu lub wyszukaj ją.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The projection is not running. Choose a song from the plan."
+            "value": "Projection is not running. Choose a song from the plan or search for one."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Projektion läuft nicht. Wähle ein Lied aus dem Ablauf."
+            "value": "Die Projektion läuft nicht. Wähle ein Lied aus dem Plan oder suche danach."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La proyección no está en marcha. Elige un canto del plan."
+            "value": "La proyección no está en marcha. Elige un canto del plan o búscalo."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Проєкцію не запущено. Виберіть пісню з плану."
+            "value": "Проєкцію не запущено. Виберіть пісню з плану або знайдіть її."
           }
         }
       }
@@ -14837,6 +14837,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Розмір UI"
+          }
+        }
+      }
+    },
+    "Rozpocznij projekcję": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start projection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projektion starten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar proyección"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Почати проєкцію"
           }
         }
       }
@@ -17189,6 +17217,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Назва пісні *"
+          }
+        }
+      }
+    },
+    "Tytuł, autor lub fragment tekstu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title, author or part of the lyrics"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel, Autor oder Textauszug"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Título, autor o fragmento de la letra"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назва, автор або фрагмент тексту"
           }
         }
       }
@@ -20605,6 +20661,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Показати зараз"
+          }
+        }
+      }
+    },
+    "Wznów projekcję": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume projection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projektion fortsetzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanudar proyección"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відновити проєкцію"
           }
         }
       }
