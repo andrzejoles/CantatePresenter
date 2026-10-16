@@ -13,6 +13,7 @@ import { searchWikisource } from "../core/wikisource.js";
 import { searchURL } from "../core/songselect.js";
 import { qrSVG } from "../core/qr.js";
 import { request } from "../api.js";
+import { allLogos, logoById, svgDataURL } from "./logos.js";
 import { APP_VERSION } from "../version.js";
 
 /**
@@ -274,7 +275,17 @@ export class AppUI {
       isLive: store.isLive, isBlackScreen: store.isBlackScreen, isClearText: store.isClearText,
       text: store.currentLiveSlide?.text ?? "", notice: store.currentCopyrightNotice, settings: store.settings,
       standbyTitle: "CantatePresenter", standbySubtitle: t("Wersja {0}", APP_VERSION),
+      standbyLogo: this.logoURL(), standbyReady: t("GOTOWY DO PROJEKCJI • OCZEKIWANIE NA PREZENTACJĘ"),
+      standbyCredits: t("Autor: Andrzej Oles · we współpracy z Claude (Anthropic)"),
     };
+  }
+
+  /** Obrazek wybranego logo planszy (liczony raz na zmianę logo). */
+  logoURL() {
+    const logo = logoById(this.store.settings.activeLogoId);
+    if (!logo) return "";
+    if (this.cachedLogo?.id !== logo.id) this.cachedLogo = { id: logo.id, url: svgDataURL(logo.svg) };
+    return this.cachedLogo.url;
   }
 
   renderRight() {
@@ -585,6 +596,14 @@ export class AppUI {
       h("div", { class: "group" }, h("h3", null, t("Marginesy i interlinia")),
         h("label", { class: "field" }, marginLabel, range(s.marginPercent, 0.03, 0.18, 0.01, (v) => { marginLabel.textContent = t("Margines ekranu: {0}%", Math.round(v * 100)); update({ marginPercent: v }); })),
         h("label", { class: "field" }, spacingLabel, range(s.lineSpacingFactor, 1, 1.5, 0.05, (v) => { spacingLabel.textContent = t("Interlinia: {0}x", v.toFixed(2)); update({ lineSpacingFactor: v }); }))),
+      h("div", { class: "group" }, h("h3", null, t("Galeria propozycji logo aplikacji")),
+        h("div", { class: "logo-grid" }, allLogos().map((logo) => h("button", {
+          class: `logo-choice${logo.id === s.activeLogoId ? " selected" : ""}`, title: logo.name,
+          onclick: (/** @type {Event} */ e) => {
+            update({ activeLogoId: logo.id });
+            /** @type {HTMLElement} */ (e.currentTarget).parentElement?.querySelectorAll(".logo-choice").forEach((b) => b.classList.toggle("selected", b === e.currentTarget));
+          },
+        }, h("img", { src: svgDataURL(logo.svg), alt: "" }), h("span", null, logo.name))))),
       h("div", { class: "group" }, h("h3", null, t("Licencja CCLI i prawa autorskie")),
         h("div", { class: "row" },
           field(t("Numer licencji CCLI parafii:"), h("input", { type: "text", value: s.ccliLicenseNumber, placeholder: "1234567", onchange: (/** @type {Event} */ e) => update({ ccliLicenseNumber: /** @type {HTMLInputElement} */ (e.target).value.trim() }) })),

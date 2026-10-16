@@ -149,5 +149,6 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 - Nie dodawaj nowych monitorów `NSEvent` ani `keyDown` dla skrótów prezentacji; wszystko idzie przez `KeyboardRouter`. Okno testowe podglądu i okno instrukcji celowo nie są obsługiwane.
 - Plansza startowa jest składana w pamięci (`StandbyRenderer`: logo w `<!--LOGO-->`, wersja, teksty, autor) i powiększana do szerokości ekranu (`StandbyZoom`); pliku `standby.html` nie zapisuj. Pliki `data/*.json` w repozytorium są śledzone przez git; po K2 aplikacja ich nie zmienia, ale nie commituj ich przypadkiem po ręcznych próbach.
 - Stara wersja aplikacji (sprzed K1) wczytuje bibliotekę z błędem dat i nadpisuje ją przykładami. Nie uruchamiaj starych buildów na prawdziwych danych.
+- Logo planszy w wersji webowej: `web/logos.json` to eksport `LogoCatalog` (`python3 -I scripts/export_web_logos.py` po każdej zmianie logo; pilnuje tego `WebLogosTests`).
 - Logo END to plik `Sources/CantatePresenterCore/Resources/end_logo.png` (zasób pakietu), wczytywany przez `ENDLogoAsset`.
 - `Package.swift` nie deklaruje zasobów; `data/` i `Resources/AppIcon.icns` są kopiowane ręcznie przez `build_app.sh`.

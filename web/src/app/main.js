@@ -14,8 +14,12 @@ import { isSongSelectText, parseText, parseUSR, parseChordPro, CHORDPRO_EXTENSIO
 import { createBackup, readBackup, backupFileName, BackupError } from "../core/backup.js";
 import { stageSource } from "../core/stage.js";
 import { normalizeUsageEntry, usageCSV } from "../core/ccli.js";
+import { loadLogos } from "./logos.js";
 
-await loadCatalog(new URL("../../i18n/Localizable.xcstrings", import.meta.url)).catch((error) => console.error("Tłumaczenia:", error));
+await Promise.all([
+  loadCatalog(new URL("../../i18n/Localizable.xcstrings", import.meta.url)).catch((error) => console.error("Tłumaczenia:", error)),
+  loadLogos().catch((error) => console.error("Logo:", error)),
+]);
 
 // MARK: - Dane (prywatny serwer)
 
