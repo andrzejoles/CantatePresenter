@@ -192,6 +192,8 @@ public class RemoteTests
         Assert.Equal(0, server.ConnectedDevices());
         var state = await http.GetStringAsync($"/api/state?t={server.Token}");
         Assert.Contains("\"canStart\":true", state);
+        Assert.Contains("\"startTitle\":\"Pierwsza\"", state);
+        Assert.Contains("Święty dzień", await http.GetStringAsync($"/api/search?t={server.Token}&q=swiety"));
         Assert.Equal(1, server.ConnectedDevices());
         Assert.Equal(0, server.ConnectedDevices(DateTime.UtcNow + RemoteServer.ConnectedWindow));
 

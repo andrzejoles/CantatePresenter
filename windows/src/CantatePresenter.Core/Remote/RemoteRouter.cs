@@ -74,6 +74,8 @@ public sealed class RemoteRouter(string token, string? stageToken = null)
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DictionaryKeyPolicy = null,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        // Polskie znaki jako UTF-8, jak JSONEncoder w macOS (odpowiedź ma nagłówek nosniff i typ application/json).
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
     public static byte[] Encode<T>(T value) => JsonSerializer.SerializeToUtf8Bytes(value, JsonOptions);
