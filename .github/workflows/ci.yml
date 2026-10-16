@@ -70,7 +70,8 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Core tests (shared fixtures)
-        run: dotnet test windows/tests/CantatePresenter.Core.Tests -c Release
+        working-directory: windows # global.json: SDK 8 (narzędzia PRI Windows App SDK nie działają z SDK 10)
+        run: dotnet test tests/CantatePresenter.Core.Tests -c Release
 
       - name: Version
         id: version
@@ -78,7 +79,8 @@ jobs:
         run: echo "value=$(scripts/version.sh)" >> "$GITHUB_OUTPUT"
 
       - name: Build and publish the app (win-x64, self-contained)
-        run: dotnet publish windows/src/CantatePresenter.WinUI -c Release -r win-x64 -p:Platform=x64 -p:Version=${{ steps.version.outputs.value }} -o publish/CantatePresenter
+        working-directory: windows
+        run: dotnet publish src/CantatePresenter.WinUI -c Release -r win-x64 -p:Platform=x64 -p:Version=${{ steps.version.outputs.value }} -o ../publish/CantatePresenter
 
       - name: Smoke test with screenshots (temporary data directory)
         shell: pwsh
