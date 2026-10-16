@@ -1037,6 +1037,34 @@
         }
       }
     },
+    "Automatycznie (drugi ekran)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic (second screen)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch (zweiter Bildschirm)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automático (segunda pantalla)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автоматично (другий екран)"
+          }
+        }
+      }
+    },
     "Autor (A-Z)": {
       "localizations": {
         "en": {
@@ -2909,6 +2937,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "CantatePresenter — Презентер пісень і Слова"
+          }
+        }
+      }
+    },
+    "CantatePresenter — Projekcja": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CantatePresenter — Projection"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CantatePresenter — Projektion"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CantatePresenter — Proyección"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CantatePresenter — Проєкція"
           }
         }
       }
@@ -5013,6 +5069,62 @@
         }
       }
     },
+    "Ekran projekcji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projection screen"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projektionsbildschirm"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pantalla de proyección"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Екран проєкції"
+          }
+        }
+      }
+    },
+    "Ekran {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildschirm {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pantalla {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Екран {0}"
+          }
+        }
+      }
+    },
     "Ekrany i Projektor": {
       "localizations": {
         "en": {
@@ -6409,6 +6521,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Імпортувати файл перекладу інтерфейсу (JSON)"
+          }
+        }
+      }
+    },
+    "Importuj pliki...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import files..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateien importieren..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importar archivos..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Імпортувати файли..."
           }
         }
       }
@@ -23181,6 +23321,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Куплет з цим номером"
+          }
+        }
+      }
+    },
+    "główny": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "main"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hauptbildschirm"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "principal"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "основний"
           }
         }
       }
