@@ -11,6 +11,8 @@ import { renderScreen } from "./slide.js";
 import { slideLabel } from "./labels.js";
 import { searchWikisource } from "../core/wikisource.js";
 import { searchURL } from "../core/songselect.js";
+import { qrSVG } from "../core/qr.js";
+import { request } from "../api.js";
 import { APP_VERSION } from "../version.js";
 
 /**
@@ -104,7 +106,7 @@ export class AppUI {
       h("div", { class: "spacer" }),
       h("span", { class: "zoom" }, t("Rozmiar UI"),
         h("button", { onclick: () => zoom(-0.05), title: "−" }, "A−"), `${scale}%`, h("button", { onclick: () => zoom(0.05), title: "+" }, "A+")),
-      h("span", { class: "user-chip", title: t("Zalogowany użytkownik") }, `👤 ${this.actions.user}`),
+      h("button", { class: "user-chip", title: t("Konto: hasło i weryfikacja dwuetapowa"), onclick: () => this.openAccount() }, `👤 ${this.actions.user}`),
       h("button", { onclick: () => this.actions.logout(), title: t("Wyloguj") }, t("Wyloguj")),
       h("button", { onclick: () => this.openSettings(), title: t("Ustawienia") }, "⚙"),
       h("button", { onclick: () => this.openAbout(), title: t("O programie") }, "?"));
@@ -462,6 +464,93 @@ export class AppUI {
     [h("button", { onclick: () => dialog.close() }, t("Zamknij"))]);
     dialog.classList.add("wide-dialog");
     query.focus();
+  }
+
+  /** Konto: zmiana hasła, nowa aplikacja uwierzytelniająca, nowe kody zapasowe. Każda zmiana wymaga obecnego hasła. */
+  async openAccount() {
+    /** @param {string} path @param {unknown} body */
+    const post = async (path, body) => {
+      const response = await request(path, { method: "POST", body: JSON.stringify(body) });
+      return { status: response.status, data: await response.json().catch(() => ({})) };
+    };
+    /** @param {number} status */
+    const failure = (status) => status === 401 ? t("Nieprawidłowe hasło.") : status === 429 ? t("Zbyt wiele nieudanych prób. Spróbuj ponownie za 15 minut.") : t("Błąd serwera ({0}).", status);
+    let info = { backupCodesLeft: 0, minPasswordLength: 10 };
+    try { info = await (await request("/api/account")).json(); } catch { /* pokaż okno z wartościami domyślnymi */ }
+
+    const password = (/** @type {string} */ autocomplete) => /** @type {HTMLInputElement} */ (h("input", { type: "password", autocomplete }));
+    const current = password("current-password");
+    const fresh = password("new-password");
+    const repeat = password("new-password");
+    const message = h("div", { class: "hint-text", role: "status" });
+    const factorArea = h("div");
+    const say = (/** @type {string} */ text) => { message.textContent = text; };
+
+    /** @param {string[]} codes */
+    const showCodes = (codes) => {
+      const download = () => {
+        const blob = new Blob([`CantatePresenter: ${t("kody zapasowe")}\n\n${codes.join("\n")}\n`], { type: "text/plain;charset=utf-8" });
+        const link = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "cantate-kody-zapasowe.txt" });
+        link.click();
+      };
+      replace(factorArea,
+        h("p", null, t("Zapisz te kody w bezpiecznym miejscu. Każdy działa raz, gdy nie masz dostępu do aplikacji uwierzytelniającej. Nie zostaną pokazane ponownie.")),
+        h("ul", { class: "backup-codes" }, codes.map((c) => h("li", null, h("code", null, c)))),
+        h("button", { onclick: download }, t("Pobierz jako plik")));
+    };
+
+    const changePassword = async () => {
+      if (fresh.value.length < info.minPasswordLength) return say(t("Hasło musi mieć co najmniej {0} znaków.", info.minPasswordLength));
+      if (fresh.value !== repeat.value) return say(t("Nowe hasła nie są takie same."));
+      const { status } = await post("/api/account/password", { current: current.value, new: fresh.value });
+      if (status !== 200) return say(failure(status));
+      current.value = fresh.value = repeat.value = "";
+      say(t("Hasło zmienione. Inne urządzenia zostały wylogowane."));
+    };
+
+    const newAuthenticator = async () => {
+      const { status, data } = await post("/api/account/totp/start", { current: current.value });
+      if (status !== 200) return say(failure(status));
+      const code = /** @type {HTMLInputElement} */ (h("input", { type: "text", inputmode: "numeric", autocomplete: "one-time-code", maxlength: "6", class: "code-input" }));
+      const confirmCode = async () => {
+        const result = await post("/api/account/totp/confirm", { code: code.value });
+        if (result.status !== 200) return say(result.status === 401 ? t("Nieprawidłowy kod. Sprawdź, czy czas w telefonie jest ustawiony automatycznie.") : failure(result.status));
+        say(t("Nowa aplikacja uwierzytelniająca jest aktywna. Inne urządzenia zostały wylogowane."));
+        showCodes(result.data.backupCodes);
+      };
+      code.addEventListener("keydown", (event) => { if (event.key === "Enter") confirmCode(); });
+      say("");
+      replace(factorArea,
+        h("p", null, t("Zeskanuj kod QR nową aplikacją uwierzytelniającą i wpisz pokazany w niej kod. Do czasu potwierdzenia działa dotychczasowa aplikacja.")),
+        h("div", { class: "qr" }, qrSVG(data.uri, 200)),
+        h("details", null, h("summary", null, t("Nie możesz zeskanować? Wpisz klucz ręcznie")), h("code", { class: "secret" }, String(data.secret).replace(/(.{4})/g, "$1 ").trim())),
+        h("label", { class: "field" }, h("span", null, t("Kod z aplikacji")), code),
+        h("button", { class: "primary", onclick: confirmCode }, t("Włącz weryfikację dwuetapową")));
+      code.focus();
+    };
+
+    const newCodes = async () => {
+      const { status, data } = await post("/api/account/backup-codes", { current: current.value });
+      if (status !== 200) return say(failure(status));
+      say(t("Nowe kody zapasowe. Poprzednie przestały działać."));
+      showCodes(data.backupCodes);
+    };
+
+    const field = (/** @type {string} */ label, /** @type {HTMLElement} */ input) => h("label", { class: "field" }, h("span", null, label), input);
+    const dialog = this.dialog(t("Konto: {0}", this.actions.user), [
+      h("div", { class: "group" }, field(t("Obecne hasło (wymagane do każdej zmiany)"), current)),
+      h("div", { class: "group" }, h("h3", null, t("Zmiana hasła")),
+        h("div", { class: "row" }, field(t("Nowe hasło"), fresh), field(t("Powtórz nowe hasło"), repeat)),
+        h("button", { onclick: changePassword }, t("Zmień hasło"))),
+      h("div", { class: "group" }, h("h3", null, t("Weryfikacja dwuetapowa")),
+        h("div", { class: "hint-text" }, t("Pozostałe kody zapasowe: {0}", info.backupCodesLeft)),
+        h("div", { class: "row" },
+          h("button", { onclick: newAuthenticator }, t("Nowa aplikacja uwierzytelniająca...")),
+          h("button", { onclick: newCodes }, t("Nowe kody zapasowe"))),
+        factorArea),
+      message],
+    [h("button", { class: "primary", onclick: () => dialog.close() }, t("Gotowe"))]);
+    current.focus();
   }
 
   openSettings() {

@@ -240,6 +240,50 @@ class ServerTests(unittest.TestCase):
         third.request("POST", "/api/login", {"username": "ala", "password": PASSWORD})
         self.assertEqual(third.request("POST", "/api/login/totp", {"code": codes[0]})[0], 401, "kod zapasowy drugi raz")
 
+    def test_account_password_and_second_factor(self):
+        """Zmiana hasła i aplikacji uwierzytelniającej z poziomu aplikacji: obecne hasło, CSRF, inne sesje wylogowane."""
+        client = Client(self.port)
+        secret, codes = self.login(client)
+        other = Client(self.port)
+        other.request("POST", "/api/login", {"username": "ala", "password": PASSWORD})
+        self.assertEqual(other.request("POST", "/api/login/totp", {"code": codes[1]})[0], 200)
+        self.assertEqual(other.request("GET", "/api/data")[0], 200)
+
+        status, reply, _ = client.request("GET", "/api/account")
+        self.assertEqual((status, reply["user"], reply["backupCodesLeft"]), (200, "ala", 7))
+        new_password = "nowe-haslo-456"
+        self.assertEqual(client.request("POST", "/api/account/password", {"current": PASSWORD, "new": new_password}, csrf=False)[0], 403)
+        self.assertEqual(client.request("POST", "/api/account/password", {"current": "zle-haslo-000", "new": new_password})[0], 401)
+        self.assertEqual(client.request("POST", "/api/account/password", {"current": PASSWORD, "new": "krotkie"})[0], 400)
+        self.assertEqual(client.request("POST", "/api/account/password", {"current": PASSWORD, "new": new_password})[0], 200)
+        self.assertEqual(client.request("GET", "/api/data")[0], 200, "bieżąca sesja zostaje")
+        self.assertEqual(other.request("GET", "/api/data")[0], 401, "inne sesje wylogowane")
+        self.assertEqual(Client(self.port).request("POST", "/api/login", {"username": "ala", "password": PASSWORD})[0], 401)
+
+        # Nowa aplikacja uwierzytelniająca: hasło, potem kod z nowego sekretu; stary sekret przestaje działać.
+        self.assertEqual(client.request("POST", "/api/account/totp/start", {"current": PASSWORD})[0], 401)
+        status, started, _ = client.request("POST", "/api/account/totp/start", {"current": new_password})
+        self.assertEqual(status, 200)
+        self.assertNotEqual(started["secret"], secret)
+        self.assertEqual(client.request("POST", "/api/account/totp/confirm", {"code": "000000"})[0], 401)
+        status, confirmed, _ = client.request("POST", "/api/account/totp/confirm", {"code": auth.totp(started["secret"], auth.totp_counter())})
+        self.assertEqual((status, len(confirmed["backupCodes"])), (200, 8))
+        third = Client(self.port)
+        third.request("POST", "/api/login", {"username": "ala", "password": new_password})
+        self.assertEqual(third.request("POST", "/api/login/totp", {"code": codes[2]})[0], 401, "stare kody zapasowe nieważne")
+        self.assertEqual(third.request("POST", "/api/login/totp", {"code": confirmed["backupCodes"][0]})[0], 200)
+
+        # Nowe kody zapasowe tylko z hasłem.
+        self.assertEqual(client.request("POST", "/api/account/backup-codes", {"current": "zle-haslo-000"})[0], 401)
+        status, regenerated, _ = client.request("POST", "/api/account/backup-codes", {"current": new_password})
+        self.assertEqual((status, len(regenerated["backupCodes"])), (200, 8))
+        self.assertEqual(client.request("GET", "/api/account")[1]["backupCodesLeft"], 8)
+
+    def test_account_requires_session(self):
+        anonymous = Client(self.port)
+        self.assertEqual(anonymous.request("GET", "/api/account")[0], 401)
+        self.assertEqual(anonymous.request("POST", "/api/account/password", {"current": PASSWORD, "new": "nowe-haslo-456"})[0], 401)
+
     def test_live_stage_relay(self):
         """Stan dla ekranu muzyków: tylko po zalogowaniu, z CSRF, ograniczony rozmiar."""
         anonymous = Client(self.port)

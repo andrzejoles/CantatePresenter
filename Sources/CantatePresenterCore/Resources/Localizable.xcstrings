@@ -2493,6 +2493,34 @@
         }
       }
     },
+    "Błąd serwera ({0}).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server error ({0})."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serverfehler ({0})."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error del servidor ({0})."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помилка сервера ({0})."
+          }
+        }
+      }
+    },
     "Błąd serwera ({0}). Spróbuj ponownie.": {
       "localizations": {
         "en": {
@@ -6021,6 +6049,62 @@
         }
       }
     },
+    "Hasło musi mieć co najmniej {0} znaków.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The password must have at least {0} characters."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Passwort muss mindestens {0} Zeichen haben."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La contraseña debe tener al menos {0} caracteres."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пароль має містити щонайменше {0} символів."
+          }
+        }
+      }
+    },
+    "Hasło zmienione. Inne urządzenia zostały wylogowane.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password changed. Other devices have been signed out."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passwort geändert. Andere Geräte wurden abgemeldet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña cambiada. Se ha cerrado la sesión en los demás dispositivos."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пароль змінено. Інші пристрої вийшли з облікового запису."
+          }
+        }
+      }
+    },
     "Hiszpański / Español": {
       "localizations": {
         "en": {
@@ -7893,6 +7977,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Обліковий запис Google:"
+          }
+        }
+      }
+    },
+    "Konto: hasło i weryfikacja dwuetapowa": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account: password and two-step verification"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto: Passwort und Bestätigung in zwei Schritten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta: contraseña y verificación en dos pasos"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обліковий запис: пароль і двоетапна перевірка"
+          }
+        }
+      }
+    },
+    "Konto: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обліковий запис: {0}"
           }
         }
       }
@@ -10249,6 +10389,34 @@
         }
       }
     },
+    "Nieprawidłowe hasło.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incorrect password."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falsches Passwort."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña incorrecta."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неправильний пароль."
+          }
+        }
+      }
+    },
     "Nieprawidłowy format pliku JSON tłumaczenia": {
       "localizations": {
         "en": {
@@ -10417,6 +10585,62 @@
         }
       }
     },
+    "Nowa aplikacja uwierzytelniająca jest aktywna. Inne urządzenia zostały wylogowane.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The new authenticator app is active. Other devices have been signed out."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die neue Authenticator-App ist aktiv. Andere Geräte wurden abgemeldet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La nueva aplicación de autenticación está activa. Se ha cerrado la sesión en los demás dispositivos."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новий застосунок автентифікації активний. Інші пристрої вийшли з облікового запису."
+          }
+        }
+      }
+    },
+    "Nowa aplikacja uwierzytelniająca...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New authenticator app..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Authenticator-App..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva aplicación de autenticación..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новий застосунок автентифікації..."
+          }
+        }
+      }
+    },
     "Nowa pieśń": {
       "localizations": {
         "en": {
@@ -10441,6 +10665,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "Нова пісня"
+          }
+        }
+      }
+    },
+    "Nowe hasła nie są takie same.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The new passwords do not match."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die neuen Passwörter stimmen nicht überein."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las contraseñas nuevas no coinciden."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нові паролі не збігаються."
+          }
+        }
+      }
+    },
+    "Nowe hasło": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New password"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Passwort"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva contraseña"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новий пароль"
+          }
+        }
+      }
+    },
+    "Nowe kody zapasowe": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New backup codes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Ersatzcodes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevos códigos de respaldo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нові резервні коди"
+          }
+        }
+      }
+    },
+    "Nowe kody zapasowe. Poprzednie przestały działać.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New backup codes. The previous ones no longer work."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Ersatzcodes. Die bisherigen funktionieren nicht mehr."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevos códigos de respaldo. Los anteriores ya no funcionan."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нові резервні коди. Попередні більше не діють."
           }
         }
       }
@@ -10693,6 +11029,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "ВІКНО ПОПЕРЕДНЬОГО ПЕРЕГЛЯДУ ПРОЄКЦІЇ"
+          }
+        }
+      }
+    },
+    "Obecne hasło (wymagane do każdej zmiany)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current password (required for every change)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelles Passwort (für jede Änderung erforderlich)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña actual (necesaria para cada cambio)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поточний пароль (потрібен для кожної зміни)"
           }
         }
       }
@@ -13521,6 +13885,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Збільшення / зменшення / стандартний масштаб інтерфейсу"
+          }
+        }
+      }
+    },
+    "Powtórz nowe hasło": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeat the new password"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Passwort wiederholen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repite la nueva contraseña"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторіть новий пароль"
+          }
+        }
+      }
+    },
+    "Pozostałe kody zapasowe: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup codes left: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbleibende Ersatzcodes: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Códigos de respaldo restantes: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Залишилось резервних кодів: {0}"
           }
         }
       }
@@ -22205,6 +22625,34 @@
         }
       }
     },
+    "Zeskanuj kod QR nową aplikacją uwierzytelniającą i wpisz pokazany w niej kod. Do czasu potwierdzenia działa dotychczasowa aplikacja.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the QR code with the new authenticator app and enter the code it shows. Until you confirm, the current app keeps working."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanne den QR-Code mit der neuen Authenticator-App und gib den angezeigten Code ein. Bis zur Bestätigung funktioniert die bisherige App weiter."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanea el código QR con la nueva aplicación de autenticación e introduce el código que muestra. Hasta que confirmes, la aplicación actual sigue funcionando."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відскануйте QR-код новим застосунком автентифікації та введіть показаний код. До підтвердження працює попередній застосунок."
+          }
+        }
+      }
+    },
     "Zeskanuj kod aparatem telefonu albo wpisz adres w przeglądarce:": {
       "localizations": {
         "en": {
@@ -22261,6 +22709,34 @@
         }
       }
     },
+    "Zmiana hasła": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change password"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passwort ändern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar contraseña"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зміна пароля"
+          }
+        }
+      }
+    },
     "Zmień / Szukaj chwytów online": {
       "localizations": {
         "en": {
@@ -22285,6 +22761,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Змінити / Шукати акорди онлайн"
+          }
+        }
+      }
+    },
+    "Zmień hasło": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change password"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passwort ändern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar contraseña"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Змінити пароль"
           }
         }
       }
