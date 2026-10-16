@@ -61,6 +61,7 @@ w aplikacji (kliknij swoją nazwę na górnym pasku); każda zmiana wymaga obecn
 python3 -I -m unittest discover -s web/server/tests   # serwer: hasła, TOTP, logowanie, blokady, CSRF, dane
 web/run-tests.sh                                      # logika (wspólne pliki z shared/fixtures), dane, kopie
 python3 -I web/tools/ui_check.py [katalog_na_zrzuty]  # interfejs przez prawdziwy serwer z logowaniem TOTP
+python3 -I web/tools/ui_check.py --tls                # to samo przez HTTPS (certyfikat tymczasowy): Secure, HSTS
 python3 -I web/tools/qr_check.py                      # koder QR sprawdzany dekoderem macOS
 scripts/sync_web_translations.sh                      # kopia katalogu tłumaczeń z aplikacji macOS
 ```
