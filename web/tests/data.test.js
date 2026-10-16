@@ -8,6 +8,7 @@ import { DEFAULT_SHORTCUTS } from "../src/core/models.js";
 import { APP_VERSION } from "../src/version.js";
 import { usageEntry, usageCSV, normalizeUsageEntry } from "../src/core/ccli.js";
 import { Store } from "../src/app/store.js";
+import { lyricsFromHTML, licenseFromHTML, authorFromWikitext, shortTitle, pageURL, searchWikisource } from "../src/core/wikisource.js";
 
 test("Wspólne pliki: skróty klawiszowe", async () => {
   for (const f of await fixture("keyboard.json")) {
@@ -145,6 +146,41 @@ test("Kopia: raport CCLI w ccli_usage.json w obie strony", async () => {
   const back = await readBackup(zip);
   equal(back.ccliUsage, [entry]);
   ok(!back.extraFiles?.has("ccli_usage.json"));
+});
+
+test("Wspólne pliki: Wikiźródła (tekst, licencja, autor, tytuł, adres)", async () => {
+  const response = await fetch(new URL("../../shared/fixtures/wikisource.json", import.meta.url));
+  const f = await response.json();
+  for (const page of f.pages) {
+    equal(lyricsFromHTML(page.html), page.lyrics, page.name);
+    equal(licenseFromHTML(page.html), page.license, page.name);
+  }
+  for (const a of f.authors) equal(authorFromWikitext(a.wikitext), a.author);
+  for (const x of f.titles) equal(shortTitle(x.page), x.title);
+  for (const u of f.urls) equal(pageURL(u.page, u.language), u.url);
+});
+
+test("Wikiźródła: zapytania do API i pominięcie stron bez tekstu (bez sieci)", async () => {
+  const f = await (await fetch(new URL("../../shared/fixtures/wikisource.json", import.meta.url))).json();
+  /** @type {string[]} */
+  const urls = [];
+  /** @type {any} */
+  const fake = async (/** @type {string} */ url) => {
+    urls.push(url);
+    const params = new URL(url).searchParams;
+    const body = params.get("list") === "search"
+      ? { query: { search: [{ title: "Śpiewnik kościelny/Boże z twoich rąk żyjemy" }, { title: "Ujednoznacznienie" }] } }
+      : params.get("page") === "Ujednoznacznienie" ? { parse: { text: f.pages[1].html } }
+      : { parse: { text: f.pages[0].html, wikitext: f.authors[0].wikitext } };
+    return { ok: true, json: async () => body };
+  };
+  const results = await searchWikisource(" Boże z twoich rąk ", "pl", fake);
+  equal(results.length, 1);
+  equal(results[0].title, "Boże z twoich rąk żyjemy");
+  equal(results[0].author, "Franciszek Karpiński");
+  equal(results[0].license, "publicDomain");
+  ok(urls.every((u) => u.startsWith("https://pl.wikisource.org/w/api.php?") && u.includes("origin=*")));
+  equal(await searchWikisource("  ", "pl", fake), []);
 });
 
 test("Informacja o prawach CCLI na slajdzie", () => {

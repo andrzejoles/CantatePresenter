@@ -46,7 +46,7 @@ PUBLIC_FILES = {
 # Katalogi, których serwer nigdy nie udostępnia (kod serwera, narzędzia, testy).
 HIDDEN_PREFIXES = ("/server/", "/tools/", "/tests/")
 
-CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; "
+CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://*.wikisource.org; "
        "font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
 
 

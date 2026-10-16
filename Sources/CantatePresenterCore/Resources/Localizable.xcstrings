@@ -2353,6 +2353,34 @@
         }
       }
     },
+    "Błąd połączenia: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection error: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindungsfehler: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error de conexión: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помилка з'єднання: {0}"
+          }
+        }
+      }
+    },
     "Błąd przesyłania kopii na Dysk Google": {
       "localizations": {
         "en": {
@@ -4113,6 +4141,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Додати до плану"
+          }
+        }
+      }
+    },
+    "Dodano do biblioteki: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to the library: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zur Bibliothek hinzugefügt: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadido a la biblioteca: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додано до бібліотеки: {0}"
           }
         }
       }

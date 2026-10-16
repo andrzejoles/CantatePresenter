@@ -129,4 +129,24 @@ extension SharedFixturesTests {
             #expect(result.borrowedFrom == expected["borrowedFrom"] as? String, "\(name)")
         }
     }
+
+    @Test("Wikiźródła: tekst, licencja, autor, tytuł i adres strony")
+    func wikisource() throws {
+        let data = try Data(contentsOf: Self.directory.appendingPathComponent("wikisource.json"))
+        let fixture = try #require(try JSONSerialization.jsonObject(with: data) as? [String: [[String: String]]])
+        for page in fixture["pages"] ?? [] {
+            let html = page["html"] ?? ""
+            #expect(WikisourceParser.lyrics(fromHTML: html) == page["lyrics"], "\(page["name"] ?? "?")")
+            #expect(WikisourceParser.license(fromHTML: html).rawValue == page["license"], "\(page["name"] ?? "?")")
+        }
+        for entry in fixture["authors"] ?? [] {
+            #expect(WikisourceParser.author(fromWikitext: entry["wikitext"] ?? "") == entry["author"])
+        }
+        for entry in fixture["titles"] ?? [] {
+            #expect(OnlineSearchService.shortTitle(fromPageTitle: entry["page"] ?? "") == entry["title"])
+        }
+        for entry in fixture["urls"] ?? [] {
+            #expect(WikisourceParser.pageURL(title: entry["page"] ?? "", language: entry["language"] ?? "").absoluteString == entry["url"])
+        }
+    }
 }
