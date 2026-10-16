@@ -8,6 +8,7 @@ import { DEFAULT_SHORTCUTS } from "../src/core/models.js";
 import { APP_VERSION } from "../src/version.js";
 import { usageEntry, usageCSV, normalizeUsageEntry } from "../src/core/ccli.js";
 import { Store } from "../src/app/store.js";
+import { readHolyricsFile, deserializeMusicRecords, HolyricsError } from "../src/core/holyrics.js";
 import { lyricsFromHTML, licenseFromHTML, authorFromWikitext, shortTitle, pageURL, searchWikisource } from "../src/core/wikisource.js";
 
 test("Wspólne pliki: skróty klawiszowe", async () => {
@@ -181,6 +182,26 @@ test("Wikiźródła: zapytania do API i pominięcie stron bez tekstu (bez sieci)
   equal(results[0].license, "publicDomain");
   ok(urls.every((u) => u.startsWith("https://pl.wikisource.org/w/api.php?") && u.includes("origin=*")));
   equal(await searchWikisource("  ", "pl", fake), []);
+});
+
+test("Wspólne pliki: import Holyrics (.mufl, tekst, XML, uszkodzony strumień)", async () => {
+  const base = new URL("../../shared/fixtures/", import.meta.url);
+  const bytesOf = async (/** @type {string} */ name) => new Uint8Array(await (await fetch(new URL(name, base))).arrayBuffer());
+  const f = await (await fetch(new URL("holyrics.json", base))).json();
+  for (const file of f.files) {
+    const songs = await readHolyricsFile(await bytesOf(file.file), file.file);
+    equal(songs, file.songs.map((/** @type {any} */ s) => ({ title: s.title, author: s.author, key: s.key, tags: s.tags, rawLyrics: s.rawLyrics })), file.file);
+  }
+  for (const name of f.invalidStreams) {
+    let failed = false;
+    try { deserializeMusicRecords(await bytesOf(name)); } catch (error) { failed = error instanceof HolyricsError; }
+    ok(failed, name);
+  }
+  // Zapętlone zagnieżdżenie nie przepełnia stosu (limit głębokości jak w macOS).
+  const nested = new Uint8Array([0xac, 0xed, 0x00, 0x05, ...new Array(200).fill(0x75)]);
+  let deep = false;
+  try { deserializeMusicRecords(nested); } catch (error) { deep = error instanceof HolyricsError; }
+  ok(deep, "głębokie zagnieżdżenie");
 });
 
 test("Informacja o prawach CCLI na slajdzie", () => {

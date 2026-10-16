@@ -15,6 +15,8 @@ import { createBackup, readBackup, backupFileName, BackupError } from "../core/b
 import { stageSource } from "../core/stage.js";
 import { normalizeUsageEntry, usageCSV } from "../core/ccli.js";
 import { loadLogos } from "./logos.js";
+import { readHolyricsFile, HOLYRICS_EXTENSIONS } from "../core/holyrics.js";
+import { searchFold } from "../core/text.js";
 
 await Promise.all([
   loadCatalog(new URL("../../i18n/Localizable.xcstrings", import.meta.url)).catch((error) => console.error("Tłumaczenia:", error)),
@@ -169,9 +171,13 @@ async function importFiles(files) {
   for (const file of Array.from(files)) {
     const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
     const baseName = file.name.replace(/\.[^.]+$/, "");
-    const text = decodeText(new Uint8Array(await file.arrayBuffer()));
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const text = decodeText(bytes);
     try {
-      if (extension === "json") {
+      if (HOLYRICS_EXTENSIONS.has(extension) || extension === "xml") {
+        const songs = await readHolyricsFile(bytes, file.name);
+        if (songs.length) imported.push(...songs.map((song) => createSong(song))); else skipped++;
+      } else if (extension === "json") {
         const data = JSON.parse(text);
         const list = Array.isArray(data) ? data : Array.isArray(data?.songs) ? data.songs : [data];
         imported.push(...list.filter((x) => x && typeof x === "object" && typeof x.title === "string").map(normalizeSong));
@@ -192,8 +198,21 @@ async function importFiles(files) {
       skipped++;
     }
   }
-  if (imported.length) store.addSongs(imported);
-  ui.toast(skipped ? t("Zaimportowano {0} pieśni, pominięto {1} plików.", imported.length, skipped) : t("Zaimportowano {0} pieśni.", imported.length));
+  // Te same pieśni (tytuł i tekst bez znaków diakrytycznych i interpunkcji) już w bibliotece albo dwa razy w imporcie są pomijane.
+  const signature = (/** @type {{title: string, rawLyrics: string}} */ song) => `${searchFold(song.title)}\n${searchFold(song.rawLyrics)}`;
+  const known = new Set(store.songs.map(signature));
+  const unique = imported.filter((song) => {
+    const key = signature(song);
+    if (known.has(key)) return false;
+    known.add(key);
+    return true;
+  });
+  const duplicates = imported.length - unique.length;
+  if (unique.length) store.addSongs(unique);
+  const parts = [t("Zaimportowano {0} pieśni.", unique.length)];
+  if (duplicates) parts.push(t("Pominięto duplikaty: {0}.", duplicates));
+  if (skipped) parts.push(t("Nieczytelne pliki: {0}.", skipped));
+  ui.toast(parts.join(" "));
 }
 
 async function exportBackup() {

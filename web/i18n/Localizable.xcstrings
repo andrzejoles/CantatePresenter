@@ -10305,6 +10305,34 @@
         }
       }
     },
+    "Nieczytelne pliki: {0}.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unreadable files: {0}."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht lesbare Dateien: {0}."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivos ilegibles: {0}."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нечитабельні файли: {0}."
+          }
+        }
+      }
+    },
     "Niedziela - Zestaw pieśni": {
       "localizations": {
         "en": {
@@ -12489,6 +12517,34 @@
         }
       }
     },
+    "Pliki tekstowe (.txt, dowolne kodowanie), JSON z wersji macOS, bazy Holyrics (.mufl, .muf, .hly, XML) oraz pliki z CCLI SongSelect (.txt, .usr, ChordPro .pro). Pieśni, które już są w bibliotece, są pomijane.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text files (.txt, any encoding), JSON from the macOS version, Holyrics libraries (.mufl, .muf, .hly, XML) and CCLI SongSelect files (.txt, .usr, ChordPro .pro). Songs already in the library are skipped."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Textdateien (.txt, beliebige Kodierung), JSON aus der macOS-Version, Holyrics-Bibliotheken (.mufl, .muf, .hly, XML) und Dateien aus CCLI SongSelect (.txt, .usr, ChordPro .pro). Lieder, die schon in der Bibliothek sind, werden übersprungen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivos de texto (.txt, cualquier codificación), JSON de la versión macOS, bibliotecas de Holyrics (.mufl, .muf, .hly, XML) y archivos de CCLI SongSelect (.txt, .usr, ChordPro .pro). Los cantos que ya están en la biblioteca se omiten."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текстові файли (.txt, будь-яке кодування), JSON з версії macOS, бібліотеки Holyrics (.mufl, .muf, .hly, XML) і файли з CCLI SongSelect (.txt, .usr, ChordPro .pro). Пісні, які вже є в бібліотеці, пропускаються."
+          }
+        }
+      }
+    },
     "Po autoryzacji Google OAuth w Ustawieniach, kopie są automatycznie przesyłane do dedykowanego folderu CantatePresenter_Backups w chmurze.": {
       "localizations": {
         "en": {
@@ -12877,6 +12933,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Польська (пісні польською)"
+          }
+        }
+      }
+    },
+    "Pominięto duplikaty: {0}.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicates skipped: {0}."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersprungene Duplikate: {0}."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicados omitidos: {0}."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пропущено дублікатів: {0}."
           }
         }
       }

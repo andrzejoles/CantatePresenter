@@ -3,6 +3,7 @@
 
 Użycie: python3 -I web/tools/ui_check.py [KATALOG_NA_ZRZUTY]
 """
+import base64
 import os
 import socket
 import subprocess
@@ -167,6 +168,29 @@ try:
     browser.wait_for("document.querySelector('dialog[open]') !== null")
     browser.screenshot(os.path.join(out, "3-settings.png"))
     browser.click("dialog .dialog-head button")
+
+    # Import bazy Holyrics (.mufl): trzy pieśni, przy drugim imporcie same duplikaty.
+    with open(os.path.join(ROOT, "shared/fixtures/holyrics-music-list.mufl"), "rb") as source:
+        mufl = base64.b64encode(source.read()).decode()
+    def import_mufl():
+        browser.click(".toolbar button[title='Import/Eksport']")
+        browser.wait_for("document.querySelector('dialog[open] input[type=file]') !== null")
+        browser.evaluate(f"""(() => {{
+          const bytes = Uint8Array.from(atob('{mufl}'), c => c.charCodeAt(0));
+          const transfer = new DataTransfer();
+          transfer.items.add(new File([bytes], 'biblioteka.mufl'));
+          const input = document.querySelector('dialog[open] input[type=file]');
+          input.files = transfer.files;
+          input.dispatchEvent(new Event('change'));
+        }})()""")
+        browser.wait_for("document.querySelector('.toast') !== null")
+        text = browser.evaluate("document.querySelector('.toast').textContent")
+        browser.evaluate("document.querySelectorAll('.toast').forEach(t => t.remove())")
+        return text
+    first = import_mufl()
+    check(f"import .mufl: trzy pieśni ({first})", first.startswith("Zaimportowano 3 pieśni.") and count(".song-row") == 6)
+    second = import_mufl()
+    check(f"import .mufl drugi raz: duplikaty pominięte ({second})", "Pominięto duplikaty: 3." in second and count(".song-row") == 6)
 
     # Konto: zmiana hasła z poziomu aplikacji, potem logowanie nowym hasłem.
     browser.click(".user-chip")
