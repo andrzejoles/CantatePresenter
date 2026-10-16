@@ -98,7 +98,9 @@ public sealed class SlideView : Grid
         if (state.IsBlackScreen) return;
         if (!state.IsLive)
         {
+            Services.Trace("SlideView: plansza");
             stage.Children.Add(Standby(width, height));
+            Services.Trace("SlideView: plansza gotowa");
             return;
         }
         if (state.IsClearText || state.Text.Trim().Length == 0) return;
@@ -232,6 +234,8 @@ public sealed class SlideView : Grid
             await writer.FlushAsync();
             writer.DetachStream();
         }
-        await source.SetSourceAsync(stream);
+        Services.Trace("SVG: wczytywanie");
+        var status = await source.SetSourceAsync(stream);
+        Services.Trace("SVG: " + status);
     }
 }

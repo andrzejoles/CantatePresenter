@@ -117,9 +117,13 @@ public sealed partial class MainWindow : Window
         Grid.SetRow(shortcuts, 3);
         root.Children.Add(shortcuts);
 
+        Services.Trace("BuildUi: układ");
         RenderLeft();
+        Services.Trace("BuildUi: lewy panel");
         RenderMiddle();
+        Services.Trace("BuildUi: środkowy panel");
         RenderRight();
+        Services.Trace("BuildUi: prawy panel");
     }
 
     private static Border Panel(UIElement child) => new()

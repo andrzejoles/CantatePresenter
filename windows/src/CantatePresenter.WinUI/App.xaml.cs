@@ -42,6 +42,14 @@ public static class Services
     /// <summary>Tekst interfejsu: kluczem jest polski tekst (jak L("…") w macOS).</summary>
     public static string L(string key, params object[] args) => Catalog.T(key, args);
 
+    /// <summary>Ślad kroków dla próby w CI (CANTATE_TRACE = plik); bez zmiennej nic nie robi.</summary>
+    public static void Trace(string step)
+    {
+        var path = Environment.GetEnvironmentVariable("CANTATE_TRACE");
+        if (string.IsNullOrEmpty(path)) return;
+        try { File.AppendAllText(path, $"{DateTime.Now:HH:mm:ss.fff} {step}\n"); } catch (IOException) { }
+    }
+
     public static Logo? ActiveLogo => Logos.FirstOrDefault(l => l.Id == Library.Settings.ActiveLogoId) ?? Logos.FirstOrDefault();
 }
 
@@ -79,9 +87,16 @@ public partial class App : Application
         var smokeDirectory = smoke >= 0 && smoke + 1 < arguments.Length ? arguments[smoke + 1] : null;
         try
         {
+            Services.Trace("OnLaunched");
             Services.Start();
+            Services.Trace("Services.Start");
             window = new MainWindow();
+            Services.Trace("new MainWindow");
             window.Activate();
+            Services.Trace("Activate");
+            DebugSettings.BindingFailed += (_, e) => Services.Trace("BindingFailed " + e.Message);
+            DebugSettings.XamlResourceReferenceFailed += (_, e) => Services.Trace("XamlResourceReferenceFailed " + e.Message);
+            window.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () => Services.Trace("pierwsza pętla UI"));
         }
         catch (Exception error) when (smokeDirectory is not null)
         {
