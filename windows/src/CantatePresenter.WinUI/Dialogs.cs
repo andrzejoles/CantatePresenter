@@ -91,7 +91,7 @@ public static class Dialogs
 
     public static async Task EditSongAsync(MainWindow window, Song? song)
     {
-        var library = Library;
+        var library = Services.Library;
         var title = Field(song?.Title ?? "", L("Wpisz tytuł..."));
         var author = Field(song?.Author ?? "");
         var key = Field(song?.Key ?? "", L("np. D, G, Am"));
@@ -164,7 +164,7 @@ public static class Dialogs
 
     public static async Task SettingsAsync(MainWindow window)
     {
-        var library = Library;
+        var library = Services.Library;
         var s = library.Settings;
         var panel = new StackPanel { Spacing = 14, MinWidth = 620 };
 
@@ -293,16 +293,16 @@ public static class Dialogs
     {
         var panel = new StackPanel { Spacing = 8 };
         panel.Children.Add(new TextBlock { Text = "♫ CantatePresenter", FontSize = 22, FontWeight = FontWeights.Bold });
-        panel.Children.Add(new TextBlock { Text = L("Wersja {0}", Version) + " · Windows" });
+        panel.Children.Add(new TextBlock { Text = L("Wersja {0}", Services.Version) + " · Windows" });
         panel.Children.Add(new TextBlock { Text = L("Autor: Andrzej Oles\nOpracowano we współpracy z Claude (Anthropic)"), TextWrapping = TextWrapping.Wrap });
-        panel.Children.Add(new TextBlock { Text = Library.DataDirectory, Opacity = 0.6, FontSize = 12, IsTextSelectionEnabled = true, TextWrapping = TextWrapping.Wrap });
+        panel.Children.Add(new TextBlock { Text = Services.Library.DataDirectory, Opacity = 0.6, FontSize = 12, IsTextSelectionEnabled = true, TextWrapping = TextWrapping.Wrap });
         await ShowAsync(window, new ContentDialog { Title = L("O programie"), Content = panel, CloseButtonText = L("Zamknij") });
     }
 
     /// <summary>Wikiźródła (domena publiczna i wolne licencje) i odnośnik do CCLI SongSelect, jak w macOS.</summary>
     public static async Task OnlineSearchAsync(MainWindow window)
     {
-        var library = Library;
+        var library = Services.Library;
         var query = Field("", L("Wpisz tytuł lub słowa pieśni (np. Kiedy ranne wstają zorze)..."));
         var languageBox = new ComboBox { MinWidth = 140 };
         foreach (var (code, name) in new[] { ("pl", "Polski"), ("en", "English"), ("de", "Deutsch"), ("es", "Español"), ("uk", "Українська"), ("la", "Latina") })
@@ -338,7 +338,7 @@ public static class Dialogs
             results.Items.Clear();
             try
             {
-                found = await Wikisource.SearchAsync(Http, text, language, Version);
+                found = await Wikisource.SearchAsync(Http, text, language, Services.Version);
             }
             catch (Exception error) when (error is HttpRequestException or TaskCanceledException)
             {
