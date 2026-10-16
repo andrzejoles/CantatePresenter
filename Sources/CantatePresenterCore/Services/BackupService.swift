@@ -13,6 +13,8 @@ public struct BackupManifest: Codable {
     public let appLanguage: String
     public let includedFiles: [String]
     public let comment: String?
+    /// Wersja formatu danych w kopii (`DataSchema`); starsze kopie nie mają pola.
+    public var schemaVersion: Int? = DataSchema.current
     
     public init(
         version: String = AppVersion.current,

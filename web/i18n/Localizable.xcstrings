@@ -1513,6 +1513,34 @@
         }
       }
     },
+    "Bibliotekę zapisała nowsza wersja CantatePresenter (format danych {0}, ta wersja obsługuje {1}). Pieśni i plany można wyświetlać, ale zmiany nie będą zapisywane, żeby nie uszkodzić danych. Zaktualizuj aplikację.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The library was saved by a newer version of CantatePresenter (data format {0}, this version supports {1}). Songs and plans can be shown, but changes will not be saved so the data is not damaged. Please update the app."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Bibliothek wurde von einer neueren Version von CantatePresenter gespeichert (Datenformat {0}, diese Version unterstützt {1}). Lieder und Pläne können angezeigt werden, Änderungen werden aber nicht gespeichert, damit die Daten nicht beschädigt werden. Bitte aktualisiere die App."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La biblioteca fue guardada por una versión más reciente de CantatePresenter (formato de datos {0}, esta versión admite {1}). Los cantos y planes se pueden mostrar, pero los cambios no se guardarán para no dañar los datos. Actualiza la aplicación."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Бібліотеку збережено новішою версією CantatePresenter (формат даних {0}, ця версія підтримує {1}). Пісні та плани можна показувати, але зміни не зберігатимуться, щоб не пошкодити дані. Оновіть застосунок."
+          }
+        }
+      }
+    },
     "Brak access_token w odpowiedzi Google": {
       "localizations": {
         "en": {
@@ -3665,6 +3693,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Дані повернуться до стану перед останнім відновленням резервної копії. Дані з відновленої копії буде видалено."
+          }
+        }
+      }
+    },
+    "Dane z nowszej wersji aplikacji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data from a newer version of the app"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten aus einer neueren App-Version"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos de una versión más reciente de la aplicación"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дані з новішої версії застосунку"
           }
         }
       }
@@ -8061,6 +8117,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Копіювати"
+          }
+        }
+      }
+    },
+    "Kopię zapisała nowsza wersja CantatePresenter (format danych {0}, ta wersja obsługuje {1}). Zaktualizuj aplikację przed przywróceniem.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The backup was made by a newer version of CantatePresenter (data format {0}, this version supports {1}). Update the app before restoring."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Sicherung stammt von einer neueren Version von CantatePresenter (Datenformat {0}, diese Version unterstützt {1}). Aktualisiere die App vor der Wiederherstellung."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copia la creó una versión más reciente de CantatePresenter (formato de datos {0}, esta versión admite {1}). Actualiza la aplicación antes de restaurar."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Копію створено новішою версією CantatePresenter (формат даних {0}, ця версія підтримує {1}). Оновіть застосунок перед відновленням."
           }
         }
       }

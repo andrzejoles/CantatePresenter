@@ -70,6 +70,30 @@ class StorageTests(unittest.TestCase):
             with self.assertRaises(PermissionError):
                 storage.save("plans", [], None)
 
+    def test_newer_schema_is_read_only(self):
+        """Dane z nowszej wersji (schemaVersion w settings.json) tylko do odczytu, jak DataSchema w macOS."""
+        with tempfile.TemporaryDirectory() as directory:
+            storage = Storage(directory)
+            storage.save("settings", {"schemaVersion": 1}, None)
+            storage.save("songs", [], None)
+            with open(os.path.join(directory, "settings.json"), "w") as future:
+                json.dump({"schemaVersion": 99, "futureField": 1}, future)
+            snapshot = storage.snapshot()
+            self.assertEqual(snapshot["newerSchema"], 99)
+            self.assertEqual(snapshot["locked"], sorted(["songs", "plans", "settings", "extraFiles"]))
+            with self.assertRaises(PermissionError):
+                storage.save("songs", [{"title": "x"}], None)
+            self.assertEqual(storage.load("songs"), [])
+
+    def test_restore_rejects_newer_schema(self):
+        with tempfile.TemporaryDirectory() as directory:
+            storage = Storage(directory)
+            with self.assertRaises(ValueError):
+                storage.restore({"songs": [], "settings": {"schemaVersion": 99}})
+            self.assertIsNone(storage.load("songs"))
+            storage.restore({"songs": [], "settings": {}})
+            self.assertEqual(storage.load("songs"), [])
+
 
 class Client:
     def __init__(self, port):
