@@ -21,6 +21,7 @@ out = sys.argv[1] if len(sys.argv) > 1 else tempfile.mkdtemp(prefix="cantate-ui-
 os.makedirs(out, exist_ok=True)
 data = tempfile.mkdtemp(prefix="cantate-data-")
 PASSWORD = "haslo-testowe-123"
+NEW_PASSWORD = "nowe-haslo-testowe-456"
 auth.Users(os.path.join(data, "users.json")).add("ala", PASSWORD)
 
 with socket.socket() as s:
@@ -49,12 +50,12 @@ def count(selector):
     return browser.evaluate(f"document.querySelectorAll({selector!r}).length")
 
 
-def login_password():
+def login_password(password=PASSWORD):
     browser.wait_for("document.querySelector('input[name=username]') !== null")
     browser.click("input[name=username]")
     browser.type("ala")
     browser.click("input[name=password]")
-    browser.type(PASSWORD)
+    browser.type(password)
     browser.key("Enter", "Enter", "\r")
 
 
@@ -167,13 +168,23 @@ try:
     browser.screenshot(os.path.join(out, "3-settings.png"))
     browser.click("dialog .dialog-head button")
 
+    # Konto: zmiana hasła z poziomu aplikacji, potem logowanie nowym hasłem.
+    browser.click(".user-chip")
+    browser.wait_for("document.querySelectorAll('dialog[open] input[type=password]').length === 3")
+    browser.evaluate(f"(() => {{ const [c, n, r] = document.querySelectorAll('dialog[open] input[type=password]'); c.value = {PASSWORD!r}; n.value = r.value = {NEW_PASSWORD!r}; }})()")
+    browser.evaluate("[...document.querySelectorAll('dialog[open] button')].find(b => b.textContent === 'Zmień hasło').click()")
+    browser.wait_for("document.querySelector('dialog[open] [role=status]')?.textContent.startsWith('Hasło zmienione')")
+    check("konto: zmiana hasła", True)
+    browser.screenshot(os.path.join(out, "4-account.png"))
+    browser.click("dialog .dialog-head button")
+
     errors = browser.console_errors()
     check(f"bez błędów w konsoli {errors[:3]}", not errors)
 
     browser.click(".toolbar button[title='Wyloguj']")
     browser.wait_for("location.pathname === '/login.html'")
     check("wylogowanie", True)
-    login_password()
+    login_password(NEW_PASSWORD)
     browser.wait_for("document.querySelector('.code-input') !== null")
     check("kolejne logowanie: pytanie o kod (bez ponownej konfiguracji)", browser.evaluate("document.querySelector('.qr') === null"))
 finally:
