@@ -27,9 +27,11 @@ import urllib.parse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import auth  # noqa: E402
+import appversion  # noqa: E402
 from storage import KINDS, MAX_BODY, Conflict, Storage  # noqa: E402
 
 WEB_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+APP_VERSION = appversion.current(os.path.dirname(WEB_ROOT))
 SESSION_IDLE = 12 * 3600
 SESSION_MAX = 7 * 24 * 3600
 PENDING_MAX = 5 * 60
@@ -211,6 +213,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def serve_static(self, path: str):
         relative = urllib.parse.unquote(path).lstrip("/")
+        if relative == "src/version.js":
+            return self.respond(200, appversion.module_source(APP_VERSION), "text/javascript; charset=utf-8", cache=False)
         if any(path.startswith(prefix) for prefix in HIDDEN_PREFIXES) or any(part.startswith(".") for part in relative.split("/")):
             return self.json(404, {"error": "not found"})
         full = os.path.realpath(os.path.join(WEB_ROOT, relative))
