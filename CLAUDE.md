@@ -11,7 +11,7 @@ swift build -c release      # build release (używany przez build_app.sh)
 ./run.sh                    # buduje .app jeśli trzeba i uruchamia
 open CantatePresenter.app   # uruchomienie już zbudowanej aplikacji
 ./build_installer.sh        # PKG + DMG do dist/
-scripts/version.sh          # wersja z liczby commitów (co 10 commitów +0.0.1, co 100 +0.1.0, co 10 000 +1.0.0)
+scripts/version.sh          # wersja: (1 + PR/10).(PR mod 10).(commity od ostatniego scalonego PR)
 xed .                       # otwarcie pakietu w Xcode
 swift test                  # testy (Swift Testing, wymaga pełnego Xcode); to samo robi CI na GitHubie
 gh run list --limit 3       # wyniki CI (gh zalogowane, token z uprawnieniem workflow)
@@ -20,7 +20,7 @@ gh run list --limit 3       # wyniki CI (gh zalogowane, token z uprawnieniem wor
 - `swift run` działa, ale mikrofon/dyktowanie nie mają wtedy uprawnień (brak Info.plist). Do sprawdzania funkcji używaj `./build_app.sh` + `open`.
 - Logowanie Google: `build_app.sh` wbudowuje klienta OAuth (typ „Aplikacja komputerowa”, projekt `CantatePresenter` w Google Cloud Console) z pliku `google-oauth-client.json` w katalogu głównym (albo `$GOOGLE_OAUTH_CLIENT_JSON`) do Info.plist (`CantateGoogleClientID`, `CantateGoogleClientSecret`). Plik jest w `.gitignore`; nigdy go nie commituj ani nie wypisuj jego zawartości. Bez pliku przycisk logowania jest nieaktywny. Aplikacja jest niezweryfikowana: logować mogą się tylko użytkownicy testowi dodani w konsoli (do 100).
 - Próby na kopii danych: `CANTATE_DATA_DIR=/ścieżka/do/kopii CantatePresenter.app/Contents/MacOS/CantatePresenter`. Zmiana `HOME` **nie** przekierowuje Application Support.
-- Numer wersji nie jest nigdzie zapisany ręcznie: `scripts/version.sh` (i `web/server/appversion.py`, ta sama reguła) liczy go z `git rev-list --count HEAD`; numer kompilacji to liczba commitów. Pliku `VERSION` nie ma w repozytorium, a serwery podają `web/src/version.js` same. CI potrzebuje pełnej historii (`fetch-depth: 0`).
+- Numer wersji nie jest nigdzie zapisany ręcznie (decyzja właściciela 2026-10-16): `scripts/version.sh` (i `web/server/appversion.py`, ta sama reguła) liczy scalone PR (commity „Merge pull request #” w historii pierwszego rodzica) i commity od ostatniego z nich: 8 PR + 3 commity = 1.8.3, 10 PR = 2.0.0. PR scalaj zwykłym „Merge pull request” (nie squash), inaczej się nie policzy. Numer kompilacji to liczba wszystkich commitów. Pliku `VERSION` nie ma w repozytorium, a serwery podają `web/src/version.js` same. CI potrzebuje pełnej historii (`fetch-depth: 0`).
 - Nie ma lintera ani formatera w projekcie. Trzymaj się stylu istniejącego kodu.
 
 ## Architektura

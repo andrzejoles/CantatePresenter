@@ -18,11 +18,36 @@ PASSWORD = "dobre-haslo-123"
 
 
 class VersionTests(unittest.TestCase):
-    def test_version_from_commit_count(self):
-        cases = {0: "1.0.0", 9: "1.0.0", 10: "1.0.1", 91: "1.0.9", 100: "1.1.0", 109: "1.1.0", 110: "1.1.1",
-                 999: "1.9.9", 1000: "1.10.0", 9999: "1.99.9", 10000: "2.0.0", 12345: "2.23.4"}
-        for count, version in cases.items():
-            self.assertEqual(appversion.from_count(count), version, count)
+    def test_version_rule(self):
+        cases = {(0, 0): "1.0.0", (0, 7): "1.0.7", (8, 0): "1.8.0", (8, 3): "1.8.3", (9, 12): "1.9.12",
+                 (10, 0): "2.0.0", (19, 1): "2.9.1", (20, 0): "3.0.0"}
+        for (prs, commits), version in cases.items():
+            self.assertEqual(appversion.from_counts(prs, commits), version, (prs, commits))
+
+    def test_counts_pull_request_merges_in_a_repository(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as directory:
+            def git(*args):
+                subprocess.run(["git", "-C", directory, "-c", "user.name=t", "-c", "user.email=t@example.invalid", *args],
+                               check=True, capture_output=True)
+            git("init", "-q", "-b", "main")
+            git("commit", "-q", "--allow-empty", "-m", "start")
+            self.assertEqual(appversion.current(directory), "1.0.1")
+            for number in (1, 2):
+                git("checkout", "-q", "-b", f"feature{number}")
+                git("commit", "-q", "--allow-empty", "-m", f"work {number}")
+                git("checkout", "-q", "main")
+                git("merge", "-q", "--no-ff", f"feature{number}", "-m", f"Merge pull request #{number} from x/feature{number}")
+            self.assertEqual(appversion.current(directory), "1.2.0")
+            git("commit", "-q", "--allow-empty", "-m", "fix")
+            git("commit", "-q", "--allow-empty", "-m", "fix 2")
+            self.assertEqual(appversion.current(directory), "1.2.2")
+            # Zwykłe scalenie (nie PR) nie zwiększa licznika PR.
+            git("checkout", "-q", "-b", "side")
+            git("commit", "-q", "--allow-empty", "-m", "side")
+            git("checkout", "-q", "main")
+            git("merge", "-q", "--no-ff", "side", "-m", "Merge branch side")
+            self.assertEqual(appversion.current(directory), "1.2.3")
 
     def test_same_as_shell_script(self):
         root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
