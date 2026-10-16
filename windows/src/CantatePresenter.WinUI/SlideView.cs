@@ -54,7 +54,6 @@ public sealed class TextMeasurer : ITextMeasurer
 public sealed class SlideView : Grid
 {
     private const double StandbyWidth = 960;
-    private static readonly Dictionary<string, SvgImageSource> LogoCache = [];
     private static readonly List<WeakReference<TextBlock>> Clocks = [];
     private static DispatcherTimer? clockTimer;
     private readonly Viewbox viewbox = new() { Stretch = Stretch.Uniform };
@@ -215,11 +214,10 @@ public sealed class SlideView : Grid
         return new Viewbox { Stretch = Stretch.Uniform, Child = page };
     }
 
+    /// <summary>Nowy obraz dla każdego użycia: jednego źródła obrazu nie można dzielić między oknami (awaria XAML).</summary>
     public static SvgImageSource LogoSource(Logo logo)
     {
-        if (LogoCache.TryGetValue(logo.Id, out var cached)) return cached;
         var source = new SvgImageSource();
-        LogoCache[logo.Id] = source;
         _ = LoadSvgAsync(source, logo.Svg);
         return source;
     }
