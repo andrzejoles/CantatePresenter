@@ -50,6 +50,13 @@ Okno główne programu podzielone jest na 3 intuicyjne strefy:
 * **Ukrycie tekstu (Clear Text)**: Klawisz **`C`** — zachowuje tło/planszę, ukrywając sam tekst pieśni.
 * **Powrót do planszy czuwania**: Przycisk **Stop** (`■`).
 
+### Ekran dla muzyków (chwyty)
+Muzycy widzą bieżący slajd z chwytami nad tekstem i następny slajd:
+* **Na osobnym monitorze**: przycisk **Muzycy** na górnym pasku otwiera okno, które przenosisz na monitor muzyków (pełny ekran zielonym przyciskiem okna).
+* **Na tabletach i telefonach**: w oknie **Pilot** wybierz **Muzycy (chwyty, tylko podgląd)** i daj muzykom zeskanować kod. Ten kod nie pozwala sterować prezentacją.
+
+Każdy ekran ma własną **transpozycję** (np. pod capo) i wielkość czcionki. Gdy chwyty są zapisane tylko przy pierwszej zwrotce, kolejne zwrotki dostają te same chwyty (z dopiskiem „Chwyty jak w: …”). Chwyty dodajesz w edytorze pieśni (zakładka chwytów) albo importem ChordPro.
+
 ### Pilot ze smartfona
 Slajdy można przełączać telefonem (iPhone lub Android), bez instalowania aplikacji:
 1. Kliknij **Pilot** na górnym pasku i włącz przełącznik **Włącz pilota**.

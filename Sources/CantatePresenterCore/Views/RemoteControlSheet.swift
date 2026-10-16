@@ -11,6 +11,7 @@ public struct RemoteControlSheet: View {
     @Bindable var store = DataStore.shared
     @Bindable var server = RemoteControlServer.shared
     @Binding var isPresented: Bool
+    @State private var showsMusicianCode = false
     
     public init(isPresented: Binding<Bool>) {
         self._isPresented = isPresented
@@ -41,7 +42,14 @@ public struct RemoteControlSheet: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
                 if server.isRunning {
-                    if let address = server.address {
+                    Picker("", selection: $showsMusicianCode) {
+                        Text(L("Sterowanie")).tag(false)
+                        Text(L("Muzycy (chwyty, tylko podgląd)")).tag(true)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    
+                    if let address = showsMusicianCode ? server.stageAddress : server.address {
                         if let qr = Self.qrImage(for: address.absoluteString) {
                             Image(nsImage: qr)
                                 .interpolation(.none)
@@ -51,7 +59,9 @@ public struct RemoteControlSheet: View {
                                 .background(Color.white)
                                 .cornerRadius(8)
                         }
-                        Text(L("Zeskanuj kod aparatem telefonu albo wpisz adres w przeglądarce:"))
+                        Text(showsMusicianCode
+                             ? L("Muzycy skanują ten kod: bieżący slajd z chwytami na tablecie lub telefonie, bez sterowania prezentacją.")
+                             : L("Zeskanuj kod aparatem telefonu albo wpisz adres w przeglądarce:"))
                             .font(.scaled(12, scale: scale))
                             .foregroundColor(.secondary)
                         Text(address.absoluteString)
@@ -87,7 +97,7 @@ public struct RemoteControlSheet: View {
             }
             .padding(18)
         }
-        .frame(width: 440, height: 560)
+        .frame(width: 460, height: 620)
     }
     
     static func qrImage(for text: String) -> NSImage? {

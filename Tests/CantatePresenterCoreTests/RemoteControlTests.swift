@@ -58,6 +58,30 @@ struct RemoteHTTPTests {
         #expect(performed == [.black])
     }
 
+    @Test("Token muzyków: tylko podgląd /stage i /api/stage, bez sterowania")
+    func stageToken() throws {
+        let router = RemoteRouter(token: "control", stageToken: "musician")
+        let state = RemoteState(isLive: true, isBlackScreen: false, isClearText: false, songTitle: "T", slideIndex: 0,
+                                slideText: "A", slides: [], planName: "", plan: [], labels: [:])
+        var performed: [RemoteCommand] = []
+        var requestedSemitones: [Int] = []
+        func respond(_ raw: String) throws -> RemoteHTTPResponse {
+            router.response(for: try #require(request(raw)), page: { "control" }, state: { state }, perform: { performed.append($0) },
+                            stagePage: { "stage" }, stageState: { requestedSemitones.append($0); return Data("{}".utf8) })
+        }
+        #expect(try respond("GET /stage?t=musician HTTP/1.1\r\n\r\n").body == Data("stage".utf8))
+        #expect(try respond("GET /api/stage?t=musician&transpose=-3 HTTP/1.1\r\n\r\n").status == 200)
+        #expect(try respond("GET /api/stage?t=musician&transpose=40 HTTP/1.1\r\n\r\n").status == 200)
+        #expect(requestedSemitones == [-3, 11])
+        #expect(try respond("GET /?t=musician HTTP/1.1\r\n\r\n").status == 403)
+        #expect(try respond("GET /api/state?t=musician HTTP/1.1\r\n\r\n").status == 403)
+        let body = #"{"command":"next"}"#
+        #expect(try respond("POST /api/command?t=musician HTTP/1.1\r\nContent-Length: \(body.utf8.count)\r\n\r\n\(body)").status == 403)
+        #expect(performed.isEmpty)
+        #expect(try respond("GET /stage?t=control HTTP/1.1\r\n\r\n").status == 200)
+        #expect(try respond("GET /stage?t=wrong HTTP/1.1\r\n\r\n").status == 403)
+    }
+
     @Test("Token: 128 bitów, bez znaków wymagających kodowania w adresie")
     func token() {
         let token = RemoteRouter.makeToken()
@@ -116,7 +140,7 @@ struct RemoteBridgeTests {
 struct RemoteServerTests {
     @Test("Serwer odpowiada przez prawdziwe połączenie TCP i liczy telefony")
     func serverRoundTrip() async throws {
-        let server = RemoteControlServer(route: { request, token in
+        let server = RemoteControlServer(route: { request, token, _ in
             RemoteRouter(token: token).response(for: request, page: { "page" }, state: {
                 RemoteState(isLive: false, isBlackScreen: false, isClearText: false, songTitle: "Test", slideIndex: 0,
                             slideText: "", slides: [], planName: "", plan: [], labels: [:])
