@@ -523,6 +523,14 @@ public final class DataStore {
         return anchor.flatMap { id in plan.items.firstIndex(where: { $0.songId == id }) }
     }
     
+    /// Pieśń, która zabrzmi po bieżącej według planu (do podglądu dla muzyków), bez zmiany projekcji.
+    public var upcomingSongInPlan: Song? {
+        guard let plan = activePlan, !plan.items.isEmpty else { return nil }
+        let nextIndex = currentPlanIndex(in: plan).map { $0 + 1 } ?? 0
+        guard nextIndex < plan.items.count else { return nil }
+        return songs.first { $0.id == plan.items[nextIndex].songId }
+    }
+    
     public func nextSongInPlan() {
         guard let plan = activePlan, !plan.items.isEmpty else { return }
         guard let currentIndex = currentPlanIndex(in: plan) else {

@@ -158,6 +158,9 @@ public struct AppSettings: Codable, Equatable {
     /// Numer licencji CCLI parafii (CCLI License #), dopisywany do informacji o prawach na slajdzie.
     public var ccliLicenseNumber: String = ""
     public var copyrightNoticePlacement: CopyrightNoticePlacement = .firstSlide
+    /// Ekran dla muzyków na Macu: wielkość czcionki i transpozycja (np. pod capo).
+    public var musicianFontSize: Double = 30
+    public var musicianTranspose: Int = 0
     public var googleDrive: GoogleDriveSettings
     
     public init(
@@ -230,6 +233,8 @@ public struct AppSettings: Codable, Equatable {
         self.activeLogoId = try container.decodeIfPresent(String.self, forKey: .activeLogoId) ?? "light_of_glory"
         self.ccliLicenseNumber = try container.decodeIfPresent(String.self, forKey: .ccliLicenseNumber) ?? ""
         self.copyrightNoticePlacement = try container.decodeIfPresent(CopyrightNoticePlacement.self, forKey: .copyrightNoticePlacement) ?? .firstSlide
+        self.musicianFontSize = min(80, max(14, (try? container.decodeIfPresent(Double.self, forKey: .musicianFontSize)) ?? 30))
+        self.musicianTranspose = ((try? container.decodeIfPresent(Int.self, forKey: .musicianTranspose)) ?? 0) % 12
         self.googleDrive = try container.decodeIfPresent(GoogleDriveSettings.self, forKey: .googleDrive) ?? GoogleDriveSettings()
     }
 }

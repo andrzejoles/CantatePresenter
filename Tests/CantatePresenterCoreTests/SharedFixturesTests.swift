@@ -112,3 +112,21 @@ struct SharedBackupFixtureTests {
         #expect(songs[1].slides.count == 2)
     }
 }
+
+extension SharedFixturesTests {
+    @Test("Chwyty dla muzyków: dopasowanie arkusza do slajdu")
+    func chordSheet() throws {
+        for fixture in try Self.load("chordsheet.json") {
+            let name = fixture["name"] as? String ?? "?"
+            let slide = try #require(fixture["slide"] as? [String: String])
+            let type = try #require(SlideType(rawValue: slide["type"] ?? ""))
+            let result = ChordSheet.lines(for: SongSlide(type: type, label: "x", text: slide["text"] ?? ""),
+                                          sheet: fixture["sheet"] as? String, semitones: fixture["semitones"] as? Int ?? 0)
+            let expected = try #require(fixture["expected"] as? [String: Any])
+            let lines = try #require(expected["lines"] as? [[String: Any]])
+            #expect(result.lines.map(\.text) == lines.map { $0["text"] as? String ?? "" }, "\(name)")
+            #expect(result.lines.map(\.chords) == lines.map { $0["chords"] as? String }, "\(name)")
+            #expect(result.borrowedFrom == expected["borrowedFrom"] as? String, "\(name)")
+        }
+    }
+}
