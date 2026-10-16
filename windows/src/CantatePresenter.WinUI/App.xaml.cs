@@ -91,7 +91,7 @@ public partial class App : Application
             if (Environment.GetEnvironmentVariable("CANTATE_TRACE") is { Length: > 0 })
             {
                 AppDomain.CurrentDomain.FirstChanceException += (_, e) =>
-                    Services.Trace($"wyjątek: {e.Exception.GetType().Name}: {e.Exception.Message}\n{string.Join("\n", (e.Exception.StackTrace ?? Environment.StackTrace).Split('\n').Take(12))}");
+                    Services.Trace($"wyjątek: {e.Exception.GetType().Name}: {e.Exception.Message}\n{string.Join("\n", Environment.StackTrace.Split('\n').Where(l => l.Contains("CantatePresenter") || l.Contains("Microsoft.UI")).Take(14))}");
             }
             Services.Start();
             Services.Trace("Services.Start");
