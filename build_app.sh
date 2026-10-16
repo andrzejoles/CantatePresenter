@@ -100,7 +100,7 @@ else
     echo "=== Logowanie Google: brak $GOOGLE_CLIENT_JSON, przycisk logowania będzie nieaktywny ==="
 fi
 
-# Wersja i numer kompilacji z liczby commitów (scripts/version.sh: co 10 commitów +0.0.1, co 100 +0.1.0)
+# Wersja z historii gita (scripts/version.sh: PR i commity od ostatniego PR), numer kompilacji = liczba commitów
 VERSION="$("$DIR/scripts/version.sh")"
 BUILD_NUMBER="$(git -C "$DIR" rev-list --count HEAD 2>/dev/null || echo 1)"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$CONTENTS_DIR/Info.plist"
