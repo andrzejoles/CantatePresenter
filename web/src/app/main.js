@@ -12,6 +12,7 @@ import { keyboardAction, MAC_KEY_CODES } from "../core/keyboard.js";
 import { decodeText, parseTextSong } from "../core/importText.js";
 import { isSongSelectText, parseText, parseUSR, parseChordPro, CHORDPRO_EXTENSIONS } from "../core/songselect.js";
 import { createBackup, readBackup, backupFileName, BackupError } from "../core/backup.js";
+import { stageSource } from "../core/stage.js";
 
 await loadCatalog(new URL("../../i18n/Localizable.xcstrings", import.meta.url)).catch((error) => console.error("Tłumaczenia:", error));
 
@@ -76,11 +77,35 @@ let targetSize = { width: 1920, height: 1080 };
 function broadcast() {
   if (!ui) return;
   channel.postMessage({ type: "state", state: ui.screenState() });
+  publishStage();
+}
+
+// MARK: - Ekran dla muzyków
+
+let lastStage = "";
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let stageTimer;
+/** Stan dla muzyków: od razu do okien na tym komputerze, z krótkim opóźnieniem na serwer (tablety). */
+function publishStage(force = false) {
+  const source = stageSource(store);
+  const signature = JSON.stringify({ ...source, updatedAt: 0 });
+  if (!force && signature === lastStage) return;
+  lastStage = signature;
+  channel.postMessage({ type: "stage", source });
+  clearTimeout(stageTimer);
+  stageTimer = setTimeout(() => {
+    api.request("/api/live", { method: "POST", body: JSON.stringify(source) }).catch(() => { /* tablety odświeżą się przy następnej zmianie */ });
+  }, 150);
+}
+
+function openMusicians() {
+  window.open(new URL("../../musicians.html", import.meta.url), "cantate-musicians", "popup,width=1100,height=760");
 }
 
 channel.onmessage = (event) => {
   const message = event.data;
   if (message?.type === "hello") broadcast();
+  else if (message?.type === "stage-hello") publishStage(true);
   else if (message?.type === "size" && message.width > 100 && message.height > 100) {
     targetSize = { width: message.width, height: message.height };
     ui.renderRight();
@@ -203,7 +228,7 @@ var ui = new AppUI(store, {
   closeProjector: () => { projector?.close(); projector = null; ui.renderRight(); },
   isProjectorOpen: () => Boolean(projector && !projector.closed),
   targetSize: () => targetSize,
-  importFiles, exportBackup, restoreBackup, undoRestore, exportSongText,
+  importFiles, exportBackup, restoreBackup, undoRestore, exportSongText, openMusicians,
   canUndoRestore: () => undoAvailable,
   user: session.user,
   logout: async () => { await saver.flushAll(); api.logout(); },
@@ -211,6 +236,7 @@ var ui = new AppUI(store, {
 ui.mount(/** @type {HTMLElement} */ (document.getElementById("app")));
 store.subscribe((reason) => {
   if (["live", "settings", "songs", "all"].includes(reason)) broadcast();
+  else if (reason === "plans") publishStage();
   if (reason === "settings") setLanguage(store.settings.appLanguage);
 });
 broadcast();

@@ -1877,6 +1877,34 @@
         }
       }
     },
+    "Brak połączenia z serwerem. Ekran pokaże zmiany po ponownym połączeniu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection to the server. The screen will update once the connection is back."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Verbindung zum Server. Der Bildschirm wird aktualisiert, sobald die Verbindung wieder besteht."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin conexión con el servidor. La pantalla se actualizará cuando vuelva la conexión."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає з'єднання із сервером. Екран оновиться після відновлення з'єднання."
+          }
+        }
+      }
+    },
     "Brak uprawnień do rozpoznawania mowy. Włącz uprawnienia w Ustawieniach systemowych.": {
       "localizations": {
         "en": {
@@ -4841,6 +4869,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Екран для музикантів: поточний слайд з акордами (вікно для окремого монітора)"
+          }
+        }
+      }
+    },
+    "Ekran dla muzyków: chwyty nad tekstem. Na tabletach otwórz {0} i zaloguj się.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musicians' screen: chords above the lyrics. On tablets open {0} and sign in."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildschirm für Musiker: Akkorde über dem Text. Auf Tablets {0} öffnen und anmelden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pantalla para músicos: acordes sobre la letra. En tabletas abre {0} e inicia sesión."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Екран для музикантів: акорди над текстом. На планшетах відкрийте {0} і увійдіть."
           }
         }
       }

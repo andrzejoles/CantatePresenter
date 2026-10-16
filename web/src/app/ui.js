@@ -4,10 +4,11 @@
 import { h, replace } from "./dom.js";
 import { t, LANGUAGES } from "../i18n.js";
 import { songMatches, matchingSnippet, SearchScope } from "../core/text.js";
-import { shortBadge, polishName } from "../core/lyrics.js";
+import { shortBadge } from "../core/lyrics.js";
 import { transpose } from "../core/chords.js";
 import { keyName } from "../core/keyboard.js";
 import { renderScreen } from "./slide.js";
+import { slideLabel } from "./labels.js";
 import { APP_VERSION } from "../version.js";
 
 /**
@@ -18,17 +19,11 @@ import { APP_VERSION } from "../version.js";
  *   targetSize: () => {width: number, height: number},
  *   importFiles: (files: FileList | File[]) => Promise<void>, exportBackup: () => Promise<void>,
  *   restoreBackup: (file: File) => Promise<void>, undoRestore: () => Promise<void>, canUndoRestore: () => boolean,
- *   exportSongText: (song: Song) => void, user: string, logout: () => void,
+ *   exportSongText: (song: Song) => void, user: string, logout: () => void, openMusicians: () => void,
  * }} Actions
  */
 
-/** Etykieta slajdu w języku interfejsu: domyślne („Zwrotka 2”) tłumaczone, własne bez zmian. @param {{type: string, label: string, number?: number}} slide */
-export function slideLabel(slide) {
-  const base = polishName[/** @type {keyof typeof polishName} */ (slide.type)] ?? slide.label;
-  if (slide.label === base) return t(base);
-  if (slide.number !== undefined && slide.label === `${base} ${slide.number}`) return `${t(base)} ${slide.number}`;
-  return slide.label;
-}
+export { slideLabel };
 
 /** Nazwa pieśni do listy; pusta → „Bez tytułu”. @param {Song} song */
 const titleOf = (song) => song.title || t("Bez tytułu");
@@ -101,6 +96,7 @@ export class AppUI {
       h("button", { onclick: () => this.openEditor(null), title: t("Nowa pieśń") }, "＋ ", t("Nowa pieśń")),
       h("button", { onclick: () => store.selectedSong && this.openEditor(store.selectedSong), disabled: !store.selectedSong || store.selectedSong === store.temporarySong, title: t("Edytuj") }, "✎ ", t("Edytuj")),
       h("button", { onclick: () => this.openImportExport(), title: t("Import/Eksport") }, "⇅ ", t("Import/Eksport")),
+      h("button", { onclick: () => this.actions.openMusicians(), title: t("Ekran dla muzyków: chwyty nad tekstem. Na tabletach otwórz {0} i zaloguj się.", `${location.origin}/musicians.html`) }, "🎸 ", t("Muzycy")),
       h("div", { class: "spacer" }),
       h("span", { class: "zoom" }, t("Rozmiar UI"),
         h("button", { onclick: () => zoom(-0.05), title: "−" }, "A−"), `${scale}%`, h("button", { onclick: () => zoom(0.05), title: "+" }, "A+")),
