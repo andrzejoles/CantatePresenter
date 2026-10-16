@@ -93,7 +93,7 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] Nowe instalatory w `dist/` (2026-10-15, wersja 1.0.0, kompilacja 70; `dist/` jest w `.gitignore`).
 
 Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
-- [ ] Przepisanie historii gita: usunięcie `2026-10-14_16-19-00.mufl` i adresu e-mail z dawnych wersji `data/settings.json`.
+- [ ] Przepisanie historii gita (decyzja 2026-10-16: tak): gotowy `scripts/rewrite_history.sh` (świeży klon, `git filter-branch`, kontrola wyniku, kopia `.bundle`; sprawdzony na kopii repozytorium). Uruchamia właściciel po scaleniu wszystkich PR: `scripts/rewrite_history.sh --push` (tryb automatyczny Claude blokuje force-push historii). Potem `.mufl` jest tylko lokalnie (`.gitignore`).
 - [x] Podpis Developer ID i notaryzacja: przygotowane (`CANTATE_SIGN_IDENTITY`, `CANTATE_INSTALLER_IDENTITY`, `CANTATE_NOTARY_PROFILE`, `scripts/notarize.sh`, `Resources/CantatePresenter.entitlements`, `docs/RELEASE.md`); brakuje tylko certyfikatu z płatnego konta Apple Developer.
 - [x] Automatyczne aktualizacje: Sparkle 2.9.6 (`UpdateService`, menu „Sprawdź uaktualnienia…”), kanał `releases/latest/download/appcast.xml`, klucz EdDSA w Pęku kluczy (konto `cantate-presenter`), wydanie `scripts/release.sh` (szkic na GitHubie). Sprawdzone lokalnie: kopia z podpisem ad-hoc zaktualizowała się sama.
 - [ ] Weryfikacja aplikacji w Google (zniesienie limitu 100 testerów i ostrzeżenia przy logowaniu; wymaga m.in. polityki prywatności).
