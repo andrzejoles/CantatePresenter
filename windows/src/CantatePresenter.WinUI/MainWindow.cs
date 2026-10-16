@@ -504,18 +504,13 @@ public sealed partial class MainWindow : Window
         return screen is null ? new Size(1920, 1080) : new Size(screen.Bounds.Width, screen.Bounds.Height);
     }
 
-    /// <summary>Odpina podgląd od poprzedniej ramki, zanim trafi do nowej.</summary>
-    private static SlideView Detached(SlideView view)
-    {
-        if (view.Parent is Border border) border.Child = null;
-        return view;
-    }
+    // Ramki podglądów istnieją przez cały czas życia okna (element może mieć tylko jednego rodzica).
+    private Border? liveFrame;
+    private Border? nextFrame;
 
     private void RenderRight()
     {
         rightPanel.Children.Clear();
-        Detached(livePreview);
-        Detached(nextPreview);
         var target = TargetSize();
         var head = new Grid();
         head.ColumnDefinitions.Add(new ColumnDefinition());
@@ -535,7 +530,9 @@ public sealed partial class MainWindow : Window
         livePreview.Width = width;
         livePreview.Height = width * target.Height / target.Width;
         livePreview.Render(ScreenState.FromLibrary(), target);
-        rightPanel.Children.Add(new Border { Child = livePreview, BorderThickness = new Thickness(2), CornerRadius = new CornerRadius(6), BorderBrush = new SolidColorBrush(library.IsLive ? ColorHelper.FromArgb(255, 0xE5, 0x48, 0x4D) : Colors.Gray) });
+        liveFrame ??= new Border { Child = livePreview, BorderThickness = new Thickness(2), CornerRadius = new CornerRadius(6) };
+        liveFrame.BorderBrush = new SolidColorBrush(library.IsLive ? ColorHelper.FromArgb(255, 0xE5, 0x48, 0x4D) : Colors.Gray);
+        rightPanel.Children.Add(liveFrame);
 
         var controls = new Grid { ColumnSpacing = 8, RowSpacing = 8 };
         controls.ColumnDefinitions.Add(new ColumnDefinition());
@@ -591,7 +588,8 @@ public sealed partial class MainWindow : Window
             nextPreview.Width = width;
             nextPreview.Height = width * target.Height / target.Width;
             nextPreview.Render(ScreenState.FromLibrary(dimmed: true, textOverride: next.Text), target);
-            rightPanel.Children.Add(new Border { Child = nextPreview, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), BorderBrush = new SolidColorBrush(Colors.Gray), Opacity = 0.9 });
+            nextFrame ??= new Border { Child = nextPreview, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), BorderBrush = new SolidColorBrush(Colors.Gray), Opacity = 0.9 };
+            rightPanel.Children.Add(nextFrame);
         }
     }
 
