@@ -27,9 +27,12 @@ import urllib.parse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import auth  # noqa: E402
+import appversion  # noqa: E402
 from storage import KINDS, MAX_BODY, Conflict, Storage  # noqa: E402
 
 WEB_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+APP_VERSION = appversion.current(os.path.dirname(WEB_ROOT))
+MAX_LIVE = 2 * 1024 * 1024
 SESSION_IDLE = 12 * 3600
 SESSION_MAX = 7 * 24 * 3600
 PENDING_MAX = 5 * 60
@@ -43,7 +46,7 @@ PUBLIC_FILES = {
 # Katalogi, których serwer nigdy nie udostępnia (kod serwera, narzędzia, testy).
 HIDDEN_PREFIXES = ("/server/", "/tools/", "/tests/")
 
-CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; "
+CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://*.wikisource.org; "
        "font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
 
 
@@ -59,6 +62,8 @@ class State:
         self.trust_proxy = trust_proxy
         self.lock = threading.Lock()
         self.sessions: dict[str, dict] = {}
+        # Bieżąca projekcja dla ekranów muzyków na innych urządzeniach (tylko w pamięci).
+        self.live_source: dict | None = None
         self.pending: dict[str, dict] = {}
         self.ip_failures: dict[str, list[float]] = {}
 
@@ -71,6 +76,12 @@ class State:
     def ip_failure(self, ip: str):
         with self.lock:
             self.ip_failures.setdefault(ip, []).append(time.time())
+
+    def end_other_sessions(self, user: str, keep: str | None):
+        """Po zmianie hasła lub aplikacji uwierzytelniającej: wylogowanie innych urządzeń."""
+        with self.lock:
+            for token in [t for t, s in self.sessions.items() if s["user"] == user and t != keep]:
+                del self.sessions[token]
 
     def new_session(self, user: str) -> str:
         token = secrets.token_urlsafe(32)
@@ -194,6 +205,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if not self.current_session():
                 return self.json(401, {"error": "unauthorized"})
             return self.json(200, self.state.storage.snapshot())
+        if path == "/api/live":
+            if not self.current_session():
+                return self.json(401, {"error": "unauthorized"})
+            with self.state.lock:
+                return self.json(200, {"source": self.state.live_source})
+        if path == "/api/account":
+            session = self.current_session()
+            if not session:
+                return self.json(401, {"error": "unauthorized"})
+            user = self.state.users.users.get(session["user"], {})
+            return self.json(200, {"user": session["user"], "backupCodesLeft": len(user.get("backupCodes", [])),
+                                   "minPasswordLength": auth.MIN_PASSWORD_LENGTH})
         if path.startswith("/api/"):
             return self.json(404, {"error": "not found"})
         if path in ("/", ""):
@@ -211,6 +234,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def serve_static(self, path: str):
         relative = urllib.parse.unquote(path).lstrip("/")
+        if relative == "src/version.js":
+            return self.respond(200, appversion.module_source(APP_VERSION), "text/javascript; charset=utf-8", cache=False)
         if any(path.startswith(prefix) for prefix in HIDDEN_PREFIXES) or any(part.startswith(".") for part in relative.split("/")):
             return self.json(404, {"error": "not found"})
         full = os.path.realpath(os.path.join(WEB_ROOT, relative))
@@ -247,6 +272,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
         session = self.current_session()
         if not session:
             return self.json(401, {"error": "unauthorized"})
+        if path.startswith("/api/account/"):
+            return self.account(path, body, session)
+        if path == "/api/live":
+            if not isinstance(body, dict) or len(json.dumps(body)) > MAX_LIVE:
+                return self.json(400, {"error": "bad request"})
+            with self.state.lock:
+                self.state.live_source = body
+            return self.json(200, {"ok": True})
         if path == "/api/data/restore":
             return self.restore(body, session)
         if path == "/api/data/undo-restore":
@@ -348,6 +381,51 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return self.json(401, {"error": "invalid code"})
         log(f"skonfigurowano aplikację uwierzytelniającą: {pending['user']!r}")
         self.finish_login(token, pending["user"], {"backupCodes": codes})
+
+    # MARK: - Konto (zmiana hasła i aplikacji uwierzytelniającej)
+
+    def account(self, path, body, session):
+        """Każda zmiana wymaga obecnego hasła; błędne hasło liczy się do blokady jak przy logowaniu."""
+        username = session["user"]
+        body = body if isinstance(body, dict) else {}
+        users = self.state.users
+        if users.is_locked(username) or self.state.ip_blocked(self.client_ip()):
+            return self.json(429, {"error": "locked"})
+        token = self.cookies().get("cantate_session")
+        if path == "/api/account/totp/confirm":
+            secret = session.get("enrollSecret")
+            if not secret or time.time() - session.get("enrollStarted", 0) > PENDING_MAX:
+                return self.json(401, {"error": "start again"})
+            codes = users.enroll_totp(username, secret, str(body.get("code", "")))
+            if codes is None:
+                self.state.ip_failure(self.client_ip())
+                return self.json(401, {"error": "invalid code"})
+            session.pop("enrollSecret", None)
+            self.state.end_other_sessions(username, token)
+            log(f"zmieniono aplikację uwierzytelniającą: {username!r}")
+            return self.json(200, {"backupCodes": codes})
+        if not users.check_password(username, str(body.get("current", ""))):
+            users.record_failure(username)
+            self.state.ip_failure(self.client_ip())
+            log(f"błędne hasło przy zmianie konta: {username!r} z {self.client_ip()}")
+            return self.json(401, {"error": "invalid credentials"})
+        users.record_success(username)
+        if path == "/api/account/password":
+            try:
+                users.set_password(username, str(body.get("new", "")))
+            except ValueError:
+                return self.json(400, {"error": "weak password", "minPasswordLength": auth.MIN_PASSWORD_LENGTH})
+            self.state.end_other_sessions(username, token)
+            log(f"zmieniono hasło: {username!r}")
+            return self.json(200, {"ok": True})
+        if path == "/api/account/totp/start":
+            secret = auth.new_totp_secret()
+            session.update(enrollSecret=secret, enrollStarted=time.time())
+            return self.json(200, {"secret": secret, "uri": auth.otpauth_uri(secret, username)})
+        if path == "/api/account/backup-codes":
+            log(f"nowe kody zapasowe: {username!r}")
+            return self.json(200, {"backupCodes": users.regenerate_backup_codes(username)})
+        return self.json(404, {"error": "not found"})
 
     def restore(self, body, session):
         if not isinstance(body, dict) or not isinstance(body.get("songs"), list):

@@ -76,12 +76,12 @@ class WebSocket:
 
 
 class Browser:
-    def __init__(self, width=1440, height=900):
+    def __init__(self, width=1440, height=900, extra_args=()):
         self.profile = tempfile.mkdtemp(prefix="cantate-cdp-")
         self.process = subprocess.Popen(
             [CHROME, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
              "--remote-debugging-port=0", f"--user-data-dir={self.profile}", f"--window-size={width},{height}",
-             "--hide-scrollbars", "about:blank"],
+             "--hide-scrollbars", *extra_args, "about:blank"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         port_file = os.path.join(self.profile, "DevToolsActivePort")
         for _ in range(200):

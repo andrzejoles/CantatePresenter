@@ -1,11 +1,15 @@
 // @ts-check
 import { test, equal, ok, fixture } from "./harness.js";
-import { normalizeSong, normalizePlan, normalizeSettings, parseDate, createSong, copyrightNotice } from "../src/core/models.js";
+import { normalizeSong, normalizePlan, normalizeSettings, parseDate, createSong, copyrightNotice, SCHEMA_VERSION } from "../src/core/models.js";
 import { createZip, readZip, crc32 } from "../src/core/zip.js";
 import { createBackup, readBackup, backupFileName, BackupError } from "../src/core/backup.js";
 import { keyboardAction, MAC_KEY_CODES } from "../src/core/keyboard.js";
 import { DEFAULT_SHORTCUTS } from "../src/core/models.js";
 import { APP_VERSION } from "../src/version.js";
+import { usageEntry, usageCSV, normalizeUsageEntry } from "../src/core/ccli.js";
+import { Store } from "../src/app/store.js";
+import { readHolyricsFile, deserializeMusicRecords, HolyricsError } from "../src/core/holyrics.js";
+import { lyricsFromHTML, licenseFromHTML, authorFromWikitext, shortTitle, pageURL, searchWikisource } from "../src/core/wikisource.js";
 
 test("Wspólne pliki: skróty klawiszowe", async () => {
   for (const f of await fixture("keyboard.json")) {
@@ -73,7 +77,8 @@ test("Kopia z macOS (ditto) wczytuje się w wersji webowej", async () => {
   equal(backup.settings.copyrightNoticePlacement, "firstSlide");
   equal(backup.settings.shortcuts.nextSlideKey, 121);
   ok(backup.extraFiles?.has("logos/custom.svg"));
-  ok(backup.extraFiles?.has("ccli_usage.json"));
+  ok(!backup.extraFiles?.has("ccli_usage.json"));
+  ok((backup.ccliUsage ?? []).length > 0, "raport CCLI z macOS");
   equal(backup.manifest.deviceName, "Mac");
 });
 
@@ -95,6 +100,108 @@ test("Kopia bez songs.json albo nie-ZIP: czytelny błąd", async () => {
   equal(code, "notArchive");
   try { await readBackup(await createZip([{ path: "x.txt", data: "x" }])); } catch (e) { code = e instanceof BackupError ? e.code : "?"; }
   equal(code, "noSongs");
+});
+
+test("Wersja formatu danych: zapisywana w ustawieniach i manifeście, nowsza kopia odrzucana", async () => {
+  equal(SCHEMA_VERSION, 1);
+  equal(normalizeSettings({}).schemaVersion, SCHEMA_VERSION);
+  const zip = await createBackup({ songs: [], plans: [], settings: normalizeSettings({}) });
+  const files = await readZip(zip);
+  equal(JSON.parse(new TextDecoder().decode(files.get("manifest.json"))).schemaVersion, SCHEMA_VERSION);
+  for (const [name, content] of [["settings.json", '{"schemaVersion":99}'], ["manifest.json", '{"schemaVersion":5}']]) {
+    let code = "";
+    try {
+      await readBackup(await createZip([{ path: "songs.json", data: "[]" }, { path: name, data: content }]));
+    } catch (e) { code = e instanceof BackupError ? e.code : "?"; }
+    equal(code, "newerSchema", name);
+  }
+});
+
+test("Raport CCLI: raz na pieśń dziennie, CSV jak w macOS, wpisy z macOS", () => {
+  const song = { title: "Pieśń, \"cytat\"", author: "Autor", ccliNumber: " 123 ", copyright: "© 2020" };
+  const day = new Date(2026, 9, 18, 10, 0);
+  const first = usageEntry(song, day, []);
+  ok(first && first.ccliNumber === "123");
+  equal(usageEntry(song, new Date(2026, 9, 18, 19, 0), [/** @type {any} */ (first)]), null);
+  ok(usageEntry(song, new Date(2026, 9, 25, 10, 0), [/** @type {any} */ (first)]));
+  equal(usageEntry({ title: "Bez", author: "" }, day, []), null);
+  equal(usageCSV([/** @type {any} */ (first)]), 'Date,Title,Authors,CCLI Song Number,Copyright\r\n2026-10-18,"Pieśń, ""cytat""",Autor,123,© 2020\r\n');
+  const fromMac = normalizeUsageEntry({ id: "6f1c5a39-2b5e-4f0b-9c55-111111111111", date: "2026-10-15T08:30:00Z", title: "A", author: "B", ccliNumber: 7 });
+  equal(fromMac.ccliNumber, "7");
+  equal(fromMac.id, "6F1C5A39-2B5E-4F0B-9C55-111111111111");
+
+  /** @type {any[]} */
+  const saved = [];
+  const store = new Store({ songs: [], persist: (kind, value) => saved.push([kind, value]) });
+  const added = store.addSong({ title: "S", rawLyrics: "x" });
+  store.updateSong({ ...added, ccliNumber: "55" });
+  store.present(/** @type {any} */ (store.songs[0]));
+  store.present(/** @type {any} */ (store.songs[0]));
+  equal(store.ccliUsage.length, 1);
+  equal(saved.filter(([kind]) => kind === "ccliUsage").length, 1);
+});
+
+test("Kopia: raport CCLI w ccli_usage.json w obie strony", async () => {
+  const entry = normalizeUsageEntry({ date: "2026-10-15T08:30:00Z", title: "A", author: "B", ccliNumber: "1" });
+  const zip = await createBackup({ songs: [], plans: [], settings: normalizeSettings({}), ccliUsage: [entry] });
+  const back = await readBackup(zip);
+  equal(back.ccliUsage, [entry]);
+  ok(!back.extraFiles?.has("ccli_usage.json"));
+});
+
+test("Wspólne pliki: Wikiźródła (tekst, licencja, autor, tytuł, adres)", async () => {
+  const response = await fetch(new URL("../../shared/fixtures/wikisource.json", import.meta.url));
+  const f = await response.json();
+  for (const page of f.pages) {
+    equal(lyricsFromHTML(page.html), page.lyrics, page.name);
+    equal(licenseFromHTML(page.html), page.license, page.name);
+  }
+  for (const a of f.authors) equal(authorFromWikitext(a.wikitext), a.author);
+  for (const x of f.titles) equal(shortTitle(x.page), x.title);
+  for (const u of f.urls) equal(pageURL(u.page, u.language), u.url);
+});
+
+test("Wikiźródła: zapytania do API i pominięcie stron bez tekstu (bez sieci)", async () => {
+  const f = await (await fetch(new URL("../../shared/fixtures/wikisource.json", import.meta.url))).json();
+  /** @type {string[]} */
+  const urls = [];
+  /** @type {any} */
+  const fake = async (/** @type {string} */ url) => {
+    urls.push(url);
+    const params = new URL(url).searchParams;
+    const body = params.get("list") === "search"
+      ? { query: { search: [{ title: "Śpiewnik kościelny/Boże z twoich rąk żyjemy" }, { title: "Ujednoznacznienie" }] } }
+      : params.get("page") === "Ujednoznacznienie" ? { parse: { text: f.pages[1].html } }
+      : { parse: { text: f.pages[0].html, wikitext: f.authors[0].wikitext } };
+    return { ok: true, json: async () => body };
+  };
+  const results = await searchWikisource(" Boże z twoich rąk ", "pl", fake);
+  equal(results.length, 1);
+  equal(results[0].title, "Boże z twoich rąk żyjemy");
+  equal(results[0].author, "Franciszek Karpiński");
+  equal(results[0].license, "publicDomain");
+  ok(urls.every((u) => u.startsWith("https://pl.wikisource.org/w/api.php?") && u.includes("origin=*")));
+  equal(await searchWikisource("  ", "pl", fake), []);
+});
+
+test("Wspólne pliki: import Holyrics (.mufl, tekst, XML, uszkodzony strumień)", async () => {
+  const base = new URL("../../shared/fixtures/", import.meta.url);
+  const bytesOf = async (/** @type {string} */ name) => new Uint8Array(await (await fetch(new URL(name, base))).arrayBuffer());
+  const f = await (await fetch(new URL("holyrics.json", base))).json();
+  for (const file of f.files) {
+    const songs = await readHolyricsFile(await bytesOf(file.file), file.file);
+    equal(songs, file.songs.map((/** @type {any} */ s) => ({ title: s.title, author: s.author, key: s.key, tags: s.tags, rawLyrics: s.rawLyrics })), file.file);
+  }
+  for (const name of f.invalidStreams) {
+    let failed = false;
+    try { deserializeMusicRecords(await bytesOf(name)); } catch (error) { failed = error instanceof HolyricsError; }
+    ok(failed, name);
+  }
+  // Zapętlone zagnieżdżenie nie przepełnia stosu (limit głębokości jak w macOS).
+  const nested = new Uint8Array([0xac, 0xed, 0x00, 0x05, ...new Array(200).fill(0x75)]);
+  let deep = false;
+  try { deserializeMusicRecords(nested); } catch (error) { deep = error instanceof HolyricsError; }
+  ok(deep, "głębokie zagnieżdżenie");
 });
 
 test("Informacja o prawach CCLI na slajdzie", () => {

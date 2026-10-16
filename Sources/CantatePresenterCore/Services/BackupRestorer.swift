@@ -22,6 +22,7 @@ public struct BackupRestorer {
         case invalidFile(String, Error)
         case unzipFailed(Int32)
         case nothingToUndo
+        case newerSchema(Int)
 
         public var errorDescription: String? {
             switch self {
@@ -33,6 +34,8 @@ public struct BackupRestorer {
                 return Lnow("Błąd rozpakowywania archiwum kopii zapasowej (kod ditto: {0}).", status)
             case .nothingToUndo:
                 return Lnow("Brak poprzedniego stanu do przywrócenia.")
+            case .newerSchema(let version):
+                return Lnow("Kopię zapisała nowsza wersja CantatePresenter (format danych {0}, ta wersja obsługuje {1}). Zaktualizuj aplikację przed przywróceniem.", version, DataSchema.current)
             }
         }
     }
@@ -121,6 +124,12 @@ public struct BackupRestorer {
                 return try decoder.decode(type, from: Data(contentsOf: url))
             } catch {
                 throw RestoreError.invalidFile(name, error)
+            }
+        }
+        // Kopia z nowszej aplikacji: pola, których ta wersja nie zna, zginęłyby przy pierwszym zapisie.
+        for name in ["manifest.json", "settings.json"] {
+            if let version = DataSchema.version(ofSettingsAt: contentRoot.appendingPathComponent(name)), version > DataSchema.current {
+                throw RestoreError.newerSchema(version)
             }
         }
         guard let songs = try decode([Song].self, "songs.json") else {

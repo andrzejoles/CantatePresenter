@@ -1,0 +1,25 @@
+/* Obraz ekranu projekcji: okno projekcji i podglądy w oknie głównym (slide.js). */
+.screen { position: relative; overflow: hidden; }
+.stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.slide-text { position: absolute; inset: 0; display: flex; flex-direction: column; box-sizing: border-box; }
+.slide-notice { position: absolute; left: 0; right: 0; text-align: center; opacity: 0.75; font-family: -apple-system, "Segoe UI", sans-serif; }
+
+/* Plansza startowa jak w macOS (data/standby.html): projekt na szerokość 960 px, powiększany do ekranu. */
+.standby { position: absolute; left: 0; top: 0; width: 960px; transform-origin: 0 0; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  color: #fff; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", sans-serif; user-select: none;
+  background: radial-gradient(circle at 50% 40%, #1e2640 0%, #0d111d 70%, #07090e 100%); }
+.standby .ambient-glow { position: absolute; width: 450px; height: 450px; border-radius: 50%; filter: blur(50px); z-index: 1;
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.22) 0%, rgba(6, 182, 212, 0.12) 50%, transparent 75%); animation: standby-glow 6s ease-in-out infinite alternate; }
+@keyframes standby-glow { 0% { transform: scale(0.9); opacity: 0.6; } 100% { transform: scale(1.15); opacity: 1; } }
+.standby .container { z-index: 2; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 40px; }
+.standby .logo-wrapper { width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; filter: drop-shadow(0 12px 30px rgba(79, 70, 229, 0.4)); }
+.standby .logo-wrapper img { width: 100%; height: 100%; object-fit: contain; }
+.standby .app-title { font-size: 51px; font-weight: 700; letter-spacing: -0.03em; margin: 0; line-height: 1.1;
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 60%, #94a3b8 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.standby .version-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 30px; padding: 6px 16px; font-size: 14px; color: #94a3b8; font-weight: 500; letter-spacing: 0.02em; margin-top: 6px; }
+.standby .version-badge .dot { width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; animation: standby-dot 2s infinite; }
+@keyframes standby-dot { 0% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.7; } }
+.standby .footer-status { position: absolute; bottom: 35px; display: flex; flex-direction: column; align-items: center; gap: 8px; color: rgba(255, 255, 255, 0.45); font-size: 15px; letter-spacing: 0.05em; z-index: 2; }
+.standby .live-clock { font-size: 20px; font-weight: 600; color: rgba(255, 255, 255, 0.85); font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
+.standby .credits { position: absolute; bottom: 10px; font-size: 11px; color: rgba(255, 255, 255, 0.35); z-index: 2; }

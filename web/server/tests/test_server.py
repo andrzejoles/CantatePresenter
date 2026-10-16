@@ -9,11 +9,59 @@ import time
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import appversion  # noqa: E402
 import auth  # noqa: E402
 import server  # noqa: E402
-from storage import Conflict, Storage  # noqa: E402
+from storage import KINDS, Conflict, Storage  # noqa: E402
 
 PASSWORD = "dobre-haslo-123"
+
+
+class VersionTests(unittest.TestCase):
+    def test_version_rule(self):
+        cases = {(0, 0): "1.0.0", (0, 7): "1.0.7", (8, 0): "1.8.0", (8, 3): "1.8.3", (9, 12): "1.9.12",
+                 (10, 0): "2.0.0", (19, 1): "2.9.1", (20, 0): "3.0.0"}
+        for (prs, commits), version in cases.items():
+            self.assertEqual(appversion.from_counts(prs, commits), version, (prs, commits))
+
+    def test_counts_pull_request_merges_in_a_repository(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as directory:
+            def git(*args):
+                subprocess.run(["git", "-C", directory, "-c", "user.name=t", "-c", "user.email=t@example.invalid", *args],
+                               check=True, capture_output=True)
+            git("init", "-q", "-b", "main")
+            git("commit", "-q", "--allow-empty", "-m", "start")
+            self.assertEqual(appversion.current(directory), "1.0.1")
+            for number in (1, 2):
+                git("checkout", "-q", "-b", f"feature{number}")
+                git("commit", "-q", "--allow-empty", "-m", f"work {number}")
+                git("checkout", "-q", "main")
+                git("merge", "-q", "--no-ff", f"feature{number}", "-m", f"Merge pull request #{number} from x/feature{number}")
+            self.assertEqual(appversion.current(directory), "1.2.0")
+            git("commit", "-q", "--allow-empty", "-m", "fix")
+            git("commit", "-q", "--allow-empty", "-m", "fix 2")
+            self.assertEqual(appversion.current(directory), "1.2.2")
+            # Zwykłe scalenie (nie PR) nie zwiększa licznika PR.
+            git("checkout", "-q", "-b", "side")
+            git("commit", "-q", "--allow-empty", "-m", "side")
+            git("checkout", "-q", "main")
+            git("merge", "-q", "--no-ff", "side", "-m", "Merge branch side")
+            self.assertEqual(appversion.current(directory), "1.2.3")
+
+    def test_same_as_shell_script(self):
+        root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        import subprocess
+        script = subprocess.run([os.path.join(root, "scripts", "version.sh")], capture_output=True, text=True, check=True)
+        self.assertEqual(script.stdout.strip(), appversion.current(root))
+
+    def test_fallback_without_git(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertEqual(appversion.current(directory), "dev")
+            os.makedirs(os.path.join(directory, "web"))
+            with open(os.path.join(directory, "web", "VERSION"), "w") as target:
+                target.write("1.2.3\n")
+            self.assertEqual(appversion.current(directory), "1.2.3")
 
 
 class AuthTests(unittest.TestCase):
@@ -69,6 +117,30 @@ class StorageTests(unittest.TestCase):
             self.assertTrue(any(name.startswith("plans.corrupt-") for name in os.listdir(directory)))
             with self.assertRaises(PermissionError):
                 storage.save("plans", [], None)
+
+    def test_newer_schema_is_read_only(self):
+        """Dane z nowszej wersji (schemaVersion w settings.json) tylko do odczytu, jak DataSchema w macOS."""
+        with tempfile.TemporaryDirectory() as directory:
+            storage = Storage(directory)
+            storage.save("settings", {"schemaVersion": 1}, None)
+            storage.save("songs", [], None)
+            with open(os.path.join(directory, "settings.json"), "w") as future:
+                json.dump({"schemaVersion": 99, "futureField": 1}, future)
+            snapshot = storage.snapshot()
+            self.assertEqual(snapshot["newerSchema"], 99)
+            self.assertEqual(snapshot["locked"], sorted(KINDS))
+            with self.assertRaises(PermissionError):
+                storage.save("songs", [{"title": "x"}], None)
+            self.assertEqual(storage.load("songs"), [])
+
+    def test_restore_rejects_newer_schema(self):
+        with tempfile.TemporaryDirectory() as directory:
+            storage = Storage(directory)
+            with self.assertRaises(ValueError):
+                storage.restore({"songs": [], "settings": {"schemaVersion": 99}})
+            self.assertIsNone(storage.load("songs"))
+            storage.restore({"songs": [], "settings": {}})
+            self.assertEqual(storage.load("songs"), [])
 
 
 class Client:
@@ -167,6 +239,66 @@ class ServerTests(unittest.TestCase):
         third = Client(self.port)
         third.request("POST", "/api/login", {"username": "ala", "password": PASSWORD})
         self.assertEqual(third.request("POST", "/api/login/totp", {"code": codes[0]})[0], 401, "kod zapasowy drugi raz")
+
+    def test_account_password_and_second_factor(self):
+        """Zmiana hasła i aplikacji uwierzytelniającej z poziomu aplikacji: obecne hasło, CSRF, inne sesje wylogowane."""
+        client = Client(self.port)
+        secret, codes = self.login(client)
+        other = Client(self.port)
+        other.request("POST", "/api/login", {"username": "ala", "password": PASSWORD})
+        self.assertEqual(other.request("POST", "/api/login/totp", {"code": codes[1]})[0], 200)
+        self.assertEqual(other.request("GET", "/api/data")[0], 200)
+
+        status, reply, _ = client.request("GET", "/api/account")
+        self.assertEqual((status, reply["user"], reply["backupCodesLeft"]), (200, "ala", 7))
+        new_password = "nowe-haslo-456"
+        self.assertEqual(client.request("POST", "/api/account/password", {"current": PASSWORD, "new": new_password}, csrf=False)[0], 403)
+        self.assertEqual(client.request("POST", "/api/account/password", {"current": "zle-haslo-000", "new": new_password})[0], 401)
+        self.assertEqual(client.request("POST", "/api/account/password", {"current": PASSWORD, "new": "krotkie"})[0], 400)
+        self.assertEqual(client.request("POST", "/api/account/password", {"current": PASSWORD, "new": new_password})[0], 200)
+        self.assertEqual(client.request("GET", "/api/data")[0], 200, "bieżąca sesja zostaje")
+        self.assertEqual(other.request("GET", "/api/data")[0], 401, "inne sesje wylogowane")
+        self.assertEqual(Client(self.port).request("POST", "/api/login", {"username": "ala", "password": PASSWORD})[0], 401)
+
+        # Nowa aplikacja uwierzytelniająca: hasło, potem kod z nowego sekretu; stary sekret przestaje działać.
+        self.assertEqual(client.request("POST", "/api/account/totp/start", {"current": PASSWORD})[0], 401)
+        status, started, _ = client.request("POST", "/api/account/totp/start", {"current": new_password})
+        self.assertEqual(status, 200)
+        self.assertNotEqual(started["secret"], secret)
+        self.assertEqual(client.request("POST", "/api/account/totp/confirm", {"code": "000000"})[0], 401)
+        status, confirmed, _ = client.request("POST", "/api/account/totp/confirm", {"code": auth.totp(started["secret"], auth.totp_counter())})
+        self.assertEqual((status, len(confirmed["backupCodes"])), (200, 8))
+        third = Client(self.port)
+        third.request("POST", "/api/login", {"username": "ala", "password": new_password})
+        self.assertEqual(third.request("POST", "/api/login/totp", {"code": codes[2]})[0], 401, "stare kody zapasowe nieważne")
+        self.assertEqual(third.request("POST", "/api/login/totp", {"code": confirmed["backupCodes"][0]})[0], 200)
+
+        # Nowe kody zapasowe tylko z hasłem.
+        self.assertEqual(client.request("POST", "/api/account/backup-codes", {"current": "zle-haslo-000"})[0], 401)
+        status, regenerated, _ = client.request("POST", "/api/account/backup-codes", {"current": new_password})
+        self.assertEqual((status, len(regenerated["backupCodes"])), (200, 8))
+        self.assertEqual(client.request("GET", "/api/account")[1]["backupCodesLeft"], 8)
+
+    def test_account_requires_session(self):
+        anonymous = Client(self.port)
+        self.assertEqual(anonymous.request("GET", "/api/account")[0], 401)
+        self.assertEqual(anonymous.request("POST", "/api/account/password", {"current": PASSWORD, "new": "nowe-haslo-456"})[0], 401)
+
+    def test_live_stage_relay(self):
+        """Stan dla ekranu muzyków: tylko po zalogowaniu, z CSRF, ograniczony rozmiar."""
+        anonymous = Client(self.port)
+        self.assertEqual(anonymous.request("GET", "/api/live")[0], 401)
+        self.assertEqual(anonymous.request("POST", "/api/live", {"updatedAt": 1})[0], 401)
+        client = Client(self.port)
+        self.login(client)
+        status, reply, _ = client.request("GET", "/api/live")
+        self.assertEqual((status, reply), (200, {"source": None}))
+        source = {"updatedAt": 5, "isLive": True, "song": {"title": "A", "slides": []}, "slideIndex": 0}
+        self.assertEqual(client.request("POST", "/api/live", source, csrf=False)[0], 403)
+        self.assertEqual(client.request("POST", "/api/live", source)[0], 200)
+        self.assertEqual(client.request("GET", "/api/live")[1], {"source": source})
+        self.assertEqual(client.request("POST", "/api/live", ["nie", "obiekt"])[0], 400)
+        self.assertEqual(client.request("POST", "/api/live", {"pad": "x" * 3_000_000})[0], 400)
 
     def test_wrong_password_and_lockout(self):
         client = Client(self.port)

@@ -162,6 +162,8 @@ public struct AppSettings: Codable, Equatable {
     public var musicianFontSize: Double = 30
     public var musicianTranspose: Int = 0
     public var googleDrive: GoogleDriveSettings
+    /// Wersja formatu katalogu danych (`DataSchema`); stare pliki bez pola mają 0.
+    public var schemaVersion: Int = DataSchema.current
     
     public init(
         selectedScreenIndex: Int = 1,
@@ -236,6 +238,7 @@ public struct AppSettings: Codable, Equatable {
         self.musicianFontSize = min(80, max(14, (try? container.decodeIfPresent(Double.self, forKey: .musicianFontSize)) ?? 30))
         self.musicianTranspose = ((try? container.decodeIfPresent(Int.self, forKey: .musicianTranspose)) ?? 0) % 12
         self.googleDrive = try container.decodeIfPresent(GoogleDriveSettings.self, forKey: .googleDrive) ?? GoogleDriveSettings()
+        self.schemaVersion = (try? container.decodeIfPresent(Int.self, forKey: .schemaVersion)) ?? 0
     }
 }
 

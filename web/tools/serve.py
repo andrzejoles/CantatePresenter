@@ -15,6 +15,10 @@ import sys
 from functools import partial
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(ROOT, "web", "server"))
+import appversion  # noqa: E402
+
+APP_VERSION = appversion.current(ROOT)
 ALLOWED = ("web/", "shared/")
 ALLOWED_FILES = ("VERSION",)
 RESULT_FILE = None
@@ -36,6 +40,20 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if not (relative.startswith(ALLOWED) or relative in ALLOWED_FILES):
             return os.path.join(ROOT, ".forbidden-path")
         return super().translate_path(path)
+
+    def do_GET(self):
+        # Wersja liczona z commitów zamiast plików z repozytorium (VERSION nie jest śledzony przez git).
+        relative = self.path.split("?", 1)[0].lstrip("/")
+        generated = {"VERSION": (APP_VERSION + "\n").encode(), "web/src/version.js": appversion.module_source(APP_VERSION)}
+        if relative in generated:
+            body = generated[relative]
+            self.send_response(200)
+            self.send_header("Content-Type", "text/javascript" if relative.endswith(".js") else "text/plain")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        super().do_GET()
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-store")

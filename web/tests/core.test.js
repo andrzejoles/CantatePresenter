@@ -3,6 +3,7 @@ import { test, equal, ok, fixture } from "./harness.js";
 import { parseLyrics, slideTypeFrom } from "../src/core/lyrics.js";
 import { foldString, searchFold, songMatches, matchingSnippet, SearchScope } from "../src/core/text.js";
 import { transpose, isChordLine } from "../src/core/chords.js";
+import { linesForSlide, splitConcatenatedChords } from "../src/core/chordsheet.js";
 
 test("Wspólne pliki: podział na slajdy", async () => {
   for (const f of await fixture("lyrics.json")) {
@@ -21,6 +22,15 @@ test("Wspólne pliki: transpozycja", async () => {
   for (const f of await fixture("transpose.json")) {
     equal(transpose(f.sheet, f.semitones), f.expected, f.sheet);
   }
+});
+
+test("Wspólne pliki: chwyty dla muzyków", async () => {
+  for (const f of await fixture("chordsheet.json")) {
+    const result = linesForSlide(f.slide, f.sheet, f.semitones ?? 0);
+    equal(result, { lines: f.expected.lines.map((/** @type {any} */ l) => ({ chords: l.chords ?? null, text: l.text })), borrowedFrom: f.expected.borrowedFrom ?? null }, f.name);
+  }
+  equal(splitConcatenatedChords("Afis"), ["A", "fis"]);
+  equal(splitConcatenatedChords("Ala"), null);
 });
 
 test("Typy slajdów: kody, stare polskie nazwy, nieznane jako custom", () => {

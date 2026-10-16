@@ -1,6 +1,6 @@
 # CantatePresenter
 
-Natywna aplikacja macOS (Apple Silicon, macOS 14+) do projekcji tekstów pieśni na projektorze lub drugim ekranie. SwiftUI + AppKit, Swift Package Manager, **zero zależności zewnętrznych**. Interfejs i dokumentacja użytkownika są po polsku.
+Natywna aplikacja macOS (Apple Silicon, macOS 14+) do projekcji tekstów pieśni na projektorze lub drugim ekranie. SwiftUI + AppKit, Swift Package Manager. Jedyna zależność: **Sparkle** (automatyczne aktualizacje, wersja przypięta w `Package.swift`, decyzja właściciela 2026-10-16). Interfejs i dokumentacja użytkownika są po polsku.
 
 ## Komendy
 
@@ -11,6 +11,7 @@ swift build -c release      # build release (używany przez build_app.sh)
 ./run.sh                    # buduje .app jeśli trzeba i uruchamia
 open CantatePresenter.app   # uruchomienie już zbudowanej aplikacji
 ./build_installer.sh        # PKG + DMG do dist/
+scripts/version.sh          # wersja: (1 + PR/10).(PR mod 10).(commity od ostatniego scalonego PR)
 xed .                       # otwarcie pakietu w Xcode
 swift test                  # testy (Swift Testing, wymaga pełnego Xcode); to samo robi CI na GitHubie
 gh run list --limit 3       # wyniki CI (gh zalogowane, token z uprawnieniem workflow)
@@ -19,6 +20,7 @@ gh run list --limit 3       # wyniki CI (gh zalogowane, token z uprawnieniem wor
 - `swift run` działa, ale mikrofon/dyktowanie nie mają wtedy uprawnień (brak Info.plist). Do sprawdzania funkcji używaj `./build_app.sh` + `open`.
 - Logowanie Google: `build_app.sh` wbudowuje klienta OAuth (typ „Aplikacja komputerowa”, projekt `CantatePresenter` w Google Cloud Console) z pliku `google-oauth-client.json` w katalogu głównym (albo `$GOOGLE_OAUTH_CLIENT_JSON`) do Info.plist (`CantateGoogleClientID`, `CantateGoogleClientSecret`). Plik jest w `.gitignore`; nigdy go nie commituj ani nie wypisuj jego zawartości. Bez pliku przycisk logowania jest nieaktywny. Aplikacja jest niezweryfikowana: logować mogą się tylko użytkownicy testowi dodani w konsoli (do 100).
 - Próby na kopii danych: `CANTATE_DATA_DIR=/ścieżka/do/kopii CantatePresenter.app/Contents/MacOS/CantatePresenter`. Zmiana `HOME` **nie** przekierowuje Application Support.
+- Numer wersji nie jest nigdzie zapisany ręcznie (decyzja właściciela 2026-10-16): `scripts/version.sh` (i `web/server/appversion.py`, ta sama reguła) liczy scalone PR (commity „Merge pull request #” w historii pierwszego rodzica) i commity od ostatniego z nich: 8 PR + 3 commity = 1.8.3, 10 PR = 2.0.0. PR scalaj zwykłym „Merge pull request” (nie squash), inaczej się nie policzy. Numer kompilacji to liczba wszystkich commitów. Pliku `VERSION` nie ma w repozytorium, a serwery podają `web/src/version.js` same. CI potrzebuje pełnej historii (`fetch-depth: 0`).
 - Nie ma lintera ani formatera w projekcie. Trzymaj się stylu istniejącego kodu.
 
 ## Architektura
@@ -48,6 +50,8 @@ Kluczowe elementy:
 Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `ccli_usage.json`, `standby.html`, `logos/`, `templates/`, `history/` (5 ostatnich wersji przed zapisem, K1).
 
 Przy pierwszym uruchomieniu, gdy w Application Support nie ma `songs.json`/`plans.json`/`settings.json`, dane są **kopiowane** ze starej lokalizacji (`data/` obok pakietu .app, a przy `swift run` z bieżącego katalogu). Stary katalog zostaje. Jeśli kopiowanie się nie uda, aplikacja w tej sesji używa starego katalogu i pokazuje alert.
+
+Wersja formatu (`DataSchema`, obecnie 1): pole `schemaVersion` w `settings.json` i w `manifest.json` kopii; `songs.json` i `plans.json` zostają tablicami. Brak pola = 0 (ten sam format), migracja w `DataSchema.migrate`. Dane lub kopia z nowszą wersją: tylko odczyt (`PersistenceIssue.newerSchema`), przywracanie odrzucone. Tak samo w wersji webowej (`SCHEMA_VERSION` w `storage.py` i `models.js`). Zmiana formatu = nowy numer + krok migracji we wszystkich wersjach.
 
 Odczyt i zapis JSON tylko przez `JSONFileStore` (K1): nieczytelny plik nie jest nadpisywany, trafia do `<nazwa>.corrupt-<data>.json`, a zapis do niego jest zablokowany do udanego wczytania.
 
@@ -89,18 +93,19 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] Nowe instalatory w `dist/` (2026-10-15, wersja 1.0.0, kompilacja 70; `dist/` jest w `.gitignore`).
 
 Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
-- [ ] Przepisanie historii gita: usunięcie `2026-10-14_16-19-00.mufl` i adresu e-mail z dawnych wersji `data/settings.json`.
-- [ ] Podpis Developer ID i notaryzacja (płatne konto Apple Developer).
-- [ ] Automatyczne aktualizacje (Sparkle, nowa zależność).
+- [ ] Przepisanie historii gita (decyzja 2026-10-16: tak): gotowy `scripts/rewrite_history.sh` (świeży klon, `git filter-branch`, kontrola wyniku, kopia `.bundle`; sprawdzony na kopii repozytorium). Uruchamia właściciel po scaleniu wszystkich PR: `scripts/rewrite_history.sh --push` (tryb automatyczny Claude blokuje force-push historii). Potem `.mufl` jest tylko lokalnie (`.gitignore`).
+- [x] Podpis Developer ID i notaryzacja: przygotowane (`CANTATE_SIGN_IDENTITY`, `CANTATE_INSTALLER_IDENTITY`, `CANTATE_NOTARY_PROFILE`, `scripts/notarize.sh`, `Resources/CantatePresenter.entitlements`, `docs/RELEASE.md`); brakuje tylko certyfikatu z płatnego konta Apple Developer.
+- [x] Automatyczne aktualizacje: Sparkle 2.9.6 (`UpdateService`, menu „Sprawdź uaktualnienia…”), kanał `releases/latest/download/appcast.xml`, klucz EdDSA w Pęku kluczy (konto `cantate-presenter`), wydanie `scripts/release.sh` (szkic na GitHubie). Sprawdzone lokalnie: kopia z podpisem ad-hoc zaktualizowała się sama.
 - [ ] Weryfikacja aplikacji w Google (zniesienie limitu 100 testerów i ostrzeżenia przy logowaniu; wymaga m.in. polityki prywatności).
-- [ ] Pole `schemaVersion` w plikach danych (zmiana formatu z migracją).
+- [x] Pole `schemaVersion` (decyzja 2026-10-16: tak): w `settings.json` i manifeście kopii, bez zmiany kształtu pozostałych plików; nowsze dane tylko do odczytu.
 
 Nowe funkcje:
 - [x] **Ekran dla muzyków** (z raportu, pomysły na rozwój; dodany 2026-10-15): bieżący i następny slajd z chwytami nad tekstem. Okno na Macu (`MusicianView`, `MusicianWindowManager`, przycisk „Muzycy”) i podgląd na tabletach przez serwer pilota (`/stage`, osobny token tylko do odczytu, `MusicianStagePage`). Wspólny model `MusicianStage`; dopasowanie arkusza do slajdu `ChordSheet` (po słowach, z pożyczaniem chwytów pierwszej zwrotki, chwyty w nawiasach), wzorzec w `shared/fixtures/chordsheet.json`. Do zrobienia: ten sam ekran w wersji webowej.
 - [x] **Sterowanie ze smartfona** (pilot: następny/poprzedni slajd, czarny ekran, wybór pieśni z planu). Zrobione jako strona WWW serwowana przez Maca w LAN: `RemoteControlServer` (Network.framework, port 8765 albo wolny), `RemoteHTTP` (minimalny HTTP/1.1), `RemoteRouter` (token 128 bit z kodu QR, porównanie w stałym czasie), `RemoteControlBridge` (stan i polecenia na `DataStore`), `RemoteControlPage` (HTML/JS, teksty z `labels` w języku aplikacji), `RemoteControlSheet` (QR z CoreImage). Strona odpytuje stan co sekundę. Wyszukiwanie pieśni (`/api/search`, ten sam `SongSearchIndex` co lista) i start/wznowienie projekcji (`start`, `song`); stronę sprawdza `web/tools/remote_check.py` (Chrome, makieta serwera, w CI). Opis pierwotnej analizy poniżej. Musi działać na **iOS i Androidzie**, więc najpierw wybrać technologię. Kandydaci: aplikacja webowa serwowana przez Maca w sieci lokalnej (HTTP + WebSocket, wejście przez kod QR, bez sklepów z aplikacjami), aplikacja natywna lub wieloplatformowa (sklepy, wyższy koszt), Bluetooth HID (bez instalacji, ale tylko proste klawisze). Uwzględnić parowanie i zabezpieczenie (PIN/token), działanie bez internetu i uprawnienia sieci lokalnej w macOS.
 
 - [x] **Wersja webowa** (`web/`, opis w `web/README.md`): **prywatna aplikacja, nie publiczna strona** (decyzja właściciela 2026-10-15). Domyślnie logowanie hasłem + kod TOTP z aplikacji uwierzytelniającej, dane na serwerze (decyzja: serwer, nie przeglądarka). Serwer `web/server/` w Pythonie 3.10+ bez zależności (scrypt, TOTP RFC 6238, kody zapasowe, blokady, sesje HttpOnly/SameSite=Strict, CSRF, CSP, dane w formacie macOS z historią i wersjami). Front: moduły ES bez frameworka i bez budowania, logika przeniesiona 1:1 i sprawdzana `shared/fixtures/`. Bez Google Drive; kopia `.cantatebackup` zgodna z macOS. Testy: `web/run-tests.sh`, `web/server/tests`, `web/tools/ui_check.py` (Chrome przez DevTools), `web/tools/qr_check.py`.
-  - Do zrobienia w wersji webowej: wyszukiwanie w Wikiźródłach, import Holyrics, raport CCLI, plansza z logo jak w macOS, zmiana hasła i 2FA z poziomu aplikacji (dziś polecenia serwera).
+  - Zrobione 2026-10-16: ekran muzyków (`core/chordsheet.js`, `core/stage.js`, `musicians.html`, stan przez BroadcastChannel i `/api/live` po zalogowaniu), raport CCLI (`core/ccli.js`, rodzaj danych `ccliUsage`), Wikiźródła (`core/wikisource.js`, CSP `connect-src` tylko `*.wikisource.org`), konto (`/api/account/*`: hasło, nowa aplikacja TOTP, kody zapasowe), plansza z logo (`web/logos.json`, `web/screen.css`), import Holyrics (`core/holyrics.js`, 1:1 z deserializatorem Swift, sprawdzony na prawdziwej bibliotece 901 pieśni).
+  - Różnice wobec macOS: import bez arkusza przeglądu duplikatów (identyczne pieśni pomijane), bez Dysku Google i dyktowania.
 - [ ] **Wersja na Windows od nowa** w najlepszych technologiach dla Windows (do wyboru, np. .NET + WinUI 3), z obsługą wielu monitorów i projektora. Istniejąca gałąź `origin/windows` co najwyżej jako punkt odniesienia.
 - [ ] Wspólne dla wersji macOS, web i Windows, żeby wygląd i działanie były możliwie spójne: ten sam format danych i kopii zapasowej (`songs.json`, `plans.json`, kody `SlideType`, `.cantatebackup`), te same tłumaczenia (eksport z `Localizable.xcstrings`), ta sama logika podziału tekstu na slajdy, transpozycji, Auto-Fit i skrótów klawiszowych. Rozważyć wspólny zestaw plików testowych (wejście → oczekiwany wynik) sprawdzany we wszystkich wersjach.
 
@@ -134,7 +139,7 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 
 ## Wymaga decyzji właściciela, nie rób samodzielnie
 
-- Dodawanie zależności (Sparkle, GRDB/SQLite, SwiftLint): zapytaj przed dodaniem.
+- Dodawanie kolejnych zależności (GRDB/SQLite, SwiftLint itp.): zapytaj przed dodaniem.
 - Przepisywanie historii gita (usunięcie `2026-10-14_16-19-00.mufl`, adresu e-mail z `data/settings.json`).
 - Podpis Developer ID i notaryzacja (wymaga konta Apple Developer), konfiguracja klienta OAuth w Google Cloud Console.
 - Zmiana formatu plików danych bez migracji ze starego formatu.
@@ -145,5 +150,6 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 - Nie dodawaj nowych monitorów `NSEvent` ani `keyDown` dla skrótów prezentacji; wszystko idzie przez `KeyboardRouter`. Okno testowe podglądu i okno instrukcji celowo nie są obsługiwane.
 - Plansza startowa jest składana w pamięci (`StandbyRenderer`: logo w `<!--LOGO-->`, wersja, teksty, autor) i powiększana do szerokości ekranu (`StandbyZoom`); pliku `standby.html` nie zapisuj. Pliki `data/*.json` w repozytorium są śledzone przez git; po K2 aplikacja ich nie zmienia, ale nie commituj ich przypadkiem po ręcznych próbach.
 - Stara wersja aplikacji (sprzed K1) wczytuje bibliotekę z błędem dat i nadpisuje ją przykładami. Nie uruchamiaj starych buildów na prawdziwych danych.
+- Logo planszy w wersji webowej: `web/logos.json` to eksport `LogoCatalog` (`python3 -I scripts/export_web_logos.py` po każdej zmianie logo; pilnuje tego `WebLogosTests`).
 - Logo END to plik `Sources/CantatePresenterCore/Resources/end_logo.png` (zasób pakietu), wczytywany przez `ENDLogoAsset`.
 - `Package.swift` nie deklaruje zasobów; `data/` i `Resources/AppIcon.icns` są kopiowane ręcznie przez `build_app.sh`.

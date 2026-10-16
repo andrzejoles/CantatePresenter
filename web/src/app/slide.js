@@ -8,8 +8,14 @@ import { h } from "./dom.js";
 /**
  * @typedef {{isLive: boolean, isBlackScreen: boolean, isClearText: boolean, text: string, notice: string | null,
  *   settings: import("../core/models.js").normalizeSettings extends (...a: any) => infer R ? R : never,
- *   standbyTitle: string, standbySubtitle: string}} ScreenState
+ *   standbyTitle: string, standbySubtitle: string, standbyLogo?: string, standbyReady?: string, standbyCredits?: string}} ScreenState
  */
+
+const STANDBY_WIDTH = 960;
+
+const clockText = () => new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+// Zegar na planszy: jeden licznik dla wszystkich plansz w oknie (podglądy i okno projekcji).
+setInterval(() => { for (const clock of document.querySelectorAll(".standby .live-clock")) clock.textContent = clockText(); }, 1000);
 
 /**
  * Wypełnia `container` obrazem ekranu projekcji. Slajd jest rysowany w pełnym rozmiarze ekranu docelowego
@@ -35,9 +41,16 @@ export function renderScreen(container, state, target, options = {}) {
   container.append(stage);
 
   if (!state.isLive) {
-    stage.append(h("div", { class: "standby" },
-      h("div", { class: "standby-title", style: { fontSize: `${target.height * 0.08}px` } }, state.standbyTitle),
-      h("div", { class: "standby-subtitle", style: { fontSize: `${target.height * 0.035}px` } }, state.standbySubtitle)));
+    // Jak StandbyZoom w macOS: projekt planszy na 960 px szerokości, powiększony do szerokości ekranu.
+    const zoom = target.width / STANDBY_WIDTH;
+    stage.append(h("div", { class: "standby", style: { height: `${target.height / zoom}px`, transform: `scale(${zoom})` } },
+      h("div", { class: "ambient-glow" }),
+      h("div", { class: "container" },
+        state.standbyLogo ? h("div", { class: "logo-wrapper" }, h("img", { src: state.standbyLogo, alt: "" })) : null,
+        h("h1", { class: "app-title" }, state.standbyTitle),
+        h("div", { class: "version-badge" }, h("span", { class: "dot" }), h("span", null, state.standbySubtitle))),
+      h("div", { class: "footer-status" }, h("div", { class: "live-clock" }, clockText()), h("div", null, state.standbyReady ?? "")),
+      state.standbyCredits ? h("div", { class: "credits" }, state.standbyCredits) : null));
     return;
   }
   if (state.isClearText || !state.text) return;
