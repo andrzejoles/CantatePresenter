@@ -24,6 +24,7 @@ public struct SongListView: View {
     @State private var searchText: String = ""
     @FocusState private var isSearchFocused: Bool
     @State private var searchScope: Song.SearchScope = .all
+    @State private var onlyWithChords = false
     @AppStorage("song_list_sort_order") private var sortOrder: SongSortOrder = .titleAsc
     @Binding var isShowingEditor: Bool
     @Binding var isShowingOnlineSearch: Bool
@@ -56,9 +57,10 @@ public struct SongListView: View {
         } else {
             baseList = store.searchIndex.filter(store.songs, query: query, scope: searchScope)
         }
+        let list = onlyWithChords ? baseList.filter(\.hasChords) : baseList
         
         let plLocale = Locale(identifier: "pl_PL")
-        return baseList.sorted { a, b in
+        return list.sorted { a, b in
             let titleA = a.title.trimmingCharacters(in: .whitespacesAndNewlines)
             let titleB = b.title.trimmingCharacters(in: .whitespacesAndNewlines)
             
@@ -148,6 +150,15 @@ public struct SongListView: View {
                     .pickerStyle(MenuPickerStyle())
                     .fixedSize()
                     
+                    Toggle(isOn: $onlyWithChords) {
+                        Label(L("Z chwytami"), systemImage: "guitars")
+                            .font(.scaled(11, scale: scale))
+                    }
+                    .toggleStyle(.button)
+                    .controlSize(.small)
+                    .tint(.orange)
+                    .help(L("Pokaż tylko pieśni z chwytami"))
+                    
                     Spacer()
                 }
             }
@@ -158,7 +169,7 @@ public struct SongListView: View {
             
             // Sub-header: Count and Sort selector
             HStack {
-                if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+                if searchText.trimmingCharacters(in: .whitespaces).isEmpty && !onlyWithChords {
                     Text(L("{0} pieśni", filteredSongs.count))
                         .font(.scaled(10.5, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
@@ -287,6 +298,13 @@ private struct SongRowView: View {
                     .lineLimit(1)
                 
                 Spacer()
+                
+                if song.hasChords {
+                    Image(systemName: "guitars")
+                        .font(.system(size: 10 * scale))
+                        .foregroundColor(isSelected ? .white : .orange)
+                        .help(L("Pieśń z chwytami"))
+                }
                 
                 if !song.key.isEmpty {
                     Text(song.key)

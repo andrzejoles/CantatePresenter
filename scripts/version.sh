@@ -16,7 +16,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 if git -C "$ROOT" rev-parse --verify -q HEAD >/dev/null 2>&1; then
     MERGES="$(git -C "$ROOT" log --first-parent --merges --grep='^Merge pull request #' --format=%H HEAD)"
     PRS="$(printf '%s' "$MERGES" | grep -c . || true)"
-    LAST="$(printf '%s\n' "$MERGES" | head -n 1)"
+    # Pierwsza linia bez potoku do head (przy pipefail head potrafi przerwać printf sygnałem SIGPIPE).
+    LAST="${MERGES%%$'\n'*}"
     if [ -n "$LAST" ]; then
         COMMITS="$(git -C "$ROOT" rev-list --count --first-parent "$LAST..HEAD")"
     else
