@@ -149,4 +149,24 @@ extension SharedFixturesTests {
             #expect(WikisourceParser.pageURL(title: entry["page"] ?? "", language: entry["language"] ?? "").absoluteString == entry["url"])
         }
     }
+
+    @Test("Import Holyrics: strumień Java (.mufl), tekst ze znacznikami, XML; uszkodzony strumień to błąd")
+    func holyrics() throws {
+        let data = try Data(contentsOf: Self.directory.appendingPathComponent("holyrics.json"))
+        let fixture = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        for file in try #require(fixture["files"] as? [[String: Any]]) {
+            let name = try #require(file["file"] as? String)
+            let expected = try #require(file["songs"] as? [[String: Any]])
+            let songs = HolyricsImporter.readRawSongs(from: Self.directory.appendingPathComponent(name))
+            #expect(songs.map(\.title) == expected.map { $0["title"] as? String ?? "" }, "\(name)")
+            #expect(songs.map(\.author) == expected.map { $0["author"] as? String ?? "" }, "\(name)")
+            #expect(songs.map(\.key) == expected.map { $0["key"] as? String ?? "" }, "\(name)")
+            #expect(songs.map(\.tags) == expected.map { $0["tags"] as? [String] ?? [] }, "\(name)")
+            #expect(songs.map(\.rawLyrics) == expected.map { $0["rawLyrics"] as? String ?? "" }, "\(name)")
+        }
+        for name in fixture["invalidStreams"] as? [String] ?? [] {
+            let bytes = try Data(contentsOf: Self.directory.appendingPathComponent(name))
+            #expect(throws: (any Error).self) { try HolyricsJavaDeserializer(data: bytes).deserializeMusicRecords() }
+        }
+    }
 }

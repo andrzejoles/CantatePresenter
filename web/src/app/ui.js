@@ -620,14 +620,14 @@ export class AppUI {
   }
 
   openImportExport() {
-    const files = /** @type {HTMLInputElement} */ (h("input", { type: "file", multiple: true, accept: ".txt,.json,.pro,.cho,.chopro,.chordpro,.usr", hidden: true,
+    const files = /** @type {HTMLInputElement} */ (h("input", { type: "file", multiple: true, accept: ".txt,.json,.pro,.cho,.chopro,.chordpro,.usr,.mufl,.muf,.hly,.holyrics,.zip,.xml", hidden: true,
       onchange: async () => { if (files.files?.length) { await this.actions.importFiles(files.files); dialog.close(); } } }));
     const backup = /** @type {HTMLInputElement} */ (h("input", { type: "file", accept: ".cantatebackup,.zip", hidden: true,
       onchange: async () => { const file = backup.files?.[0]; if (file) { await this.actions.restoreBackup(file); dialog.close(); } } }));
     const song = this.store.selectedSong;
     const dialog = this.dialog(t("Import/Eksport"), [
       h("div", { class: "group" }, h("h3", null, t("Import pieśni")),
-        h("div", { class: "hint-text" }, t("Pliki tekstowe (.txt, dowolne kodowanie), JSON z wersji macOS oraz pliki z CCLI SongSelect (.txt, .usr, ChordPro .pro). Bazy Holyrics importuj w wersji macOS.")),
+        h("div", { class: "hint-text" }, t("Pliki tekstowe (.txt, dowolne kodowanie), JSON z wersji macOS, bazy Holyrics (.mufl, .muf, .hly, XML) oraz pliki z CCLI SongSelect (.txt, .usr, ChordPro .pro). Pieśni, które już są w bibliotece, są pomijane.")),
         h("div", null, h("button", { class: "primary", onclick: () => files.click() }, t("Wybierz pliki...")), files)),
       h("div", { class: "group" }, h("h3", null, t("Kopia zapasowa")),
         h("div", { class: "hint-text" }, t("Plik .cantatebackup działa tak samo w wersji macOS i webowej: zawiera bibliotekę, plany i ustawienia.")),

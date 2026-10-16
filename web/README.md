@@ -5,11 +5,17 @@ Dostęp tylko po zalogowaniu: **hasło + kod z aplikacji uwierzytelniającej (TO
 więc ta sama biblioteka jest dostępna z każdego komputera po zalogowaniu.
 
 - Bez zależności: przeglądarka (moduły ES, bez kroku budowania) i serwer w Pythonie 3.10+ (tylko biblioteka standardowa).
-- Dane w katalogu serwera: `songs.json`, `plans.json`, `settings.json` (format macOS), `history/` (5 poprzednich
+- Dane w katalogu serwera: `songs.json`, `plans.json`, `settings.json` (format macOS), `ccliUsage.json` (raport CCLI,
+  w kopii jako `ccli_usage.json`), `extraFiles.json` (pliki z kopii macOS, np. własne logo), `history/` (5 poprzednich
   wersji każdego pliku), `users.json` (konta, prawa 0600), `before-restore.json` (cofnięcie przywrócenia kopii).
 - Kopia `.cantatebackup` działa w obie strony między wersją webową a macOS.
 - Okno projekcji: przycisk „Otwórz okno projekcji”, potem przenieś okno na projektor i kliknij dwukrotnie (pełny ekran).
   W Chrome okno może od razu otworzyć się na drugim ekranie (zgoda na zarządzanie oknami).
+- Jak w macOS: plansza startowa z logo (23 wzory, wybór w Ustawieniach), wyszukiwanie w Wikiźródłach (przycisk „Online”),
+  import baz Holyrics (`.mufl`, `.muf`, `.hly`, XML) i plików SongSelect, raport użycia CCLI (CSV), ekran dla muzyków.
+- Ekran dla muzyków (przycisk „Muzycy”): bieżący i następny slajd z chwytami nad tekstem. Na tym samym komputerze
+  otwiera się w osobnym oknie; na tabletach otwórz `https://ADRES/musicians.html` i zaloguj się (stan projekcji
+  przychodzi przez serwer). Każde urządzenie ma własną transpozycję i wielkość czcionki.
 
 ## Uruchomienie na serwerze
 
@@ -34,7 +40,8 @@ server.py deluser NAZWA --data DANE
 ```
 
 Przy pierwszym logowaniu użytkownik skanuje kod QR (Google Authenticator, Microsoft Authenticator, 1Password itp.)
-i dostaje 8 jednorazowych kodów zapasowych.
+i dostaje 8 jednorazowych kodów zapasowych. Zmiana hasła, nowa aplikacja uwierzytelniająca i nowe kody zapasowe są też
+w aplikacji (kliknij swoją nazwę na górnym pasku); każda zmiana wymaga obecnego hasła i wylogowuje inne urządzenia.
 
 ## Bezpieczeństwo
 
@@ -46,6 +53,7 @@ i dostaje 8 jednorazowych kodów zapasowych.
 - Żądania zmieniające dane wymagają nagłówka `X-Cantate-Request` i zgodnego `Origin` (ochrona przed CSRF).
 - Nagłówki: Content-Security-Policy bez skryptów i stylów w HTML, `frame-ancestors 'none'`, HSTS przy HTTPS.
 - Serwer nie udostępnia `server/`, `tools/`, `tests/` ani plików ukrytych.
+- Wyszukiwanie „Online” łączy się z przeglądarki tylko z `*.wikisource.org` (CSP `connect-src`); nic nie trafia do innych usług.
 
 ## Rozwój i testy
 
@@ -59,6 +67,8 @@ scripts/sync_web_translations.sh                      # kopia katalogu tłumacze
 
 Testy przeglądarkowe używają Chrome bez okna (`web/tools/cdp.py`, protokół DevTools, bez zależności).
 `web/tools/serve.py` to statyczny serwer tylko do testów logiki (bez logowania).
+`web/tools/remote_check.py` sprawdza stronę pilota z aplikacji macOS. Logo planszy: `python3 -I scripts/export_web_logos.py`
+po zmianie `LogoPreset.swift`.
 
 Wspólna logika ma wzorzec w wersji macOS: `shared/fixtures/` (podział na slajdy, wyszukiwanie, transpozycja, skróty,
-kopia z macOS) sprawdzają testy Swift i JS.
+chwyty dla muzyków, Wikiźródła, import Holyrics, kopia z macOS) sprawdzają testy Swift i JS.

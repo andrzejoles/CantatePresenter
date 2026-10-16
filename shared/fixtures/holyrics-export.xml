@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<songs><song><titulo>Pieśń z XML</titulo><autor>Autor XML</autor><tom>A</tom><letra><![CDATA[##(Verse 1)
+Tekst &amp; więcej]]></letra></song><song><title>Druga &amp; ostatnia</title><lyrics>Jedna linia</lyrics></song></songs>
