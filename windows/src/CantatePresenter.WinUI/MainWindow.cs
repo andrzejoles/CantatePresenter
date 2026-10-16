@@ -97,6 +97,29 @@ public sealed partial class MainWindow : Window
         Grid.SetRow(issues, 1);
         root.Children.Add(issues);
 
+        // Panele i ich ramki powstają raz: element XAML może mieć tylko jednego rodzica,
+        // więc przy przebudowie wstawiany jest ten sam, już gotowy układ.
+        mainGrid ??= MainGrid();
+        Grid.SetRow(mainGrid, 2);
+        root.Children.Add(mainGrid);
+
+        var shortcuts = ShortcutsBar();
+        Grid.SetRow(shortcuts, 3);
+        root.Children.Add(shortcuts);
+
+        Services.Trace("BuildUi: układ");
+        RenderLeft();
+        Services.Trace("BuildUi: lewy panel");
+        RenderMiddle();
+        Services.Trace("BuildUi: środkowy panel");
+        RenderRight();
+        Services.Trace("BuildUi: prawy panel");
+    }
+
+    private Grid? mainGrid;
+
+    private Grid MainGrid()
+    {
         var main = new Grid { ColumnSpacing = 0 };
         main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(320), MinWidth = 220 });
         main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 260 });
@@ -110,20 +133,7 @@ public sealed partial class MainWindow : Window
         main.Children.Add(leftBorder);
         main.Children.Add(middleBorder);
         main.Children.Add(rightBorder);
-        Grid.SetRow(main, 2);
-        root.Children.Add(main);
-
-        var shortcuts = ShortcutsBar();
-        Grid.SetRow(shortcuts, 3);
-        root.Children.Add(shortcuts);
-
-        Services.Trace("BuildUi: układ");
-        RenderLeft();
-        Services.Trace("BuildUi: lewy panel");
-        RenderMiddle();
-        Services.Trace("BuildUi: środkowy panel");
-        RenderRight();
-        Services.Trace("BuildUi: prawy panel");
+        return main;
     }
 
     private static Border Panel(UIElement child) => new()
@@ -494,9 +504,18 @@ public sealed partial class MainWindow : Window
         return screen is null ? new Size(1920, 1080) : new Size(screen.Bounds.Width, screen.Bounds.Height);
     }
 
+    /// <summary>Odpina podgląd od poprzedniej ramki, zanim trafi do nowej.</summary>
+    private static SlideView Detached(SlideView view)
+    {
+        if (view.Parent is Border border) border.Child = null;
+        return view;
+    }
+
     private void RenderRight()
     {
         rightPanel.Children.Clear();
+        Detached(livePreview);
+        Detached(nextPreview);
         var target = TargetSize();
         var head = new Grid();
         head.ColumnDefinitions.Add(new ColumnDefinition());
