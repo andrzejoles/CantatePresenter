@@ -68,6 +68,7 @@ public sealed partial class MainWindow : Window
         library.Changed += reason => DispatcherQueue.TryEnqueue(() => OnLibraryChanged(reason));
         Closed += (_, _) =>
         {
+            RemoteDialog.StopServer();
             presentation.Close();
             musicians?.Close();
         };
@@ -151,6 +152,16 @@ public sealed partial class MainWindow : Window
         return button;
     }
 
+    private Button? remoteButton;
+
+    /// <summary>Przycisk pilota na zielono, gdy serwer działa (jak w macOS).</summary>
+    public void RenderToolbar()
+    {
+        if (remoteButton is null) return;
+        if (RemoteDialog.IsRunning) remoteButton.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 46, 160, 67));
+        else remoteButton.ClearValue(Control.BackgroundProperty);
+    }
+
     private FrameworkElement Toolbar()
     {
         var bar = new StackPanel { Orientation = Orientation.Horizontal, Padding = new Thickness(10, 8, 10, 8) };
@@ -180,6 +191,9 @@ public sealed partial class MainWindow : Window
 
         bar.Children.Add(ToolButton("🌐", L("Online"), async (_, _) => await Dialogs.OnlineSearchAsync(this), L("Wyszukiwanie pieśni religijnych w internecie")));
         bar.Children.Add(ToolButton("🎸", L("Muzycy"), (_, _) => OpenMusicians(), L("Ekran dla muzyków")));
+        remoteButton = ToolButton("📱", L("Pilot"), async (_, _) => await RemoteDialog.ShowAsync(this), L("Pilot ze smartfona"));
+        bar.Children.Add(remoteButton);
+        RenderToolbar();
         bar.Children.Add(ToolButton("⚙", L("Ustawienia"), async (_, _) => await Dialogs.SettingsAsync(this)));
         bar.Children.Add(ToolButton("?", L("O programie"), async (_, _) => await Dialogs.AboutAsync(this)));
         return new ScrollViewer { Content = bar, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled };

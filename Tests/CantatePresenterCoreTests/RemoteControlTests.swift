@@ -113,6 +113,16 @@ struct RemoteHTTPTests {
         #expect(RemoteRouter.makeToken() != token)
     }
 
+    @Test("Strony pilota i muzyków z zasobów pakietu (wspólne z wersją Windows)")
+    func pagesComeFromResources() {
+        let remote = RemoteControlPage.html(language: "en")
+        #expect(remote.hasPrefix("<!doctype html>\n<html lang=\"en\">"))
+        #expect(remote.contains("/api/state") && remote.contains("/api/search"))
+        let stage = MusicianStagePage.html(language: "pl\"><script>")
+        #expect(stage.hasPrefix("<!doctype html>\n<html lang=\"plscript\">"))
+        #expect(stage.contains("/api/stage"))
+    }
+
     @Test("Odpowiedź bez pamięci podręcznej i z zamknięciem połączenia")
     func responseHeaders() {
         let text = String(decoding: RemoteHTTPResponse.text("ok", status: 200).serialized, as: UTF8.self)
