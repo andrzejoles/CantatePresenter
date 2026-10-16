@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """Test interfejsu wersji webowej przez prawdziwy serwer: logowanie z TOTP, aplikacja, zapis danych, zrzuty.
 
-Użycie: python3 -I web/tools/ui_check.py [KATALOG_NA_ZRZUTY]
+Użycie: python3 -I web/tools/ui_check.py [--tls] [KATALOG_NA_ZRZUTY]
+  --tls  serwer przez prawdziwy HTTPS (certyfikat tymczasowy z openssl), z kontrolą ciasteczek Secure i nagłówka HSTS
 """
 import base64
+import json
 import os
+import ssl
+import urllib.request
 import socket
 import subprocess
 import sys
@@ -18,7 +22,9 @@ sys.path.insert(0, os.path.join(ROOT, "web/server"))
 from cdp import Browser  # noqa: E402
 import auth  # noqa: E402
 
-out = sys.argv[1] if len(sys.argv) > 1 else tempfile.mkdtemp(prefix="cantate-ui-")
+TLS = "--tls" in sys.argv[1:]
+positional = [a for a in sys.argv[1:] if not a.startswith("--")]
+out = positional[0] if positional else tempfile.mkdtemp(prefix="cantate-ui-")
 os.makedirs(out, exist_ok=True)
 data = tempfile.mkdtemp(prefix="cantate-data-")
 PASSWORD = "haslo-testowe-123"
@@ -28,16 +34,25 @@ auth.Users(os.path.join(data, "users.json")).add("ala", PASSWORD)
 with socket.socket() as s:
     s.bind(("127.0.0.1", 0))
     port = s.getsockname()[1]
+if TLS:
+    # Certyfikat tylko dla 127.0.0.1 na czas testu; serwer działa dokładnie jak produkcyjny z --tls-cert/--tls-key.
+    cert, key = os.path.join(data, "cert.pem"), os.path.join(data, "key.pem")
+    subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1", "-subj", "/CN=127.0.0.1",
+                    "-addext", "subjectAltName=IP:127.0.0.1", "-keyout", key, "-out", cert],
+                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    mode = ["--host", "127.0.0.1", "--tls-cert", cert, "--tls-key", key]
+else:
+    mode = ["--insecure-local"]
 server = subprocess.Popen([sys.executable, "-I", os.path.join(ROOT, "web/server/server.py"), "serve", "--data", data,
-                           "--port", str(port), "--insecure-local"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                           "--port", str(port), *mode], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 for _ in range(100):
     try:
         socket.create_connection(("127.0.0.1", port), timeout=0.2).close()
         break
     except OSError:
         time.sleep(0.05)
-base = f"http://127.0.0.1:{port}"
-browser = Browser()
+base = f"{'https' if TLS else 'http'}://127.0.0.1:{port}"
+browser = Browser(extra_args=("--ignore-certificate-errors",) if TLS else ())
 failures = []
 
 
@@ -201,6 +216,23 @@ try:
     check("konto: zmiana hasła", True)
     browser.screenshot(os.path.join(out, "4-account.png"))
     browser.click("dialog .dialog-head button")
+
+    if TLS:
+        cookies = browser.call("Network.getAllCookies")["cookies"]
+        session_cookie = next((c for c in cookies if c["name"] == "cantate_session"), None)
+        check("HTTPS: ciasteczko sesji Secure, HttpOnly, SameSite=Strict",
+              bool(session_cookie and session_cookie["secure"] and session_cookie["httpOnly"] and session_cookie.get("sameSite") == "Strict"))
+        context = ssl.create_default_context(cafile=cert)
+        with urllib.request.urlopen(f"{base}/login.html", context=context) as response:
+            check("HTTPS: nagłówek HSTS", response.headers.get("Strict-Transport-Security", "").startswith("max-age="))
+        plain = socket.create_connection(("127.0.0.1", port), timeout=3)
+        plain.sendall(b"GET /login.html HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
+        try:
+            answer = plain.recv(64)
+        except OSError:
+            answer = b""
+        plain.close()
+        check("HTTPS: zwykłe HTTP nie dostaje strony", not answer.startswith(b"HTTP/1.1 200"))
 
     errors = browser.console_errors()
     check(f"bez błędów w konsoli {errors[:3]}", not errors)
