@@ -1513,6 +1513,34 @@
         }
       }
     },
+    "Brak dostępu. Zeskanuj ponownie kod QR w aplikacji CantatePresenter.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access denied. Scan the QR code in CantatePresenter again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Zugriff. Scanne den QR-Code in CantatePresenter erneut."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acceso denegado. Vuelve a escanear el código QR en CantatePresenter."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає доступу. Відскануйте QR-код у CantatePresenter ще раз."
+          }
+        }
+      }
+    },
     "Brak elementów do wyświetlenia": {
       "localizations": {
         "en": {
@@ -1649,6 +1677,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Немає попереднього стану для відновлення."
+          }
+        }
+      }
+    },
+    "Brak połączenia z komputerem. Sprawdź, czy telefon jest w tej samej sieci Wi-Fi.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection to the computer. Check that the phone is on the same Wi-Fi network."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Verbindung zum Computer. Prüfe, ob das Telefon im selben WLAN ist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin conexión con el ordenador. Comprueba que el teléfono está en la misma red Wi-Fi."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає з’єднання з комп’ютером. Перевірте, чи телефон у тій самій мережі Wi-Fi."
           }
         }
       }
@@ -3245,6 +3301,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Чистий (C)"
+          }
+        }
+      }
+    },
+    "Dalej": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siguiente"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Далі"
           }
         }
       }
@@ -7785,6 +7869,34 @@
         }
       }
     },
+    "Następna pieśń": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next song"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächstes Lied"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siguiente canto"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Наступна пісня"
+          }
+        }
+      }
+    },
     "Następny": {
       "localizations": {
         "en": {
@@ -8485,6 +8597,34 @@
         }
       }
     },
+    "Nie udało się uruchomić pilota: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not start the remote: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fernbedienung konnte nicht gestartet werden: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo iniciar el control remoto: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося запустити пульт: {0}"
+          }
+        }
+      }
+    },
     "Nie udało się uruchomić silnika audio: {0}": {
       "localizations": {
         "en": {
@@ -8845,6 +8985,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Нова пісня"
+          }
+        }
+      }
+    },
+    "Nowy kod (rozłącza telefony)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New code (disconnects phones)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Code (trennt Telefone)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo código (desconecta los teléfonos)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новий код (від’єднує телефони)"
           }
         }
       }
@@ -9825,6 +9993,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "Пісня може містити гітарні акорди (напр. D A h G). Кнопки +1 / -1 транспонують усю пісню одним клацанням."
+          }
+        }
+      }
+    },
+    "Pilot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fernbedienung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Control remoto"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пульт"
+          }
+        }
+      }
+    },
+    "Pilot CantatePresenter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CantatePresenter remote"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CantatePresenter-Fernbedienung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Control remoto de CantatePresenter"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пульт CantatePresenter"
+          }
+        }
+      }
+    },
+    "Pilot ze smartfona": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smartphone remote"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smartphone-Fernbedienung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Control remoto desde el móvil"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пульт зі смартфона"
+          }
+        }
+      }
+    },
+    "Plan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ablauf"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "План"
           }
         }
       }
@@ -11257,6 +11537,34 @@
         }
       }
     },
+    "Poprzednia pieśń": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous song"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorheriges Lied"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canto anterior"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Попередня пісня"
+          }
+        }
+      }
+    },
     "Porównywanie tekstów, wykrywanie duplikatów i uzupełnianie autorów...": {
       "localizations": {
         "en": {
@@ -11449,6 +11757,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Під’єднати обліковий запис Google..."
+          }
+        }
+      }
+    },
+    "Połączone telefony: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected phones: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbundene Telefone: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teléfonos conectados: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Під’єднані телефони: {0}"
           }
         }
       }
@@ -11813,6 +12149,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Програма розпізнає такі позначки:\n• [Zwrotka 1], [Zwrotka 2], [1], [2] (куплети)\n• [Refren], [Refren 1], [R] (приспів)\n• [Coda] або [Koda]\n• [Bridge] або [Mostek]\n• [Przejście] або [Interlude]\n• [Zakończenie] або [Ending]\n• [Intro] та [Outro]"
+          }
+        }
+      }
+    },
+    "Projekcja nie jest uruchomiona. Wybierz pieśń z planu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The projection is not running. Choose a song from the plan."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Projektion läuft nicht. Wähle ein Lied aus dem Ablauf."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La proyección no está en marcha. Elige un canto del plan."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проєкцію не запущено. Виберіть пісню з плану."
           }
         }
       }
@@ -13105,6 +13469,34 @@
         }
       }
     },
+    "Slajdy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slides"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folien"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diapositivas"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слайди"
+          }
+        }
+      }
+    },
     "Sortowanie": {
       "localizations": {
         "en": {
@@ -14001,6 +14393,62 @@
         }
       }
     },
+    "Telefon musi być w tej samej sieci Wi-Fi co ten Mac. Przy pierwszym włączeniu macOS może zapytać o zgodę na połączenia przychodzące i dostęp do sieci lokalnej. Pilot działa, dopóki aplikacja jest otwarta.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The phone must be on the same Wi-Fi network as this Mac. The first time, macOS may ask to allow incoming connections and local network access. The remote works while the app is open."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Telefon muss im selben WLAN wie dieser Mac sein. Beim ersten Mal fragt macOS eventuell nach eingehenden Verbindungen und Zugriff auf das lokale Netzwerk. Die Fernbedienung funktioniert, solange die App geöffnet ist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El teléfono debe estar en la misma red Wi-Fi que este Mac. La primera vez, macOS puede pedir permiso para conexiones entrantes y acceso a la red local. El control remoto funciona mientras la aplicación está abierta."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Телефон має бути в тій самій мережі Wi-Fi, що й цей Mac. Першого разу macOS може запитати дозвіл на вхідні з’єднання та доступ до локальної мережі. Пульт працює, поки програму відкрито."
+          }
+        }
+      }
+    },
+    "Ten Mac nie jest połączony z siecią lokalną (Wi-Fi lub Ethernet).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Mac is not connected to a local network (Wi-Fi or Ethernet)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Mac ist mit keinem lokalen Netzwerk verbunden (WLAN oder Ethernet)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este Mac no está conectado a una red local (Wi-Fi o Ethernet)."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цей Mac не під’єднано до локальної мережі (Wi-Fi або Ethernet)."
+          }
+        }
+      }
+    },
     "Ten sam tytuł i zgodność tekstu ({0}%)": {
       "localizations": {
         "en": {
@@ -14781,6 +15229,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Приховати текст (перемикач):"
+          }
+        }
+      }
+    },
+    "Ukryj tekst": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide text"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text ausblenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar texto"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сховати текст"
           }
         }
       }
@@ -16353,6 +16829,34 @@
         }
       }
     },
+    "Wstecz": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atrás"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назад"
+          }
+        }
+      }
+    },
     "Wszyscy autorzy": {
       "localizations": {
         "en": {
@@ -17697,6 +18201,34 @@
         }
       }
     },
+    "Włącz pilota": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on the remote"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fernbedienung einschalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar el control remoto"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Увімкнути пульт"
+          }
+        }
+      }
+    },
     "Włącz/Wyłącz czarny ekran": {
       "localizations": {
         "en": {
@@ -18617,6 +19149,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вибрати все"
+          }
+        }
+      }
+    },
+    "Zeskanuj kod aparatem telefonu albo wpisz adres w przeglądarce:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the code with the phone camera or type the address in a browser:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanne den Code mit der Telefonkamera oder gib die Adresse im Browser ein:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanea el código con la cámara del teléfono o escribe la dirección en el navegador:"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відскануйте код камерою телефона або введіть адресу в браузері:"
           }
         }
       }
