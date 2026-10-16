@@ -9,11 +9,34 @@ import time
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import appversion  # noqa: E402
 import auth  # noqa: E402
 import server  # noqa: E402
 from storage import Conflict, Storage  # noqa: E402
 
 PASSWORD = "dobre-haslo-123"
+
+
+class VersionTests(unittest.TestCase):
+    def test_version_from_commit_count(self):
+        cases = {0: "1.0.0", 9: "1.0.0", 10: "1.0.1", 91: "1.0.9", 100: "1.1.0", 109: "1.1.0", 110: "1.1.1",
+                 999: "1.9.9", 1000: "1.10.0", 9999: "1.99.9", 10000: "2.0.0", 12345: "2.23.4"}
+        for count, version in cases.items():
+            self.assertEqual(appversion.from_count(count), version, count)
+
+    def test_same_as_shell_script(self):
+        root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        import subprocess
+        script = subprocess.run([os.path.join(root, "scripts", "version.sh")], capture_output=True, text=True, check=True)
+        self.assertEqual(script.stdout.strip(), appversion.current(root))
+
+    def test_fallback_without_git(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertEqual(appversion.current(directory), "dev")
+            os.makedirs(os.path.join(directory, "web"))
+            with open(os.path.join(directory, "web", "VERSION"), "w") as target:
+                target.write("1.2.3\n")
+            self.assertEqual(appversion.current(directory), "1.2.3")
 
 
 class AuthTests(unittest.TestCase):

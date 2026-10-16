@@ -4,7 +4,7 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
-VERSION="$(tr -d '[:space:]' < "$DIR/VERSION")"
+VERSION="$("$DIR/scripts/version.sh")"
 APP_NAME="CantatePresenter.app"
 DIST_DIR="$DIR/dist"
 

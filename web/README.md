@@ -13,7 +13,7 @@ więc ta sama biblioteka jest dostępna z każdego komputera po zalogowaniu.
 
 ## Uruchomienie na serwerze
 
-1. Skopiuj repozytorium (wystarczy katalog `web/`) np. do `/opt/cantate` i utwórz użytkownika systemowego `cantate`.
+1. Skopiuj repozytorium (wystarczy katalog `web/`) np. do `/opt/cantate` i utwórz użytkownika systemowego `cantate`. Przy kopii bez katalogu `.git` zapisz najpierw numer wersji: `scripts/version.sh > web/VERSION` (inaczej aplikacja pokaże wersję „dev”).
 2. Dodaj konto (hasło co najmniej 10 znaków; drugi składnik konfiguruje się przy pierwszym logowaniu kodem QR):
    ```bash
    sudo -u cantate python3 -I /opt/cantate/web/server/server.py adduser ala --data /var/lib/cantate
