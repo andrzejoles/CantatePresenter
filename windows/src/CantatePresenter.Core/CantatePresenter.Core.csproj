@@ -8,4 +8,9 @@
     <RootNamespace>CantatePresenter.Core</RootNamespace>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Strony pilota i dla muzyków: te same pliki serwuje aplikacja macOS. -->
+    <EmbeddedResource Include="..\..\..\Sources\CantatePresenterCore\Resources\remote_page.html" LogicalName="remote_page.html" />
+    <EmbeddedResource Include="..\..\..\Sources\CantatePresenterCore\Resources\stage_page.html" LogicalName="stage_page.html" />
+  </ItemGroup>
 </Project>

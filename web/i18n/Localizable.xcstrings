@@ -17333,6 +17333,34 @@
         }
       }
     },
+    "Telefon musi być w tej samej sieci Wi-Fi co ten komputer. Przy pierwszym włączeniu Zapora systemu Windows może zapytać o zgodę na dostęp do sieci: zezwól w sieciach prywatnych. Pilot działa, dopóki aplikacja jest otwarta.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The phone must be on the same Wi-Fi network as this computer. The first time you turn it on, Windows Firewall may ask for network access: allow it on private networks. The remote works while the app is open."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Telefon muss im selben WLAN wie dieser Computer sein. Beim ersten Einschalten fragt die Windows-Firewall eventuell nach Netzwerkzugriff: in privaten Netzwerken zulassen. Die Fernbedienung funktioniert, solange die App geöffnet ist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El teléfono debe estar en la misma red Wi-Fi que este ordenador. La primera vez, el Firewall de Windows puede pedir acceso a la red: permítelo en redes privadas. El mando funciona mientras la aplicación esté abierta."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Телефон має бути в тій самій мережі Wi-Fi, що й цей комп’ютер. Під час першого ввімкнення Брандмауер Windows може запитати дозвіл на доступ до мережі: дозвольте в приватних мережах. Пульт працює, доки застосунок відкрито."
+          }
+        }
+      }
+    },
     "Ten Mac nie jest połączony z siecią lokalną (Wi-Fi lub Ethernet).": {
       "localizations": {
         "en": {
@@ -17357,6 +17385,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Цей Mac не під’єднано до локальної мережі (Wi-Fi або Ethernet)."
+          }
+        }
+      }
+    },
+    "Ten komputer nie jest połączony z siecią lokalną (Wi-Fi lub Ethernet).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This computer is not connected to a local network (Wi-Fi or Ethernet)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Computer ist nicht mit einem lokalen Netzwerk verbunden (WLAN oder Ethernet)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este ordenador no está conectado a una red local (Wi-Fi o Ethernet)."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цей комп’ютер не під’єднано до локальної мережі (Wi-Fi або Ethernet)."
           }
         }
       }
