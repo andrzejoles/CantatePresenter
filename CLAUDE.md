@@ -1,6 +1,6 @@
 # CantatePresenter
 
-Natywna aplikacja macOS (Apple Silicon, macOS 14+) do projekcji tekstów pieśni na projektorze lub drugim ekranie. SwiftUI + AppKit, Swift Package Manager, **zero zależności zewnętrznych**. Interfejs i dokumentacja użytkownika są po polsku.
+Natywna aplikacja macOS (Apple Silicon, macOS 14+) do projekcji tekstów pieśni na projektorze lub drugim ekranie. SwiftUI + AppKit, Swift Package Manager. Jedyna zależność: **Sparkle** (automatyczne aktualizacje, wersja przypięta w `Package.swift`, decyzja właściciela 2026-10-16). Interfejs i dokumentacja użytkownika są po polsku.
 
 ## Komendy
 
@@ -94,8 +94,8 @@ Z przeglądu kodu (kolejność proponowana):
 
 Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
 - [ ] Przepisanie historii gita: usunięcie `2026-10-14_16-19-00.mufl` i adresu e-mail z dawnych wersji `data/settings.json`.
-- [ ] Podpis Developer ID i notaryzacja (płatne konto Apple Developer).
-- [ ] Automatyczne aktualizacje (Sparkle, nowa zależność).
+- [x] Podpis Developer ID i notaryzacja: przygotowane (`CANTATE_SIGN_IDENTITY`, `CANTATE_INSTALLER_IDENTITY`, `CANTATE_NOTARY_PROFILE`, `scripts/notarize.sh`, `Resources/CantatePresenter.entitlements`, `docs/RELEASE.md`); brakuje tylko certyfikatu z płatnego konta Apple Developer.
+- [x] Automatyczne aktualizacje: Sparkle 2.9.6 (`UpdateService`, menu „Sprawdź uaktualnienia…”), kanał `releases/latest/download/appcast.xml`, klucz EdDSA w Pęku kluczy (konto `cantate-presenter`), wydanie `scripts/release.sh` (szkic na GitHubie). Sprawdzone lokalnie: kopia z podpisem ad-hoc zaktualizowała się sama.
 - [ ] Weryfikacja aplikacji w Google (zniesienie limitu 100 testerów i ostrzeżenia przy logowaniu; wymaga m.in. polityki prywatności).
 - [x] Pole `schemaVersion` (decyzja 2026-10-16: tak): w `settings.json` i manifeście kopii, bez zmiany kształtu pozostałych plików; nowsze dane tylko do odczytu.
 
@@ -139,7 +139,7 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 
 ## Wymaga decyzji właściciela, nie rób samodzielnie
 
-- Dodawanie zależności (Sparkle, GRDB/SQLite, SwiftLint): zapytaj przed dodaniem.
+- Dodawanie kolejnych zależności (GRDB/SQLite, SwiftLint itp.): zapytaj przed dodaniem.
 - Przepisywanie historii gita (usunięcie `2026-10-14_16-19-00.mufl`, adresu e-mail z `data/settings.json`).
 - Podpis Developer ID i notaryzacja (wymaga konta Apple Developer), konfiguracja klienta OAuth w Google Cloud Console.
 - Zmiana formatu plików danych bez migracji ze starego formatu.

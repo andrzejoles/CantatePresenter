@@ -10,10 +10,14 @@ let package = Package(
     products: [
         .executable(name: "CantatePresenter", targets: ["CantatePresenter"])
     ],
-    dependencies: [],
+    dependencies: [
+        // Automatyczne aktualizacje (decyzja właściciela 2026-10-16). Jedyna zależność; wersja przypięta.
+        .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.9.6")
+    ],
     targets: [
         .target(
             name: "CantatePresenterCore",
+            dependencies: [.product(name: "Sparkle", package: "Sparkle")],
             path: "Sources/CantatePresenterCore",
             resources: [.process("Resources")]
         ),
