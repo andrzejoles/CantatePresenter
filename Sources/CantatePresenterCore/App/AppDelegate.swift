@@ -16,6 +16,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         
         Localization.currentLanguage = DataStore.shared.settings.appLanguage
+        UpdateService.shared.start()
         setupMainMenu()
         setupMainWindow()
         KeyboardMonitor.shared.start()
@@ -141,6 +142,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let appMenuItem = NSMenuItem()
         let appMenu = NSMenu()
         appMenu.addItem(NSMenuItem(title: Lnow("O programie CantatePresenter"), action: #selector(showAboutPanelAction), keyEquivalent: ""))
+        // Menu buduje się na wątku głównym (start aplikacji i zmiana języka).
+        if let updater = MainActor.assumeIsolated({ UpdateService.shared.isAvailable ? UpdateService.shared : nil }) {
+            let updates = NSMenuItem(title: Lnow("Sprawdź uaktualnienia..."), action: #selector(UpdateService.checkForUpdates(_:)), keyEquivalent: "")
+            updates.target = updater
+            appMenu.addItem(updates)
+        }
         appMenu.addItem(NSMenuItem.separator())
         if !AppInstallerService.shared.isInstalledInApplications {
             appMenu.addItem(NSMenuItem(title: Lnow("Zainstaluj w folderze Programy (/Applications)..."), action: #selector(installToApplicationsAction), keyEquivalent: ""))
