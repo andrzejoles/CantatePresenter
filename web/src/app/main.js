@@ -13,6 +13,7 @@ import { decodeText, parseTextSong } from "../core/importText.js";
 import { isSongSelectText, parseText, parseUSR, parseChordPro, CHORDPRO_EXTENSIONS } from "../core/songselect.js";
 import { createBackup, readBackup, backupFileName, BackupError } from "../core/backup.js";
 import { stageSource } from "../core/stage.js";
+import { normalizeUsageEntry, usageCSV } from "../core/ccli.js";
 
 await loadCatalog(new URL("../../i18n/Localizable.xcstrings", import.meta.url)).catch((error) => console.error("Tłumaczenia:", error));
 
@@ -53,14 +54,26 @@ const decodeExtra = (encoded) => new Map(Object.entries(encoded ?? {}).map(([pat
 /** @param {Map<string, Uint8Array>} files */
 const encodeExtra = (files) => Object.fromEntries([...files].map(([path, bytes]) => [path, btoa(Array.from(bytes, (b) => String.fromCharCode(b)).join(""))]));
 let extraFiles = decodeExtra(stored.extraFiles);
+// Raport CCLI: osobny plik na serwerze; starsze dane miały go w plikach z kopii macOS (extraFiles).
+let ccliUsage = Array.isArray(stored.ccliUsage) ? stored.ccliUsage.map(normalizeUsageEntry) : [];
+const legacyUsage = extraFiles.get("ccli_usage.json");
+let migrateUsage = false;
+if (legacyUsage) {
+  try {
+    const parsed = JSON.parse(new TextDecoder().decode(legacyUsage));
+    if (!Array.isArray(stored.ccliUsage) && Array.isArray(parsed)) { ccliUsage = parsed.map(normalizeUsageEntry); migrateUsage = true; }
+  } catch { /* uszkodzony plik zostaje w extraFiles */ }
+  if (Array.isArray(stored.ccliUsage) || migrateUsage) extraFiles.delete("ccli_usage.json");
+}
 let undoAvailable = snapshot.canUndoRestore;
 
 const store = new Store({
-  songs, plans: /** @type {any} */ (plans), settings,
+  songs, plans: /** @type {any} */ (plans), settings, ccliUsage,
   persist: (kind, value) => saver.schedule(kind, value),
   translate: t,
 });
 if (firstRun) { store.saveSongs(); store.savePlans(); store.saveSettings(); }
+if (migrateUsage) { saver.schedule("ccliUsage", store.ccliUsage); saver.schedule("extraFiles", encodeExtra(extraFiles)); }
 if (snapshot.newerSchema) {
   setTimeout(() => alert(t("Bibliotekę zapisała nowsza wersja CantatePresenter (format danych {0}, ta wersja obsługuje {1}). Pieśni i plany można wyświetlać, ale zmiany nie będą zapisywane, żeby nie uszkodzić danych. Zaktualizuj aplikację.", snapshot.newerSchema, SCHEMA_VERSION)), 0);
 } else if (snapshot.locked.length) {
@@ -181,7 +194,7 @@ async function importFiles(files) {
 
 async function exportBackup() {
   await saver.flushAll();
-  const blob = await createBackup({ songs: store.songs, plans: store.plans, settings: store.settings, extraFiles });
+  const blob = await createBackup({ songs: store.songs, plans: store.plans, settings: store.settings, ccliUsage: store.ccliUsage, extraFiles });
   download(blob, backupFileName());
 }
 
@@ -192,7 +205,7 @@ async function restoreBackup(file) {
     if (!confirm(t("Przywrócić kopię? Obecna biblioteka ({0} pieśni) zostanie zastąpiona przez {1} pieśni z kopii. Poprzedni stan można przywrócić przyciskiem „Cofnij ostatnie przywrócenie”.", store.songs.length, backup.songs.length))) return;
     await saver.flushAll();
     const files = backup.extraFiles ?? new Map();
-    const result = await api.restoreOnServer({ songs: backup.songs, plans: backup.plans, settings: backup.settings, extraFiles: encodeExtra(files) });
+    const result = await api.restoreOnServer({ songs: backup.songs, plans: backup.plans, settings: backup.settings, ccliUsage: backup.ccliUsage ?? [], extraFiles: encodeExtra(files) });
     Object.assign(snapshot.revisions, result.revisions);
     extraFiles = files;
     undoAvailable = true;
@@ -214,6 +227,12 @@ async function undoRestore() {
   if (await api.undoRestoreOnServer()) location.reload();
 }
 
+function exportCCLIReport() {
+  const now = new Date();
+  const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  download(new Blob([usageCSV(store.ccliUsage)], { type: "text/csv;charset=utf-8" }), `CCLI_usage_${stamp}.csv`);
+}
+
 /** @param {import("../core/models.js").Song} song */
 function exportSongText(song) {
   const header = [`Tytuł: ${song.title}`, song.author ? `Autor: ${song.author}` : "", song.key ? `Tonacja: ${song.key}` : "", song.tags.length ? `Tagi: ${song.tags.join(", ")}` : ""].filter(Boolean);
@@ -228,7 +247,7 @@ var ui = new AppUI(store, {
   closeProjector: () => { projector?.close(); projector = null; ui.renderRight(); },
   isProjectorOpen: () => Boolean(projector && !projector.closed),
   targetSize: () => targetSize,
-  importFiles, exportBackup, restoreBackup, undoRestore, exportSongText, openMusicians,
+  importFiles, exportBackup, restoreBackup, undoRestore, exportSongText, openMusicians, exportCCLIReport,
   canUndoRestore: () => undoAvailable,
   user: session.user,
   logout: async () => { await saver.flushAll(); api.logout(); },

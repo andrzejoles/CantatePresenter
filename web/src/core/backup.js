@@ -4,11 +4,13 @@
 import { createZip, readZip } from "./zip.js";
 import { normalizeSong, normalizePlan, normalizeSettings, isoDate, SCHEMA_VERSION } from "./models.js";
 import { APP_VERSION } from "../version.js";
+import { normalizeUsageEntry } from "./ccli.js";
 
 /**
  * Pliki pomocnicze z wersji macOS (logo, szablony, raport CCLI) wracają do kopii bez zmian.
  * @typedef {{songs: import("./models.js").Song[], plans: import("./models.js").ServicePlan[],
- *   settings: ReturnType<typeof normalizeSettings>, extraFiles?: Map<string, Uint8Array>}} BackupContent
+ *   settings: ReturnType<typeof normalizeSettings>, ccliUsage?: import("./ccli.js").CCLIUsageEntry[],
+ *   extraFiles?: Map<string, Uint8Array>}} BackupContent
  */
 
 /** Nazwa pliku jak w macOS: CantatePresenter_Backup_RRRR-MM-DD_GG-MM-SS.cantatebackup. @param {Date} [date] */
@@ -34,7 +36,12 @@ export async function createBackup(content, comment) {
     { path: "plans.json", data: pretty(content.plans) },
     { path: "settings.json", data: pretty(content.settings) },
   ];
+  if (content.ccliUsage?.length) {
+    files.push({ path: "ccli_usage.json", data: pretty(content.ccliUsage) });
+    included.push("ccli_usage.json");
+  }
   for (const [path, data] of content.extraFiles ?? []) {
+    if (path === "ccli_usage.json") continue;
     files.push({ path, data });
     included.push(path);
   }
@@ -64,8 +71,8 @@ export class BackupError extends Error {
   }
 }
 
-/** Pliki z macOS przenoszone bez zmian (logo, szablony, raport CCLI, własne języki). */
-const PRESERVED = /^(logos\/|templates\/)|^(ccli_usage\.json|custom_languages\.json|standby\.html)$/;
+/** Pliki z macOS przenoszone bez zmian (logo, szablony, własne języki). */
+const PRESERVED = /^(logos\/|templates\/)|^(custom_languages\.json|standby\.html)$/;
 
 /**
  * Odczytuje kopię .cantatebackup lub .zip; katalog z danymi może być zagnieżdżony w archiwum.
@@ -101,6 +108,7 @@ export async function readBackup(blob) {
   const songs = json("songs.json");
   if (!Array.isArray(songs)) throw new BackupError("unreadable", "songs.json");
   const plans = json("plans.json");
+  const usage = json("ccli_usage.json");
   /** @type {Map<string, Uint8Array>} */
   const extraFiles = new Map();
   for (const [path, data] of files) {
@@ -112,6 +120,7 @@ export async function readBackup(blob) {
     songs: songs.map(normalizeSong),
     plans: (Array.isArray(plans) ? plans : []).map(normalizePlan).filter((p) => p !== null),
     settings: normalizeSettings(json("settings.json")),
+    ccliUsage: Array.isArray(usage) ? usage.map(normalizeUsageEntry) : [],
     manifest: json("manifest.json") ?? null,
     extraFiles,
   };

@@ -10,7 +10,8 @@ import os
 import shutil
 import threading
 
-KINDS = ("songs", "plans", "settings", "extraFiles")
+KINDS = ("songs", "plans", "settings", "extraFiles", "ccliUsage")
+# ccliUsage: raport użycia CCLI (ccli_usage.json w kopii macOS), lista wyświetleń.
 # extraFiles: pliki z kopii macOS, których wersja webowa nie używa (logo, raport CCLI); ścieżka → base64.
 OBJECT_KINDS = ("settings", "extraFiles")
 HISTORY_LIMIT = 5

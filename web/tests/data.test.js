@@ -6,6 +6,8 @@ import { createBackup, readBackup, backupFileName, BackupError } from "../src/co
 import { keyboardAction, MAC_KEY_CODES } from "../src/core/keyboard.js";
 import { DEFAULT_SHORTCUTS } from "../src/core/models.js";
 import { APP_VERSION } from "../src/version.js";
+import { usageEntry, usageCSV, normalizeUsageEntry } from "../src/core/ccli.js";
+import { Store } from "../src/app/store.js";
 
 test("Wspólne pliki: skróty klawiszowe", async () => {
   for (const f of await fixture("keyboard.json")) {
@@ -73,7 +75,8 @@ test("Kopia z macOS (ditto) wczytuje się w wersji webowej", async () => {
   equal(backup.settings.copyrightNoticePlacement, "firstSlide");
   equal(backup.settings.shortcuts.nextSlideKey, 121);
   ok(backup.extraFiles?.has("logos/custom.svg"));
-  ok(backup.extraFiles?.has("ccli_usage.json"));
+  ok(!backup.extraFiles?.has("ccli_usage.json"));
+  ok((backup.ccliUsage ?? []).length > 0, "raport CCLI z macOS");
   equal(backup.manifest.deviceName, "Mac");
 });
 
@@ -110,6 +113,38 @@ test("Wersja formatu danych: zapisywana w ustawieniach i manifeście, nowsza kop
     } catch (e) { code = e instanceof BackupError ? e.code : "?"; }
     equal(code, "newerSchema", name);
   }
+});
+
+test("Raport CCLI: raz na pieśń dziennie, CSV jak w macOS, wpisy z macOS", () => {
+  const song = { title: "Pieśń, \"cytat\"", author: "Autor", ccliNumber: " 123 ", copyright: "© 2020" };
+  const day = new Date(2026, 9, 18, 10, 0);
+  const first = usageEntry(song, day, []);
+  ok(first && first.ccliNumber === "123");
+  equal(usageEntry(song, new Date(2026, 9, 18, 19, 0), [/** @type {any} */ (first)]), null);
+  ok(usageEntry(song, new Date(2026, 9, 25, 10, 0), [/** @type {any} */ (first)]));
+  equal(usageEntry({ title: "Bez", author: "" }, day, []), null);
+  equal(usageCSV([/** @type {any} */ (first)]), 'Date,Title,Authors,CCLI Song Number,Copyright\r\n2026-10-18,"Pieśń, ""cytat""",Autor,123,© 2020\r\n');
+  const fromMac = normalizeUsageEntry({ id: "6f1c5a39-2b5e-4f0b-9c55-111111111111", date: "2026-10-15T08:30:00Z", title: "A", author: "B", ccliNumber: 7 });
+  equal(fromMac.ccliNumber, "7");
+  equal(fromMac.id, "6F1C5A39-2B5E-4F0B-9C55-111111111111");
+
+  /** @type {any[]} */
+  const saved = [];
+  const store = new Store({ songs: [], persist: (kind, value) => saved.push([kind, value]) });
+  const added = store.addSong({ title: "S", rawLyrics: "x" });
+  store.updateSong({ ...added, ccliNumber: "55" });
+  store.present(/** @type {any} */ (store.songs[0]));
+  store.present(/** @type {any} */ (store.songs[0]));
+  equal(store.ccliUsage.length, 1);
+  equal(saved.filter(([kind]) => kind === "ccliUsage").length, 1);
+});
+
+test("Kopia: raport CCLI w ccli_usage.json w obie strony", async () => {
+  const entry = normalizeUsageEntry({ date: "2026-10-15T08:30:00Z", title: "A", author: "B", ccliNumber: "1" });
+  const zip = await createBackup({ songs: [], plans: [], settings: normalizeSettings({}), ccliUsage: [entry] });
+  const back = await readBackup(zip);
+  equal(back.ccliUsage, [entry]);
+  ok(!back.extraFiles?.has("ccli_usage.json"));
 });
 
 test("Informacja o prawach CCLI na slajdzie", () => {
