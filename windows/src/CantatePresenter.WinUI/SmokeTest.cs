@@ -20,6 +20,7 @@ public static class SmokeTest
         var failures = new JsonArray();
         void Check(string name, bool ok)
         {
+            Services.Trace($"próba: {name} = {ok}");
             report[name] = ok;
             if (!ok) failures.Add(name);
         }
@@ -33,14 +34,17 @@ public static class SmokeTest
             var song = Song.Create("Próba z CI", "Autor Testowy", "D", rawLyrics: "[Zwrotka 1]\nIdziemy razem przez pola,\nsłońce nad nami świeci.\n\n[Refren]\nŚpiewaj radośnie,\nniech się niesie.",
                 chords: "Zwrotka 1:\nD            G\nIdziemy razem przez pola,\nA            D\nsłońce nad nami świeci.\n\nRefren:\nG        A\nŚpiewaj radośnie,\nD        h\nniech się niesie.");
             song.CcliNumber = "1234567";
+            Services.Trace("próba: library.AddSong(song);");
             library.AddSong(song);
             Check("songAdded", library.Songs.Any(s => s.Title == "Próba z CI"));
             Check("slides", song.Slides.Count == 2);
 
+            Services.Trace("próba: window.Presentation.ShowOn(null);");
             window.Presentation.ShowOn(null);
             await Task.Delay(1200);
             await Capture(window.Presentation.ContentElement, Path.Combine(outputDirectory, "2-standby.png"));
 
+            Services.Trace("próba: library.Present(song);");
             library.Present(song);
             Check("live", library.IsLive && library.CurrentLiveSlide?.Text.StartsWith("Idziemy") == true);
             var size = Core.Presentation.AutoFit.OptimalFontSize(song.Slides[0].Text, 1280, 720, TextMeasurer.Shared);
@@ -56,6 +60,7 @@ public static class SmokeTest
             window.HandleKey(Windows.System.VirtualKey.Number1, Core.Input.KeyContext.Presentation);
             Check("keyVerse", library.ActiveSlideIndex == 0);
 
+            Services.Trace("próba: window.OpenMusicians();");
             window.OpenMusicians();
             await Task.Delay(1000);
             if (window.Musicians is MusiciansWindow musicians) await Capture(musicians.ContentElement, Path.Combine(outputDirectory, "5-musicians.png"));
@@ -83,6 +88,7 @@ public static class SmokeTest
 
     private static async Task Capture(FrameworkElement? element, string path)
     {
+        Services.Trace($"zrzut: {Path.GetFileName(path)} {element?.ActualWidth}x{element?.ActualHeight}");
         if (element is null || element.ActualWidth < 1) return;
         var bitmap = new RenderTargetBitmap();
         await bitmap.RenderAsync(element);
@@ -91,6 +97,7 @@ public static class SmokeTest
         var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
         encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, (uint)bitmap.PixelWidth, (uint)bitmap.PixelHeight, 96, 96, pixels.ToArray());
         await encoder.FlushAsync();
+        Services.Trace("zrzut: zakodowany");
         stream.Seek(0);
         var bytes = new byte[stream.Size];
         using var reader = new DataReader(stream);
