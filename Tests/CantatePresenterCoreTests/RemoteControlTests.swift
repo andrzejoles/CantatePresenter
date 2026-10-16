@@ -35,6 +35,29 @@ struct RemoteHTTPTests {
         #expect(RemoteCommand(json: Data(#"{"command":"slide","index":2}"#.utf8)) == .slide(2))
         #expect(RemoteCommand(json: Data(#"{"command":"planItem","index":-1}"#.utf8)) == nil)
         #expect(RemoteCommand(json: Data(#"{"command":"shutdown"}"#.utf8)) == nil)
+        #expect(RemoteCommand(json: Data(#"{"command":"start"}"#.utf8)) == .start)
+        let id = UUID()
+        #expect(RemoteCommand(json: Data(#"{"command":"song","id":"\#(id.uuidString)"}"#.utf8)) == .song(id))
+        #expect(RemoteCommand(json: Data(#"{"command":"song","id":"nie-uuid"}"#.utf8)) == nil)
+        #expect(RemoteCommand(json: Data(#"{"command":"song"}"#.utf8)) == nil)
+    }
+
+    @Test("Wyszukiwanie: tylko z tokenem sterowania, zapytanie zdekodowane z adresu")
+    func searchRoute() throws {
+        let router = RemoteRouter(token: "control", stageToken: "musician")
+        let state = RemoteState(isLive: false, isBlackScreen: false, isClearText: false, songTitle: "", slideIndex: 0,
+                                slideText: "", slides: [], planName: "", plan: [], labels: [:])
+        var queries: [String] = []
+        func respond(_ raw: String) throws -> RemoteHTTPResponse {
+            router.response(for: try #require(request(raw)), page: { "" }, state: { state }, perform: { _ in },
+                            search: { queries.append($0); return Data("[]".utf8) })
+        }
+        let found = try respond("GET /api/search?t=control&q=B%C3%B3g%20si%C4%99 HTTP/1.1\r\n\r\n")
+        #expect(found.status == 200 && found.contentType.hasPrefix("application/json"))
+        #expect(queries == ["Bóg się"])
+        #expect(try respond("GET /api/search?t=musician&q=x HTTP/1.1\r\n\r\n").status == 403)
+        #expect(try respond("POST /api/search?t=control&q=x HTTP/1.1\r\n\r\n").status == 405)
+        #expect(queries.count == 1)
     }
 
     @Test("Bez poprawnego tokenu: 403; z tokenem: strona, stan, polecenie")
@@ -132,6 +155,73 @@ struct RemoteBridgeTests {
 
         RemoteControlBridge.perform(.stop, on: store)
         #expect(!RemoteControlBridge.state(of: store).isLive)
+    }
+
+    @Test("Po zatrzymaniu projekcję można wznowić z pilota w tym samym miejscu")
+    func resumeAfterStop() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let store = DataStore(dataDirectory: dir.url)
+        let song = Song(title: "Pierwsza", rawLyrics: "A1\n\nA2\n\nA3")
+        store.songs = [song]
+
+        RemoteControlBridge.perform(.song(song.id), on: store)
+        RemoteControlBridge.perform(.next, on: store)
+        RemoteControlBridge.perform(.stop, on: store)
+        var state = RemoteControlBridge.state(of: store)
+        #expect(!state.isLive && state.canStart)
+
+        RemoteControlBridge.perform(.start, on: store)
+        state = RemoteControlBridge.state(of: store)
+        #expect(state.isLive && state.songTitle == "Pierwsza" && state.slideIndex == 1)
+
+        // Dotknięcie slajdu przy zatrzymanej projekcji uruchamia ją od tego slajdu.
+        RemoteControlBridge.perform(.stop, on: store)
+        RemoteControlBridge.perform(.slide(2), on: store)
+        state = RemoteControlBridge.state(of: store)
+        #expect(state.isLive && state.slideIndex == 2)
+    }
+
+    @Test("Start bez wcześniejszej projekcji: zaznaczona pieśń albo pierwsza z planu; pusta biblioteka nic nie robi")
+    func startWithoutActiveSong() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let store = DataStore(dataDirectory: dir.url)
+        store.songs = []
+        store.plans = []
+        #expect(!RemoteControlBridge.state(of: store).canStart)
+        RemoteControlBridge.perform(.start, on: store)
+        #expect(!store.isLive)
+
+        let first = Song(title: "Pierwsza", rawLyrics: "A")
+        let second = Song(title: "Druga", rawLyrics: "B")
+        store.songs = [first, second]
+        store.plans = [ServicePlan(name: "Plan", items: [PlanItem(songId: second.id)])]
+        store.activePlanId = store.plans[0].id
+        store.selectedSongId = nil
+        RemoteControlBridge.perform(.start, on: store)
+        #expect(store.isLive && store.activeSong?.id == second.id)
+    }
+
+    @Test("Wyszukiwanie z pilota: bez polskich znaków, najpierw trafienia w tytule, nieznane id ignorowane")
+    func search() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let store = DataStore(dataDirectory: dir.url)
+        let inLyrics = Song(title: "Alleluja", author: "", rawLyrics: "Pan jest dobry\n\nŚwięty")
+        let inTitle = Song(title: "Święty, Święty", author: "Autor", rawLyrics: "Hosanna")
+        store.songs = [inLyrics, inTitle]
+
+        let results = RemoteControlBridge.search("swiety", in: store)
+        #expect(results.map(\.title) == ["Święty, Święty", "Alleluja"])
+        #expect(results.first?.id == inTitle.id.uuidString)
+        #expect(results.first?.firstLine == "Hosanna")
+        #expect(RemoteControlBridge.search("  ", in: store).isEmpty)
+
+        RemoteControlBridge.perform(.song(UUID()), on: store)
+        #expect(!store.isLive)
+        RemoteControlBridge.perform(.song(inLyrics.id), on: store)
+        #expect(store.isLive && store.activeSong?.id == inLyrics.id && store.selectedSongId == inLyrics.id)
     }
 }
 

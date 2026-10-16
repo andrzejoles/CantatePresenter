@@ -49,6 +49,12 @@ h2 { font-size:13px; text-transform:uppercase; letter-spacing:0.06em; color:var(
 .item span { min-width:0; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .item.current { border-color:var(--accent); background:#16263d; }
 .item.current span { color:var(--text); }
+.item.result { flex-direction:column; align-items:stretch; gap:2px; }
+.item.result b, .item.result span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#query { width:100%; appearance:none; border:1px solid var(--line); background:var(--panel); color:var(--text); border-radius:12px; padding:12px; font:inherit; min-height:48px; }
+#query:focus { outline:2px solid var(--accent); outline-offset:-1px; }
+#results { margin-top:8px; }
+.empty { color:var(--muted); padding:6px 2px; }
 </style>
 </head>
 <body>
@@ -57,13 +63,16 @@ h2 { font-size:13px; text-transform:uppercase; letter-spacing:0.06em; color:var(
 <div id="screen" class="dim"></div>
 <div class="row nav">
   <button id="previous" class="big" data-command="previous"></button>
-  <button id="next" class="primary" data-command="next"></button>
+  <button id="next" class="primary"></button>
 </div>
 <div class="row three">
   <button id="black" data-command="black"></button>
   <button id="clearText" data-command="clearText"></button>
   <button id="stop" data-command="stop"></button>
 </div>
+<h2 id="searchTitle"></h2>
+<input id="query" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+<div id="results" class="list"></div>
 <h2 id="slidesTitle"></h2>
 <div id="slides" class="list"></div>
 <h2 id="planTitle"></h2>
@@ -77,7 +86,7 @@ h2 { font-size:13px; text-transform:uppercase; letter-spacing:0.06em; color:var(
 const token = new URLSearchParams(location.search).get("t") || "";
 const withToken = path => path + "?t=" + encodeURIComponent(token);
 const $ = id => document.getElementById(id);
-let lastSlides = "", lastPlan = "", labels = {};
+let lastSlides = "", lastPlan = "", labels = {}, live = false;
 
 function setOnline(online) {
   $("banner").textContent = labels.offline || "…";
@@ -106,7 +115,13 @@ function mark(container, currentIndex) {
 function render(state) {
   labels = state.labels || {};
   document.title = labels.title || "CantatePresenter";
-  for (const id of ["next", "previous", "black", "clearText", "stop", "nextSong", "previousSong"]) $(id).textContent = labels[id] || id;
+  for (const id of ["previous", "black", "clearText", "stop", "nextSong", "previousSong"]) $(id).textContent = labels[id] || id;
+  live = state.isLive;
+  // Bez projekcji główny przycisk uruchamia ją (albo wznawia w miejscu zatrzymania).
+  $("next").textContent = live ? (labels.next || "next") : (state.songTitle ? labels.resume : labels.start) || "start";
+  $("next").disabled = !live && !state.canStart;
+  $("searchTitle").textContent = labels.search || "";
+  $("query").placeholder = labels.searchPlaceholder || "";
   $("slidesTitle").textContent = labels.slides || "";
   $("planTitle").textContent = (labels.plan || "") + (state.planName ? ": " + state.planName : "");
   $("dot").classList.toggle("live", state.isLive);
@@ -114,11 +129,12 @@ function render(state) {
 
   const screen = $("screen");
   const hasText = state.isLive && state.slideText;
-  screen.textContent = hasText ? state.slideText : (labels.notLive || "");
+  screen.textContent = hasText ? state.slideText
+    : state.isLive ? "" : (labels.notLive || "") + (state.startTitle ? "\n\n▶ " + state.startTitle : "");
   screen.classList.toggle("dim", !hasText);
   $("black").classList.toggle("on", state.isBlackScreen);
   $("clearText").classList.toggle("on", state.isClearText);
-  for (const id of ["next", "previous", "black", "clearText", "stop"]) $(id).disabled = !state.isLive;
+  for (const id of ["previous", "black", "clearText", "stop"]) $(id).disabled = !state.isLive;
 
   const slides = state.slides.map(s => ({ bold: s.label, text: s.preview }));
   const slideSignature = JSON.stringify(slides);
@@ -144,13 +160,13 @@ async function refresh() {
   }
 }
 
-async function send(command, index) {
+async function send(command, index, id) {
   if (navigator.vibrate) navigator.vibrate(12);
   try {
     const response = await fetch(withToken("/api/command"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(index === undefined ? { command } : { command, index })
+      body: JSON.stringify(id !== undefined ? { command, id } : index === undefined ? { command } : { command, index })
     });
     if (!response.ok) throw new Error(response.status);
     render(await response.json());
@@ -162,6 +178,50 @@ async function send(command, index) {
 
 document.querySelectorAll("button[data-command]").forEach(button =>
   button.addEventListener("click", () => send(button.dataset.command)));
+$("next").addEventListener("click", () => send(live ? "next" : "start"));
+
+let searchTimer = null, searchSerial = 0;
+function showResults(results, query) {
+  const container = $("results");
+  if (!query.trim()) { container.replaceChildren(); return; }
+  if (!results.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = labels.noResults || "";
+    container.replaceChildren(empty);
+    return;
+  }
+  container.replaceChildren(...results.map(result => {
+    const button = document.createElement("button");
+    button.className = "item result";
+    const bold = document.createElement("b");
+    bold.textContent = result.title;
+    const span = document.createElement("span");
+    span.textContent = [result.author, result.firstLine].filter(Boolean).join(" · ");
+    button.append(bold, span);
+    button.addEventListener("click", () => {
+      send("song", undefined, result.id);
+      $("query").blur();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    return button;
+  }));
+}
+async function search() {
+  const query = $("query").value;
+  const serial = ++searchSerial;
+  if (!query.trim()) { showResults([], query); return; }
+  try {
+    const response = await fetch(withToken("/api/search") + "&q=" + encodeURIComponent(query), { cache: "no-store" });
+    if (!response.ok) throw new Error(response.status);
+    const results = await response.json();
+    if (serial === searchSerial) showResults(results, query);
+  } catch (error) {
+    setOnline(false);
+  }
+}
+$("query").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(search, 250); });
+$("query").addEventListener("keydown", event => { if (event.key === "Enter") { clearTimeout(searchTimer); search(); $("query").blur(); } });
 
 let touchX = null;
 $("screen").addEventListener("touchstart", event => { touchX = event.touches[0].clientX; }, { passive: true });
