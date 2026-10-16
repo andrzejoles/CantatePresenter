@@ -56,3 +56,14 @@ struct ModelDecodingTests {
         #expect(item.note.isEmpty)
     }
 }
+
+@Suite("Skróty z niepełnym zapisem")
+struct ShortcutDecodingTests {
+    @Test("Brakujące skróty dostają wartości domyślne, zamiast odrzucać całe ustawienia")
+    func partialShortcuts() throws {
+        let settings = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"shortcuts":{"nextSlideKey":121}}"#.utf8))
+        #expect(settings.shortcuts.nextSlideKey == 121)
+        #expect(settings.shortcuts.prevSlideKey == ShortcutSettings().prevSlideKey)
+        #expect(settings.shortcuts.blackScreenKey == ShortcutSettings().blackScreenKey)
+    }
+}

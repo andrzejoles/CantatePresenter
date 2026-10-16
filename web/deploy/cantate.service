@@ -1,0 +1,20 @@
+# systemd: /etc/systemd/system/cantate.service, potem: systemctl enable --now cantate
+[Unit]
+Description=CantatePresenter Web (prywatny serwer)
+After=network.target
+
+[Service]
+User=cantate
+Group=cantate
+WorkingDirectory=/opt/cantate
+ExecStart=/usr/bin/python3 -I /opt/cantate/web/server/server.py serve --data /var/lib/cantate --host 127.0.0.1 --port 8443 --behind-proxy
+Restart=on-failure
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/cantate
+PrivateTmp=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

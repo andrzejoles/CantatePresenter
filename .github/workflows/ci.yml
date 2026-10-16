@@ -33,6 +33,18 @@ jobs:
       - name: Test
         run: swift test
 
+      - name: Web server tests
+        run: python3 -I -m unittest discover -s web/server/tests
+
+      - name: Web core tests (headless Chrome)
+        run: web/run-tests.sh
+
+      - name: Web UI check with login and TOTP (headless Chrome)
+        run: python3 -I web/tools/ui_check.py
+
+      - name: QR encoder check (CoreImage decoder)
+        run: python3 -I web/tools/qr_check.py
+
       - name: Package the app (no Google OAuth client in CI)
         run: |
           ./build_app.sh
