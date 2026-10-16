@@ -30,3 +30,10 @@ __pycache__/
 # Wersja liczona z commitów (scripts/version.sh); pliki tylko do kopii bez gita
 /VERSION
 /web/VERSION
+
+# Windows (.NET)
+windows/**/bin/
+windows/**/obj/
+windows/**/*.user
+windows/**/.vs/
+windows/**/AppPackages/
