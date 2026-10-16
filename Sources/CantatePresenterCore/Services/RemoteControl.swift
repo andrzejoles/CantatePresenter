@@ -11,8 +11,12 @@ public enum RemoteCommand: Equatable {
     case black
     case clearText
     case stop
+    /// Uruchomienie albo wznowienie projekcji po zatrzymaniu.
+    case start
     case slide(Int)
     case planItem(Int)
+    /// Pieśń z wyszukiwania: `{"command":"song","id":"<UUID>"}`.
+    case song(UUID)
     
     /// Treść POST: `{"command":"next"}` albo `{"command":"slide","index":2}`.
     public init?(json data: Data) {
@@ -27,6 +31,10 @@ public enum RemoteCommand: Equatable {
         case "black": self = .black
         case "clearText": self = .clearText
         case "stop": self = .stop
+        case "start": self = .start
+        case "song":
+            guard let id = (object["id"] as? String).flatMap(UUID.init(uuidString:)) else { return nil }
+            self = .song(id)
         case "slide":
             guard let index, index >= 0 else { return nil }
             self = .slide(index)
@@ -62,6 +70,18 @@ public struct RemoteState: Codable, Equatable {
     public var planName: String
     public var plan: [PlanEntry]
     public var labels: [String: String]
+    /// Projekcja jest zatrzymana, ale jest co uruchomić (ostatnia pieśń, zaznaczona albo pierwsza z planu).
+    public var canStart: Bool = false
+    /// Tytuł pieśni, którą uruchomi przycisk startu.
+    public var startTitle: String = ""
+}
+
+/// Wynik wyszukiwania pieśni na pilocie.
+public struct RemoteSearchResult: Codable, Equatable {
+    public var id: String
+    public var title: String
+    public var author: String
+    public var firstLine: String
 }
 
 // MARK: - Remote Router
@@ -83,7 +103,8 @@ public struct RemoteRouter {
         state: () -> RemoteState,
         perform: (RemoteCommand) -> Void,
         stagePage: () -> String = { "" },
-        stageState: (Int) -> Data = { _ in Data("{}".utf8) }
+        stageState: (Int) -> Data = { _ in Data("{}".utf8) },
+        search: (String) -> Data = { _ in Data("[]".utf8) }
     ) -> RemoteHTTPResponse {
         let given = request.query["t"] ?? ""
         let isController = Self.constantTimeEquals(given, token)
@@ -110,7 +131,9 @@ public struct RemoteRouter {
             }
             perform(command)
             return .json(state())
-        case (_, "/"), (_, "/api/state"), (_, "/api/command"):
+        case ("GET", "/api/search"):
+            return RemoteHTTPResponse(status: 200, contentType: "application/json; charset=utf-8", body: search(request.query["q"] ?? ""))
+        case (_, "/"), (_, "/api/state"), (_, "/api/command"), (_, "/api/search"):
             return .text("Method not allowed", status: 405)
         default:
             return .text("Not found", status: 404)

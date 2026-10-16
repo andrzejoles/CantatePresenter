@@ -200,8 +200,35 @@ enum RemoteControlBridge {
             stageState: { semitones in
                 let payload = StagePayload(stage: MusicianStage.make(store: store, semitones: semitones), labels: stageLabels())
                 return (try? JSONEncoder().encode(payload)) ?? Data("{}".utf8)
-            }
+            },
+            search: { query in (try? JSONEncoder().encode(search(query, in: store))) ?? Data("[]".utf8) }
         )
+    }
+    
+    /// Pieśni pasujące do zapytania (jak lista w aplikacji): najpierw trafienia w tytule lub autorze.
+    static func search(_ query: String, in store: DataStore, limit: Int = 40) -> [RemoteSearchResult] {
+        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return [] }
+        let all = store.searchIndex.filter(store.songs, query: query, scope: .all)
+        let titled = Set(store.searchIndex.filter(all, query: query, scope: .titleAndAuthor).map(\.id))
+        let ordered = all.filter { titled.contains($0.id) } + all.filter { !titled.contains($0.id) }
+        return ordered.prefix(limit).map { song in
+            RemoteSearchResult(
+                id: song.id.uuidString,
+                title: song.title,
+                author: song.author,
+                firstLine: song.slides.first?.text.components(separatedBy: "\n").first ?? ""
+            )
+        }
+    }
+    
+    /// Pieśń, którą uruchomi „Start”: ostatnio wyświetlana, zaznaczona w aplikacji albo pierwsza z planu.
+    static func startCandidate(in store: DataStore) -> Song? {
+        if let active = store.activeSong { return active }
+        if store.selectedSongId != nil, let selected = store.selectedSong { return selected }
+        if let firstId = store.activePlan?.items.first?.songId, let song = store.songs.first(where: { $0.id == firstId }) {
+            return song
+        }
+        return store.selectedSong
     }
 
     struct StagePayload: Encodable {
@@ -245,7 +272,9 @@ enum RemoteControlBridge {
             plan: (plan?.items ?? []).map { item in
                 RemoteState.PlanEntry(title: titles[item.songId] ?? "?", isCurrent: item.songId == song?.id)
             },
-            labels: labels()
+            labels: labels(),
+            canStart: !store.isLive && startCandidate(in: store) != nil,
+            startTitle: store.isLive ? "" : (startCandidate(in: store)?.title ?? "")
         )
     }
     
@@ -258,7 +287,21 @@ enum RemoteControlBridge {
         case .black: store.toggleBlackScreen()
         case .clearText: store.toggleClearText()
         case .stop: store.stopLive()
-        case .slide(let index): store.jumpToSlide(index: index)
+        case .start:
+            guard !store.isLive, let song = startCandidate(in: store) else { return }
+            // Wznowienie w tym samym miejscu, w którym projekcję zatrzymano.
+            let index = song.id == store.activeSong?.id ? store.activeSlideIndex : 0
+            store.present(song: song, slideIndex: index)
+        case .slide(let index):
+            if !store.isLive, let song = store.activeSong, index < song.slides.count {
+                store.present(song: song, slideIndex: index)
+            } else {
+                store.jumpToSlide(index: index)
+            }
+        case .song(let id):
+            guard let song = store.songs.first(where: { $0.id == id }) else { return }
+            store.present(song: song)
+            store.selectedSongId = song.id
         case .planItem(let index):
             guard let items = store.activePlan?.items, index < items.count,
                   let song = store.songs.first(where: { $0.id == items[index].songId }) else { return }
@@ -279,7 +322,12 @@ enum RemoteControlBridge {
             "stop": L("Zakończ projekcję"),
             "slides": L("Slajdy"),
             "plan": L("Plan"),
-            "notLive": L("Projekcja nie jest uruchomiona. Wybierz pieśń z planu."),
+            "notLive": L("Projekcja nie jest uruchomiona. Wybierz pieśń z planu lub wyszukaj ją."),
+            "start": L("Rozpocznij projekcję"),
+            "resume": L("Wznów projekcję"),
+            "search": L("Szukaj pieśni"),
+            "searchPlaceholder": L("Tytuł, autor lub fragment tekstu"),
+            "noResults": L("Nie znaleziono pieśni"),
             "offline": L("Brak połączenia z komputerem. Sprawdź, czy telefon jest w tej samej sieci Wi-Fi."),
             "title": L("Pilot CantatePresenter")
         ]
