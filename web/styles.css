@@ -178,3 +178,5 @@ dialog.wide-dialog { width: min(1100px, 96vw); }
 .logo-choice img { width: 64px; height: 64px; object-fit: contain; }
 .logo-choice.selected { border: 2px solid var(--accent); }
 .logo-choice span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chords-filter { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; font-size: 0.9em; }
+.chords-mark { font-size: 0.85em; }

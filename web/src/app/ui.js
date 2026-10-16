@@ -41,6 +41,7 @@ export class AppUI {
     this.actions = actions;
     this.query = "";
     this.scope = SearchScope.all;
+    this.onlyWithChords = false;
     this.leftTab = "library";
     this.showChords = false;
     this.transposeSteps = 0;
@@ -140,12 +141,16 @@ export class AppUI {
     this.listMeta = h("div", { class: "list-meta" });
     this.listElement = h("ul", { class: "song-list", role: "listbox", tabindex: "0", "aria-label": t("Biblioteka pieśni") });
     this.libraryFooter = h("div", { class: "footer-meta" });
-    replace(this.left, tabs, searchBox, h("div", { class: "search-row" }, scope), this.listMeta, h("div", { class: "scroll" }, this.listElement), this.libraryFooter);
+    const chordsFilter = h("label", { class: "chords-filter", title: t("Pokaż tylko pieśni z chwytami") },
+      h("input", { type: "checkbox", checked: this.onlyWithChords, onchange: (/** @type {Event} */ e) => { this.onlyWithChords = /** @type {HTMLInputElement} */ (e.target).checked; this.renderList(); } }),
+      " 🎸 ", t("Z chwytami"));
+    replace(this.left, tabs, searchBox, h("div", { class: "search-row" }, scope, chordsFilter), this.listMeta, h("div", { class: "scroll" }, this.listElement), this.libraryFooter);
     this.renderList();
   }
 
   visibleSongs() {
-    return this.store.filteredSongs(this.query, (song) => songMatches(song, this.query, this.scope));
+    const songs = this.store.filteredSongs(this.query, (song) => songMatches(song, this.query, this.scope));
+    return this.onlyWithChords ? songs.filter((song) => (song.chords ?? "").trim()) : songs;
   }
 
   renderList() {
@@ -167,7 +172,7 @@ export class AppUI {
         ondblclick: () => this.openEditor(song),
       },
       h("span", { class: "song-title" }, titleOf(song)),
-      h("span", { class: "song-side" }, song.key ? h("span", { class: "key-badge" }, song.key) : null, h("span", { class: "muted" }, t("{0} sl.", song.slides.length))),
+      h("span", { class: "song-side" }, (song.chords ?? "").trim() ? h("span", { class: "chords-mark", title: t("Pieśń z chwytami") }, "🎸") : null, song.key ? h("span", { class: "key-badge" }, song.key) : null, h("span", { class: "muted" }, t("{0} sl.", song.slides.length))),
       h("span", { class: "song-sub muted" }, song.author || t("Autor nieznany")),
       snippet ? h("span", { class: "snippet" }, `„${snippet}”`) : null);
     }));

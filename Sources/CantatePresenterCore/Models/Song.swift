@@ -8,6 +8,11 @@ public struct Song: Identifiable, Codable, Equatable, Hashable {
     public var tags: [String]
     public var rawLyrics: String
     public var chords: String?
+    
+    /// Pieśń ma arkusz chwytów (pusty albo same spacje się nie liczy).
+    public var hasChords: Bool {
+        !(chords ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     public var slides: [SongSlide]
     public var createdAt: Date
     public var updatedAt: Date

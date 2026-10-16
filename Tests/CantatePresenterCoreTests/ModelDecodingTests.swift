@@ -66,4 +66,18 @@ struct ShortcutDecodingTests {
         #expect(settings.shortcuts.prevSlideKey == ShortcutSettings().prevSlideKey)
         #expect(settings.shortcuts.blackScreenKey == ShortcutSettings().blackScreenKey)
     }
+
+}
+
+@Suite("Pieśni z chwytami")
+struct SongChordsFlagTests {
+    @Test("hasChords: tylko niepusty arkusz chwytów")
+    func hasChords() {
+        var song = Song(title: "A", rawLyrics: "x")
+        #expect(!song.hasChords)
+        song.chords = "  \n "
+        #expect(!song.hasChords)
+        song.chords = "G  D\nTekst"
+        #expect(song.hasChords)
+    }
 }
