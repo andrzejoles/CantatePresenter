@@ -92,8 +92,8 @@ public static class ImportExport
                 unreadable++;
             }
         }
-        var (unique, duplicates) = WithoutDuplicates(imported, Library.Songs);
-        if (unique.Count > 0) Library.AddSongs(unique);
+        var (unique, duplicates) = WithoutDuplicates(imported, Services.Library.Songs);
+        if (unique.Count > 0) Services.Library.AddSongs(unique);
         var parts = new List<string> { L("Zaimportowano {0} pieśni.", unique.Count) };
         if (duplicates > 0) parts.Add(L("Pominięto duplikaty: {0}.", duplicates));
         if (unreadable > 0) parts.Add(L("Nieczytelne pliki: {0}.", unreadable));
@@ -105,7 +105,7 @@ public static class ImportExport
         if (await PickSaveAsync(window, Path.GetFileNameWithoutExtension(Backup.FileName()), "CantatePresenter", ".cantatebackup") is not string path) return;
         try
         {
-            Backup.Create(Library, path, Version);
+            Backup.Create(Services.Library, path, Services.Version);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
         {
@@ -117,11 +117,11 @@ public static class ImportExport
     {
         var files = await PickFilesAsync(window, false, ".cantatebackup", ".holyricsbackup", ".zip");
         if (files.Count == 0) return;
-        if (!await Dialogs.ConfirmAsync(window, L("Przywrócić kopię? Obecna biblioteka ({0} pieśni) zostanie zastąpiona przez {1} pieśni z kopii. Poprzedni stan można przywrócić przyciskiem „Cofnij ostatnie przywrócenie”.", Library.Songs.Count, SongsInArchive(files[0].Path)))) return;
+        if (!await Dialogs.ConfirmAsync(window, L("Przywrócić kopię? Obecna biblioteka ({0} pieśni) zostanie zastąpiona przez {1} pieśni z kopii. Poprzedni stan można przywrócić przyciskiem „Cofnij ostatnie przywrócenie”.", Services.Library.Songs.Count, SongsInArchive(files[0].Path)))) return;
         try
         {
-            var result = Backup.Restore(files[0].Path, Library.DataDirectory, (key, args) => L(key, args));
-            Library.Reload();
+            var result = Backup.Restore(files[0].Path, Services.Library.DataDirectory, (key, args) => L(key, args));
+            Services.Library.Reload();
             await Dialogs.InfoAsync(window, L("Import/Eksport"), L("Przywrócono kopię: {0} pieśni, {1} planów.", result.SongsCount, result.PlansCount));
         }
         catch (Exception error) when (error is BackupException or IOException or UnauthorizedAccessException)
@@ -151,8 +151,8 @@ public static class ImportExport
     {
         try
         {
-            Backup.UndoLastRestore(Library.DataDirectory, (key, args) => L(key, args));
-            Library.Reload();
+            Backup.UndoLastRestore(Services.Library.DataDirectory, (key, args) => L(key, args));
+            Services.Library.Reload();
         }
         catch (Exception error) when (error is BackupException or IOException)
         {
@@ -162,7 +162,7 @@ public static class ImportExport
 
     public static async Task ExportSongAsync(MainWindow window)
     {
-        if (Library.SelectedSong is not Song song) return;
+        if (Services.Library.SelectedSong is not Song song) return;
         var name = string.Concat(song.Title.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
         if (await PickSaveAsync(window, name.Length > 0 ? name : "piesn", "Text", ".txt") is not string path) return;
         // Nagłówki eksportu .txt to format danych (nie tłumaczone), jak SongExporter w macOS.
@@ -174,6 +174,6 @@ public static class ImportExport
     public static async Task ExportCcliAsync(MainWindow window)
     {
         if (await PickSaveAsync(window, $"CCLI_usage_{DateTime.Now:yyyy-MM-dd}", "CSV", ".csv") is not string path) return;
-        await File.WriteAllTextAsync(path, Ccli.UsageCsv(Library.CcliUsage));
+        await File.WriteAllTextAsync(path, Ccli.UsageCsv(Services.Library.CcliUsage));
     }
 }

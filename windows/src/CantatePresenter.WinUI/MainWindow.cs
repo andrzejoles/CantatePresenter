@@ -137,7 +137,7 @@ public sealed partial class MainWindow : Window
         return button;
     }
 
-    private UIElement Toolbar()
+    private FrameworkElement Toolbar()
     {
         var bar = new StackPanel { Orientation = Orientation.Horizontal, Padding = new Thickness(10, 8, 10, 8) };
         bar.Children.Add(new TextBlock { Text = "♫ CantatePresenter", FontWeight = FontWeights.Bold, FontSize = 16, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 16, 0) });
@@ -171,7 +171,7 @@ public sealed partial class MainWindow : Window
         return new ScrollViewer { Content = bar, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled };
     }
 
-    private UIElement IssuesBar()
+    private FrameworkElement IssuesBar()
     {
         var panel = new StackPanel();
         foreach (var issue in library.Issues)
@@ -190,7 +190,7 @@ public sealed partial class MainWindow : Window
         return panel;
     }
 
-    private UIElement ShortcutsBar()
+    private FrameworkElement ShortcutsBar()
     {
         var s = library.Settings.Shortcuts;
         var bar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 14, Padding = new Thickness(14, 8, 14, 8) };

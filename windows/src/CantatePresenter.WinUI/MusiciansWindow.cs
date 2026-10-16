@@ -43,12 +43,12 @@ public sealed class MusiciansWindow : Window
             return button;
         }
         controls.Children.Add(new TextBlock { Text = L("Transpozycja"), Foreground = new SolidColorBrush(Colors.Gray), VerticalAlignment = VerticalAlignment.Center });
-        controls.Children.Add(Control("−", () => Library.UpdateSettings(s => s.MusicianTranspose = (s.MusicianTranspose - 1) % 12)));
+        controls.Children.Add(Control("−", () => Services.Library.UpdateSettings(s => s.MusicianTranspose = (s.MusicianTranspose - 1) % 12)));
         controls.Children.Add(transposeValue);
-        controls.Children.Add(Control("+", () => Library.UpdateSettings(s => s.MusicianTranspose = (s.MusicianTranspose + 1) % 12)));
+        controls.Children.Add(Control("+", () => Services.Library.UpdateSettings(s => s.MusicianTranspose = (s.MusicianTranspose + 1) % 12)));
         controls.Children.Add(new TextBlock { Text = L("Czcionka"), Foreground = new SolidColorBrush(Colors.Gray), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0) });
-        controls.Children.Add(Control("A−", () => Library.UpdateSettings(s => s.MusicianFontSize -= 3)));
-        controls.Children.Add(Control("A+", () => Library.UpdateSettings(s => s.MusicianFontSize += 3)));
+        controls.Children.Add(Control("A−", () => Services.Library.UpdateSettings(s => s.MusicianFontSize -= 3)));
+        controls.Children.Add(Control("A+", () => Services.Library.UpdateSettings(s => s.MusicianFontSize += 3)));
         Grid.SetColumn(controls, 1);
         header.Children.Add(controls);
         root.Children.Add(header);
@@ -57,7 +57,7 @@ public sealed class MusiciansWindow : Window
         root.Children.Add(scroll);
         Content = root;
         root.SizeChanged += (_, _) => Render();
-        Library.Changed += reason => DispatcherQueue.TryEnqueue(Render);
+        Services.Library.Changed += reason => DispatcherQueue.TryEnqueue(Render);
         Render();
     }
 
@@ -65,8 +65,8 @@ public sealed class MusiciansWindow : Window
 
     private void Render()
     {
-        var settings = Library.Settings;
-        var stage = MusicianStage.Make(Library, settings.MusicianTranspose, s => Labels.Slide(s));
+        var settings = Services.Library.Settings;
+        var stage = MusicianStage.Make(Services.Library, settings.MusicianTranspose, s => Labels.Slide(s));
         transposeValue.Text = stage.Semitones > 0 ? $"+{stage.Semitones}" : stage.Semitones.ToString();
         title.Text = stage.SongTitle.Length > 0 ? stage.SongTitle : L("Ekran dla muzyków");
         var parts = new List<string>();
