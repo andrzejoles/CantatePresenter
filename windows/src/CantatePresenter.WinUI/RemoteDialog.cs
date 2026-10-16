@@ -60,7 +60,7 @@ public static class RemoteDialog
         var remote = Server(window);
         var showsMusicianCode = false;
         var body = new StackPanel { Spacing = 12, Width = 420 };
-        var toggle = new ToggleSwitch { Header = L("Włącz pilota"), IsOn = remote.IsRunning };
+        var toggle = new ToggleSwitch { Header = L("Włącz pilota"), IsOn = remote.IsRunning, OnContent = "", OffContent = "" };
         var codeChoice = new RadioButtons { MaxColumns = 2 };
         codeChoice.Items.Add(L("Sterowanie"));
         codeChoice.Items.Add(L("Muzycy (chwyty, tylko podgląd)"));
