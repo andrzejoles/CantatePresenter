@@ -1,0 +1,62 @@
+[
+  {
+    "fold" : "moj jezu, moj zbawco",
+    "input" : "Mój Jezu, mój Zbawco",
+    "searchFold" : "moj jezu moj zbawco"
+  },
+  {
+    "fold" : "lodz sleza",
+    "input" : "Łódź Ślęża",
+    "searchFold" : "lodz sleza"
+  },
+  {
+    "fold" : "zolc gesla jazn",
+    "input" : "ŻÓŁĆ gęślą jaźń",
+    "searchFold" : "zolc gesla jazn"
+  },
+  {
+    "fold" : "barka",
+    "input" : "  Barka  ",
+    "searchFold" : "barka"
+  },
+  {
+    "fold" : "ref: panie!",
+    "input" : "Ref: Panie!",
+    "searchFold" : "ref panie"
+  },
+  {
+    "fold" : "naive cafe",
+    "input" : "naïve café",
+    "searchFold" : "naive cafe"
+  },
+  {
+    "fold" : "a—b…c",
+    "input" : "A—B…C",
+    "searchFold" : "a b c"
+  },
+  {
+    "fold" : "1. zwrotka (x2)",
+    "input" : "1. zwrotka (x2)",
+    "searchFold" : "1 zwrotka x2"
+  },
+  {
+    "fold" : "ae\tzn\nc",
+    "input" : "Ąę\tźń\nĆ",
+    "searchFold" : "ae zn c"
+  },
+  {
+    "fold" : "o, panie, to ty na mnie spojrzales",
+    "input" : "O, Panie, to Ty na mnie spojrzałeś",
+    "searchFold" : "o panie to ty na mnie spojrzales"
+  },
+  {
+    "fold" : "strasse unter",
+    "input" : "Straße Ünter",
+    "searchFold" : "strasse unter"
+  },
+  {
+    "fold" : "«cicha noc»",
+    "input" : "«Cicha noc»",
+    "searchFold" : "cicha noc"
+  }
+]

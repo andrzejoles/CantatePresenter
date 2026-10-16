@@ -23,3 +23,6 @@ data/settings.json
 # Klient OAuth Google pobrany z Google Cloud Console; wbudowywany przez build_app.sh (W3)
 google-oauth-client.json
 client_secret_*.json
+
+# Python
+__pycache__/

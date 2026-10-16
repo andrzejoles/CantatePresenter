@@ -68,6 +68,29 @@ public struct ShortcutSettings: Codable, Equatable {
         self.blackScreenKey = blackScreenKey
         self.clearTextKey = clearTextKey
     }
+    
+    // Tolerancyjny dekoder (K1): brakujący skrót dostaje wartość domyślną, zamiast odrzucać całe ustawienia.
+    private enum CodingKeys: String, CodingKey {
+        case nextSlideKey, prevSlideKey, prevSongKey, nextSongKey, startPresentationKey, stopPresentationKey, blackScreenKey, clearTextKey
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let defaults = ShortcutSettings()
+        func key(_ codingKey: CodingKeys, _ fallback: UInt16) -> UInt16 {
+            (try? container.decodeIfPresent(UInt16.self, forKey: codingKey)) ?? fallback
+        }
+        self.init(
+            nextSlideKey: key(.nextSlideKey, defaults.nextSlideKey),
+            prevSlideKey: key(.prevSlideKey, defaults.prevSlideKey),
+            prevSongKey: key(.prevSongKey, defaults.prevSongKey),
+            nextSongKey: key(.nextSongKey, defaults.nextSongKey),
+            startPresentationKey: key(.startPresentationKey, defaults.startPresentationKey),
+            stopPresentationKey: key(.stopPresentationKey, defaults.stopPresentationKey),
+            blackScreenKey: key(.blackScreenKey, defaults.blackScreenKey),
+            clearTextKey: key(.clearTextKey, defaults.clearTextKey)
+        )
+    }
 }
 
 // MARK: - Text Alignment (N2)
