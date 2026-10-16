@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CantatePresenter: polityka prywatności</title>
+<link rel="icon" href="icon.png">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<main>
+<header><img src="icon.png" alt=""><div><h1>Polityka prywatności</h1><div class="muted">CantatePresenter · obowiązuje od 16 października 2026</div></div></header>
+<nav><a href="index.html">Strona główna</a><a href="#en">English version</a></nav>
+
+<h2>W skrócie</h2>
+<p>CantatePresenter nie zbiera danych o użytkownikach. Autor programu nie otrzymuje żadnych danych: program nie ma
+analityki, reklam ani telemetrii. Biblioteka pieśni, plany i ustawienia są zapisywane na komputerze użytkownika
+(wersja macOS) albo na serwerze wybranym przez parafię (wersja webowa).</p>
+
+<h2>Dysk Google (opcjonalnie)</h2>
+<p>Po zalogowaniu kontem Google program zapisuje kopie zapasowe biblioteki (pliki <code>.cantatebackup</code>)
+w folderze na Dysku Google tego konta i może je stamtąd przywrócić.</p>
+<table>
+<tr><th>Zakres</th><th>Do czego służy</th></tr>
+<tr><td><code>https://www.googleapis.com/auth/drive.file</code></td><td>tworzenie i odczyt wyłącznie plików i folderów utworzonych przez CantatePresenter (kopie zapasowe); program nie widzi innych plików na Dysku i niczego na nim nie usuwa</td></tr>
+<tr><td><code>https://www.googleapis.com/auth/userinfo.email</code></td><td>wyświetlenie adresu e-mail konta, na którym zapisywane są kopie</td></tr>
+</table>
+<ul>
+  <li>Dane z kont Google trafiają tylko na komputer użytkownika i do jego Dysku Google. Nie są wysyłane do autora
+  ani nikomu innemu, nie są sprzedawane i nie służą do reklam ani trenowania modeli.</li>
+  <li>Tokeny dostępu i odświeżania są przechowywane w Pęku kluczy macOS na komputerze użytkownika.</li>
+  <li>Wylogowanie w Ustawieniach programu usuwa tokeny z komputera. Dostęp można też odebrać w
+  <a href="https://myaccount.google.com/permissions">ustawieniach konta Google</a>. Kopie zapasowe na Dysku zostają
+  do czasu, aż użytkownik sam je usunie.</li>
+</ul>
+<p>Korzystanie z informacji otrzymanych z interfejsów API Google i ich przekazywanie innym aplikacjom jest zgodne z
+<a href="https://developers.google.com/terms/api-services-user-data-policy">Zasadami dotyczącymi danych użytkownika w usługach interfejsu API Google</a>,
+w tym z wymaganiami dotyczącymi ograniczonego użytkowania (Limited Use).</p>
+
+<h2>Inne połączenia sieciowe</h2>
+<ul>
+  <li><strong>Wyszukiwanie online</strong>: wpisana fraza trafia do Wikiźródeł (Wikimedia Foundation), które zwracają teksty pieśni.</li>
+  <li><strong>Szukaj w SongSelect</strong>: otwiera stronę CCLI SongSelect w przeglądarce; program nie łączy się z CCLI sam.</li>
+  <li><strong>Aktualizacje</strong>: raz dziennie program pobiera z GitHuba informację o najnowszej wersji. GitHub widzi
+  adres IP i wersję programu, jak przy każdej wizycie na stronie; program nie wysyła innych danych.</li>
+  <li><strong>Dyktowanie</strong>: rozpoznawanie mowy macOS. Gdy na komputerze nie ma modelu mowy dla danego języka,
+  nagranie jest rozpoznawane przez serwery Apple (zgodnie z zasadami Apple). W Ustawieniach można wymusić
+  rozpoznawanie tylko na komputerze.</li>
+  <li><strong>Pilot i ekran dla muzyków</strong>: działają tylko w sieci lokalnej, przez jednorazowy klucz w kodzie QR;
+  dane nie wychodzą poza tę sieć.</li>
+</ul>
+
+<h2>Wersja webowa</h2>
+<p>Wersję webową uruchamia parafia lub wspólnota na własnym serwerze; to ona decyduje o danych i odpowiada za nie.
+Serwer przechowuje konta (skrót hasła, sekret aplikacji uwierzytelniającej, skróty kodów zapasowych) i bibliotekę.
+Przeglądarka dostaje tylko ciasteczko sesji niezbędne do logowania.</p>
+
+<h2>Kontakt</h2>
+<p>Pytania i prośby: <a href="https://github.com/andrzejoles/CantatePresenter/issues">GitHub Issues</a>.
+O zmianach tej polityki informuje ta strona (data obowiązywania na górze).</p>
+
+<hr id="en">
+<h1>Privacy policy (English)</h1>
+<p class="muted">CantatePresenter · effective 16 October 2026</p>
+
+<h2>Summary</h2>
+<p>CantatePresenter does not collect data about its users. The developer receives no data: there is no analytics,
+advertising or telemetry. The song library, plans and settings are stored on the user's computer (macOS app) or on a
+server chosen by the parish (web version).</p>
+
+<h2>Google Drive (optional)</h2>
+<p>After signing in with a Google account, the app saves backups of the library (<code>.cantatebackup</code> files) to
+a folder in that account's Google Drive and can restore them.</p>
+<table>
+<tr><th>Scope</th><th>Purpose</th></tr>
+<tr><td><code>https://www.googleapis.com/auth/drive.file</code></td><td>create and read only the files and folders created by CantatePresenter (backups); the app cannot see any other files and deletes nothing in Drive</td></tr>
+<tr><td><code>https://www.googleapis.com/auth/userinfo.email</code></td><td>show the email address of the account that receives the backups</td></tr>
+</table>
+<ul>
+  <li>Google user data stays on the user's computer and in their own Google Drive. It is never sent to the developer or
+  anyone else, never sold, and never used for advertising or to train models.</li>
+  <li>Access and refresh tokens are stored in the macOS Keychain on the user's computer.</li>
+  <li>Signing out in the app's Settings deletes the tokens. Access can also be revoked in the
+  <a href="https://myaccount.google.com/permissions">Google Account settings</a>. Backups in Drive remain until the user deletes them.</li>
+</ul>
+<p>CantatePresenter's use and transfer to any other app of information received from Google APIs will adhere to the
+<a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>,
+including the Limited Use requirements.</p>
+
+<h2>Other network connections</h2>
+<ul>
+  <li><strong>Online search</strong>: the search phrase is sent to Wikisource (Wikimedia Foundation), which returns song texts.</li>
+  <li><strong>Search in SongSelect</strong>: opens the CCLI SongSelect website in the browser; the app does not contact CCLI itself.</li>
+  <li><strong>Updates</strong>: once a day the app downloads information about the latest version from GitHub. GitHub sees the
+  IP address and the app version, as with any website visit; no other data is sent.</li>
+  <li><strong>Dictation</strong>: macOS speech recognition. If no on-device speech model is available for the language, audio is
+  recognised by Apple's servers (under Apple's terms). On-device-only recognition can be enforced in Settings.</li>
+  <li><strong>Remote control and musicians' screen</strong>: local network only, protected by a one-time key in a QR code; data does not leave that network.</li>
+</ul>
+
+<h2>Web version</h2>
+<p>The web version is run by a parish or community on its own server; that operator decides about and is responsible for
+the data. The server stores accounts (password hash, authenticator secret, backup code hashes) and the library. The
+browser only receives the session cookie required for signing in.</p>
+
+<h2>Contact</h2>
+<p>Questions and requests: <a href="https://github.com/andrzejoles/CantatePresenter/issues">GitHub Issues</a>.
+Changes to this policy are published on this page (effective date at the top).</p>
+
+<footer>© 2026 Andrzej Oles.</footer>
+</main>
+</body>
+</html>
