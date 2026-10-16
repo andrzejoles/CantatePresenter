@@ -89,7 +89,11 @@ jobs:
           $out = Join-Path $env:RUNNER_TEMP "smoke"
           $env:CANTATE_TRACE = Join-Path $env:RUNNER_TEMP "trace.txt"
           $process = Start-Process -FilePath "publish/CantatePresenter/CantatePresenter.exe" -ArgumentList "--smoke-test", "`"$out`"" -PassThru
-          if (-not $process.WaitForExit(180000)) { $process.Kill(); throw "Aplikacja nie zakończyła próby w 3 minuty" }
+          if (-not $process.WaitForExit(180000)) {
+            $process.Kill()
+            if (Test-Path $env:CANTATE_TRACE) { Get-Content $env:CANTATE_TRACE | Select-Object -Last 40 }
+            throw "Aplikacja nie zakończyła próby w 3 minuty"
+          }
           Write-Host "Kod wyjścia: $($process.ExitCode)"
           if (Test-Path $env:CANTATE_TRACE) { Get-Content $env:CANTATE_TRACE }
           New-Item -ItemType Directory -Force -Path smoke | Out-Null
