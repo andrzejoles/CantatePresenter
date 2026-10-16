@@ -84,7 +84,20 @@ public static class SmokeTest
             failures.Add("exception");
         }
         report["failures"] = failures;
-        await File.WriteAllTextAsync(Path.Combine(outputDirectory, "report.json"), report.ToJsonString(Json.Pretty));
+        try
+        {
+            // Bez JsonSerializerOptions: zapis raportu nie może zależeć od konfiguracji serializera.
+            using (var file = File.Create(Path.Combine(outputDirectory, "report.json")))
+            using (var writer = new System.Text.Json.Utf8JsonWriter(file, new System.Text.Json.JsonWriterOptions { Indented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }))
+            {
+                report.WriteTo(writer);
+            }
+        }
+        catch (Exception error)
+        {
+            Services.Trace("raport: " + error);
+            await File.WriteAllTextAsync(Path.Combine(outputDirectory, "report.json"), "{\"failures\":[\"report\"]}");
+        }
         Services.Trace("próba: koniec");
         // Zamykanie kilku okien WinUI bywa zawodne w CI; raport jest zapisany, więc proces kończy się od razu.
         Environment.Exit(failures.Count == 0 ? 0 : 1);
@@ -141,7 +154,7 @@ public static class SmokeTest
             view.CoreWebView2.Navigate(url);
             await Task.WhenAny(loaded.Task, Task.Delay(10000));
             await Task.Delay(2500); // strona pobiera stan co sekundę
-            var text = System.Text.Json.JsonSerializer.Deserialize<string>(await view.CoreWebView2.ExecuteScriptAsync("document.body.innerText")) ?? "";
+            var text = System.Text.Json.Nodes.JsonNode.Parse(await view.CoreWebView2.ExecuteScriptAsync("document.body.innerText"))?.GetValue<string>() ?? "";
             using var stream = new InMemoryRandomAccessStream();
             await view.CoreWebView2.CapturePreviewAsync(Microsoft.Web.WebView2.Core.CoreWebView2CapturePreviewImageFormat.Png, stream);
             stream.Seek(0);
