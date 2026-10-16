@@ -24,11 +24,11 @@ namespace CantatePresenter.WinUI;
 [Bindable]
 public sealed class SongRow
 {
-    public string Id { get; init; } = "";
-    public string Title { get; init; } = "";
-    public string Subtitle { get; init; } = "";
-    public string Info { get; init; } = "";
-    public string Snippet { get; init; } = "";
+    public string Id { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Subtitle { get; set; } = "";
+    public string Info { get; set; } = "";
+    public string Snippet { get; set; } = "";
     public Visibility SnippetVisibility => Snippet.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
 }
 
