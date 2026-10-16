@@ -83,7 +83,9 @@ public static class SmokeTest
         }
         report["failures"] = failures;
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "report.json"), report.ToJsonString(Json.Pretty));
-        Application.Current.Exit();
+        Services.Trace("próba: koniec");
+        // Zamykanie kilku okien WinUI bywa zawodne w CI; raport jest zapisany, więc proces kończy się od razu.
+        Environment.Exit(failures.Count == 0 ? 0 : 1);
     }
 
     private static async Task Capture(FrameworkElement? element, string path)
