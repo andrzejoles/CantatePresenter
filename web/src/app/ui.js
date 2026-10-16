@@ -20,6 +20,7 @@ import { APP_VERSION } from "../version.js";
  *   importFiles: (files: FileList | File[]) => Promise<void>, exportBackup: () => Promise<void>,
  *   restoreBackup: (file: File) => Promise<void>, undoRestore: () => Promise<void>, canUndoRestore: () => boolean,
  *   exportSongText: (song: Song) => void, user: string, logout: () => void, openMusicians: () => void,
+ *   exportCCLIReport: () => void,
  * }} Actions
  */
 
@@ -428,7 +429,11 @@ export class AppUI {
         h("div", { class: "row" },
           field(t("Numer licencji CCLI parafii:"), h("input", { type: "text", value: s.ccliLicenseNumber, placeholder: "1234567", onchange: (/** @type {Event} */ e) => update({ ccliLicenseNumber: /** @type {HTMLInputElement} */ (e.target).value.trim() }) })),
           field(t("Informacja o prawach na slajdzie:"), select(s.copyrightNoticePlacement, [["firstSlide", t("Na pierwszym slajdzie")], ["lastSlide", t("Na ostatnim slajdzie")], ["allSlides", t("Na każdym slajdzie")], ["none", t("Nie pokazuj")]], (v) => update({ copyrightNoticePlacement: v })))),
-        h("div", { class: "hint-text" }, t("Dotyczy pieśni z numerem CCLI (np. zaimportowanych z SongSelect). Licencja CCLI wymaga pokazania tytułu, autorów, praw autorskich i numeru licencji przy wyświetlaniu tekstu."))),
+        h("div", { class: "hint-text" }, t("Dotyczy pieśni z numerem CCLI (np. zaimportowanych z SongSelect). Licencja CCLI wymaga pokazania tytułu, autorów, praw autorskich i numeru licencji przy wyświetlaniu tekstu.")),
+        h("div", { class: "row", style: { alignItems: "center" } },
+          h("span", { class: "ccli-count" }, t("Raport użycia: zapisane wyświetlenia: {0}", store.ccliUsage.length)),
+          h("button", { class: "ccli-export", disabled: !store.ccliUsage.length, onclick: () => this.actions.exportCCLIReport() }, t("Eksportuj raport CCLI (CSV)..."))),
+        h("div", { class: "hint-text" }, t("Każda pieśń z numerem CCLI jest zapisywana raz dziennie, gdy trafi na ekran. Plik CSV pomoże zgłosić użycie na stronie CCLI."))),
       h("div", { class: "group" }, h("h3", null, t("Skróty klawiszowe sterowania prezentacją")),
         h("div", { class: "hint-text" }, t("Skróty są wspólne z wersją macOS (zapisywane w kopii zapasowej). Stałe klawisze: strzałki, Page Up/Down, Esc, R (refren), 1–9 (zwrotka).")),
         h("div", { class: "row" }, shortcutRows.map(([k, label]) => h("div", { class: "shortcut" }, h("kbd", null, keyName(/** @type {any} */ (s.shortcuts)[k])), t(label)))))],

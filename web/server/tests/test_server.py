@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import appversion  # noqa: E402
 import auth  # noqa: E402
 import server  # noqa: E402
-from storage import Conflict, Storage  # noqa: E402
+from storage import KINDS, Conflict, Storage  # noqa: E402
 
 PASSWORD = "dobre-haslo-123"
 
@@ -128,7 +128,7 @@ class StorageTests(unittest.TestCase):
                 json.dump({"schemaVersion": 99, "futureField": 1}, future)
             snapshot = storage.snapshot()
             self.assertEqual(snapshot["newerSchema"], 99)
-            self.assertEqual(snapshot["locked"], sorted(["songs", "plans", "settings", "extraFiles"]))
+            self.assertEqual(snapshot["locked"], sorted(KINDS))
             with self.assertRaises(PermissionError):
                 storage.save("songs", [{"title": "x"}], None)
             self.assertEqual(storage.load("songs"), [])
