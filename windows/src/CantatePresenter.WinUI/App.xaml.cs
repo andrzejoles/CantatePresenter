@@ -58,6 +58,13 @@ public partial class App : Application
             try
             {
                 File.AppendAllText(Path.Combine(Path.GetTempPath(), "CantatePresenter-error.log"), $"{DateTime.Now:O} {e.Exception}\n");
+                var arguments = Environment.GetCommandLineArgs();
+                var smoke = Array.IndexOf(arguments, "--smoke-test");
+                if (smoke >= 0 && smoke + 1 < arguments.Length)
+                {
+                    Directory.CreateDirectory(arguments[smoke + 1]);
+                    File.AppendAllText(Path.Combine(arguments[smoke + 1], "unhandled.txt"), e.Exception + "\n");
+                }
             }
             catch (IOException)
             {
@@ -67,11 +74,24 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        Services.Start();
-        window = new MainWindow();
-        window.Activate();
         var arguments = Environment.GetCommandLineArgs();
         var smoke = Array.IndexOf(arguments, "--smoke-test");
-        if (smoke >= 0 && smoke + 1 < arguments.Length) _ = SmokeTest.RunAsync(window, arguments[smoke + 1]);
+        var smokeDirectory = smoke >= 0 && smoke + 1 < arguments.Length ? arguments[smoke + 1] : null;
+        try
+        {
+            Services.Start();
+            window = new MainWindow();
+            window.Activate();
+        }
+        catch (Exception error) when (smokeDirectory is not null)
+        {
+            // Próba w CI: błąd startu trafia do raportu zamiast cichego zamknięcia.
+            Directory.CreateDirectory(smokeDirectory);
+            File.WriteAllText(Path.Combine(smokeDirectory, "report.json"),
+                new System.Text.Json.Nodes.JsonObject { ["exception"] = error.ToString(), ["failures"] = new System.Text.Json.Nodes.JsonArray("startup") }.ToJsonString());
+            Exit();
+            return;
+        }
+        if (smokeDirectory is not null) _ = SmokeTest.RunAsync(window, smokeDirectory);
     }
 }
