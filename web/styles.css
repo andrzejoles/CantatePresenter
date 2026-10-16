@@ -108,13 +108,6 @@ main { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr)
 .preview { margin: 0 14px; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
 .preview.live { border: 2px solid var(--live); }
 .preview.next { opacity: 0.85; }
-.screen { position: relative; overflow: hidden; }
-.stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
-.slide-text { position: absolute; inset: 0; display: flex; flex-direction: column; box-sizing: border-box; }
-.slide-notice { position: absolute; left: 0; right: 0; text-align: center; opacity: 0.75; }
-.standby { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; background: radial-gradient(circle at 50% 40%, #1d2433, #05070b 70%); text-align: center; }
-.standby-title { font-weight: 700; }
-.standby-subtitle { opacity: 0.75; }
 .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 14px; }
 .controls button { justify-content: center; }
 .controls .wide { grid-column: 1 / -1; }
@@ -178,3 +171,10 @@ dialog.wide-dialog { width: min(1100px, 96vw); }
 .online-lyrics { white-space: pre-wrap; overflow: auto; max-height: 34vh; margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
 .button-link { display: inline-block; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; color: inherit; text-decoration: none; white-space: nowrap; }
 @media (max-width: 720px) { .online-grid { grid-template-columns: 1fr; } }
+
+/* Wybór logo planszy startowej */
+.logo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; max-height: 300px; overflow: auto; }
+.logo-choice { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 6px; font-size: 0.78em; text-align: center; background: #0d111d; color: #cbd5e1; }
+.logo-choice img { width: 64px; height: 64px; object-fit: contain; }
+.logo-choice.selected { border: 2px solid var(--accent); }
+.logo-choice span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
