@@ -9,6 +9,8 @@ import { transpose } from "../core/chords.js";
 import { keyName } from "../core/keyboard.js";
 import { renderScreen } from "./slide.js";
 import { slideLabel } from "./labels.js";
+import { searchWikisource } from "../core/wikisource.js";
+import { searchURL } from "../core/songselect.js";
 import { APP_VERSION } from "../version.js";
 
 /**
@@ -97,6 +99,7 @@ export class AppUI {
       h("button", { onclick: () => this.openEditor(null), title: t("Nowa pieśń") }, "＋ ", t("Nowa pieśń")),
       h("button", { onclick: () => store.selectedSong && this.openEditor(store.selectedSong), disabled: !store.selectedSong || store.selectedSong === store.temporarySong, title: t("Edytuj") }, "✎ ", t("Edytuj")),
       h("button", { onclick: () => this.openImportExport(), title: t("Import/Eksport") }, "⇅ ", t("Import/Eksport")),
+      h("button", { onclick: () => this.openOnlineSearch(), title: t("Wyszukiwanie pieśni religijnych w internecie") }, "🌐 ", t("Online")),
       h("button", { onclick: () => this.actions.openMusicians(), title: t("Ekran dla muzyków: chwyty nad tekstem. Na tabletach otwórz {0} i zaloguj się.", `${location.origin}/musicians.html`) }, "🎸 ", t("Muzycy")),
       h("div", { class: "spacer" }),
       h("span", { class: "zoom" }, t("Rozmiar UI"),
@@ -391,6 +394,74 @@ export class AppUI {
       field(t("Chwyty"), chords)],
     buttons);
     title.focus();
+  }
+
+  /** Wikiźródła (domena publiczna i wolne licencje) oraz odnośnik do CCLI SongSelect, jak w macOS. */
+  openOnlineSearch() {
+    const s = this.store.settings;
+    const languages = /** @type {[string, string][]} */ ([["pl", "Polski"], ["en", "English"], ["de", "Deutsch"], ["es", "Español"], ["uk", "Українська"], ["la", "Latina"]]);
+    const query = /** @type {HTMLInputElement} */ (h("input", { type: "search", placeholder: t("Wpisz tytuł lub słowa pieśni (np. Kiedy ranne wstają zorze)..."), autocomplete: "off" }));
+    const language = /** @type {HTMLSelectElement} */ (h("select", null,
+      languages.map(([code, name]) => h("option", { value: code, selected: code === (s.onlineSearchLanguage ?? "pl") }, name))));
+    const list = h("div", { class: "online-results" });
+    const preview = h("div", { class: "online-preview" }, h("div", { class: "empty" }, t("Wybierz pieśń z listy, aby zobaczyć podgląd")));
+    /** @type {import("../core/wikisource.js").WikisourceResult[]} */
+    let results = [];
+    let serial = 0;
+    const licenseLabel = (/** @type {string} */ license) => license === "publicDomain" ? t("Domena publiczna") : license === "ccBySA" ? "CC BY-SA" : t("Licencja: zobacz stronę źródła");
+
+    /** @param {import("../core/wikisource.js").WikisourceResult} result */
+    const show = (result) => {
+      const title = /** @type {HTMLInputElement} */ (h("input", { type: "text", value: result.title }));
+      const author = /** @type {HTMLInputElement} */ (h("input", { type: "text", value: result.author }));
+      replace(preview,
+        h("label", { class: "field" }, h("span", null, t("Tytuł:")), title),
+        h("label", { class: "field" }, h("span", null, t("Autor:")), author),
+        h("div", { class: "hint-text" }, `${t("Wikiźródła")} · ${licenseLabel(result.license)} · `, h("a", { href: result.url, target: "_blank", rel: "noopener noreferrer" }, t("Otwórz źródło"))),
+        h("pre", { class: "online-lyrics" }, result.lyrics),
+        h("button", { class: "primary", onclick: () => {
+          const song = this.store.addSong({ title: title.value.trim() || result.title, author: author.value.trim() || t("Nieznany"), tags: [t("Wikiźródła")], rawLyrics: result.lyrics });
+          this.store.updateSong({ ...song, source: result.url, copyright: licenseLabel(result.license) });
+          this.toast(t("Dodano do biblioteki: {0}", song.title));
+          dialog.close();
+        } }, t("Importuj do programu")));
+    };
+
+    const run = async () => {
+      const text = query.value.trim();
+      if (!text) return;
+      this.store.updateSettings({ onlineSearchLanguage: language.value });
+      const mine = ++serial;
+      replace(list, h("div", { class: "empty" }, t("Przeszukiwanie Wikiźródeł...")));
+      try {
+        results = await searchWikisource(text, language.value);
+      } catch (error) {
+        results = [];
+        if (mine === serial) replace(list, h("div", { class: "empty" }, t("Błąd połączenia: {0}", String(error))));
+        return;
+      }
+      if (mine !== serial) return;
+      if (!results.length) { replace(list, h("div", { class: "empty" }, t("Nie znaleziono pieśni dla podanej frazy"))); return; }
+      replace(list, results.map((result, index) => h("button", { class: "online-item", onclick: (/** @type {Event} */ e) => {
+        list.querySelectorAll(".online-item").forEach((b) => b.classList.toggle("selected", b === e.currentTarget));
+        show(results[index]);
+      } }, h("b", null, result.title), h("span", { class: "muted" }, [result.author, result.page].filter(Boolean).join(" · ")))));
+    };
+    query.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); run(); } });
+
+    const dialog = this.dialog(t("Wyszukiwanie pieśni religijnych w internecie"), [
+      h("div", { class: "row" }, h("label", { class: "field", style: { flex: "1" } }, h("span", null, t("Tytuł pieśni")), query),
+        h("label", { class: "field", style: { flex: "0 0 150px", minWidth: "150px" } }, h("span", null, t("Język:")), language),
+        h("button", { class: "primary", style: { alignSelf: "flex-end" }, onclick: run }, t("Szukaj"))),
+      h("div", { class: "hint-text" }, t("Źródło: Wikiźródła. Tradycyjne pieśni w domenie publicznej lub na wolnej licencji; adres strony zostaje zapisany w pieśni.")),
+      h("div", { class: "online-grid" }, list, preview),
+      h("div", { class: "row", style: { alignItems: "center" } },
+        h("a", { class: "button-link", href: searchURL(query.value || ""), target: "_blank", rel: "noopener noreferrer",
+          onclick: (/** @type {Event} */ e) => { /** @type {HTMLAnchorElement} */ (e.currentTarget).href = searchURL(query.value.trim()); } }, t("Szukaj w SongSelect")),
+        h("span", { class: "hint-text" }, t("Otwiera wyszukiwanie CCLI SongSelect w przeglądarce. Pobrany plik (.txt lub ChordPro) zaimportujesz przez Import/Eksport.")))],
+    [h("button", { onclick: () => dialog.close() }, t("Zamknij"))]);
+    dialog.classList.add("wide-dialog");
+    query.focus();
   }
 
   openSettings() {

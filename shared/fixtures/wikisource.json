@@ -1,0 +1,58 @@
+{
+  "pages": [
+    {
+      "name": "pieśń ze Śpiewnika kościelnego (1838, domena publiczna), zwrotka przecięta stroną skanu",
+      "html": "<div class=\"mw-parser-output\"><table class=\"infobox ws-noexport dttable\"><tr><th>Tytuł</th><td>Boże z twoich rąk żyjemy</td></tr></table>\n<div class=\"prp-pages-output\"><span class=\"ws-pagenum ws-noexport\">[278]</span>\n<p class=\"center\">PIEŚŃ XVII.</p><p>Pod czas pracy w polu.<sup class=\"reference\">[1]</sup></p>\n<div class=\"poem\"><p>Boże z twoich rąk żyjemy,<br>Choć naszemi pracujemy;<br>Z ciebie plenność miewa rola,<br>My zbieramy z twego pola.</p>\n<p>Wszystko cię mój Boże chwali:<br>Aleśmy i to poznali,<br>Że najmilszą ci się zdała,<br>Pracującej ręki chwała.</p>\n<p>Co rządzisz ziemią i niebem,<br>Opatrz dzieci twoje chlebem;</p></div>\n<span class=\"ws-pagenum ws-noexport\">[279]</span>\n<div class=\"poem\"><p>Ty nam daj urodzaj złoty,<br>My ci dajem trud i poty.</p>\n<p>Kiedyś przyjdziem na godzinę<br>Gdy kończąc ziemską gościnę,<br>Z Łazarzem po naszym zgonie,<br>Odpoczniemy na twem łonie.</p></div></div>\n<div class=\"licencja\">Tekst lub tłumaczenie polskie jest własnością publiczną (public domain), ponieważ prawa autorskie do niego wygasły.</div></div>",
+      "lyrics": "Boże z twoich rąk żyjemy,\nChoć naszemi pracujemy;\nZ ciebie plenność miewa rola,\nMy zbieramy z twego pola.\n\nWszystko cię mój Boże chwali:\nAleśmy i to poznali,\nŻe najmilszą ci się zdała,\nPracującej ręki chwała.\n\nCo rządzisz ziemią i niebem,\nOpatrz dzieci twoje chlebem;\nTy nam daj urodzaj złoty,\nMy ci dajem trud i poty.\n\nKiedyś przyjdziem na godzinę\nGdy kończąc ziemską gościnę,\nZ Łazarzem po naszym zgonie,\nOdpoczniemy na twem łonie.",
+      "license": "publicDomain"
+    },
+    {
+      "name": "ujednoznacznienie bez tekstu",
+      "html": "<div><ul><li>Kiedy ranne wstają zorze – wiersz</li></ul></div>",
+      "lyrics": "",
+      "license": "unknown"
+    },
+    {
+      "name": "encje i wolna licencja",
+      "html": "<div class=\"poem\"><p>Ala &amp; kot&#160;&#x41;&nbsp;i &quot;pies&quot;<br>druga</p></div><div>Creative Commons Attribution-ShareAlike</div>",
+      "lyrics": "Ala & kot A i \"pies\"\ndruga",
+      "license": "ccBySA"
+    }
+  ],
+  "authors": [
+    {
+      "wikitext": "{{Dane tekstu\n|autor=[[Autor:Franciszek Karpiński|Franciszek Karpiński]]\n|tytuł=X\n}}",
+      "author": "Franciszek Karpiński"
+    },
+    {
+      "wikitext": "{{Dane tekstu\n|autor=Adam Mickiewicz\n}}",
+      "author": "Adam Mickiewicz"
+    },
+    {
+      "wikitext": "{{Dane tekstu\n|tytuł=X\n}}",
+      "author": ""
+    }
+  ],
+  "titles": [
+    {
+      "page": "Ołtarzyk polski katolickiego nabożeństwa/Kiedy ranne wstają zorze",
+      "title": "Kiedy ranne wstają zorze"
+    },
+    {
+      "page": "Boże coś Polskę (red. Derdowski, ok. 1890)",
+      "title": "Boże coś Polskę"
+    }
+  ],
+  "urls": [
+    {
+      "page": "Śpiewnik kościelny/Boże z twoich rąk żyjemy",
+      "language": "pl",
+      "url": "https://pl.wikisource.org/wiki/%C5%9Apiewnik_ko%C5%9Bcielny/Bo%C5%BCe_z_twoich_r%C4%85k_%C5%BCyjemy"
+    },
+    {
+      "page": "Test",
+      "language": "all",
+      "url": "https://pl.wikisource.org/wiki/Test"
+    }
+  ]
+}
