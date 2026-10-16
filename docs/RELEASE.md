@@ -4,6 +4,10 @@ Instrukcja dla właściciela: podpis Developer ID, notaryzacja, automatyczne akt
 Bez certyfikatu wszystko działa jak dotąd (podpis ad-hoc); kroki z certyfikatem włączają się same,
 gdy ustawisz zmienne środowiskowe opisane niżej.
 
+**Decyzja właściciela (2026-10-16): na razie bez konta Apple Developer** (koszt). Wydania są podpisane ad-hoc
+i nienotaryzowane; punkty 1 i 2 czekają, aż konto będzie potrzebne. Co to oznacza w praktyce: patrz
+„Wydanie bez Developer ID” na końcu.
+
 ## Numer wersji
 
 Liczony z historii gita (`scripts/version.sh`): `(1 + PR/10).(PR mod 10).(commity od ostatniego scalonego PR)`.
@@ -56,5 +60,15 @@ scripts/release.sh            # buduje, podpisuje, tworzy appcast.xml i szkic wy
 gh release edit vX.Y.Z --draft=false   # publikacja po sprawdzeniu szkicu
 ```
 
-Bez podpisu Developer ID aktualizacje działają, ale macOS przy pierwszym uruchomieniu nowej wersji może pytać
-o zgodę (aplikacja nie jest notaryzowana).
+## 4. Wydanie bez Developer ID (obecny tryb)
+
+- **Pierwsza instalacja na innym Macu:** pobrany DMG/PKG jest w kwarantannie, a Gatekeeper blokuje aplikację
+  („nie można sprawdzić, czy nie zawiera złośliwego oprogramowania”). Po pierwszej próbie otwarcia:
+  Ustawienia systemowe → Prywatność i ochrona → „Otwórz mimo to” (od macOS 15 kliknięcie z Ctrl już nie wystarcza).
+  Alternatywa w Terminalu: `xattr -dr com.apple.quarantine /Applications/CantatePresenter.app`.
+  Instalator PKG bez podpisu Developer ID jest blokowany tak samo; DMG jest prostszy.
+- **Aktualizacje Sparkle** działają (sprawdzone lokalnie 2026-10-16): pobrany plik jest weryfikowany kluczem EdDSA,
+  a aktualizacja instalowana przez Sparkle nie przechodzi ponownie przez kwarantannę.
+- **Uprawnienia po aktualizacji:** podpis ad-hoc zmienia się z każdą wersją, więc macOS może ponownie zapytać
+  o mikrofon (dyktowanie) i o dostęp do Pęku kluczy (tokeny Dysku Google, przycisk „Zawsze pozwalaj”).
+- Na tym Macu (aplikacja budowana lokalnie, bez kwarantanny) nic się nie zmienia.
