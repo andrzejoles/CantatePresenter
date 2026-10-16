@@ -17,6 +17,90 @@ public struct SongSlidesView: View {
         return store.selectedSong
     }
     
+    // MARK: - Header
+    
+    private func songTitleBlock(_ song: Song, scale: Double) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(song.title)
+                    .font(.scaled(18, weight: .bold, scale: scale))
+                    .lineLimit(2)
+                
+                if !song.key.isEmpty {
+                    Text(song.key)
+                        .font(.scaled(12, weight: .bold, scale: scale))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.blue.opacity(0.15))
+                        .foregroundColor(.blue)
+                        .cornerRadius(4)
+                        .fixedSize()
+                }
+            }
+            
+            if !song.author.isEmpty {
+                Text(song.author)
+                    .font(.scaled(12, scale: scale))
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
+        }
+    }
+    
+    /// Przyciski pieśni; `compact` zostawia same ikony (pełna nazwa w podpowiedzi).
+    private func songButtons(_ song: Song, scale: Double, compact: Bool) -> some View {
+        HStack(spacing: 8) {
+            Button(action: {
+                store.present(song: song, slideIndex: 0)
+            }) {
+                headerLabel(L("Prezentuj"), icon: "play.fill", compact: compact)
+                    .font(.scaled(12, weight: .semibold, scale: scale))
+            }
+            .buttonStyle(.borderedProminent)
+            .help(L("Prezentuj"))
+            
+            Button(action: {
+                store.addSongToPlan(songId: song.id)
+            }) {
+                headerLabel(L("+ Do planu"), icon: "text.badge.plus", compact: compact)
+                    .font(.scaled(12, scale: scale))
+            }
+            .buttonStyle(.bordered)
+            .help(L("+ Do planu"))
+            
+            Button(action: {
+                isShowingChordsModal = true
+            }) {
+                headerLabel(song.chords != nil ? L("Chwyty (✓)") : L("Chwyty"), icon: "guitars", compact: compact)
+                    .font(.scaled(12, scale: scale))
+            }
+            .buttonStyle(.bordered)
+            .tint(song.chords != nil ? .orange : .secondary)
+            .help(song.chords != nil ? L("Chwyty (✓)") : L("Chwyty"))
+            
+            Button(action: {
+                songToEdit = song
+                isShowingEditor = true
+            }) {
+                headerLabel(L("Edytuj pieśń i chwyty"), icon: "pencil.line", compact: compact)
+                    .font(.scaled(12, weight: .medium, scale: scale))
+            }
+            .buttonStyle(.bordered)
+            .keyboardShortcut("e", modifiers: [.command])
+            .help(L("Edytuj słowa, sekcje i chwyty wybranej pieśni (⌘E)"))
+        }
+        .fixedSize()
+    }
+    
+    @ViewBuilder
+    private func headerLabel(_ title: String, icon: String, compact: Bool) -> some View {
+        if compact {
+            Label(title, systemImage: icon).labelStyle(.iconOnly)
+        } else {
+            Label(title, systemImage: icon)
+        }
+    }
+    
     public var body: some View {
         let scale = store.settings.uiScale
         
@@ -46,88 +130,42 @@ public struct SongSlidesView: View {
                         Divider()
                     }
                     
-                    // Header of the selected song
+                    // Header of the selected song. Przy wąskim panelu przyciski schodzą pod tytuł, a potem
+                    // zostają same ikony; wcześniej zbyt szeroki wiersz był ucinany z obu stron, także tytuł.
                     VStack(alignment: .leading, spacing: 6) {
-                        HStack(alignment: .top) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
-                                    Text(song.title)
-                                        .font(.scaled(18, weight: .bold, scale: scale))
-                                    
-                                    if !song.key.isEmpty {
-                                        Text(song.key)
-                                            .font(.scaled(12, weight: .bold, scale: scale))
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(Color.blue.opacity(0.15))
-                                            .foregroundColor(.blue)
-                                            .cornerRadius(4)
-                                    }
-                                }
-                                
-                                if !song.author.isEmpty {
-                                    Text(song.author)
-                                        .font(.scaled(12, scale: scale))
-                                        .foregroundColor(.secondary)
-                                }
+                        ViewThatFits(in: .horizontal) {
+                            HStack(alignment: .top) {
+                                songTitleBlock(song, scale: scale)
+                                Spacer(minLength: 12)
+                                songButtons(song, scale: scale, compact: false)
                             }
-                            
-                            Spacer()
-                            
-                            // Control buttons for this song
-                            HStack(spacing: 8) {
-                                Button(action: {
-                                    store.present(song: song, slideIndex: 0)
-                                }) {
-                                    Label(L("Prezentuj"), systemImage: "play.fill")
-                                        .font(.scaled(12, weight: .semibold, scale: scale))
-                                }
-                                .buttonStyle(.borderedProminent)
-                                
-                                Button(action: {
-                                    store.addSongToPlan(songId: song.id)
-                                }) {
-                                    Label(L("+ Do planu"), systemImage: "text.badge.plus")
-                                        .font(.scaled(12, scale: scale))
-                                }
-                                .buttonStyle(.bordered)
-                                
-                                Button(action: {
-                                    isShowingChordsModal = true
-                                }) {
-                                    Label(song.chords != nil ? L("Chwyty (✓)") : L("Chwyty"), systemImage: "guitars")
-                                        .font(.scaled(12, scale: scale))
-                                }
-                                .buttonStyle(.bordered)
-                                .tint(song.chords != nil ? .orange : .secondary)
-                                
-                                Button(action: {
-                                    songToEdit = song
-                                    isShowingEditor = true
-                                }) {
-                                    Label(L("Edytuj pieśń i chwyty"), systemImage: "pencil.line")
-                                        .font(.scaled(12, weight: .medium, scale: scale))
-                                }
-                                .buttonStyle(.bordered)
-                                .keyboardShortcut("e", modifiers: [.command])
-                                .help(L("Edytuj słowa, sekcje i chwyty wybranej pieśni (⌘E)"))
+                            VStack(alignment: .leading, spacing: 8) {
+                                songTitleBlock(song, scale: scale)
+                                songButtons(song, scale: scale, compact: false)
+                            }
+                            VStack(alignment: .leading, spacing: 8) {
+                                songTitleBlock(song, scale: scale)
+                                songButtons(song, scale: scale, compact: true)
                             }
                         }
                         
                         if !song.tags.isEmpty {
-                            HStack(spacing: 4) {
-                                ForEach(song.tags, id: \.self) { tag in
-                                    Text(tag)
-                                        .font(.scaled(10, scale: scale))
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
-                                        .background(Color.secondary.opacity(0.12))
-                                        .foregroundColor(.secondary)
-                                        .cornerRadius(4)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 4) {
+                                    ForEach(song.tags, id: \.self) { tag in
+                                        Text(tag)
+                                            .font(.scaled(10, scale: scale))
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(Color.secondary.opacity(0.12))
+                                            .foregroundColor(.secondary)
+                                            .cornerRadius(4)
+                                    }
                                 }
                             }
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(14)
                     .background(Color(NSColor.windowBackgroundColor))
                     
