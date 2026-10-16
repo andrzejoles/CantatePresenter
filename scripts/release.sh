@@ -31,7 +31,9 @@ PREVIOUS="$(git describe --tags --abbrev=0 2>/dev/null || true)"
 {
     echo "CantatePresenter $VERSION"
     echo
-    git log --first-parent --format='- %s' ${PREVIOUS:+"$PREVIOUS..HEAD"} | grep -v '^- Merge' | head -40 || true
+    # Zmiany wchodzą na main przez scalenia PR: tytuł PR jest w treści commita scalającego.
+    git log --first-parent --format='%s%n%b' ${PREVIOUS:+"$PREVIOUS..HEAD"} \
+        | awk '/^Merge pull request #[0-9]+ from /{n=$4; next} n!="" && NF{print "- " $0 " (" n ")"; n=""}' | head -40 || true
 } > "$RELEASE_DIR/notes.md"
 
 git tag "$TAG"
