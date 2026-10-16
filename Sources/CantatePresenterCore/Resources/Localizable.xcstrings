@@ -11957,6 +11957,34 @@
         }
       }
     },
+    "Pieśń z chwytami": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Song with chords"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lied mit Akkorden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canto con acordes"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пісня з акордами"
+          }
+        }
+      }
+    },
     "Pilot": {
       "localizations": {
         "en": {
@@ -12877,6 +12905,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Показати на екрані"
+          }
+        }
+      }
+    },
+    "Pokaż tylko pieśni z chwytami": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show only songs with chords"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur Lieder mit Akkorden anzeigen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar solo cantos con acordes"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показувати лише пісні з акордами"
           }
         }
       }
@@ -21641,6 +21697,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Увімкнено для облікового запису: {0}"
+          }
+        }
+      }
+    },
+    "Z chwytami": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "With chords"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit Akkorden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con acordes"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "З акордами"
           }
         }
       }
