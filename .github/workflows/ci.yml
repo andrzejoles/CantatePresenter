@@ -78,6 +78,20 @@ jobs:
         shell: bash
         run: echo "value=$(scripts/version.sh)" >> "$GITHUB_OUTPUT"
 
+      # Klient OAuth Google (ten sam co w macOS) z sekretu repozytorium GOOGLE_OAUTH_CLIENT_JSON (treść pliku z Google
+      # Cloud Console); bez sekretu aplikacja buduje się z nieaktywnym logowaniem do Dysku Google.
+      - name: Google OAuth client (optional secret)
+        shell: pwsh
+        env:
+          CLIENT_JSON: ${{ secrets.GOOGLE_OAUTH_CLIENT_JSON }}
+        run: |
+          if ($env:CLIENT_JSON) {
+            $path = Join-Path $env:RUNNER_TEMP "google-oauth-client.json"
+            [IO.File]::WriteAllText($path, $env:CLIENT_JSON)
+            "GOOGLE_OAUTH_CLIENT_JSON=$path" >> $env:GITHUB_ENV
+            Write-Host "Klient OAuth: z sekretu"
+          } else { Write-Host "Klient OAuth: brak sekretu, logowanie Google nieaktywne" }
+
       - name: Build and publish the app (win-x64, self-contained)
         working-directory: windows
         run: dotnet publish src/CantatePresenter.WinUI -c Release -r win-x64 -p:Platform=x64 -p:Version=${{ steps.version.outputs.value }} -o ../publish/CantatePresenter
@@ -126,4 +140,38 @@ jobs:
         with:
           name: CantatePresenter-Windows-x64
           path: CantatePresenter-Windows-x64-*.zip
+
+      - name: Installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
+          & $iscc /Q "/DAppVersion=${{ steps.version.outputs.value }}" "/DSourceDir=$PWD\publish\CantatePresenter" "/O$PWD" windows\installer\CantatePresenter.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC: kod $LASTEXITCODE" }
+
+      - name: Installer test (silent install for the current user, then uninstall)
+        shell: pwsh
+        run: |
+          $setup = (Get-ChildItem CantatePresenter-Windows-x64-Setup-*.exe).FullName
+          $dir = Join-Path $env:RUNNER_TEMP "cantate-install"
+          $p = Start-Process $setup -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER", "/DIR=`"$dir`"" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Instalacja: kod $($p.ExitCode)" }
+          foreach ($file in "CantatePresenter.exe", "Resources\Localizable.xcstrings", "Resources\logos.json", "unins000.exe") {
+            if (-not (Test-Path (Join-Path $dir $file))) { throw "Brak po instalacji: $file" }
+          }
+          $shortcut = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\CantatePresenter.lnk"
+          if (-not (Test-Path $shortcut)) { throw "Brak skrótu w menu Start" }
+          $u = Start-Process (Join-Path $dir "unins000.exe") -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
+          if ($u.ExitCode -ne 0) { throw "Odinstalowanie: kod $($u.ExitCode)" }
+          # Deinstalator kończy pracę w procesie potomnym; czekamy na usunięcie plików.
+          for ($i = 0; $i -lt 30 -and (Test-Path (Join-Path $dir "CantatePresenter.exe")); $i++) { Start-Sleep -Seconds 1 }
+          if (Test-Path (Join-Path $dir "CantatePresenter.exe")) { throw "Program został po odinstalowaniu" }
+          if (Test-Path $shortcut) { throw "Skrót został po odinstalowaniu" }
+          Write-Host "Instalacja i odinstalowanie: OK"
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: CantatePresenter-Windows-x64-Setup
+          path: CantatePresenter-Windows-x64-Setup-*.exe
 

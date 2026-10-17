@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text.Json.Nodes;
 using CantatePresenter.Core.Data;
+using CantatePresenter.Core.GoogleDrive;
 using CantatePresenter.Core.Localization;
 using CantatePresenter.Core.Models;
 using Microsoft.UI.Xaml;
@@ -16,6 +17,16 @@ public static class Services
     public static Library Library { get; private set; } = null!;
     public static Catalog Catalog { get; private set; } = new();
     public static IReadOnlyList<Logo> Logos { get; private set; } = [];
+    public static GoogleDriveService Drive { get; private set; } = null!;
+
+    /// <summary>Klient OAuth wbudowany przy budowaniu (google-oauth-client.json, jak Info.plist w macOS); null bez pliku.</summary>
+    public static GoogleOAuthClient? BundledGoogleClient()
+    {
+        using var stream = typeof(Services).Assembly.GetManifestResourceStream("google-oauth-client.json");
+        if (stream is null) return null;
+        using var reader = new StreamReader(stream);
+        return GoogleOAuthClient.FromJson(reader.ReadToEnd());
+    }
 
     /// <summary>Wersja z kompilacji (scripts/version.sh w CI), jak CFBundleShortVersionString w macOS.</summary>
     public static string Version { get; } =
@@ -28,6 +39,7 @@ public static class Services
         Catalog = Catalog.Load(ResourcePath("Localizable.xcstrings"));
         Library = new Library(AppPaths.Default()) { Translate = (key, args) => Catalog.T(key, args) };
         Catalog.Language = Library.Settings.AppLanguage;
+        Drive = new GoogleDriveService(BundledGoogleClient(), WindowsCredentialStore.GoogleDrive, new HttpClient { Timeout = TimeSpan.FromMinutes(3) }, (key, args) => Catalog.T(key, args));
         try
         {
             Logos = (JsonNode.Parse(File.ReadAllText(ResourcePath("logos.json"))) as JsonArray ?? [])

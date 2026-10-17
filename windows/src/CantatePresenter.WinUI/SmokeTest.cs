@@ -69,6 +69,38 @@ public static class SmokeTest
 
             await RemoteChecks(window, outputDirectory, report, Check);
 
+            // Powiększenie interfejsu: układ dla rozmiaru okna podzielonego przez skalę.
+            window.Zoom(0.25);
+            await Task.Delay(800);
+            var (rootWidth, hostWidth) = window.ScaleWidths;
+            report["zoomWidths"] = $"{rootWidth:0} x {window.UiScale} = {hostWidth:0}";
+            Check("uiZoom", Math.Abs(rootWidth * window.UiScale - hostWidth) < 2 && Math.Abs(window.UiScale - 1.25) < 0.001);
+            await Capture(window.Content as FrameworkElement, Path.Combine(outputDirectory, "9-main-zoom.png"));
+            window.Zoom(0);
+            Check("uiZoomReset", Math.Abs(window.UiScale - 1) < 0.001);
+
+            // Dysk Google: Menedżer poświadczeń (osobny wpis próby) i okno kopii.
+            var credentials = new WindowsCredentialStore("com.cantate.presenter.smoke-test");
+            credentials.Save("{\"refreshToken\":\"próba\"}");
+            var stored = credentials.Load();
+            credentials.Clear();
+            Check("credentialStore", stored == "{\"refreshToken\":\"próba\"}" && credentials.Load() is null);
+            report["googleSignInAvailable"] = Services.Drive.IsSignInAvailable;
+            library.UpdateSettings(s => s.GoogleDrive.IsEnabled = true);
+            var driveDialog = GoogleDriveDialog.ShowAsync(window);
+            await Task.Delay(1200);
+            var drivePopup = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetOpenPopupsForXamlRoot(window.Content.XamlRoot).FirstOrDefault();
+            await Capture(drivePopup?.Child as FrameworkElement, Path.Combine(outputDirectory, "10-google-drive.png"));
+            Check("driveDialog", drivePopup is not null);
+            (drivePopup?.Child as Microsoft.UI.Xaml.Controls.ContentDialog)?.Hide();
+            await Task.WhenAny(driveDialog, Task.Delay(3000));
+            Check("driveDialogClosed", driveDialog.IsCompleted);
+            library.UpdateSettings(s => s.GoogleDrive.IsEnabled = false);
+
+            // Dyktowanie: języki mowy systemu (bez mikrofonu w CI tylko do raportu).
+            report["speechLanguages"] = string.Join(", ", Dictation.SystemLanguages());
+            report["speechPolish"] = Dictation.SupportsLanguage("pl-PL");
+
             window.HandleKey(Windows.System.VirtualKey.B, Core.Input.KeyContext.Presentation);
             Check("blackScreen", library.IsBlackScreen);
             library.StopLive();
