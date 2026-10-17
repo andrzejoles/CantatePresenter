@@ -62,6 +62,7 @@ public sealed partial class MainWindow : Window
     private bool showChords;
     private int chordsTranspose;
     internal bool DialogOpen;
+    private bool exitBackupDone;
 
     public MainWindow()
     {
@@ -76,6 +77,15 @@ public sealed partial class MainWindow : Window
         presentation.KeyPressed += key => HandleKey(key, KeyContext.Presentation);
         presentation.AppWindow.Hide();
         library.Changed += reason => DispatcherQueue.TryEnqueue(() => OnLibraryChanged(reason));
+        // Kopia na Dysk Google przy zamykaniu (gdy włączona): zamknięcie czeka na wysyłkę, „Pomiń” albo limit czasu.
+        AppWindow.Closing += async (_, e) =>
+        {
+            if (exitBackupDone || DialogOpen || !GoogleDriveDialog.ShouldBackupOnExit) return;
+            e.Cancel = true;
+            exitBackupDone = true;
+            await GoogleDriveDialog.BackupOnExitAsync(this);
+            Close();
+        };
         Closed += (_, _) =>
         {
             RemoteDialog.StopServer();
@@ -129,6 +139,7 @@ public sealed partial class MainWindow : Window
     }
 
     private Grid? mainGrid;
+    private double rightPanelWidth;
 
     /// <summary>Szerokość układu i okna (próba w CI sprawdza skalowanie).</summary>
     internal (double Root, double Host) ScaleWidths => (root.Width, scaleHost.ActualWidth);
@@ -149,12 +160,20 @@ public sealed partial class MainWindow : Window
     private Grid MainGrid()
     {
         var main = new Grid { ColumnSpacing = 0 };
-        main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(320), MinWidth = 220 });
-        main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 260 });
-        main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(400), MinWidth = 280 });
+        // Proporcje 320 : 780 : 400 przy oknie 1500 pt; przy powiększeniu lub wąskim oknie panele zwężają się razem.
+        main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(320, GridUnitType.Star), MinWidth = 220 });
+        main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(780, GridUnitType.Star), MinWidth = 260 });
+        main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(400, GridUnitType.Star), MinWidth = 280 });
         var leftBorder = Panel(leftPanel);
         var middleBorder = Panel(middlePanel);
         var rightBorder = Panel(new ScrollViewer { Content = rightPanel });
+        // Podglądy dopasowane do szerokości prawego panelu (zmienia się z oknem i powiększeniem).
+        rightBorder.SizeChanged += (_, e) =>
+        {
+            if (Math.Abs(e.NewSize.Width - rightPanelWidth) < 8) return;
+            rightPanelWidth = e.NewSize.Width;
+            RenderRight();
+        };
         Grid.SetColumn(leftBorder, 0);
         Grid.SetColumn(middleBorder, 1);
         Grid.SetColumn(rightBorder, 2);
@@ -210,6 +229,7 @@ public sealed partial class MainWindow : Window
         Item(L("Utwórz kopię zapasową"), () => ImportExport.CreateBackupAsync(this));
         Item(L("Przywróć z kopii..."), () => ImportExport.RestoreBackupAsync(this));
         Item(L("Cofnij ostatnie przywrócenie"), () => ImportExport.UndoRestoreAsync(this), Backup.CanUndo(library.DataDirectory));
+        Item("☁  " + L("Kopie zapasowe na Dysku Google"), () => GoogleDriveDialog.ShowAsync(this));
         menu.Items.Add(new MenuFlyoutSeparator());
         Item(L("Zapisz wybraną pieśń jako .txt"), () => ImportExport.ExportSongAsync(this), library.SelectedSong is not null);
         Item(L("Eksportuj raport CCLI (CSV)..."), () => ImportExport.ExportCcliAsync(this), library.CcliUsage.Count > 0);
@@ -603,7 +623,7 @@ public sealed partial class MainWindow : Window
         head.Children.Add(pill);
         rightPanel.Children.Add(head);
 
-        var width = 370.0;
+        var width = rightPanelWidth > 0 ? Math.Clamp(rightPanelWidth - 30, 200, 560) : 370.0;
         livePreview.Width = width;
         livePreview.Height = width * target.Height / target.Width;
         livePreview.Render(ScreenState.FromLibrary(), target);

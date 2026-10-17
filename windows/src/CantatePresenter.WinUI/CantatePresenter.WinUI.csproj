@@ -28,6 +28,15 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250205002" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
   </ItemGroup>
+  <!-- Klient OAuth Google (typ „Aplikacja komputerowa”, ten sam co w macOS): plik z Google Cloud Console poza repozytorium.
+       Ścieżka z $(GOOGLE_OAUTH_CLIENT_JSON) albo google-oauth-client.json w katalogu głównym; bez pliku logowanie jest nieaktywne. -->
+  <PropertyGroup>
+    <GoogleOAuthClientJson Condition="'$(GoogleOAuthClientJson)' == ''">$(GOOGLE_OAUTH_CLIENT_JSON)</GoogleOAuthClientJson>
+    <GoogleOAuthClientJson Condition="'$(GoogleOAuthClientJson)' == ''">$(MSBuildThisFileDirectory)..\..\..\google-oauth-client.json</GoogleOAuthClientJson>
+  </PropertyGroup>
+  <ItemGroup Condition="Exists('$(GoogleOAuthClientJson)')">
+    <EmbeddedResource Include="$(GoogleOAuthClientJson)" LogicalName="google-oauth-client.json" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CantatePresenter.Core\CantatePresenter.Core.csproj" />
   </ItemGroup>
