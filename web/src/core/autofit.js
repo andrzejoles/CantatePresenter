@@ -22,10 +22,9 @@ function measurer(font) {
 
 /**
  * Wysokość tekstu po zawinięciu słów w szerokości `width` (wiersze jawne z \n zachowane).
- * @param {string} text @param {string} font @param {number} size @param {number} width @param {number} lineSpacingFactor
+ * @param {string} text @param {(text: string) => number} measure @param {number} size @param {number} width @param {number} lineSpacingFactor
  */
-function wrappedHeight(text, font, size, width, lineSpacingFactor) {
-  const ctx = measurer(font);
+function wrappedHeight(text, measure, size, width, lineSpacingFactor) {
   let lines = 0;
   for (const paragraph of text.split("\n")) {
     const words = paragraph.split(/\s+/).filter(Boolean);
@@ -34,7 +33,7 @@ function wrappedHeight(text, font, size, width, lineSpacingFactor) {
     lines++;
     for (const word of words) {
       const candidate = current ? `${current} ${word}` : word;
-      if (current && ctx.measureText(candidate).width > width) {
+      if (current && measure(candidate) > width) {
         lines++;
         current = word;
       } else {
@@ -49,17 +48,19 @@ function wrappedHeight(text, font, size, width, lineSpacingFactor) {
 /**
  * @param {string} text
  * @param {{width: number, height: number, fontFamily?: string, isBold?: boolean, lineSpacingFactor?: number,
- *          marginPercent?: number, minFontSize?: number, maxFontSize?: number}} options
+ *          marginPercent?: number, minFontSize?: number, maxFontSize?: number,
+ *          measure?: (text: string, fontFamily: string, size: number, bold: boolean) => number}} options
+ *        `measure`: pomiar szerokości zamiast canvas (wspólny wzorzec shared/fixtures/autofit.json), bez pamięci podręcznej.
  */
 export function optimalFontSize(text, options) {
   const {
     width, height, fontFamily = "Helvetica Neue", isBold = true, lineSpacingFactor = 1.15,
-    marginPercent = 0.07, minFontSize = 14, maxFontSize = 260,
+    marginPercent = 0.07, minFontSize = 14, maxFontSize = 260, measure,
   } = options;
   if (!text.trim()) return 48;
   if (width <= 50 || height <= 50) return 24;
   const key = [text, Math.round(width), Math.round(height), fontFamily, isBold, lineSpacingFactor, marginPercent, minFontSize, maxFontSize].join("\u0000");
-  if (cache.has(key)) return cache.get(key);
+  if (!measure && cache.has(key)) return cache.get(key);
 
   // 1% zapasu: pomiar w canvas i układ w DOM mogą się różnić o ułamek piksela.
   const usableWidth = Math.max(40, width * (1 - 2 * marginPercent)) * 0.99;
@@ -70,13 +71,19 @@ export function optimalFontSize(text, options) {
   for (let step = 0; step < 12; step++) {
     const mid = (low + high) / 2;
     if (mid < minFontSize) break;
-    const font = cssFont(fontFamily, mid, isBold);
-    const ctx = measurer(font);
-    if (words.some((word) => ctx.measureText(word).width > usableWidth)) {
+    /** @type {(text: string) => number} */
+    let measureWidth;
+    if (measure) {
+      measureWidth = (value) => measure(value, fontFamily, mid, isBold);
+    } else {
+      const ctx = measurer(cssFont(fontFamily, mid, isBold));
+      measureWidth = (value) => ctx.measureText(value).width;
+    }
+    if (words.some((word) => measureWidth(word) > usableWidth)) {
       high = mid;
       continue;
     }
-    if (wrappedHeight(text, font, mid, usableWidth, lineSpacingFactor) <= usableHeight) {
+    if (wrappedHeight(text, measureWidth, mid, usableWidth, lineSpacingFactor) <= usableHeight) {
       best = mid;
       low = mid;
     } else {
@@ -84,6 +91,7 @@ export function optimalFontSize(text, options) {
     }
   }
   const result = Math.max(minFontSize, Math.floor(best));
+  if (measure) return result;
   if (cache.size >= CACHE_LIMIT) cache.clear();
   cache.set(key, result);
   return result;

@@ -2,6 +2,7 @@ using System.Text.Json;
 using CantatePresenter.Core.Chords;
 using CantatePresenter.Core.Import;
 using CantatePresenter.Core.Models;
+using CantatePresenter.Core.Presentation;
 using CantatePresenter.Core.Input;
 using CantatePresenter.Core.Text;
 using Xunit;
@@ -27,6 +28,24 @@ public class SharedFixtureTests
                 int? number = expected[i].TryGetProperty("number", out var n) && n.ValueKind == JsonValueKind.Number ? n.GetInt32() : null;
                 Assert.Equal(number, slides[i].Number);
             }
+        }
+    }
+
+    private sealed class FixedMeasurer : ITextMeasurer
+    {
+        public double Width(string text, string fontFamily, double size, bool bold) => text.Length * size * 0.6;
+    }
+
+    [Fact]
+    public void AutoFitWithFixedMeasurer()
+    {
+        foreach (var c in Fixtures.Load("autofit.json").GetProperty("cases").EnumerateArray())
+        {
+            var lineSpacing = c.TryGetProperty("lineSpacingFactor", out var l) ? l.GetDouble() : 1.15;
+            var margin = c.TryGetProperty("marginPercent", out var m) ? m.GetDouble() : 0.07;
+            var size = AutoFit.OptimalFontSize(c.Str("text")!, c.GetProperty("width").GetDouble(), c.GetProperty("height").GetDouble(), new FixedMeasurer(),
+                lineSpacingFactor: lineSpacing, marginPercent: margin);
+            Assert.True(c.GetProperty("expected").GetDouble() == size, $"{c.Str("name")}: {size}");
         }
     }
 

@@ -1,0 +1,72 @@
+{
+ "measure": "Szerokość tekstu = liczba znaków (UTF-16) × rozmiar × 0,6; przypadki z anyMeasurer nie zależą od pomiaru (także AppKit w macOS).",
+ "cases": [
+  {
+   "name": "Pusty tekst",
+   "text": "  \n ",
+   "width": 1920,
+   "height": 1080,
+   "anyMeasurer": true,
+   "expected": 48
+  },
+  {
+   "name": "Za mały ekran",
+   "text": "Chwała na wysokości",
+   "width": 40,
+   "height": 400,
+   "anyMeasurer": true,
+   "expected": 24
+  },
+  {
+   "name": "Krótki wers: ogranicza maksymalny rozmiar",
+   "text": "Amen",
+   "width": 1920,
+   "height": 1080,
+   "expected": 259
+  },
+  {
+   "name": "Długie słowo: ogranicza szerokość",
+   "text": "Najprzenajświętszego",
+   "width": 1280,
+   "height": 720,
+   "expected": 90
+  },
+  {
+   "name": "Cztery wersy: ogranicza wysokość",
+   "text": "Idziemy razem przez zielone łąki\nsłońce nad nami świeci jasno\nśpiewamy pieśń o dobrym dniu\nwiatr niesie nasze słowa",
+   "width": 1920,
+   "height": 1080,
+   "expected": 98
+  },
+  {
+   "name": "Długi wers zawijany",
+   "text": "To jest bardzo długi wers próbnej pieśni, który na pewno nie zmieści się w jednej linii ekranu",
+   "width": 1024,
+   "height": 768,
+   "expected": 80
+  },
+  {
+   "name": "Pusta linia w środku",
+   "text": "Pierwszy wers\n\nOstatni wers",
+   "width": 1920,
+   "height": 1080,
+   "expected": 209
+  },
+  {
+   "name": "Większe odstępy i marginesy",
+   "text": "Pan jest pasterzem moim\nniczego mi nie braknie",
+   "width": 1920,
+   "height": 1080,
+   "lineSpacingFactor": 1.6,
+   "marginPercent": 0.15,
+   "expected": 113
+  },
+  {
+   "name": "Minimalny rozmiar",
+   "text": "słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo słowo",
+   "width": 800,
+   "height": 600,
+   "expected": 14
+  }
+ ]
+}
