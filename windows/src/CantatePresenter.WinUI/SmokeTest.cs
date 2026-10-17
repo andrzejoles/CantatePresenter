@@ -113,6 +113,36 @@ public static class SmokeTest
             await Task.WhenAny(reviewDialog, Task.Delay(3000));
             Check("importReviewCancelled", reviewDialog.IsCompleted && reviewDialog.Result is null);
 
+            // Okna jak w macOS: ustawienia, edytor, chwyty, szybki tekst, Tytuł/Autor, instrukcja.
+            async Task DialogShot(string name, string file, Func<Task> show, int wait = 1500)
+            {
+                Services.Trace("próba: okno " + name);
+                var task = show();
+                await Task.Delay(wait);
+                var popup = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetOpenPopupsForXamlRoot(window.Content.XamlRoot).FirstOrDefault(p => p.Child is Microsoft.UI.Xaml.Controls.ContentDialog);
+                await Capture(popup?.Child as FrameworkElement, Path.Combine(outputDirectory, file));
+                Check(name, popup is not null);
+                (popup?.Child as Microsoft.UI.Xaml.Controls.ContentDialog)?.Hide();
+                await Task.WhenAny(task, Task.Delay(3000));
+                Check(name + "Closed", task.IsCompleted);
+            }
+            // Pole wielowierszowe zachowuje cały tekst (edytor w 3.1.0 zostawiał tylko pierwszą linię).
+            var multiline = Ui.MultilineBox("[Zwrotka 1]\nlinia druga\n\n[Refren]\nostatnia");
+            Check("multilineKeepsText", multiline.Text.Replace("\r\n", "\n").Replace('\r', '\n') == "[Zwrotka 1]\nlinia druga\n\n[Refren]\nostatnia");
+            await DialogShot("settingsDialog", "12-settings.png", () => SettingsDialog.ShowAsync(window), 2500);
+            await DialogShot("editorDialog", "13-editor.png", () => SongEditorDialog.ShowAsync(window, song));
+            await DialogShot("chordsDialog", "14-chords.png", () => ChordsDialog.ShowAsync(window, song, (_, _) => { }));
+            await DialogShot("importExportDialog", "19-import-export.png", () => ImportExportDialog.ShowAsync(window));
+            await DialogShot("onlineDialog", "20-online.png", () => OnlineSearchDialog.ShowAsync(window));
+            await DialogShot("quickTextDialog", "15-quick-text.png", () => Dialogs.QuickTextAsync(window));
+            await DialogShot("lookupDialog", "16-lookup.png", () => AuthorTitleLookupDialog.ShowAsync(window, library.Songs.First(s => s.Title.StartsWith("Kiedy", StringComparison.Ordinal))), 5000);
+            Check("chordsCatalog", Core.Chords.ChordsCatalog.Search("Barka").Count > 0);
+            UserManualWindow.Open();
+            await Task.Delay(1500);
+            await Capture(UserManualWindow.Instance?.Content as FrameworkElement, Path.Combine(outputDirectory, "17-manual.png"));
+            Check("manualWindow", UserManualWindow.Instance is not null);
+            UserManualWindow.CloseIfOpen();
+
             // Aktualizacje: prawdziwe API GitHub (tylko do raportu, sieć w CI bywa zawodna).
             try
             {
@@ -135,6 +165,11 @@ public static class SmokeTest
             library.StopLive();
             library.StartOrResume();
             Check("resume", library.IsLive);
+            // Wysokość paska skrótów (ustawienie wspólne z macOS) i stan po zatrzymaniu.
+            library.UpdateSettings(x => x.BottomBarHeight = 100);
+            await Task.Delay(600);
+            await Capture(window.Content as FrameworkElement, Path.Combine(outputDirectory, "18-main-tall-bar.png"));
+            library.UpdateSettings(x => x.BottomBarHeight = 72);
             Check("noIssues", library.Issues.Count == 0);
             report["version"] = Services.Version;
             report["screens"] = Screens.All().Count;

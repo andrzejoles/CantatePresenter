@@ -1485,6 +1485,34 @@
         }
       }
     },
+    "Biblioteka chwytów": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chord library"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akkordbibliothek"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Biblioteca de acordes"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Бібліотека акордів"
+          }
+        }
+      }
+    },
     "Biblioteka jest pusta. Dodaj pieśń albo zaimportuj pliki.": {
       "localizations": {
         "en": {
@@ -2801,6 +2829,34 @@
         }
       }
     },
+    "Błąd zapisu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save error"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fehler beim Speichern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error al guardar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помилка збереження"
+          }
+        }
+      }
+    },
     "Błąd zapisu pliku: {0}": {
       "localizations": {
         "en": {
@@ -2965,6 +3021,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Повна резервна копія CantatePresenter (бібліотека пісень, акорди, налаштування, екран очікування, мови, логотипи)"
+          }
+        }
+      }
+    },
+    "CantatePresenter to narzędzie dla wspólnot, zespołów muzycznych, parafii oraz Ruchu Equipes Notre-Dame (END). Umożliwia prezentację słów pieśni, chwytów gitarowych i slajdów liturgicznych. Wersja dla Windows korzysta z tych samych plików danych i kopii zapasowych co wersja dla macOS.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CantatePresenter is a tool for communities, music groups, parishes and the Equipes Notre-Dame (END) movement. It presents song lyrics, guitar chords and liturgical slides. The Windows version uses the same data files and backups as the macOS version."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CantatePresenter ist ein Werkzeug für Gemeinschaften, Musikgruppen, Pfarreien und die Bewegung Equipes Notre-Dame (END). Es präsentiert Liedtexte, Gitarrenakkorde und liturgische Folien. Die Windows-Version verwendet dieselben Datendateien und Sicherungen wie die macOS-Version."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CantatePresenter es una herramienta para comunidades, grupos musicales, parroquias y el movimiento Equipes Notre-Dame (END). Presenta letras de canciones, acordes de guitarra y diapositivas litúrgicas. La versión para Windows usa los mismos archivos de datos y copias de seguridad que la versión para macOS."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CantatePresenter — інструмент для спільнот, музичних гуртів, парафій і руху Equipes Notre-Dame (END). Він показує слова пісень, гітарні акорди та літургійні слайди. Версія для Windows використовує ті самі файли даних і резервні копії, що й версія для macOS."
           }
         }
       }
@@ -3301,6 +3385,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Акорди доступні музикантам у програмі й не показуються громаді на екрані проєкції."
+          }
+        }
+      }
+    },
+    "Chwyty tej pieśni": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This song's chords"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akkorde dieses Liedes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acordes de esta canción"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Акорди цієї пісні"
           }
         }
       }
@@ -5405,6 +5517,34 @@
         }
       }
     },
+    "Eksportuj bibliotekę jako JSON...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export library as JSON..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bibliothek als JSON exportieren..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar la biblioteca como JSON..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Експортувати бібліотеку як JSON..."
+          }
+        }
+      }
+    },
     "Eksportuj całą bazę (JSON)...": {
       "localizations": {
         "en": {
@@ -5741,6 +5881,34 @@
         }
       }
     },
+    "Enter w oknie projekcji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter in the projection window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter im Projektionsfenster"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter en la ventana de proyección"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter у вікні проєкції"
+          }
+        }
+      }
+    },
     "Filtruj listę...": {
       "localizations": {
         "en": {
@@ -6073,6 +6241,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Якщо під’єднано лише один екран, презентація запускається на весь екран вашого Mac. Натисніть ESC будь-коли, щоб одразу повернутися до програми."
+          }
+        }
+      }
+    },
+    "Gdy podłączony jest tylko 1 ekran, prezentacja uruchamia się w trybie pełnoekranowym na tym komputerze. Naciśnij w dowolnym momencie klawisz ESC, aby zakończyć projekcję, a przyciskiem „Zatrzymaj pełny ekran” wrócić do aplikacji.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When only one screen is connected, the presentation runs full screen on this computer. Press ESC at any time to end the projection and use “Stop full screen” to return to the app."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn nur ein Bildschirm angeschlossen ist, läuft die Präsentation im Vollbild auf diesem Computer. Drücke jederzeit ESC, um die Projektion zu beenden, und mit „Vollbild beenden“ kehrst du zur App zurück."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando solo hay una pantalla conectada, la presentación se abre a pantalla completa en este ordenador. Pulsa ESC en cualquier momento para terminar la proyección y usa «Detener pantalla completa» para volver a la aplicación."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Коли під’єднано лише один екран, презентація відкривається на весь екран цього комп’ютера. Натисніть ESC будь-коли, щоб завершити проєкцію, а кнопкою «Вийти з повного екрана» поверніться до програми."
           }
         }
       }
@@ -6773,6 +6969,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Посібник користувача CantatePresenter"
+          }
+        }
+      }
+    },
+    "Instrukcja obsługi": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "User guide"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benutzerhandbuch"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manual de usuario"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Посібник користувача"
           }
         }
       }
@@ -8401,6 +8625,34 @@
         }
       }
     },
+    "Kopia zapasowa (.cantatebackup) zawiera: całą bazę pieśni ({0}), plany nabożeństw ({1}), chwyty gitarowe i wszystkie ustawienia programu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The backup (.cantatebackup) contains: the whole song library ({0}), service plans ({1}), guitar chords and all app settings."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Sicherung (.cantatebackup) enthält: die gesamte Liedbibliothek ({0}), Gottesdienstpläne ({1}), Gitarrenakkorde und alle Programmeinstellungen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copia de seguridad (.cantatebackup) contiene: toda la biblioteca de canciones ({0}), los planes de celebración ({1}), los acordes de guitarra y todos los ajustes del programa."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резервна копія (.cantatebackup) містить: усю бібліотеку пісень ({0}), плани богослужінь ({1}), гітарні акорди та всі налаштування програми."
+          }
+        }
+      }
+    },
     "Kopia zapasowa (.holyricsbackup) zawiera: całą bazę pieśni ({0}), plany nabożeństw ({1}), chwyty gitarowe, wszystkie ustawienia programu, stronę początkową Standby, języki tłumaczeń oraz oficjalne loga.": {
       "localizations": {
         "en": {
@@ -8929,6 +9181,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вхід не було завершено в браузері вчасно."
+          }
+        }
+      }
+    },
+    "Logowanie, wysyłanie kopii, przywracanie z Dysku i kopia przy zamykaniu aplikacji.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in, uploading backups, restoring from Drive and a backup when the app closes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmeldung, Hochladen von Sicherungen, Wiederherstellen aus Drive und Sicherung beim Beenden der App."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicio de sesión, envío de copias, restauración desde Drive y copia al cerrar la aplicación."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вхід, надсилання копій, відновлення з Диска та копія під час закриття програми."
           }
         }
       }
@@ -10637,6 +10917,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Мікрофон не знайдено."
+          }
+        }
+      }
+    },
+    "Nie znaleziono opracowań. Wpisz inny tytuł albo dodaj chwyty w edytorze pieśni.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No arrangements found. Enter a different title or add chords in the song editor."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Bearbeitungen gefunden. Gib einen anderen Titel ein oder füge Akkorde im Liededitor hinzu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encontraron arreglos. Escribe otro título o añade acordes en el editor de canciones."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Опрацювань не знайдено. Введіть іншу назву або додайте акорди в редакторі пісні."
           }
         }
       }
@@ -15737,6 +16045,62 @@
         }
       }
     },
+    "Przycisk „Chwyty” przy pieśni otwiera wyszukiwarkę opracowań: chwyty samej pieśni i wbudowaną bibliotekę chwytów popularnych pieśni. Wybrane opracowanie można przetransponować i wstawić do pieśni. Ekran dla muzyków („Muzycy”) pokazuje chwyty nad tekstem bieżącego slajdu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The “Chords” button next to a song opens the arrangement search: the song's own chords and a built-in chord library of popular songs. The chosen arrangement can be transposed and inserted into the song. The musicians screen (“Musicians”) shows the chords above the text of the current slide."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Schaltfläche „Akkorde“ beim Lied öffnet die Suche nach Bearbeitungen: die Akkorde des Liedes selbst und eine eingebaute Akkordbibliothek beliebter Lieder. Die gewählte Bearbeitung kann transponiert und in das Lied eingefügt werden. Der Musikerbildschirm („Musiker“) zeigt die Akkorde über dem Text der aktuellen Folie."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El botón «Acordes» junto a una canción abre el buscador de arreglos: los acordes de la propia canción y una biblioteca integrada de acordes de canciones populares. El arreglo elegido se puede transponer e insertar en la canción. La pantalla para músicos («Músicos») muestra los acordes sobre el texto de la diapositiva actual."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кнопка «Акорди» біля пісні відкриває пошук опрацювань: акорди самої пісні та вбудовану бібліотеку акордів популярних пісень. Вибране опрацювання можна транспонувати й вставити в пісню. Екран для музикантів («Музиканти») показує акорди над текстом поточного слайда."
+          }
+        }
+      }
+    },
+    "Przyciskiem Import/Eksport możesz importować bazy Holyrics (.mufl, .muf), pliki tekstowe .txt, pliki JSON, XML oraz pliki z CCLI SongSelect. Przed dodaniem program pokazuje wykryte duplikaty.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "With the Import/Export button you can import Holyrics libraries (.mufl, .muf), .txt text files, JSON and XML files and files from CCLI SongSelect. Before adding them the app shows detected duplicates."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit der Schaltfläche Import/Export kannst du Holyrics-Bibliotheken (.mufl, .muf), .txt-Textdateien, JSON- und XML-Dateien sowie Dateien aus CCLI SongSelect importieren. Vor dem Hinzufügen zeigt das Programm gefundene Duplikate."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con el botón Importar/Exportar puedes importar bibliotecas de Holyrics (.mufl, .muf), archivos de texto .txt, archivos JSON y XML y archivos de CCLI SongSelect. Antes de añadirlos, el programa muestra los duplicados detectados."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кнопкою Імпорт/Експорт можна імпортувати бази Holyrics (.mufl, .muf), текстові файли .txt, файли JSON і XML, а також файли з CCLI SongSelect. Перед додаванням програма показує виявлені дублікати."
+          }
+        }
+      }
+    },
     "Przygotowanie listy utworów": {
       "localizations": {
         "en": {
@@ -16885,6 +17249,34 @@
         }
       }
     },
+    "Slajdy: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slides: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folien: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diapositivas: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слайди: {0}"
+          }
+        }
+      }
+    },
     "Sortowanie": {
       "localizations": {
         "en": {
@@ -17529,6 +17921,34 @@
         }
       }
     },
+    "Szukaj w bibliotece chwytów...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search the chord library..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In der Akkordbibliothek suchen..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar en la biblioteca de acordes..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шукати в бібліотеці акордів..."
+          }
+        }
+      }
+    },
     "Szukaj w instrukcji...": {
       "localizations": {
         "en": {
@@ -17609,6 +18029,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Шукати в назві, авторі й тексті..."
+          }
+        }
+      }
+    },
+    "Szukanie akordów dla: „{0}” w bibliotece chwytów i w samej pieśni": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Searching chords for “{0}” in the chord library and in the song itself"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akkordsuche für „{0}“ in der Akkordbibliothek und im Lied selbst"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscando acordes para «{0}» en la biblioteca de acordes y en la propia canción"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пошук акордів для «{0}» у бібліотеці акордів і в самій пісні"
           }
         }
       }
@@ -19097,6 +19545,34 @@
         }
       }
     },
+    "Ukrycie tekstu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide text"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text ausblenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar el texto"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приховування тексту"
+          }
+        }
+      }
+    },
     "Ukrycie tekstu (Clear Text)": {
       "localizations": {
         "en": {
@@ -19261,6 +19737,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Запустити звідси"
+          }
+        }
+      }
+    },
+    "Uruchomienie prezentacji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start presentation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Präsentation starten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar la presentación"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запуск презентації"
           }
         }
       }
@@ -19853,6 +20357,34 @@
         }
       }
     },
+    "Utwórz pełną kopię zapasową...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a full backup..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vollständige Sicherung erstellen..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear una copia de seguridad completa..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Створити повну резервну копію..."
+          }
+        }
+      }
+    },
     "Utwórz plan przyciskiem +.": {
       "localizations": {
         "en": {
@@ -19961,6 +20493,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "У Налаштуваннях є велика галерея логотипів, зокрема офіційний логотип Equipes Notre-Dame (END: риба й обручки), золота акустична гітара, ліра Давида, скрипковий ключ з еквалайзером, арфа та гармонічні хвилі."
+          }
+        }
+      }
+    },
+    "W lewym panelu przełącz na 'Plan'. Utwórz nowy plan na mszę lub spotkanie i dodawaj pieśni z biblioteki (prawy przycisk myszy na pieśni albo „+ Do planu”). Naciśnięcie spacji na końcu utworu płynnie przełącza do kolejnej pieśni z planu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the left panel switch to 'Plan'. Create a new plan for Mass or a meeting and add songs from the library (right-click a song or use “+ Add to plan”). Pressing Space at the end of a song moves smoothly to the next song in the plan."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wechsle im linken Bereich zu 'Ablauf'. Erstelle einen neuen Ablauf für die Messe oder ein Treffen und füge Lieder aus der Bibliothek hinzu (Rechtsklick auf ein Lied oder „+ Zum Plan“). Leertaste am Ende eines Liedes wechselt nahtlos zum nächsten Lied im Ablauf."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En el panel izquierdo cambia a 'Plan'. Crea un plan nuevo para la misa o una reunión y añade canciones de la biblioteca (clic derecho en una canción o «+ Al plan»). Al pulsar Espacio al final de una canción se pasa sin cortes a la siguiente canción del plan."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У лівій панелі перейдіть на 'План'. Створіть новий план для меси чи зустрічі й додавайте пісні з бібліотеки (правою кнопкою миші на пісні або «+ До плану»). Пробіл наприкінці пісні плавно переходить до наступної пісні з плану."
           }
         }
       }
@@ -21333,6 +21893,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вибрати інший логотип ({0} варіантів)..."
+          }
+        }
+      }
+    },
+    "Wybierz kolor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a color"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farbe wählen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir un color"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вибрати колір"
           }
         }
       }
@@ -23801,6 +24389,34 @@
         }
       }
     },
+    "Zatrzymanie prezentacji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop presentation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Präsentation beenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detener la presentación"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зупинка презентації"
+          }
+        }
+      }
+    },
     "Zatrzymanie prezentacji:": {
       "localizations": {
         "en": {
@@ -24161,6 +24777,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Перейменувати"
+          }
+        }
+      }
+    },
+    "Zmień wysokość paska": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change the bar height"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leistenhöhe ändern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar la altura de la barra"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Змінити висоту панелі"
           }
         }
       }

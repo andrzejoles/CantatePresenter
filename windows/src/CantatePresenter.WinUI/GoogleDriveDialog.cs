@@ -163,7 +163,7 @@ public static class GoogleDriveDialog
             details.Children.Add(autoBackup);
 
             var actions = new StackPanel { Spacing = 8 };
-            var upload = new Button { Content = "⇪  " + L("Wyślij bieżący backup na Dysk Google"), IsEnabled = signedIn, Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
+            var upload = new Button { Content = Ui.Label(Glyphs.Upload, L("Wyślij bieżący backup na Dysk Google"), 13), IsEnabled = signedIn, Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
             upload.Click += async (_, _) => await Run(L("Wysyłanie kopii do chmury Google..."), async () =>
             {
                 try
@@ -176,7 +176,7 @@ public static class GoogleDriveDialog
                     Status(L("Błąd wysyłania na Dysk Google: {0}", error.Message), false);
                 }
             });
-            var browse = new Button { Content = "⟲  " + L("Przeglądaj i przywróć kopie z Dysku Google..."), IsEnabled = signedIn };
+            var browse = new Button { Content = Ui.Label(Glyphs.Refresh, L("Przeglądaj i przywróć kopie z Dysku Google..."), 13), IsEnabled = signedIn };
             browse.Click += async (_, _) => await Run(L("Wczytywanie listy kopii zapasowych z Dysku Google..."), async () =>
             {
                 backups.Children.Clear();

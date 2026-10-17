@@ -103,7 +103,7 @@ public static class RemoteDialog
             details.Children.Add(new TextBox { Text = address, IsReadOnly = true, FontFamily = new FontFamily("Consolas"), FontSize = 12 });
             UpdateConnected();
             details.Children.Add(connected);
-            var regenerate = new Button { Content = "⟳  " + L("Nowy kod (rozłącza telefony)") };
+            var regenerate = new Button { Content = Ui.Label(Glyphs.Refresh, L("Nowy kod (rozłącza telefony)"), 13) };
             regenerate.Click += (_, _) =>
             {
                 remote.RegenerateTokens();
@@ -142,7 +142,7 @@ public static class RemoteDialog
         timer.Tick += (_, _) => { if (remote.IsRunning) UpdateConnected(); };
         return new ContentDialog
         {
-            Title = "📱  " + L("Pilot ze smartfona"),
+            Title = Ui.Label(Glyphs.Phone, L("Pilot ze smartfona"), 18, Ui.Blue, 10),
             Content = new ScrollViewer { Content = body, MaxHeight = 640 },
             CloseButtonText = L("Zamknij"),
         };

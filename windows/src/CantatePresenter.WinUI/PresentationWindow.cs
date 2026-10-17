@@ -50,8 +50,14 @@ public sealed class PresentationWindow : Window
     private string? screenId;
     private bool windowed;
     public bool IsOpen { get; private set; }
+    /// <summary>Okno testowe (zwykłe okno) zamiast pełnego ekranu.</summary>
+    public bool IsWindowed => IsOpen && windowed;
+    /// <summary>Monitor projekcji odłączony: okno ukryte do ponownego podłączenia (S1).</summary>
+    public bool IsWaitingForDisplay { get; private set; }
 
     public event Action<Windows.System.VirtualKey>? KeyPressed;
+    /// <summary>Zmiana stanu okna (otwarte, zamknięte, monitor odłączony), np. dla plakietki w oknie głównym.</summary>
+    public event Action? StateChanged;
 
     public PresentationWindow()
     {
@@ -74,6 +80,15 @@ public sealed class PresentationWindow : Window
             IsOpen = false;
             monitorTimer.Stop();
         };
+        // Zamknięcie okna testowego krzyżykiem tylko je chowa (okno projekcji żyje razem z aplikacją).
+        AppWindow.Closing += (_, e) =>
+        {
+            if (!Services.AppClosing)
+            {
+                e.Cancel = true;
+                HideWindow();
+            }
+        };
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico"));
     }
 
@@ -81,10 +96,14 @@ public sealed class PresentationWindow : Window
 
     private void Render() => view.Render(ScreenState.FromLibrary(), TargetSize);
 
+    /// <summary>Pełny ekran na podanym monitorze (także głównym, jak „Prezentuj na pełnym ekranie” w macOS).</summary>
+    public void ShowFullScreen(Screen? screen) => ShowOn(screen);
+
     /// <summary>Pełny ekran na monitorze; bez monitora projekcji — zwykłe okno (np. do prób na jednym ekranie).</summary>
     public void ShowOn(Screen? screen)
     {
         IsOpen = true;
+        IsWaitingForDisplay = false;
         windowed = screen is null;
         screenId = screen?.Id;
         if (screen is null)
@@ -101,13 +120,16 @@ public sealed class PresentationWindow : Window
         Activate();
         Render();
         monitorTimer.Start();
+        StateChanged?.Invoke();
     }
 
     public void HideWindow()
     {
         IsOpen = false;
+        IsWaitingForDisplay = false;
         monitorTimer.Stop();
         AppWindow.Hide();
+        StateChanged?.Invoke();
     }
 
     private void CheckScreen()
@@ -117,12 +139,14 @@ public sealed class PresentationWindow : Window
         if (screen is null)
         {
             if (AppWindow.IsVisible) AppWindow.Hide();
+            if (!IsWaitingForDisplay) { IsWaitingForDisplay = true; StateChanged?.Invoke(); }
         }
         else if (!AppWindow.IsVisible)
         {
             AppWindow.MoveAndResize(screen.Bounds);
             AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
             AppWindow.Show(false);
+            if (IsWaitingForDisplay) { IsWaitingForDisplay = false; StateChanged?.Invoke(); }
         }
     }
 

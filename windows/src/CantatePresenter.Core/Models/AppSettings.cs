@@ -50,6 +50,7 @@ public sealed class AppSettings
         json["marginPercent"] = Clamp(Json.Number(json["marginPercent"]), 0.07, 0, 0.3);
         json["lineSpacingFactor"] = Clamp(Json.Number(json["lineSpacingFactor"]), 1.15, 0.8, 2);
         json["uiScale"] = Clamp(Json.Number(json["uiScale"]), 1.0, 0.7, 2);
+        json["bottomBarHeight"] = Clamp(Json.Number(json["bottomBarHeight"]), 72, 52, 160);
         json["appLanguage"] = Json.Str(json["appLanguage"], "pl");
         json["activeLogoId"] = Json.Str(json["activeLogoId"], "light_of_glory");
         json["ccliLicenseNumber"] = Json.Str(json["ccliLicenseNumber"]);
@@ -103,6 +104,10 @@ public sealed class AppSettings
     public double MarginPercent { get => Json.Number(json["marginPercent"]) ?? 0.07; set => json["marginPercent"] = Math.Clamp(value, 0, 0.3); }
     public double LineSpacingFactor { get => Json.Number(json["lineSpacingFactor"]) ?? 1.15; set => json["lineSpacingFactor"] = Math.Clamp(value, 0.8, 2); }
     public double UiScale { get => Json.Number(json["uiScale"]) ?? 1; set => json["uiScale"] = Math.Clamp(value, 0.7, 2); }
+    /// <summary>Wysokość dolnego paska skrótów (52–160, domyślnie 72), jak w macOS.</summary>
+    public double BottomBarHeight { get => Json.Number(json["bottomBarHeight"]) ?? 72; set => json["bottomBarHeight"] = Math.Clamp(Math.Round(value), 52, 160); }
+    /// <summary>Kolejność listy pieśni: „titleAsc”, „titleDesc”, „authorAsc” albo „newest” (w macOS w preferencjach systemu).</summary>
+    public string SongSortOrder { get => Json.Str(json["songSortOrder"], "titleAsc") is var v && v is "titleAsc" or "titleDesc" or "authorAsc" or "newest" ? v : "titleAsc"; set => json["songSortOrder"] = value; }
     public string AppLanguage { get => Json.Str(json["appLanguage"], "pl"); set => json["appLanguage"] = value; }
     public string ActiveLogoId { get => Json.Str(json["activeLogoId"]); set => json["activeLogoId"] = value; }
     public string CcliLicenseNumber { get => Json.Str(json["ccliLicenseNumber"]); set => json["ccliLicenseNumber"] = value; }
