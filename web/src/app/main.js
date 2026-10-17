@@ -16,7 +16,7 @@ import { stageSource } from "../core/stage.js";
 import { normalizeUsageEntry, usageCSV } from "../core/ccli.js";
 import { loadLogos } from "./logos.js";
 import { readHolyricsFile, HOLYRICS_EXTENSIONS } from "../core/holyrics.js";
-import { searchFold } from "../core/text.js";
+import { processAndDeduplicate } from "../core/dedup.js";
 
 await Promise.all([
   loadCatalog(new URL("../../i18n/Localizable.xcstrings", import.meta.url)).catch((error) => console.error("Tłumaczenia:", error)),
@@ -198,21 +198,18 @@ async function importFiles(files) {
       skipped++;
     }
   }
-  // Te same pieśni (tytuł i tekst bez znaków diakrytycznych i interpunkcji) już w bibliotece albo dwa razy w imporcie są pomijane.
-  const signature = (/** @type {{title: string, rawLyrics: string}} */ song) => `${searchFold(song.title)}\n${searchFold(song.rawLyrics)}`;
-  const known = new Set(store.songs.map(signature));
-  const unique = imported.filter((song) => {
-    const key = signature(song);
-    if (known.has(key)) return false;
-    known.add(key);
-    return true;
-  });
-  const duplicates = imported.length - unique.length;
-  if (unique.length) store.addSongs(unique);
-  const parts = [t("Zaimportowano {0} pieśni.", unique.length)];
-  if (duplicates) parts.push(t("Pominięto duplikaty: {0}.", duplicates));
-  if (skipped) parts.push(t("Nieczytelne pliki: {0}.", skipped));
-  ui.toast(parts.join(" "));
+  // Duplikaty i pieśni o tym samym tytule w bibliotece jak w macOS (SongDeduplicationService); przegląd tylko, gdy jest o czym decydować.
+  const report = processAndDeduplicate(imported, store.songs, t);
+  const finish = (/** @type {import("../core/models.js").Song[]} */ songs) => {
+    if (songs.length) store.addSongs(songs);
+    const parts = [t("Zaimportowano {0} pieśni.", songs.length)];
+    const duplicates = Math.max(0, imported.length - songs.length);
+    if (duplicates) parts.push(t("Pominięto duplikaty: {0}.", duplicates));
+    if (skipped) parts.push(t("Nieczytelne pliki: {0}.", skipped));
+    ui.toast(parts.join(" "));
+  };
+  if (report.duplicateRecords.length || report.existingCollisions.length) ui.openImportReview(report, finish);
+  else finish(report.uniqueSongs);
 }
 
 async function exportBackup() {
