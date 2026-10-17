@@ -1849,6 +1849,34 @@
         }
       }
     },
+    "Brak połączenia z aplikacją. Sprawdź, czy pilot jest włączony na komputerze prowadzącym projekcję.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection to the app. Check that the remote is turned on on the computer running the projection."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Verbindung zur App. Prüfe, ob die Fernbedienung auf dem Computer mit der Projektion eingeschaltet ist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay conexión con la aplicación. Comprueba que el mando esté activado en el ordenador que dirige la proyección."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає з’єднання із застосунком. Перевірте, чи пульт увімкнено на комп’ютері, що веде проєкцію."
+          }
+        }
+      }
+    },
     "Brak połączenia z komputerem. Sprawdź, czy telefon jest w tej samej sieci Wi-Fi.": {
       "localizations": {
         "en": {
@@ -1901,6 +1929,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Немає з’єднання з обліковим записом Google. Під’єднайте обліковий запис у Налаштуваннях → Google Диск."
+          }
+        }
+      }
+    },
+    "Brak połączenia z serwerem.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection to the server."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Verbindung zum Server."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay conexión con el servidor."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає з’єднання із сервером."
           }
         }
       }
@@ -12177,6 +12233,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Пульт CantatePresenter"
+          }
+        }
+      }
+    },
+    "Pilot działa, dopóki ta karta jest otwarta. Telefon nie musi być w tej samej sieci.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The remote works while this tab is open. The phone does not need to be on the same network."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Fernbedienung funktioniert, solange dieser Tab geöffnet ist. Das Telefon muss nicht im selben Netzwerk sein."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El mando funciona mientras esta pestaña esté abierta. El teléfono no necesita estar en la misma red."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пульт працює, доки цю вкладку відкрито. Телефон не мусить бути в тій самій мережі."
           }
         }
       }
@@ -23069,6 +23153,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Відскануйте код камерою телефона або введіть адресу в браузері:"
+          }
+        }
+      }
+    },
+    "Zeskanuj kod telefonem i zaloguj się tym samym kontem (hasło i kod z aplikacji uwierzytelniającej). Polecenia z telefonu trafiają do tej karty przeglądarki.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the code with your phone and sign in with the same account (password and authenticator app code). Commands from the phone go to this browser tab."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanne den Code mit dem Telefon und melde dich mit demselben Konto an (Passwort und Code aus der Authenticator-App). Befehle vom Telefon gehen an diesen Browser-Tab."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanea el código con el teléfono e inicia sesión con la misma cuenta (contraseña y código de la aplicación de autenticación). Los comandos del teléfono llegan a esta pestaña del navegador."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відскануйте код телефоном і увійдіть у той самий обліковий запис (пароль і код із застосунку автентифікації). Команди з телефона надходять до цієї вкладки браузера."
           }
         }
       }

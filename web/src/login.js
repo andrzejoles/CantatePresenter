@@ -7,6 +7,11 @@ import { qrSVG } from "./core/qr.js";
 
 const root = /** @type {HTMLElement} */ (document.getElementById("login"));
 const HEADERS = { "X-Cantate-Request": "1", "Content-Type": "application/json" };
+/** Powrót po zalogowaniu (np. pilot w telefonie: /remote); tylko ścieżki tej samej strony. */
+const NEXT = (() => {
+  const next = new URLSearchParams(location.search).get("next") ?? "/";
+  return /^\/(?![\/\\])[\w\-./]*$/.test(next) ? next : "/";
+})();
 
 /** @param {string} tag @param {Record<string, any>} [props] @param {...any} children */
 function h(tag, props = {}, ...children) {
@@ -73,7 +78,7 @@ function showCode() {
     onsubmit: async (/** @type {Event} */ event) => {
       event.preventDefault();
       const { status } = await post("/api/login/totp", { code: code.value });
-      if (status === 200) { location.href = "/"; return; }
+      if (status === 200) { location.href = NEXT; return; }
       if (status === 401 && code.value) { error.textContent = t("Nieprawidłowy kod."); code.select(); }
       else showPassword(errorText(status));
     },
@@ -111,7 +116,7 @@ function showEnroll(secret, uri) {
 /** @param {string[]} codes */
 function showBackupCodes(codes) {
   const confirmed = /** @type {HTMLInputElement} */ (h("input", { type: "checkbox" }));
-  const next = /** @type {HTMLButtonElement} */ (h("button", { class: "primary", disabled: "", onclick: () => { location.href = "/"; } }, t("Przejdź do aplikacji")));
+  const next = /** @type {HTMLButtonElement} */ (h("button", { class: "primary", disabled: "", onclick: () => { location.href = NEXT; } }, t("Przejdź do aplikacji")));
   confirmed.addEventListener("change", () => { next.disabled = !confirmed.checked; });
   const download = () => {
     const blob = new Blob([`CantatePresenter: ${t("kody zapasowe")}\n\n${codes.join("\n")}\n`], { type: "text/plain;charset=utf-8" });
@@ -130,5 +135,5 @@ const preferred = navigator.languages.map((l) => l.slice(0, 2)).find((code) => L
 await loadCatalog("/i18n/Localizable.xcstrings").catch(() => {});
 setLanguage(preferred);
 const session = await fetch("/api/session", { credentials: "same-origin" });
-if (session.ok) location.href = "/";
+if (session.ok) location.href = NEXT;
 else showPassword();

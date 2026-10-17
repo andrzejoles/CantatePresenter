@@ -8,6 +8,8 @@ import base64
 import json
 import os
 import ssl
+import urllib.error
+import urllib.parse
 import urllib.request
 import socket
 import subprocess
@@ -96,6 +98,7 @@ try:
     browser.type(auth.totp(secret, auth.totp_counter()))
     browser.key("Enter", "Enter", "\r")
     browser.wait_for("document.querySelectorAll('.backup-codes li').length === 8")
+    backup_codes = browser.evaluate("[...document.querySelectorAll('.backup-codes li')].map(li => li.textContent.trim())")
     check("kody zapasowe pokazane raz (8)", True)
     browser.screenshot(os.path.join(out, "0-backup-codes.png"))
     browser.click("input[type=checkbox]")
@@ -183,6 +186,71 @@ try:
     browser.wait_for("document.querySelector('dialog[open]') !== null")
     browser.screenshot(os.path.join(out, "3-settings.png"))
     browser.click("dialog .dialog-head button")
+
+    # Pilot ze smartfona: karta operatora w Chrome, telefon jako osobny klient zalogowany kodem zapasowym.
+    browser.click(".toolbar button[title='Pilot ze smartfona']")
+    browser.wait_for("document.querySelector('dialog[open] .remote-toggle input') !== null")
+    browser.click("dialog[open] .remote-toggle input")
+    browser.wait_for("document.querySelector('dialog[open] .qr-box svg') !== null")
+    phone_cookies = {}
+    def phone(method, path, body=None):
+        url = base + path
+        headers = {"X-Cantate-Request": "1", "Cookie": "; ".join(f"{k}={v}" for k, v in phone_cookies.items())}
+        if body is not None:
+            headers["Content-Type"] = "application/json"
+        request = urllib.request.Request(url, json.dumps(body).encode() if body is not None else None, headers, method=method)
+        context = ssl._create_unverified_context() if TLS else None
+        try:
+            with urllib.request.urlopen(request, context=context, timeout=10) as response:
+                status, raw, cookies = response.status, response.read(), response.headers.get_all("Set-Cookie") or []
+        except urllib.error.HTTPError as error:
+            status, raw, cookies = error.code, error.read(), []
+        for cookie in cookies:
+            name, rest = cookie.split("=", 1)
+            phone_cookies[name] = rest.split(";", 1)[0]
+        try:
+            return status, json.loads(raw)
+        except ValueError:
+            return status, raw
+    phone("POST", "/api/login", {"username": "ala", "password": PASSWORD})
+    check("pilot: telefon loguje się kodem zapasowym", phone("POST", "/api/login/totp", {"code": backup_codes[0]})[0] == 200)
+    for _ in range(50):
+        status, state = phone("GET", "/api/state")
+        if status == 200:
+            break
+        time.sleep(0.1)
+    check(f"pilot: stan od karty operatora ({status})", status == 200 and state["labels"]["next"] == "Dalej" and not state["isLive"])
+    browser.wait_for("document.querySelector('dialog[open]')?.textContent.includes('Połączone telefony: 1')")
+    browser.screenshot(os.path.join(out, "3c-remote.png"))
+    browser.click("dialog[open] .dialog-head button")
+    status, results = phone("GET", "/api/search?q=" + urllib.parse.quote("kiedy ranne"))
+    check("pilot: wyszukiwanie na serwerze", status == 200 and results and results[0]["title"] == "Kiedy ranne wstają zorze")
+    status, state = phone("POST", "/api/command", {"command": "song", "id": results[0]["id"]})
+    check(f"pilot: wybór pieśni uruchamia projekcję ({state.get('songTitle') if isinstance(state, dict) else state})", status == 200 and state["isLive"] and state["songTitle"] == "Kiedy ranne wstają zorze")
+    check("pilot: karta operatora pokazuje projekcję", browser.evaluate("document.querySelector('.live-head .pill.on') !== null"))
+    status, state = phone("POST", "/api/command", {"command": "next"})
+    check("pilot: następny slajd", status == 200 and state["slideIndex"] == 1)
+    status, state = phone("POST", "/api/command", {"command": "stop"})
+    check("pilot: zakończenie projekcji", status == 200 and not state["isLive"] and state["canStart"])
+    status, page = phone("GET", "/remote")
+    check("pilot: strona telefonu", status == 200 and b"/api/command" in page)
+    check("pilot: przycisk na pasku zielony", browser.evaluate("document.querySelector('.toolbar button.remote-on') !== null"))
+    # Strona w przeglądarce telefonu (rozmiar iPhone'a, sesja telefonu): skrypt i styl przechodzą przez CSP z hashami.
+    handset = Browser(width=390, height=844, extra_args=("--ignore-certificate-errors",) if TLS else ())
+    try:
+        for name, value in phone_cookies.items():
+            handset.call("Network.setCookie", name=name, value=value, url=base)
+        handset.goto(f"{base}/remote")
+        handset.wait_for("document.getElementById('next')?.textContent.length > 0 && document.body.innerText.includes('Kiedy ranne wstają zorze')")
+        handset.screenshot(os.path.join(out, "3d-phone.png"))
+        handset.click("#next")
+        browser.wait_for("document.querySelector('.live-head .pill.on') !== null")
+        check("pilot: telefon wznawia projekcję w karcie operatora", True)
+        phone_errors = handset.console_errors()
+        check(f"pilot: strona telefonu bez błędów (CSP) {phone_errors[:3]}", not phone_errors)
+    finally:
+        handset.close()
+    browser.key("Escape", "Escape")
 
     # Import bazy Holyrics (.mufl): trzy pieśni, przy drugim imporcie same duplikaty.
     with open(os.path.join(ROOT, "shared/fixtures/holyrics-music-list.mufl"), "rb") as source:
