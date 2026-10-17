@@ -5,7 +5,7 @@ import Testing
 // MARK: - Wspólne pliki testowe (macOS, web, Windows)
 
 /// `shared/fixtures/*.json` opisują wejście i oczekiwany wynik logiki, która musi działać tak samo we wszystkich
-/// wersjach aplikacji (podział na slajdy, wyszukiwanie, transpozycja). Wersja webowa sprawdza te same pliki.
+/// wersjach aplikacji (podział na slajdy, wyszukiwanie, transpozycja, Auto-Fit). Wersja webowa sprawdza te same pliki.
 @Suite("Wspólne pliki testowe")
 struct SharedFixturesTests {
     static let directory = URL(fileURLWithPath: #filePath)
@@ -85,6 +85,28 @@ struct SharedFixturesTests {
             let sheet = try #require(fixture["sheet"] as? String)
             let semitones = try #require(fixture["semitones"] as? Int)
             #expect(ChordTransposer.transpose(sheet, semitones: semitones) == fixture["expected"] as? String, "\(sheet)")
+        }
+    }
+
+    /// Wynik zależy od pomiaru tekstu (tu AppKit, w web i Windows stały pomiar z pliku), więc dokładnie
+    /// porównujemy tylko przypadki `anyMeasurer`; pozostałe muszą mieścić się w zakresie rozmiarów.
+    @Test("Auto-Fit: przypadki niezależne od czcionki")
+    func autoFit() throws {
+        let data = try Data(contentsOf: Self.directory.appendingPathComponent("autofit.json"))
+        let root = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        for fixture in try #require(root["cases"] as? [[String: Any]]) {
+            let name = fixture["name"] as? String ?? "?"
+            let size = AutoFitEngine.calculateOptimalFontSize(
+                for: try #require(fixture["text"] as? String),
+                containerSize: CGSize(width: try #require(fixture["width"] as? Double), height: try #require(fixture["height"] as? Double)),
+                lineSpacingFactor: fixture["lineSpacingFactor"] as? Double ?? 1.15,
+                marginPercent: fixture["marginPercent"] as? Double ?? 0.07
+            )
+            if fixture["anyMeasurer"] as? Bool == true {
+                #expect(Double(size) == fixture["expected"] as? Double, "\(name)")
+            } else {
+                #expect(size >= 14 && size <= 260, "\(name)")
+            }
         }
     }
 }
