@@ -23,6 +23,18 @@ public sealed partial class MainWindow
     private Border? nextLabel;
     private StackPanel? nextPlaceholder;
 
+    /// <summary>Stała ramka podglądu odłączona od panelu z poprzedniego rysowania (element ma tylko jednego rodzica).</summary>
+    private static T Detached<T>(T element) where T : FrameworkElement
+    {
+        switch (element.Parent)
+        {
+            case Panel panel: panel.Children.Remove(element); break;
+            case Border border: border.Child = null; break;
+            case ContentControl control: control.Content = null; break;
+        }
+        return element;
+    }
+
     private Size TargetSize()
     {
         if (presentation.IsOpen && !presentation.IsWindowed) return presentation.TargetSize;
@@ -90,7 +102,7 @@ public sealed partial class MainWindow
         liveOverlay.Foreground = library.IsBlackScreen ? Ui.Brush(Colors.White, 0.5) : Ui.Brush(SlideView.ParseColor(library.Settings.TextColorHex, Colors.White), 0.4);
         liveFrameBorder!.BorderBrush = library.IsLive ? Ui.Brush(Ui.Red, 0.8) : Ui.Brush(Ui.Gray, 0.35);
         liveFrameBorder.BorderThickness = new Thickness(library.IsLive ? 2 : 1);
-        live.Children.Add(liveFrameBorder);
+        live.Children.Add(Detached(liveFrameBorder));
         if (library.IsLive && library.ActiveSong is Song activeSong)
         {
             var songLine = new TextBlock { Text = activeSong.Title, FontSize = 12, FontWeight = FontWeights.Medium, TextTrimming = TextTrimming.CharacterEllipsis, MaxLines = 1 };
@@ -197,7 +209,7 @@ public sealed partial class MainWindow
             nextPreview.Height = height;
             nextPreview.Render(ScreenState.FromLibrary(dimmed: true, textOverride: next.Text), target);
         }
-        nextSection.Children.Add(nextFrameBorder!);
+        nextSection.Children.Add(Detached(nextFrameBorder!));
         if (next is not null)
         {
             var lines = next.Text.Split('\n').Length;

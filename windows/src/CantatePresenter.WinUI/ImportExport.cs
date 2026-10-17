@@ -59,17 +59,55 @@ public static class ImportExport
         return song;
     }
 
+    private static readonly string[] ImportExtensions = [".txt", ".json", ".pro", ".cho", ".chopro", ".chordpro", ".usr", ".mufl", ".muf", ".hly", ".holyrics", ".zip", ".xml"];
+
     public static async Task ImportFilesAsync(MainWindow window)
     {
-        var files = await PickFilesAsync(window, true, ".txt", ".json", ".pro", ".cho", ".chopro", ".chordpro", ".usr", ".mufl", ".muf", ".hly", ".holyrics", ".zip", ".xml");
+        var files = await PickFilesAsync(window, true, ImportExtensions);
         if (files.Count == 0) return;
+        await ImportPathsAsync(window, files.Select(f => f.Path).ToList());
+    }
+
+    /// <summary>Cały folder (z podfolderami), jak „Wybierz cały folder...” w macOS.</summary>
+    public static async Task ImportFolderAsync(MainWindow window)
+    {
+        if (await PickFolderAsync(window) is not string folder) return;
+        List<string> paths;
+        try
+        {
+            paths = Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories)
+                .Where(p => ImportExtensions.Contains(Path.GetExtension(p).ToLowerInvariant())).Order(StringComparer.OrdinalIgnoreCase).ToList();
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.InfoAsync(window, L("Import/Eksport"), error.Message);
+            return;
+        }
+        if (paths.Count == 0)
+        {
+            await Dialogs.InfoAsync(window, L("Import/Eksport"), L("Nie znaleziono żadnych pieśni w wybranych plikach."));
+            return;
+        }
+        await ImportPathsAsync(window, paths);
+    }
+
+    private static async Task<string?> PickFolderAsync(MainWindow window)
+    {
+        var picker = new FolderPicker { SuggestedStartLocation = PickerLocationId.DocumentsLibrary };
+        picker.FileTypeFilter.Add("*");
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, Handle(window));
+        return (await picker.PickSingleFolderAsync())?.Path;
+    }
+
+    private static async Task ImportPathsAsync(MainWindow window, IReadOnlyList<string> paths)
+    {
         var imported = new List<Song>();
         var unreadable = 0;
-        foreach (var file in files)
+        foreach (var path in paths)
         {
             try
             {
-                var songs = SongsFromFile(await File.ReadAllBytesAsync(file.Path), file.Name);
+                var songs = SongsFromFile(await File.ReadAllBytesAsync(path), Path.GetFileName(path));
                 if (songs.Count == 0) unreadable++;
                 imported.AddRange(songs);
             }
@@ -156,31 +194,48 @@ public static class ImportExport
         }
     }
 
-    private static string SafeName(string title, string fallback)
-    {
-        var name = string.Concat(title.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c)).Trim();
-        return name.Length > 0 ? name : fallback;
-    }
-
     public static async Task ExportSongAsync(MainWindow window, Song? chosen = null)
     {
         if ((chosen ?? Services.Library.SelectedSong) is not Song song) return;
-        if (await PickSaveAsync(window, SafeName(song.Title, "piesn"), "Text", ".txt") is not string path) return;
-        // Nagłówki eksportu .txt to format danych (nie tłumaczone), jak SongExporter w macOS.
-        var header = new[] { $"Tytuł: {song.Title}", song.Author.Length > 0 ? $"Autor: {song.Author}" : null, song.Key.Length > 0 ? $"Tonacja: {song.Key}" : null,
-            song.Tags.Count > 0 ? $"Tagi: {string.Join(", ", song.Tags)}" : null }.OfType<string>();
-        await File.WriteAllTextAsync(path, $"{string.Join("\n", header)}\n\n{song.RawLyrics}\n");
+        if (await PickSaveAsync(window, SongExport.SafeFileName(song.Title), "Text", ".txt") is not string path) return;
+        try
+        {
+            await File.WriteAllTextAsync(path, SongExport.ToText(song));
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.InfoAsync(window, L("Błąd zapisu"), error.Message);
+        }
+    }
+
+    /// <summary>Każda pieśń jako osobny plik .txt w wybranym folderze (jak w macOS).</summary>
+    public static async Task ExportFolderAsync(MainWindow window, IReadOnlyList<Song> songs)
+    {
+        if (songs.Count == 0 || await PickFolderAsync(window) is not string folder) return;
+        var written = 0;
+        try
+        {
+            foreach (var (fileName, text) in SongExport.Folder(songs))
+            {
+                await File.WriteAllTextAsync(Path.Combine(folder, fileName), text);
+                written++;
+            }
+            await Dialogs.InfoAsync(window, L("Import/Eksport"), L("Pomyślnie wyeksportowano {0} pieśni jako osobne pliki .txt.", written));
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.InfoAsync(window, L("Błąd zapisu"), error.Message);
+        }
     }
 
     /// <summary>Pieśni jako tablica JSON w formacie songs.json (jak „Eksportuj jako plik JSON” w macOS).</summary>
     public static async Task ExportSongsJsonAsync(MainWindow window, IReadOnlyList<Song> songs, string suggestedName)
     {
         if (songs.Count == 0) return;
-        if (await PickSaveAsync(window, SafeName(suggestedName, "Baza_piesni"), "JSON", ".json") is not string path) return;
-        var array = new JsonArray(songs.Select(s => (JsonNode)s.ToJson()).ToArray());
+        if (await PickSaveAsync(window, SongExport.SafeFileName(suggestedName), "JSON", ".json") is not string path) return;
         try
         {
-            await File.WriteAllTextAsync(path, array.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
+            await File.WriteAllTextAsync(path, SongExport.ToJson(songs));
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
         {

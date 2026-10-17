@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using CantatePresenter.Core.Chords;
+using CantatePresenter.Core.Data;
 using CantatePresenter.Core.Models;
 using CantatePresenter.Core.Online;
 using Xunit;
@@ -81,5 +82,20 @@ public class ParityTests
         Assert.Equal("newest", reloaded.SongSortOrder);
         // Wartość z macOS (np. 96.0) zostaje bez zmian.
         Assert.Equal(96, AppSettings.FromJson(JsonNode.Parse("""{"bottomBarHeight": 96.0}""")).BottomBarHeight);
+    }
+
+    [Fact]
+    public void ExportsTextLikeMacOs()
+    {
+        var song = Song.Create("Barka", "Cesareo Gabarain", "D", ["Oazowe"], "[Zwrotka 1]\nPan kiedyś stanął\n\n[Refren]\nO Panie");
+        Assert.Equal("Tytuł: Barka\nAutor: Cesareo Gabarain\nTonacja: D\nTagi: Oazowe\n\n[Zwrotka 1]\nPan kiedyś stanął\n\n[Refren]\nO Panie", SongExport.ToText(song));
+        var withoutSlides = Song.Create("Pusta", rawLyrics: "sam tekst");
+        withoutSlides.Slides = [];
+        Assert.Equal("Tytuł: Pusta\n\nsam tekst", SongExport.ToText(withoutSlides));
+        Assert.Equal("A_B_ C", SongExport.SafeFileName("A/B:\nC"));
+        Assert.Equal("a", SongExport.SafeFileName(" . a . "));
+        Assert.Equal("Piesn", SongExport.SafeFileName("..."));
+        var files = SongExport.Folder([Song.Create("Barka"), Song.Create("barka"), Song.Create("Barka")]);
+        Assert.Equal(["Barka.txt", "barka (2).txt", "Barka (3).txt"], files.Select(f => f.FileName));
     }
 }

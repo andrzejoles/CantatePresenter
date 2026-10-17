@@ -295,8 +295,7 @@ public sealed partial class MainWindow : Window
         }
         Action(Glyphs.Add, L("Nowa pieśń"), async (_, _) => await EditSongAsync(null), accent: true);
         editButton = Action(Glyphs.Edit, L("Edytuj"), async (_, _) => { if (library.SelectedSong is Song s && s != library.TemporarySong) await EditSongAsync(s); }, Lw("Edytuj wybraną pieśń (podwójny klik lub ⌘E)"));
-        var importExport = Action(Glyphs.ImportExport, L("Import/Eksport"), (_, _) => { });
-        importExport.Flyout = ImportExportMenu();
+        Action(Glyphs.ImportExport, L("Import/Eksport"), async (_, _) => await ImportExportDialog.ShowAsync(this));
         Action(Glyphs.Contact, L("Tytuł/Autor"), async (_, _) => await AuthorTitleLookupDialog.ShowAsync(this, library.SelectedSong), L("Wyszukiwarka tytułu i autora (dla zaznaczonej lub dla wszystkich)"));
         Action(Glyphs.Globe, L("Online"), async (_, _) => await Dialogs.OnlineSearchAsync(this), L("Wyszukiwanie pieśni religijnych w internecie"));
         musiciansButton = Action(Glyphs.Music, L("Muzycy"), (_, _) => ToggleMusicians(), L("Ekran dla muzyków: bieżący slajd z chwytami (okno na osobny monitor)"));
@@ -357,29 +356,6 @@ public sealed partial class MainWindow : Window
         toolbarGrid.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
         var fits = toolbarGrid.DesiredSize.Width <= toolbarGrid.ActualWidth;
         foreach (var label in toolbarLabels) label.Visibility = fits ? Visibility.Visible : Visibility.Collapsed;
-    }
-
-    private MenuFlyout ImportExportMenu()
-    {
-        var menu = new MenuFlyout();
-        void Item(string glyph, string text, Func<Task> action, Func<bool>? enabled = null)
-        {
-            var item = new MenuFlyoutItem { Text = text, Icon = new FontIcon { Glyph = glyph, FontFamily = Ui.SymbolFont } };
-            item.Click += async (_, _) => await action();
-            if (enabled is not null) menu.Opening += (_, _) => item.IsEnabled = enabled();
-            menu.Items.Add(item);
-        }
-        Item(Glyphs.Download, L("Importuj pliki..."), () => ImportExport.ImportFilesAsync(this));
-        menu.Items.Add(new MenuFlyoutSeparator());
-        Item(Glyphs.Save, L("Utwórz kopię zapasową"), () => ImportExport.CreateBackupAsync(this));
-        Item(Glyphs.Refresh, L("Przywróć z kopii..."), () => ImportExport.RestoreBackupAsync(this));
-        Item(Glyphs.Undo, L("Cofnij ostatnie przywrócenie"), () => ImportExport.UndoRestoreAsync(this), () => Backup.CanUndo(library.DataDirectory));
-        Item(Glyphs.Cloud, L("Kopie zapasowe na Dysku Google"), () => GoogleDriveDialog.ShowAsync(this));
-        menu.Items.Add(new MenuFlyoutSeparator());
-        Item(Glyphs.Document, L("Zapisz wybraną pieśń jako .txt"), () => ImportExport.ExportSongAsync(this), () => library.SelectedSong is not null);
-        Item(Glyphs.Document, L("Eksportuj bibliotekę jako JSON..."), () => ImportExport.ExportLibraryJsonAsync(this), () => library.Songs.Count > 0);
-        Item(Glyphs.Copyright, L("Eksportuj raport CCLI (CSV)..."), () => ImportExport.ExportCcliAsync(this), () => library.CcliUsage.Count > 0);
-        return menu;
     }
 
     private FrameworkElement IssuesBar()
