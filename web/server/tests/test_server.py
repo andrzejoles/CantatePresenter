@@ -420,6 +420,24 @@ class RemoteTests(unittest.TestCase):
         self.assertEqual(remote.validate_command({"command": "song", "id": "11111111-1111-1111-1111-11111111111A"})["id"], "11111111-1111-1111-1111-11111111111a")
         self.assertIsNone(remote.validate_command(["next"]))
 
+    def test_relay_answers_phone_with_state_after_its_command(self):
+        # Spóźniona publikacja po poprzednim poleceniu nie może zostać odpowiedzią na nowe (niestabilny ui_check).
+        relay = remote.RemoteRelay()
+        relay.publish({"isLive": True, "handled": 0})
+        result = {}
+        phone = threading.Thread(target=lambda: result.setdefault("state", relay.send("p", {"command": "stop"}, wait=5)))
+        phone.start()
+        commands, handled = [], 0
+        while not commands:
+            commands, handled = relay.take(wait=1)
+        self.assertEqual((commands, handled), ([{"command": "stop"}], 1))
+        relay.publish({"isLive": True, "handled": 0})
+        time.sleep(0.1)
+        self.assertTrue(phone.is_alive())
+        relay.publish({"isLive": False, "handled": handled})
+        phone.join(5)
+        self.assertEqual(result["state"], {"isLive": False})
+
     def test_relay_drops_stale_commands_and_counts_phones(self):
         relay = remote.RemoteRelay()
         self.assertIsNone(relay.send("p", {"command": "next"}, wait=0))
