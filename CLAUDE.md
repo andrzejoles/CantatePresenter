@@ -93,7 +93,7 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] Nowe instalatory w `dist/` (2026-10-15, wersja 1.0.0, kompilacja 70; `dist/` jest w `.gitignore`).
 
 Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
-- [ ] Przepisanie historii gita (decyzja 2026-10-16: tak): gotowy `scripts/rewrite_history.sh` (świeży klon, `git filter-branch`, kontrola wyniku, kopia `.bundle`; sprawdzony na kopii repozytorium). Uruchamia właściciel po scaleniu wszystkich PR: `scripts/rewrite_history.sh --push` (tryb automatyczny Claude blokuje force-push historii). Potem `.mufl` jest tylko lokalnie (`.gitignore`).
+- [x] Przepisanie historii gita: zrobione 2026-10-17 (`scripts/rewrite_history.sh --push`, kopie w `dist/history-backup-*.bundle`). Plik `.mufl` jest tylko lokalnie (`.gitignore`). Stare commity zostają jeszcze w odnośnikach zamkniętych PR na GitHubie; usunąć je może tylko GitHub Support. Uwaga: `git reset --keep` po przepisaniu kasuje `.mufl` z dysku (był śledzony w starej historii); odtworzenie: `git show <stary commit>:2026-10-14_16-19-00.mufl > 2026-10-14_16-19-00.mufl` albo z kopii `.bundle`.
 - [x] Podpis Developer ID i notaryzacja: przygotowane (`CANTATE_SIGN_IDENTITY`, `CANTATE_INSTALLER_IDENTITY`, `CANTATE_NOTARY_PROFILE`, `scripts/notarize.sh`, `Resources/CantatePresenter.entitlements`, `docs/RELEASE.md`). Decyzja właściciela 2026-10-16: **na razie bez konta Apple Developer** (koszt); wydania podpisane ad-hoc, nienotaryzowane (skutki: `docs/RELEASE.md`, punkt 4). Nie proponuj zakupu konta, dopóki właściciel nie wróci do tematu.
 - [x] Automatyczne aktualizacje: Sparkle 2.9.6 (`UpdateService`, menu „Sprawdź uaktualnienia…”), kanał `releases/latest/download/appcast.xml`, klucz EdDSA w Pęku kluczy (konto `cantate-presenter`), wydanie `scripts/release.sh` (szkic na GitHubie). Sprawdzone lokalnie: kopia z podpisem ad-hoc zaktualizowała się sama.
 - [ ] Weryfikacja aplikacji w Google (zniesienie limitu 100 testerów i ostrzeżenia przy logowaniu; wymaga m.in. polityki prywatności).
@@ -145,7 +145,6 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 ## Wymaga decyzji właściciela, nie rób samodzielnie
 
 - Dodawanie kolejnych zależności (GRDB/SQLite, SwiftLint itp.): zapytaj przed dodaniem.
-- Przepisywanie historii gita (usunięcie `2026-10-14_16-19-00.mufl`, adresu e-mail z `data/settings.json`).
 - Podpis Developer ID i notaryzacja (wymaga konta Apple Developer), konfiguracja klienta OAuth w Google Cloud Console.
 - Zmiana formatu plików danych bez migracji ze starego formatu.
 
