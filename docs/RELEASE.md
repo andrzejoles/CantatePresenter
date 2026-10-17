@@ -56,7 +56,7 @@ Utrata klucza prywatnego oznacza, że zainstalowane aplikacje nie przyjmą kolej
 
 Wydanie (po scaleniu PR na `main`):
 ```bash
-scripts/release.sh            # buduje, podpisuje, tworzy appcast.xml i szkic wydania na GitHubie
+scripts/release.sh            # macOS + ZIP Windows z CI + paczka web/, appcast.xml, szkic wydania na GitHubie
 gh release edit vX.Y.Z --draft=false   # publikacja po sprawdzeniu szkicu
 ```
 
