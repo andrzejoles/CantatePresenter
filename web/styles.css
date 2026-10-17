@@ -162,6 +162,14 @@ body.login-page { display: flex; align-items: center; justify-content: center; m
 
 /* Wyszukiwanie online (Wikiźródła) */
 dialog.wide-dialog { width: min(1100px, 96vw); }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 10px 0; }
+.metric { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
+.metric-value { font-size: 1.8em; font-weight: 700; }
+.review-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px; display: grid; gap: 6px; }
+.review-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; font-weight: 600; flex-wrap: wrap; }
+.review-toggle { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.review-song { overflow-wrap: anywhere; }
+.review-card.collision { background: color-mix(in srgb, #f5c400 8%, var(--card)); }
 .online-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 12px; min-height: 340px; }
 .online-results { display: flex; flex-direction: column; gap: 6px; overflow: auto; max-height: 52vh; }
 .online-item { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; padding: 8px 10px; }

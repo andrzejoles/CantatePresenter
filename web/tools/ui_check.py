@@ -198,14 +198,21 @@ try:
           input.files = transfer.files;
           input.dispatchEvent(new Event('change'));
         }})()""")
-        browser.wait_for("document.querySelector('.toast') !== null")
+        browser.wait_for("document.querySelector('.toast') !== null || document.querySelector('dialog[open] .metrics') !== null")
+        if browser.evaluate("document.querySelector('dialog[open] .metrics') !== null"):
+            # Przegląd importu (jak w macOS): pieśni z biblioteki rozpoznane, domyślnie pominięte.
+            review = browser.evaluate("[...document.querySelectorAll('dialog[open] .review-card.collision')].map(c => c.querySelector('input').checked)")
+            check(f"przegląd importu: kolizje z biblioteką domyślnie pominięte ({review})", review == [True, True, True])
+            browser.screenshot(os.path.join(out, "3b-import-review.png"))
+            browser.evaluate("[...document.querySelectorAll('dialog[open] .dialog-foot button')].find(b => b.textContent.startsWith('Zaimportuj')).click()")
+            browser.wait_for("document.querySelector('.toast') !== null")
         text = browser.evaluate("document.querySelector('.toast').textContent")
         browser.evaluate("document.querySelectorAll('.toast').forEach(t => t.remove())")
         return text
     first = import_mufl()
     check(f"import .mufl: trzy pieśni ({first})", first.startswith("Zaimportowano 3 pieśni.") and count(".song-row") == 6)
     second = import_mufl()
-    check(f"import .mufl drugi raz: duplikaty pominięte ({second})", "Pominięto duplikaty: 3." in second and count(".song-row") == 6)
+    check(f"import .mufl drugi raz: przegląd, duplikaty pominięte ({second})", second.startswith("Zaimportowano 0 pieśni.") and "Pominięto duplikaty: 3." in second and count(".song-row") == 6)
 
     # Konto: zmiana hasła z poziomu aplikacji, potem logowanie nowym hasłem.
     browser.click(".user-chip")

@@ -1,0 +1,198 @@
+[
+ {
+  "name": "Duplikaty wewnątrz importu: tytuł, identyczny tekst, ten sam początek",
+  "existing": [],
+  "incoming": [
+   {
+    "id": "00000000-0000-0000-0000-000000000001",
+    "title": "Pieśń o łące",
+    "author": "Jan Testowy",
+    "rawLyrics": "Idziemy razem przez zielone łąki,\nsłońce nad nami świeci jasno.\n\nŚpiewamy pieśń o dobrym dniu,\nwiatr niesie nasze słowa."
+   },
+   {
+    "id": "00000000-0000-0000-0000-000000000002",
+    "title": "Pieśń o łące",
+    "author": "",
+    "rawLyrics": "Idziemy razem przez zielone łąki,\nsłońce nad nami świeci jasno.\n\nInne słowa drugiej zwrotki tutaj."
+   },
+   {
+    "id": "00000000-0000-0000-0000-000000000003",
+    "title": "Zupełnie inny tytuł",
+    "author": "",
+    "rawLyrics": "Idziemy razem przez zielone łąki,\nsłońce nad nami świeci jasno.\n\nŚpiewamy pieśń o dobrym dniu,\nwiatr niesie nasze słowa."
+   },
+   {
+    "id": "00000000-0000-0000-0000-000000000004",
+    "title": "Łąki zielone",
+    "author": "",
+    "rawLyrics": "Idziemy razem przez zielone łąki,\nsłońce nad nami świeci jasno.\n\nŚpiewamy pieśń o dobrym dniu,\nwiatr niesie nasze pieśni."
+   },
+   {
+    "id": "00000000-0000-0000-0000-000000000005",
+    "title": "Wieczorna cisza",
+    "author": "",
+    "rawLyrics": "Cisza wieczorna spływa na dom,\ngwiazdy świecą nad lasem."
+   }
+  ],
+  "expected": {
+   "unique": [
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000005"
+   ],
+   "duplicates": [
+    {
+     "primary": "00000000-0000-0000-0000-000000000001",
+     "duplicate": "00000000-0000-0000-0000-000000000002",
+     "score": 50,
+     "reason": "Ten sam tytuł i zgodność tekstu ({0}%)"
+    },
+    {
+     "primary": "00000000-0000-0000-0000-000000000001",
+     "duplicate": "00000000-0000-0000-0000-000000000003",
+     "score": 100,
+     "reason": "Identyczny tekst utworu (100% zgodności)"
+    },
+    {
+     "primary": "00000000-0000-0000-0000-000000000001",
+     "duplicate": "00000000-0000-0000-0000-000000000004",
+     "score": 89,
+     "reason": "Identyczny początek i bardzo wysokie podobieństwo tekstu ({0}%)"
+    }
+   ],
+   "collisions": [],
+   "commit": [
+    "Pieśń o łące",
+    "Wieczorna cisza"
+   ],
+   "commitNothingSkipped": [
+    "Pieśń o łące",
+    "Wieczorna cisza",
+    "Pieśń o łące (wersja alternatywna)",
+    "Zupełnie inny tytuł (wersja alternatywna)",
+    "Łąki zielone (wersja alternatywna)"
+   ]
+  }
+ },
+ {
+  "name": "Wersja z autorem zostaje główna, jej kopie dalej wykrywane (N8)",
+  "existing": [],
+  "incoming": [
+   {
+    "id": "00000000-0000-0000-0000-000000000011",
+    "title": "Pieśń poranna",
+    "author": "nieznany",
+    "rawLyrics": "Rano wstaje nowy dzień,\nbudzi się cała ziemia."
+   },
+   {
+    "id": "00000000-0000-0000-0000-000000000012",
+    "title": "Pieśń poranna",
+    "author": "Anna Przykładowa",
+    "rawLyrics": "Rano wstaje nowy dzień,\nbudzi się cała ziemia."
+   },
+   {
+    "id": "00000000-0000-0000-0000-000000000013",
+    "title": "Pieśń poranna",
+    "author": "",
+    "rawLyrics": "Rano wstaje nowy dzień,\nbudzi się cała ziemia."
+   }
+  ],
+  "expected": {
+   "unique": [
+    "00000000-0000-0000-0000-000000000012"
+   ],
+   "duplicates": [
+    {
+     "primary": "00000000-0000-0000-0000-000000000012",
+     "duplicate": "00000000-0000-0000-0000-000000000011",
+     "score": 100,
+     "reason": "Identyczny tekst utworu (100% zgodności)"
+    },
+    {
+     "primary": "00000000-0000-0000-0000-000000000012",
+     "duplicate": "00000000-0000-0000-0000-000000000013",
+     "score": 100,
+     "reason": "Identyczny tekst utworu (100% zgodności)"
+    }
+   ],
+   "collisions": [],
+   "commit": [
+    "Pieśń poranna"
+   ],
+   "commitNothingSkipped": [
+    "Pieśń poranna",
+    "Pieśń poranna (wersja alternatywna)",
+    "Pieśń poranna (wersja alternatywna)"
+   ]
+  }
+ },
+ {
+  "name": "Kolizje z biblioteką: prawie identyczna pomijana, inna o tym samym tytule nie",
+  "existing": [
+   {
+    "id": "00000000-0000-0000-0000-000000000021",
+    "title": "Pieśń o łące",
+    "author": "",
+    "rawLyrics": "Idziemy razem przez zielone łąki,\nsłońce nad nami świeci jasno.\n\nŚpiewamy pieśń o dobrym dniu,\nwiatr niesie nasze słowa."
+   },
+   {
+    "id": "00000000-0000-0000-0000-000000000022",
+    "title": "Wieczorna cisza",
+    "author": "",
+    "rawLyrics": "Zupełnie inny tekst o czymś innym."
+   }
+  ],
+  "incoming": [
+   {
+    "id": "00000000-0000-0000-0000-000000000031",
+    "title": "Pieśń o łące",
+    "author": "Jan Testowy",
+    "rawLyrics": "Idziemy razem przez zielone łąki,\nsłońce nad nami świeci jasno.\n\nŚpiewamy pieśń o dobrym dniu,\nwiatr niesie nasze słowa."
+   },
+   {
+    "id": "00000000-0000-0000-0000-000000000032",
+    "title": "Wieczorna cisza",
+    "author": "",
+    "rawLyrics": "Cisza wieczorna spływa na dom,\ngwiazdy świecą nad lasem."
+   },
+   {
+    "id": "00000000-0000-0000-0000-000000000033",
+    "title": "Nowa pieśń",
+    "author": "",
+    "rawLyrics": "Całkiem nowe słowa do zaśpiewania."
+   }
+  ],
+  "expected": {
+   "unique": [
+    "00000000-0000-0000-0000-000000000031",
+    "00000000-0000-0000-0000-000000000032",
+    "00000000-0000-0000-0000-000000000033"
+   ],
+   "duplicates": [],
+   "collisions": [
+    {
+     "library": "00000000-0000-0000-0000-000000000021",
+     "incoming": "00000000-0000-0000-0000-000000000031",
+     "score": 100,
+     "skip": true,
+     "reason": "Utwór o tym tytule istnieje już w bibliotece ({0}% zgodności)"
+    },
+    {
+     "library": "00000000-0000-0000-0000-000000000022",
+     "incoming": "00000000-0000-0000-0000-000000000032",
+     "score": 0,
+     "skip": false,
+     "reason": "Utwór o tym tytule istnieje już w bibliotece ({0}% zgodności)"
+    }
+   ],
+   "commit": [
+    "Wieczorna cisza",
+    "Nowa pieśń"
+   ],
+   "commitNothingSkipped": [
+    "Pieśń o łące",
+    "Wieczorna cisza",
+    "Nowa pieśń"
+   ]
+  }
+ }
+]
