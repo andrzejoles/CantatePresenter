@@ -183,10 +183,9 @@ public sealed partial class MainWindow
         chordsFilter.Resources["ToggleButtonBorderBrushChecked"] = Ui.Brush(Ui.Orange);
         ToolTipService.SetToolTip(chordsFilter, L("Pokaż tylko pieśni z chwytami"));
         chordsFilter.Click += (_, _) => { onlyWithChords = chordsFilter.IsChecked == true; RenderSongList(); };
-        var filters = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-        filters.Children.Add(Dictation.Button(searchBox, DictationMode.Replace));
-        filters.Children.Add(scopeBox);
-        filters.Children.Add(chordsFilter);
+        scopeBox.MinWidth = 0;
+        scopeBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+        var filters = Ui.Columns(6, (Dictation.Button(searchBox, DictationMode.Replace), 0), (scopeBox, -1), (chordsFilter, 0));
 
         var header = new StackPanel { Spacing = 6, Padding = new Thickness(10, 2, 10, 10), Background = Ui.Resource("SolidBackgroundFillColorBaseBrush") };
         header.Children.Add(field);
@@ -244,9 +243,10 @@ public sealed partial class MainWindow
         leftPanel.Children.Add(songList);
 
         libraryFooter = new TextBlock { FontSize = 12, Foreground = Ui.Secondary, VerticalAlignment = VerticalAlignment.Center };
+        var hint = new TextBlock { Text = Lw("Podwójny klik / ⌘E: edycja"), FontSize = 11, Foreground = Ui.Secondary, Opacity = 0.85, TextTrimming = TextTrimming.CharacterEllipsis, TextAlignment = TextAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
         var footer = new Border
         {
-            Child = Ui.Columns(8, (libraryFooter, -1), (new TextBlock { Text = Lw("Podwójny klik / ⌘E: edycja"), FontSize = 11, Foreground = Ui.Secondary, Opacity = 0.85 }, 0)),
+            Child = Ui.Columns(8, (libraryFooter, 0), (hint, -1)),
             Padding = new Thickness(10, 6, 10, 7),
             BorderBrush = Ui.Resource("DividerStrokeColorDefaultBrush"),
             BorderThickness = new Thickness(0, 1, 0, 0),

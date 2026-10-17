@@ -41,7 +41,8 @@ public static class Dialogs
 
     private static TextBox Field(string text, string placeholder = "", bool multiline = false, double height = 0)
     {
-        var box = new TextBox { Text = text, PlaceholderText = placeholder, AcceptsReturn = multiline, TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap };
+        var box = multiline ? Ui.MultilineBox(text) : new TextBox { Text = text };
+        box.PlaceholderText = placeholder;
         if (height > 0) box.Height = height;
         if (multiline) ScrollViewer.SetVerticalScrollBarVisibility(box, ScrollBarVisibility.Auto);
         return box;

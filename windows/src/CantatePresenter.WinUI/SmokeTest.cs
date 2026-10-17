@@ -126,6 +126,9 @@ public static class SmokeTest
                 await Task.WhenAny(task, Task.Delay(3000));
                 Check(name + "Closed", task.IsCompleted);
             }
+            // Pole wielowierszowe zachowuje cały tekst (edytor w 3.1.0 zostawiał tylko pierwszą linię).
+            var multiline = Ui.MultilineBox("[Zwrotka 1]\nlinia druga\n\n[Refren]\nostatnia");
+            Check("multilineKeepsText", multiline.Text.Replace("\r\n", "\n").Replace('\r', '\n') == "[Zwrotka 1]\nlinia druga\n\n[Refren]\nostatnia");
             await DialogShot("settingsDialog", "12-settings.png", () => SettingsDialog.ShowAsync(window), 2500);
             await DialogShot("editorDialog", "13-editor.png", () => SongEditorDialog.ShowAsync(window, song));
             await DialogShot("chordsDialog", "14-chords.png", () => ChordsDialog.ShowAsync(window, song, (_, _) => { }));

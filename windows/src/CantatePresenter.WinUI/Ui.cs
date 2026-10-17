@@ -210,6 +210,18 @@ public static class Ui
     public static Border SlideTypeBadge(string type, double fontSize = 11) =>
         Badge(SlideTypes.ShortBadge.GetValueOrDefault(type, "•"), SlideTypeColor(type), fontSize, solid: true, padding: new Thickness(5, 1, 5, 2));
 
+    /// <summary>
+    /// Pole wielowierszowe. AcceptsReturn musi być ustawione przed tekstem: pole jednowierszowe ucina przypisany tekst
+    /// na pierwszym znaku nowej linii (tak edytor w 3.1.0 gubił wszystko poza pierwszą linią pieśni).
+    /// </summary>
+    public static TextBox MultilineBox(string text, TextWrapping wrapping = TextWrapping.Wrap)
+    {
+        var box = new TextBox { AcceptsReturn = true, TextWrapping = wrapping };
+        box.Text = text;
+        ScrollViewer.SetVerticalScrollBarVisibility(box, ScrollBarVisibility.Auto);
+        return box;
+    }
+
     /// <summary>Linia podziału (Divider).</summary>
     public static Border Divider(bool vertical = false, double length = double.NaN) => new()
     {

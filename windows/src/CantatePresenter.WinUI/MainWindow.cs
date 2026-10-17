@@ -164,6 +164,7 @@ public sealed partial class MainWindow : Window
         root.Width = scaleHost.ActualWidth / UiScale;
         root.Height = scaleHost.ActualHeight / UiScale;
         if (zoomLabel is not null) zoomLabel.Text = $"{Math.Round(UiScale * 100)}%";
+        FitToolbar();
     }
 
     /// <summary>Zmiana skali o krok (A−/A+, Ctrl +/−), zaokrąglona do setnych jak w macOS i wersji webowej.</summary>
@@ -210,6 +211,8 @@ public sealed partial class MainWindow : Window
     private ContentControl? statusHost;
     private readonly List<TextBlock> toolbarLabels = [];
     private StackPanel? toolbarActions;
+    private StackPanel? toolbarLeft;
+    private StackPanel? toolbarRight;
     private Grid? toolbarGrid;
 
     /// <summary>Stan przycisków paska: pilot na zielono, muzycy na pomarańczowo, plakietka projektora (jak w macOS).</summary>
@@ -271,6 +274,7 @@ public sealed partial class MainWindow : Window
         grid.Background = Ui.Resource("SolidBackgroundFillColorBaseBrush");
 
         var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, VerticalAlignment = VerticalAlignment.Center };
+        toolbarLeft = left;
         var brand = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
         brand.Children.Add(Ui.Icon(Glyphs.Music, 18, Ui.Blue));
         brand.Children.Add(new TextBlock { Text = L("CantatePresenter"), FontWeight = FontWeights.Bold, FontSize = 15, VerticalAlignment = VerticalAlignment.Center });
@@ -305,6 +309,7 @@ public sealed partial class MainWindow : Window
 
         // Po prawej: rozmiar interfejsu, ustawienia, pomoc.
         var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, VerticalAlignment = VerticalAlignment.Center };
+        toolbarRight = right;
         var zoom = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Center };
         zoom.Children.Add(new TextBlock { Text = L("Rozmiar UI") + ":", VerticalAlignment = VerticalAlignment.Center, Foreground = Ui.Secondary, FontSize = 12, Margin = new Thickness(0, 0, 2, 0) });
         Button ZoomButton(UIElement content, string tip, double delta)
@@ -344,6 +349,7 @@ public sealed partial class MainWindow : Window
         grid.Children.Add(right);
 
         grid.SizeChanged += (_, _) => FitToolbar();
+        grid.Loaded += (_, _) => DispatcherQueue.TryEnqueue(FitToolbar);
         RenderToolbar();
         return grid;
     }
@@ -351,10 +357,16 @@ public sealed partial class MainWindow : Window
     /// <summary>Napisy przy akcjach tylko wtedy, gdy mieszczą się w pasku; inaczej same ikony.</summary>
     private void FitToolbar()
     {
-        if (toolbarGrid is null || toolbarActions is null || toolbarGrid.ActualWidth <= 0) return;
+        if (toolbarGrid is null || toolbarLeft is null || toolbarRight is null) return;
+        // Szerokość układu (okno podzielone przez skalę), a gdy jeszcze nieznana, rzeczywista szerokość paska.
+        var available = !double.IsNaN(root.Width) && root.Width > 0 ? root.Width : toolbarGrid.ActualWidth;
+        if (available <= 0) return;
         foreach (var label in toolbarLabels) label.Visibility = Visibility.Visible;
-        toolbarGrid.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
-        var fits = toolbarGrid.DesiredSize.Width <= toolbarGrid.ActualWidth;
+        var infinite = new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity);
+        toolbarLeft.Measure(infinite);
+        toolbarRight.Measure(infinite);
+        var needed = toolbarLeft.DesiredSize.Width + toolbarRight.DesiredSize.Width + toolbarGrid.Padding.Left + toolbarGrid.Padding.Right + 2 * toolbarGrid.ColumnSpacing;
+        var fits = needed <= available;
         foreach (var label in toolbarLabels) label.Visibility = fits ? Visibility.Visible : Visibility.Collapsed;
     }
 

@@ -38,10 +38,12 @@ public static class SongEditorDialog
         var ccli = Field(song?.CcliNumber ?? "", "1234567");
         var tags = Field(string.Join(", ", song?.Tags ?? []), L("np. Uwielbienie, Oazowe, Młodzieżowe, ŚDM"));
         var mono = new FontFamily("Consolas");
-        var lyrics = new TextBox { Text = song?.RawLyrics ?? "", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, FontFamily = mono, FontSize = 13 };
-        ScrollViewer.SetVerticalScrollBarVisibility(lyrics, ScrollBarVisibility.Auto);
-        var chords = new TextBox { Text = song?.Chords ?? "", AcceptsReturn = true, TextWrapping = TextWrapping.NoWrap, FontFamily = mono, FontSize = 13 };
-        ScrollViewer.SetVerticalScrollBarVisibility(chords, ScrollBarVisibility.Auto);
+        var lyrics = Ui.MultilineBox(song?.RawLyrics ?? "");
+        lyrics.FontFamily = mono;
+        lyrics.FontSize = 13;
+        var chords = Ui.MultilineBox(song?.Chords ?? "", TextWrapping.NoWrap);
+        chords.FontFamily = mono;
+        chords.FontSize = 13;
         ScrollViewer.SetHorizontalScrollBarVisibility(chords, ScrollBarVisibility.Auto);
 
         // Metadane jak w macOS: tytuł, autor, tonacja / prawa, CCLI / tagi i przełącznik widoku.

@@ -42,12 +42,11 @@ public sealed partial class MainWindow
         return ratio.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) + ":1";
     }
 
+    /// <summary>Nagłówek sekcji: ikona, tytuł (zawija się w wąskim panelu), proporcje ekranu i stan po prawej.</summary>
     private static Grid SectionHead(string glyph, string title, string ratio, UIElement right)
     {
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, VerticalAlignment = VerticalAlignment.Center };
-        left.Children.Add(Ui.Header(glyph, title, 14));
-        left.Children.Add(Ui.MutedBadge(ratio, 10));
-        return Ui.Columns(6, (left, -1), (right, 0));
+        var text = new TextBlock { Text = title, FontWeight = FontWeights.Bold, FontSize = 14, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
+        return Ui.Columns(6, (Ui.Icon(glyph, 14), 0), (text, -1), (Ui.MutedBadge(ratio, 10), 0), (right, 0));
     }
 
     private void RenderRight()
