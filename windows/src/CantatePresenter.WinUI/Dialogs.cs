@@ -133,7 +133,9 @@ public static class Dialogs
     public static async Task AboutAsync(MainWindow window)
     {
         var panel = new StackPanel { Spacing = 8 };
-        panel.Children.Add(new TextBlock { Text = "♫ CantatePresenter", FontSize = 22, FontWeight = FontWeights.Bold });
+        panel.Children.Add(Ui.Label(Glyphs.Music, "CantatePresenter", 22, Ui.Blue, 10));
+        ((TextBlock)((StackPanel)panel.Children[^1]).Children[1]).FontSize = 22;
+        ((TextBlock)((StackPanel)panel.Children[^1]).Children[1]).FontWeight = FontWeights.Bold;
         panel.Children.Add(new TextBlock { Text = L("Wersja {0}", Services.Version) + " · Windows" });
         panel.Children.Add(new TextBlock { Text = L("Autor: Andrzej Oles\nOpracowano we współpracy z Claude (Anthropic)"), TextWrapping = TextWrapping.Wrap });
         panel.Children.Add(new TextBlock { Text = Services.Library.DataDirectory, Opacity = 0.6, FontSize = 12, IsTextSelectionEnabled = true, TextWrapping = TextWrapping.Wrap });
