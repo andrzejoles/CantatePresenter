@@ -423,11 +423,13 @@ public sealed class Library
     /// <summary>Start albo wznowienie po zatrzymaniu (jak pilot w macOS): ta sama pieśń i slajd, inaczej zaznaczona albo pierwsza z planu.</summary>
     public void StartOrResume()
     {
-        if (IsLive) return;
-        var song = ActiveSong ?? SelectedSong ?? ActivePlan?.Items.Select(i => SongById(i.SongId)).FirstOrDefault(s => s is not null);
-        if (song is null) return;
+        if (IsLive || StartCandidate is not Song song) return;
         Present(song, song.Id == ActiveSong?.Id ? ActiveSlideIndex : 0);
     }
+
+    /// <summary>Pieśń, którą uruchomi „Start”: ostatnio wyświetlana, zaznaczona albo pierwsza z planu.</summary>
+    public Song? StartCandidate =>
+        ActiveSong ?? SelectedSong ?? ActivePlan?.Items.Select(i => SongById(i.SongId)).FirstOrDefault(s => s is not null);
 
     /// <summary>Pozycja w planie: bieżącej pieśni albo (po szybkim tekście) ostatniej pieśni z planu.</summary>
     public int? CurrentPlanIndex(ServicePlan plan)
