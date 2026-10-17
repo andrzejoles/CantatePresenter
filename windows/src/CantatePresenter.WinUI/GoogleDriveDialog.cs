@@ -162,7 +162,7 @@ public static class GoogleDriveDialog
             autoBackup.Click += (_, _) => Services.Library.UpdateSettings(s => s.GoogleDrive.AutoBackupOnExit = autoBackup.IsChecked == true);
             details.Children.Add(autoBackup);
 
-            var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            var actions = new StackPanel { Spacing = 8 };
             var upload = new Button { Content = "⇪  " + L("Wyślij bieżący backup na Dysk Google"), IsEnabled = signedIn, Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
             upload.Click += async (_, _) => await Run(L("Wysyłanie kopii do chmury Google..."), async () =>
             {
