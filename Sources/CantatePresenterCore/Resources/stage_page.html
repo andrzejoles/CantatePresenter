@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="{{LANG}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="referrer" content="no-referrer">
+<title>CantatePresenter</title>
+<style>
+:root { --text:#f2f2f4; --muted:#9a9ca5; --chord:#ff9f0a; --line:#2c2e34; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { margin:0; height:100%; background:#000; color:var(--text); font:16px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { display:flex; flex-direction:column; padding:max(10px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); overflow:hidden; }
+header { display:flex; align-items:center; gap:10px; padding-bottom:8px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+.titles { min-width:0; flex:1; }
+#song { font-weight:700; font-size:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#meta { color:var(--muted); font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#meta .key { color:var(--chord); font-weight:600; margin-right:8px; }
+#meta .alert { color:#ff6961; font-weight:700; margin-left:8px; }
+.controls { display:flex; gap:6px; align-items:center; }
+.controls span.value { min-width:30px; text-align:center; font:600 15px ui-monospace, Menlo, monospace; }
+.controls small { color:var(--muted); }
+button { appearance:none; border:1px solid var(--line); background:#1c1d21; color:var(--text); border-radius:8px; min-width:40px; min-height:36px; font:600 16px inherit; }
+#banner { display:none; background:#5a1d1f; color:#ffd7d8; border-radius:8px; padding:8px 10px; margin-top:8px; }
+#banner.show { display:block; }
+main { flex:1; min-height:0; padding-top:12px; }
+.label { color:var(--chord); opacity:0.85; font-weight:700; margin-bottom:6px; }
+.row { white-space:pre; font-family:ui-monospace, "SF Mono", Menlo, "Roboto Mono", "Droid Sans Mono", monospace; }
+.chords { color:var(--chord); font-weight:700; }
+.next { margin-top:18px; opacity:0.6; }
+.next-title { color:var(--muted); font-weight:600; font-size:14px; margin-bottom:4px; }
+.note { color:var(--muted); font-size:13px; margin-top:6px; }
+.empty { color:var(--muted); text-align:center; margin-top:20vh; font-size:20px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="titles"><div id="song">CantatePresenter</div><div id="meta"></div></div>
+  <div class="controls"><small id="transposeLabel"></small><button id="tDown">−</button><span class="value" id="tValue">0</span><button id="tUp">+</button></div>
+  <div class="controls"><small id="fontLabel"></small><button id="fDown">A−</button><button id="fUp">A+</button></div>
+</header>
+<div id="banner"></div>
+<main id="main"></main>
+<script>
+"use strict";
+const token = new URLSearchParams(location.search).get("t") || "";
+const $ = (id) => document.getElementById(id);
+const store = {
+  get(key, fallback) { try { const v = localStorage.getItem("cantate-" + key); return v === null ? fallback : Number(v); } catch (e) { return fallback; } },
+  set(key, value) { try { localStorage.setItem("cantate-" + key, String(value)); } catch (e) {} },
+};
+let transpose = store.get("transpose", 0);
+let fontSize = store.get("font", 30);
+let last = null;
+
+function el(tag, cls, text) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+const fill = (template, value) => (template || "").replace("{0}", value);
+
+function rows(slide) {
+  return slide.lines.reduce((n, l) => n + (l.chords ? 1 : 0) + (l.text ? 1 : 0), 0) + 0.6 + (slide.borrowedFrom ? 0.5 : 0);
+}
+
+function fittedSize(stage) {
+  const main = $("main").getBoundingClientRect();
+  const slides = [stage.current, stage.next].filter(Boolean);
+  const longest = Math.max(1, ...slides.flatMap((s) => s.lines.flatMap((l) => [Array.from(l.chords || "").length, Array.from(l.text).length])));
+  const widthFit = main.width / (longest * 0.61);
+  const total = rows(stage.current) * 1.3 + (stage.next ? rows(stage.next) * 0.7 * 1.3 + 1.6 : 0);
+  const heightFit = (main.height - 12) / Math.max(total, 1);
+  return Math.max(10, Math.min(fontSize, widthFit, heightFit));
+}
+
+function slideBlock(slide, size, labels) {
+  const block = el("div");
+  const label = el("div", "label", slide.label);
+  label.style.fontSize = Math.max(11, size * 0.45) + "px";
+  block.append(label);
+  for (const line of slide.lines) {
+    if (line.chords) { const row = el("div", "row chords", line.chords); row.style.fontSize = size + "px"; block.append(row); }
+    if (line.text) { const row = el("div", "row", line.text); row.style.fontSize = size + "px"; block.append(row); }
+  }
+  if (slide.borrowedFrom) block.append(el("div", "note", fill(labels.borrowed, slide.borrowedFrom)));
+  return block;
+}
+
+function render(payload) {
+  last = payload;
+  const { stage, labels } = payload;
+  document.title = labels.title || "CantatePresenter";
+  $("transposeLabel").textContent = labels.transpose || "";
+  $("fontLabel").textContent = labels.font || "";
+  $("tValue").textContent = (stage.semitones > 0 ? "+" : "") + stage.semitones;
+  $("song").textContent = stage.songTitle || labels.title || "CantatePresenter";
+  const meta = $("meta");
+  meta.replaceChildren();
+  if (stage.key) meta.append(el("span", "key", fill(labels.key, stage.key)));
+  if (stage.current) meta.append(el("span", "", stage.current.label + " · " + stage.position));
+  if (stage.isBlackScreen) meta.append(el("span", "alert", labels.black));
+  else if (stage.isClearText) meta.append(el("span", "alert", labels.clear));
+  if (stage.current && !stage.hasChords) meta.append(el("span", "alert", labels.noChords));
+
+  const main = $("main");
+  main.replaceChildren();
+  if (!stage.current) {
+    main.append(el("div", "empty", labels.notLive));
+    if (stage.nextSongTitle) main.append(el("div", "empty", fill(labels.nextSong, stage.nextSongTitle)));
+    return;
+  }
+  const size = fittedSize(stage);
+  main.append(slideBlock(stage.current, size, labels));
+  if (stage.next) {
+    const next = el("div", "next");
+    next.append(el("div", "next-title", stage.nextSongTitle ? fill(labels.nextSong, stage.nextSongTitle) : labels.next));
+    next.append(slideBlock(stage.next, size * 0.7, labels));
+    main.append(next);
+  }
+}
+
+async function refresh() {
+  try {
+    const response = await fetch("/api/stage?t=" + encodeURIComponent(token) + "&transpose=" + transpose, { cache: "no-store" });
+    if (!response.ok) throw new Error(String(response.status));
+    render(await response.json());
+    $("banner").classList.remove("show");
+  } catch (error) {
+    $("banner").textContent = (last && last.labels.offline) || "…";
+    $("banner").classList.add("show");
+  }
+}
+
+$("tDown").onclick = () => { transpose = ((transpose - 1) % 12); store.set("transpose", transpose); refresh(); };
+$("tUp").onclick = () => { transpose = ((transpose + 1) % 12); store.set("transpose", transpose); refresh(); };
+$("fDown").onclick = () => { fontSize = Math.max(12, fontSize - 3); store.set("font", fontSize); if (last) render(last); };
+$("fUp").onclick = () => { fontSize = Math.min(90, fontSize + 3); store.set("font", fontSize); if (last) render(last); };
+addEventListener("resize", () => { if (last) render(last); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+setInterval(() => { if (!document.hidden) refresh(); }, 1000);
+refresh();
+</script>
+</body>
+</html>

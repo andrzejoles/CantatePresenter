@@ -67,6 +67,8 @@ public static class SmokeTest
             var stage = Core.Presentation.MusicianStage.Make(library, 2, s => s.Label);
             Check("musicianChords", stage.Current?.Lines.FirstOrDefault()?.Chords?.Trim() == "E            A");
 
+            await RemoteChecks(window, outputDirectory, report, Check);
+
             window.HandleKey(Windows.System.VirtualKey.B, Core.Input.KeyContext.Presentation);
             Check("blackScreen", library.IsBlackScreen);
             library.StopLive();
@@ -82,10 +84,96 @@ public static class SmokeTest
             failures.Add("exception");
         }
         report["failures"] = failures;
-        await File.WriteAllTextAsync(Path.Combine(outputDirectory, "report.json"), report.ToJsonString(Json.Pretty));
+        try
+        {
+            // Bez JsonSerializerOptions: zapis raportu nie może zależeć od konfiguracji serializera.
+            using (var file = File.Create(Path.Combine(outputDirectory, "report.json")))
+            using (var writer = new System.Text.Json.Utf8JsonWriter(file, new System.Text.Json.JsonWriterOptions { Indented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }))
+            {
+                report.WriteTo(writer);
+            }
+        }
+        catch (Exception error)
+        {
+            Services.Trace("raport: " + error);
+            await File.WriteAllTextAsync(Path.Combine(outputDirectory, "report.json"), "{\"failures\":[\"report\"]}");
+        }
         Services.Trace("próba: koniec");
         // Zamykanie kilku okien WinUI bywa zawodne w CI; raport jest zapisany, więc proces kończy się od razu.
         Environment.Exit(failures.Count == 0 ? 0 : 1);
+    }
+
+    /// <summary>Pilot i tablety przez prawdziwy serwer (127.0.0.1): API, strony w WebView2 jak na telefonie i tablecie, okno pilota.</summary>
+    private static async Task RemoteChecks(MainWindow window, string outputDirectory, JsonObject report, Action<string, bool> check)
+    {
+        var library = Services.Library;
+        var remote = RemoteDialog.Server(window);
+        remote.Start(0);
+        check("remoteRunning", remote.IsRunning);
+        report["remoteAddress"] = remote.Address ?? "(brak sieci lokalnej)";
+        using var http = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{remote.Port}"), Timeout = TimeSpan.FromSeconds(10) };
+        check("remoteForbidden", (await http.GetAsync("/api/state")).StatusCode == System.Net.HttpStatusCode.Forbidden);
+        check("remoteState", (await http.GetStringAsync($"/api/state?t={remote.Token}")).Contains("\"isLive\":true"));
+        var before = library.ActiveSlideIndex;
+        await http.PostAsync($"/api/command?t={remote.Token}", new StringContent("{\"command\":\"next\"}"));
+        check("remoteNext", library.ActiveSlideIndex == before + 1);
+        check("remoteSearch", (await http.GetStringAsync($"/api/search?t={remote.Token}&q=" + Uri.EscapeDataString("proba z ci"))).Contains("Próba z CI"));
+        check("stageReadOnly", (await http.GetAsync($"/api/state?t={remote.StageToken}")).StatusCode == System.Net.HttpStatusCode.Forbidden);
+        check("stageChords", (await http.GetStringAsync($"/api/stage?t={remote.StageToken}&transpose=2")).Contains("\"chords\""));
+
+        var phone = await CapturePage($"http://127.0.0.1:{remote.Port}/?t={remote.Token}", 390, 844, Path.Combine(outputDirectory, "6-phone.png"));
+        report["phoneText"] = phone.Length > 200 ? phone[..200] : phone;
+        check("phonePage", phone.Contains("Próba z CI"));
+        var tablet = await CapturePage($"http://127.0.0.1:{remote.Port}/stage?t={remote.StageToken}", 1024, 768, Path.Combine(outputDirectory, "7-tablet.png"));
+        report["tabletText"] = tablet.Length > 200 ? tablet[..200] : tablet;
+        check("tabletPage", tablet.Contains("Śpiewaj radośnie"));
+
+        var dialog = RemoteDialog.Build(window, out var timer);
+        dialog.XamlRoot = window.Content.XamlRoot;
+        _ = dialog.ShowAsync();
+        await Task.Delay(1200);
+        var popup = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetOpenPopupsForXamlRoot(window.Content.XamlRoot).FirstOrDefault();
+        await Capture(popup?.Child as FrameworkElement, Path.Combine(outputDirectory, "8-remote-dialog.png"));
+        dialog.Hide();
+        timer.Stop();
+    }
+
+    /// <summary>Strona w WebView2 w osobnym oknie o rozmiarze telefonu lub tabletu: zrzut i widoczny tekst.</summary>
+    private static async Task<string> CapturePage(string url, int width, int height, string path)
+    {
+        var host = new Window { Title = "CantatePresenter: " + Path.GetFileNameWithoutExtension(path) };
+        var view = new Microsoft.UI.Xaml.Controls.WebView2();
+        host.Content = view;
+        host.AppWindow.Resize(new Windows.Graphics.SizeInt32(width, height));
+        host.Activate();
+        try
+        {
+            await view.EnsureCoreWebView2Async();
+            var loaded = new TaskCompletionSource();
+            view.CoreWebView2.NavigationCompleted += (_, _) => loaded.TrySetResult();
+            view.CoreWebView2.Navigate(url);
+            await Task.WhenAny(loaded.Task, Task.Delay(10000));
+            await Task.Delay(2500); // strona pobiera stan co sekundę
+            var text = System.Text.Json.Nodes.JsonNode.Parse(await view.CoreWebView2.ExecuteScriptAsync("document.body.innerText"))?.GetValue<string>() ?? "";
+            using var stream = new InMemoryRandomAccessStream();
+            await view.CoreWebView2.CapturePreviewAsync(Microsoft.Web.WebView2.Core.CoreWebView2CapturePreviewImageFormat.Png, stream);
+            stream.Seek(0);
+            var bytes = new byte[stream.Size];
+            using var reader = new DataReader(stream);
+            await reader.LoadAsync((uint)stream.Size);
+            reader.ReadBytes(bytes);
+            await File.WriteAllBytesAsync(path, bytes);
+            return text;
+        }
+        catch (Exception error)
+        {
+            Services.Trace("WebView2: " + error);
+            return "(WebView2: " + error.Message + ")";
+        }
+        finally
+        {
+            host.Close();
+        }
     }
 
     private static async Task Capture(FrameworkElement? element, string path)

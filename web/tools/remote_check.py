@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Strona pilota z aplikacji macOS (RemoteControlPage.swift) w Chrome bez okna, na makiecie serwera.
+"""Strona pilota z aplikacji macOS i Windows (Sources/CantatePresenterCore/Resources/remote_page.html) w Chrome bez okna, na makiecie serwera.
 
 Sprawdza: start i wznawianie projekcji, wyszukiwanie pieśni, wybór wyniku, brak przewijania w poziomie
 na ekranie telefonu i brak błędów JS. Uruchomienie: python3 -I web/tools/remote_check.py [zrzut.png]
@@ -8,8 +8,7 @@ import http.server, json, os, re, sys, threading, urllib.parse
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cdp
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-src = open(os.path.join(ROOT, "Sources/CantatePresenterCore/Services/RemoteControlPage.swift"), encoding="utf-8").read()
-page = re.search(r'#"""\n(.*?)\n"""#', src, re.S).group(1).replace("{{LANG}}", "pl")
+page = open(os.path.join(ROOT, "Sources/CantatePresenterCore/Resources/remote_page.html"), encoding="utf-8").read().replace("{{LANG}}", "pl")
 labels = {k: k.upper() for k in "next previous nextSong previousSong black clearText stop slides plan notLive offline title start resume search searchPlaceholder noResults".split()}
 songs = [{"id": "11111111-1111-1111-1111-111111111111", "title": "Święty", "author": "A", "firstLine": "Hosanna", "slides": ["S1", "S2"]},
          {"id": "22222222-2222-2222-2222-222222222222", "title": "Alleluja", "author": "", "firstLine": "Pan", "slides": ["P1"]}]
