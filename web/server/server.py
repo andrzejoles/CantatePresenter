@@ -472,8 +472,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             wait = min(25.0, max(0.0, float(urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get("wait", ["25"])[0])))
         except ValueError:
             wait = 25.0
-        commands = relay.take_commands(wait)
-        return self.json(200, {"commands": commands, "phones": relay.connected_phones()})
+        commands, handled = relay.take(wait)
+        return self.json(200, {"commands": commands, "handled": handled, "phones": relay.connected_phones()})
 
     def remote_post(self, path: str, body):
         relay = self.state.remote
