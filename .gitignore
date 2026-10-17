@@ -37,3 +37,6 @@ windows/**/obj/
 windows/**/*.user
 windows/**/.vs/
 windows/**/AppPackages/
+
+# Prywatny eksport Holyrics (usunięty z historii 2026-10-16); tylko lokalnie do testów
+/2026-10-14_16-19-00.mufl
