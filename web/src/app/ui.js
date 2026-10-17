@@ -12,6 +12,8 @@ import { slideLabel } from "./labels.js";
 import { searchWikisource } from "../core/wikisource.js";
 import { searchURL } from "../core/songselect.js";
 import { qrSVG } from "../core/qr.js";
+import { songsToCommit } from "../core/dedup.js";
+import { dictationButton, dictationSupported, DICTATION_LANGUAGES } from "./dictation.js";
 import { request } from "../api.js";
 import { allLogos, logoById, svgDataURL } from "./logos.js";
 import { APP_VERSION } from "../version.js";
@@ -147,7 +149,7 @@ export class AppUI {
     const chordsFilter = h("label", { class: "chords-filter", title: t("Pokaż tylko pieśni z chwytami") },
       h("input", { type: "checkbox", checked: this.onlyWithChords, onchange: (/** @type {Event} */ e) => { this.onlyWithChords = /** @type {HTMLInputElement} */ (e.target).checked; this.renderList(); } }),
       " 🎸 ", t("Z chwytami"));
-    replace(this.left, tabs, searchBox, h("div", { class: "search-row" }, scope, chordsFilter), this.listMeta, h("div", { class: "scroll" }, this.listElement), this.libraryFooter);
+    replace(this.left, tabs, searchBox, h("div", { class: "search-row" }, scope, this.mic(input, "replace"), chordsFilter), this.listMeta, h("div", { class: "scroll" }, this.listElement), this.libraryFooter);
     this.renderList();
   }
 
@@ -367,6 +369,21 @@ export class AppUI {
     dialog.addEventListener("close", () => { this.renderRemoteDialog = undefined; });
   }
 
+  // MARK: - Dictation
+
+  /**
+   * Przycisk dyktowania dla pola (null bez obsługi w przeglądarce).
+   * @param {HTMLInputElement | HTMLTextAreaElement} field @param {"replace" | "append" | "appendNewline"} mode @param {string} [prompt]
+   */
+  mic(field, mode, prompt) {
+    return dictationButton(field, mode, { settings: () => this.store.settings, onError: (message) => this.toast(message), prompt });
+  }
+
+  /** Pole z przyciskiem dyktowania obok. @param {HTMLInputElement | HTMLTextAreaElement} field @param {"replace" | "append" | "appendNewline"} mode */
+  withMic(field, mode) {
+    return h("div", { class: "with-mic" }, field, this.mic(field, mode));
+  }
+
   // MARK: - Dialogs
 
   /**
@@ -397,7 +414,7 @@ export class AppUI {
     const show = () => { this.store.presentQuickText(text.value, title.value); dialog.close(); };
     const dialog = this.dialog(t("Szybki tekst"), [
       h("label", { class: "field" }, h("span", null, t("Tytuł (opcjonalnie)")), title),
-      h("label", { class: "field" }, h("span", null, t("Tekst")), text),
+      h("label", { class: "field" }, h("span", null, t("Tekst"), this.mic(text, "appendNewline")), text),
       h("div", { class: "hint-text" }, t("Tekst nie trafia do biblioteki."))],
     [h("button", { onclick: () => dialog.close() }, t("Anuluj")), h("button", { class: "primary", onclick: show }, t("Pokaż na ekranie"))]);
     text.focus();
@@ -439,13 +456,74 @@ export class AppUI {
       if (confirm(t("Czy na pewno usunąć pieśń „{0}”?", song.title))) { this.store.deleteSong(song.id); dialog.close(); }
     } }, t("Usuń")));
     const dialog = this.dialog(song ? t("Edycja pieśni") : t("Nowa pieśń"), [
-      h("div", { class: "row" }, field(t("Tytuł pieśni *"), title), field(t("Autor / Źródło"), author), h("label", { class: "field", style: { flex: "0 0 90px", minWidth: "90px" } }, h("span", null, t("Tonacja (Key)")), key)),
+      h("div", { class: "row" }, field(t("Tytuł pieśni *"), this.withMic(title, "replace")), field(t("Autor / Źródło"), this.withMic(author, "replace")), h("label", { class: "field", style: { flex: "0 0 90px", minWidth: "90px" } }, h("span", null, t("Tonacja (Key)")), key)),
       h("div", { class: "row" }, field(t("Prawa autorskie (©)"), copyright), h("label", { class: "field", style: { flex: "0 0 130px", minWidth: "130px" } }, h("span", null, t("Numer CCLI")), ccli)),
       field(t("Tagi / Kategorie (rozdzielone przecinkami)"), tags),
-      field(t("Tekst pieśni (pusta linia oddziela slajdy; nagłówki np. [Refren], [Zwrotka 2])"), lyrics),
+      h("label", { class: "field" }, h("span", null, t("Tekst pieśni (pusta linia oddziela slajdy; nagłówki np. [Refren], [Zwrotka 2])"), this.mic(lyrics, "appendNewline")), lyrics),
       field(t("Chwyty"), chords)],
     buttons);
     title.focus();
+  }
+
+  /**
+   * Przegląd importu jak ImportReviewSheet w macOS: duplikaty wewnątrz importu i pieśni o tym samym tytule
+   * w bibliotece; dla każdej decyzja „pomiń” (domyślnie jak w macOS).
+   * @param {import("../core/dedup.js").ImportReport} report
+   * @param {(songs: Song[]) => void} onCommit
+   */
+  openImportReview(report, onCommit) {
+    /** @type {Map<string, boolean>} */ const duplicateSkips = new Map();
+    /** @type {Map<string, boolean>} */ const collisionSkips = new Map();
+    const commit = () => songsToCommit(report, duplicateSkips, collisionSkips);
+    const countValue = h("div", { class: "metric-value" }, String(commit().length));
+    const importButton = h("button", { class: "primary", onclick: () => { dialog.close(); onCommit(commit()); } }, t("Zaimportuj {0} pieśni", commit().length));
+    const refresh = () => {
+      countValue.textContent = String(commit().length);
+      importButton.textContent = t("Zaimportuj {0} pieśni", commit().length);
+    };
+    const metric = (/** @type {string} */ title, /** @type {string | HTMLElement} */ value, /** @type {string} */ subtitle) =>
+      h("div", { class: "metric" }, h("div", { class: "muted" }, title), typeof value === "string" ? h("div", { class: "metric-value" }, value) : value, h("div", { class: "muted" }, subtitle));
+    const songLine = (/** @type {string} */ label, /** @type {Song} */ song) =>
+      h("div", { class: "review-song" }, h("div", { class: "muted" }, label), h("strong", null, song.title), " · ", h("span", { class: "muted" }, song.author || t("Autor nieznany")));
+    /**
+     * @param {import("../core/dedup.js").DuplicateRecord} record @param {Map<string, boolean>} skips
+     * @param {string} toggleLabel @param {string} primaryLabel @param {(skipped: boolean) => string} secondLabel
+     */
+    const card = (record, skips, toggleLabel, primaryLabel, secondLabel) => {
+      const checkbox = /** @type {HTMLInputElement} */ (h("input", { type: "checkbox" }));
+      checkbox.checked = record.shouldSkipDuplicate;
+      const second = h("div");
+      const render = () => replace(second, songLine(secondLabel(checkbox.checked), record.duplicateSong));
+      checkbox.addEventListener("change", () => { skips.set(record.id, checkbox.checked); render(); refresh(); });
+      render();
+      return h("div", { class: "review-card" },
+        h("div", { class: "review-head" }, h("span", null, record.reason), h("span", { class: "key-badge" }, t("Zgodność: {0}%", record.similarityScore))),
+        h("label", { class: "review-toggle" }, checkbox, " ", toggleLabel),
+        songLine(primaryLabel, record.primarySong), second);
+    };
+    const body = [
+      h("div", { class: "metrics" },
+        metric(t("Wczytano z pliku"), String(report.totalScanned), t("utworów")),
+        metric(t("Wykryte duplikaty"), String(report.duplicateRecords.length), t("pominięte")),
+        metric(t("Do zaimportowania"), countValue, t("unikalnych pieśni")))];
+    if (report.duplicateRecords.length) {
+      body.push(h("h3", null, t("Wykryte duplikaty ({0})", report.duplicateRecords.length)),
+        ...report.duplicateRecords.map((r) => card(r, duplicateSkips, t("Pomiń ten duplikat"), t("Wersja główna (zachowywana):"),
+          (skipped) => skipped ? t("Wersja zduplikowana (pomijana):") : t("Wersja zduplikowana (zostanie dodana):"))));
+    }
+    if (report.existingCollisions.length) {
+      body.push(h("h3", null, t("Kolizje z bazą ({0})", report.existingCollisions.length)),
+        ...report.existingCollisions.map((r) => {
+          const checkbox = /** @type {HTMLInputElement} */ (h("input", { type: "checkbox" }));
+          checkbox.checked = r.shouldSkipDuplicate;
+          checkbox.addEventListener("change", () => { collisionSkips.set(r.id, checkbox.checked); refresh(); });
+          return h("div", { class: "review-card collision" },
+            h("div", { class: "review-head" }, h("span", null, "⚠ ", r.primarySong.title), h("label", { class: "review-toggle" }, checkbox, " ", t("Pomiń (jest w bibliotece)"))),
+            h("div", { class: "muted" }, r.reason));
+        }));
+    }
+    const dialog = this.dialog(t("Podsumowanie importu i deduplikacji pieśni"), body, [h("button", { onclick: () => dialog.close() }, t("Anuluj")), importButton]);
+    dialog.classList.add("wide-dialog");
   }
 
   /** Wikiźródła (domena publiczna i wolne licencje) oraz odnośnik do CCLI SongSelect, jak w macOS. */
@@ -502,7 +580,7 @@ export class AppUI {
     query.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); run(); } });
 
     const dialog = this.dialog(t("Wyszukiwanie pieśni religijnych w internecie"), [
-      h("div", { class: "row" }, h("label", { class: "field", style: { flex: "1" } }, h("span", null, t("Tytuł pieśni")), query),
+      h("div", { class: "row" }, h("label", { class: "field", style: { flex: "1" } }, h("span", null, t("Tytuł pieśni"), this.mic(query, "replace")), query),
         h("label", { class: "field", style: { flex: "0 0 150px", minWidth: "150px" } }, h("span", null, t("Język:")), language),
         h("button", { class: "primary", style: { alignSelf: "flex-end" }, onclick: run }, t("Szukaj"))),
       h("div", { class: "hint-text" }, t("Źródło: Wikiźródła. Tradycyjne pieśni w domenie publicznej lub na wolnej licencji; adres strony zostaje zapisany w pieśni.")),
@@ -620,6 +698,10 @@ export class AppUI {
     const dialog = this.dialog(t("Ustawienia"), [
       h("div", { class: "group" }, h("h3", null, t("Język interfejsu")),
         select(s.appLanguage, LANGUAGES.map((l) => [l.code, `${l.flag}  ${l.name}`]), (v) => { update({ appLanguage: v }); dialog.close(); this.openSettings(); })),
+      dictationSupported() ? h("div", { class: "group" }, h("h3", null, t("Języki i dyktowanie głosowe")),
+        field(t("Język dyktowania głosem:"), select(s.dictationLanguage ?? "pl-PL", DICTATION_LANGUAGES.map(([code, name, flag]) => [code, `${flag}  ${name}`]), (v) => update({ dictationLanguage: v }))),
+        h("label", null, h("input", { type: "checkbox", checked: s.dictationOnDeviceOnly === true, onchange: (/** @type {Event} */ e) => update({ dictationOnDeviceOnly: /** @type {HTMLInputElement} */ (e.target).checked }) }), " ", t("Rozpoznawaj mowę tylko na tym urządzeniu")),
+        h("div", { class: "hint-text" }, t("Bez tej opcji przeglądarka może wysyłać nagranie do swojej usługi rozpoznawania mowy (Chrome: Google, Edge: Microsoft, Safari: Apple). Tylko na urządzeniu działa w nowszych przeglądarkach z pobranym modelem mowy."))) : null,
       h("div", { class: "group" }, h("h3", null, t("Typografia ekranu prezentacji")),
         h("div", { class: "row" },
           field(t("Czcionka"), select(fonts.includes(s.fontFamily) ? s.fontFamily : fonts[0], fonts.map((f) => [f, f]), (v) => update({ fontFamily: v }))),

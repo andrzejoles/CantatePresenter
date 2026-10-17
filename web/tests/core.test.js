@@ -4,6 +4,7 @@ import { parseLyrics, slideTypeFrom } from "../src/core/lyrics.js";
 import { foldString, searchFold, songMatches, matchingSnippet, SearchScope } from "../src/core/text.js";
 import { transpose, isChordLine } from "../src/core/chords.js";
 import { linesForSlide, splitConcatenatedChords } from "../src/core/chordsheet.js";
+import { processAndDeduplicate, songsToCommit } from "../src/core/dedup.js";
 
 test("Wspólne pliki: podział na slajdy", async () => {
   for (const f of await fixture("lyrics.json")) {
@@ -15,6 +16,23 @@ test("Wspólne pliki: wyszukiwanie", async () => {
   for (const f of await fixture("search.json")) {
     equal(foldString(f.input), f.fold, `fold ${f.input}`);
     equal(searchFold(f.input), f.searchFold, `searchFold ${f.input}`);
+  }
+});
+
+test("Wspólne pliki: duplikaty przy imporcie", async () => {
+  /** @param {string} key @param {any[]} args */
+  const t = (key, ...args) => args.reduce((text, value, i) => text.replace(`{${i}}`, String(value)), key);
+  for (const f of await fixture("dedup.json")) {
+    const report = processAndDeduplicate(f.incoming, f.existing, t);
+    const e = f.expected;
+    equal(report.uniqueSongs.map((s) => s.id), e.unique, f.name);
+    equal(report.duplicateRecords.map((r) => ({ primary: r.primarySong.id, duplicate: r.duplicateSong.id, score: r.similarityScore, reason: r.reason })),
+      e.duplicates.map((/** @type {any} */ d) => ({ ...d, reason: t(d.reason, d.score) })), f.name);
+    equal(report.existingCollisions.map((r) => ({ library: r.primarySong.id, incoming: r.duplicateSong.id, score: r.similarityScore, skip: r.shouldSkipDuplicate, reason: r.reason })),
+      e.collisions.map((/** @type {any} */ c) => ({ ...c, reason: t(c.reason, c.score) })), f.name);
+    equal(songsToCommit(report).map((s) => s.title), e.commit, f.name);
+    const none = (/** @type {{id: string}[]} */ records) => new Map(records.map((r) => [r.id, false]));
+    equal(songsToCommit(report, none(report.duplicateRecords), none(report.existingCollisions)).map((s) => s.title), e.commitNothingSkipped, f.name);
   }
 });
 
