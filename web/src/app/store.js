@@ -282,6 +282,21 @@ export class Store {
     this.changed("live");
   }
 
+  /** Pieśń, którą uruchomi „Start” (pilot): ostatnio wyświetlana, zaznaczona albo pierwsza z planu, jak w macOS. */
+  get startCandidate() {
+    if (this.activeSong) return this.activeSong;
+    if (this.selectedSongId && this.selectedSong) return this.selectedSong;
+    const first = this.activePlan?.items[0];
+    return (first ? this.song(first.songId) : null) ?? this.selectedSong;
+  }
+
+  /** Start albo wznowienie po zatrzymaniu w tym samym miejscu. */
+  startOrResume() {
+    const song = this.startCandidate;
+    if (this.isLive || !song) return;
+    this.present(song, song.id === this.activeSong?.id ? this.activeSlideIndex : 0);
+  }
+
   /** Pozycja w planie: bieżąca pieśń albo (po szybkim tekście) ostatnia pieśń z planu. @param {ServicePlan} plan */
   currentPlanIndex(plan) {
     const song = this.activeSong;

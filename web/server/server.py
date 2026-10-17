@@ -27,6 +27,7 @@ import urllib.parse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import auth  # noqa: E402
+import remote  # noqa: E402
 import appversion  # noqa: E402
 from storage import KINDS, MAX_BODY, Conflict, Storage  # noqa: E402
 
@@ -64,6 +65,8 @@ class State:
         self.sessions: dict[str, dict] = {}
         # Bieżąca projekcja dla ekranów muzyków na innych urządzeniach (tylko w pamięci).
         self.live_source: dict | None = None
+        # Pilot ze smartfona: stan od karty operatora i polecenia od telefonów (tylko w pamięci).
+        self.remote = remote.RemoteRelay()
         self.pending: dict[str, dict] = {}
         self.ip_failures: dict[str, list[float]] = {}
 
@@ -117,8 +120,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     # MARK: - Odpowiedzi
 
-    def security_headers(self):
-        self.send_header("Content-Security-Policy", CSP)
+    def security_headers(self, csp: str = CSP):
+        self.send_header("Content-Security-Policy", csp)
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "no-referrer")
@@ -128,9 +131,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Strict-Transport-Security", "max-age=31536000")
 
     def respond(self, status: int, body: bytes = b"", content_type: str = "application/json; charset=utf-8",
-                headers: list[tuple[str, str]] | None = None, cache: bool = False):
+                headers: list[tuple[str, str]] | None = None, cache: bool = False, csp: str = CSP):
         self.send_response(status)
-        self.security_headers()
+        self.security_headers(csp)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "private, max-age=300" if cache else "no-store")
@@ -210,6 +213,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self.json(401, {"error": "unauthorized"})
             with self.state.lock:
                 return self.json(200, {"source": self.state.live_source})
+        if path in ("/remote", "/api/state", "/api/search", "/api/remote/commands"):
+            return self.remote_get(path)
         if path == "/api/account":
             session = self.current_session()
             if not session:
@@ -225,7 +230,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if path.endswith(".html"):
                 self.send_response(302)
                 self.security_headers()
-                self.send_header("Location", "/login.html")
+                self.send_header("Location", "/login.html?next=" + urllib.parse.quote(path))
                 self.send_header("Content-Length", "0")
                 self.end_headers()
                 return
@@ -280,6 +285,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             with self.state.lock:
                 self.state.live_source = body
             return self.json(200, {"ok": True})
+        if path in ("/api/command", "/api/remote/state", "/api/remote/stop"):
+            return self.remote_post(path, body)
         if path == "/api/data/restore":
             return self.restore(body, session)
         if path == "/api/data/undo-restore":
@@ -426,6 +433,63 @@ class Handler(http.server.BaseHTTPRequestHandler):
             log(f"nowe kody zapasowe: {username!r}")
             return self.json(200, {"backupCodes": users.regenerate_backup_codes(username)})
         return self.json(404, {"error": "not found"})
+
+    # MARK: - Pilot ze smartfona
+
+    def phone_id(self) -> str:
+        return self.cookies().get("cantate_session", "")
+
+    def remote_get(self, path: str):
+        session = self.current_session()
+        if not session:
+            if path == "/remote":
+                self.send_response(302)
+                self.security_headers()
+                self.send_header("Location", "/login.html?next=/remote")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            return self.json(401, {"error": "unauthorized"})
+        relay = self.state.remote
+        if path == "/remote":
+            try:
+                with open(os.path.join(WEB_ROOT, "remote_page.html"), encoding="utf-8") as source:
+                    template = source.read()
+            except OSError:
+                return self.json(404, {"error": "not found"})
+            settings = self.state.storage.snapshot()["data"].get("settings") or {}
+            body, csp = remote.page_with_csp(template, str(settings.get("appLanguage", "pl")) if isinstance(settings, dict) else "pl")
+            return self.respond(200, body, "text/html; charset=utf-8", csp=csp)
+        if path == "/api/state":
+            state = relay.phone_state(self.phone_id())
+            return self.respond(200, remote.encode_state(state)) if state is not None else self.json(503, {"error": "no operator"})
+        if path == "/api/search":
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get("q", [""])[0]
+            songs = self.state.storage.snapshot()["data"].get("songs") or []
+            return self.respond(200, json.dumps(remote.search(songs if isinstance(songs, list) else [], query), ensure_ascii=False).encode())
+        # /api/remote/commands: długie odpytywanie przez kartę operatora.
+        try:
+            wait = min(25.0, max(0.0, float(urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get("wait", ["25"])[0])))
+        except ValueError:
+            wait = 25.0
+        commands = relay.take_commands(wait)
+        return self.json(200, {"commands": commands, "phones": relay.connected_phones()})
+
+    def remote_post(self, path: str, body):
+        relay = self.state.remote
+        if path == "/api/command":
+            command = remote.validate_command(body)
+            if command is None:
+                return self.json(400, {"error": "unknown command"})
+            state = relay.send(self.phone_id(), command)
+            return self.respond(200, remote.encode_state(state)) if state is not None else self.json(503, {"error": "no operator"})
+        if path == "/api/remote/state":
+            if not isinstance(body, dict) or len(json.dumps(body)) > remote.MAX_STATE:
+                return self.json(400, {"error": "bad request"})
+            relay.publish(body)
+            return self.json(200, {"ok": True, "phones": relay.connected_phones()})
+        relay.stop()
+        return self.json(200, {"ok": True})
 
     def restore(self, body, session):
         if not isinstance(body, dict) or not isinstance(body.get("songs"), list):

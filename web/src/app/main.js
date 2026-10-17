@@ -17,6 +17,7 @@ import { normalizeUsageEntry, usageCSV } from "../core/ccli.js";
 import { loadLogos } from "./logos.js";
 import { readHolyricsFile, HOLYRICS_EXTENSIONS } from "../core/holyrics.js";
 import { processAndDeduplicate } from "../core/dedup.js";
+import { RemoteController } from "./remote.js";
 
 await Promise.all([
   loadCatalog(new URL("../../i18n/Localizable.xcstrings", import.meta.url)).catch((error) => console.error("Tłumaczenia:", error)),
@@ -261,8 +262,12 @@ function exportSongText(song) {
 
 // MARK: - Interfejs
 
+/** Pilot ze smartfona: polecenia z telefonu przez serwer do tej karty. */
+const remoteControl = new RemoteController(store, () => ui.remoteChanged());
+
 /** @type {AppUI} */
 var ui = new AppUI(store, {
+  remote: remoteControl,
   openProjector,
   closeProjector: () => { projector?.close(); projector = null; ui.renderRight(); },
   isProjectorOpen: () => Boolean(projector && !projector.closed),
@@ -273,6 +278,7 @@ var ui = new AppUI(store, {
   logout: async () => { await saver.flushAll(); api.logout(); },
 });
 ui.mount(/** @type {HTMLElement} */ (document.getElementById("app")));
+if (RemoteController.remembered()) remoteControl.setEnabled(true);
 store.subscribe((reason) => {
   if (["live", "settings", "songs", "all"].includes(reason)) broadcast();
   else if (reason === "plans") publishStage();
