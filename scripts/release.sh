@@ -21,7 +21,7 @@ OTHER_DIR="$RELEASE_DIR/other"
 rm -rf "$RELEASE_DIR"
 mkdir -p "$OTHER_DIR"
 
-# Windows: ZIP z CI dla tego samego commita (zadanie „windows” w .github/workflows/ci.yml).
+# Windows: instalator i ZIP z CI dla tego samego commita (zadanie „windows” w .github/workflows/ci.yml).
 SHA="$(git rev-parse HEAD)"
 git fetch -q origin main
 [ "$(git rev-parse origin/main)" = "$SHA" ] || { echo "Najpierw zsynchronizuj main z GitHubem (git pull / git push)" >&2; exit 1; }
@@ -32,6 +32,9 @@ gh run watch "$RUN_ID" --exit-status >/dev/null || { echo "CI dla $SHA nie przes
 gh run download "$RUN_ID" -n CantatePresenter-Windows-x64 -D "$OTHER_DIR"
 WINDOWS_ZIP="$OTHER_DIR/CantatePresenter-Windows-x64-$VERSION.zip"
 [ -f "$WINDOWS_ZIP" ] || { echo "Brak $WINDOWS_ZIP w artefaktach CI" >&2; exit 1; }
+gh run download "$RUN_ID" -n CantatePresenter-Windows-x64-Setup -D "$OTHER_DIR"
+WINDOWS_SETUP="$OTHER_DIR/CantatePresenter-Windows-x64-Setup-$VERSION.exe"
+[ -f "$WINDOWS_SETUP" ] || { echo "Brak $WINDOWS_SETUP w artefaktach CI" >&2; exit 1; }
 
 # Web: katalog web/ z tego commita i plik VERSION (serwer bez gita czyta wersję z niego, web/README.md).
 WEB_TMP="$(mktemp -d)"
@@ -63,7 +66,7 @@ PREVIOUS="$(git describe --tags --abbrev=0 2>/dev/null || true)"
 Pobierz \`CantatePresenter-$VERSION.dmg\` i przeciągnij aplikację do Aplikacji. Przy pierwszym uruchomieniu: Ustawienia systemowe → Prywatność i ochrona → „Otwórz mimo to”. Zainstalowane kopie zaktualizują się same.
 
 ## Windows 10/11 (x64)
-Rozpakuj \`CantatePresenter-Windows-x64-$VERSION.zip\` i uruchom \`CantatePresenter.exe\`. Aplikacja nie jest podpisana, więc SmartScreen pokaże ostrzeżenie: „Więcej informacji” → „Uruchom mimo to”. Dane w \`%APPDATA%\\CantatePresenter\`, ten sam format i kopie zapasowe co macOS. Bez automatycznych aktualizacji: nową wersję rozpakuj w miejsce starej.
+Uruchom \`CantatePresenter-Windows-x64-Setup-$VERSION.exe\` (instalacja dla bieżącego użytkownika, bez uprawnień administratora; skrót w menu Start). Aplikacja nie jest podpisana, więc SmartScreen pokaże ostrzeżenie: „Więcej informacji” → „Uruchom mimo to”. Nowa wersja instaluje się tym samym instalatorem na miejscu starej. Bez instalacji: rozpakuj \`CantatePresenter-Windows-x64-$VERSION.zip\` i uruchom \`CantatePresenter.exe\`. Dane w \`%APPDATA%\\CantatePresenter\` (zostają po odinstalowaniu), ten sam format i kopie zapasowe co macOS.
 
 ## Web (serwer prywatny)
 \`CantatePresenter-Web-$VERSION.zip\` zawiera katalog \`web/\` z plikiem \`VERSION\`. Instalacja i konta: \`web/README.md\`. Aktualizacja: podmień katalog \`web/\`, dane serwera zostają.
@@ -77,5 +80,5 @@ git push origin "$TAG"
 gh release create "$TAG" --draft --title "CantatePresenter $VERSION" --notes-file "$RELEASE_DIR/notes.md" \
     "$RELEASE_DIR/CantatePresenter-$VERSION.zip" "$RELEASE_DIR/appcast.xml" \
     "dist/CantatePresenter-$VERSION.dmg" "dist/CantatePresenter-$VERSION.pkg" \
-    "$WINDOWS_ZIP" "$WEB_ZIP"
+    "$WINDOWS_SETUP" "$WINDOWS_ZIP" "$WEB_ZIP"
 echo "Szkic wydania $TAG gotowy. Sprawdź go na GitHubie i opublikuj: gh release edit $TAG --draft=false"

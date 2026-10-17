@@ -56,7 +56,7 @@ Utrata klucza prywatnego oznacza, że zainstalowane aplikacje nie przyjmą kolej
 
 Wydanie (po scaleniu PR na `main`):
 ```bash
-scripts/release.sh            # macOS + ZIP Windows z CI + paczka web/, appcast.xml, szkic wydania na GitHubie
+scripts/release.sh            # macOS + instalator i ZIP Windows z CI + paczka web/, appcast.xml, szkic wydania na GitHubie
 gh release edit vX.Y.Z --draft=false   # publikacja po sprawdzeniu szkicu
 ```
 
@@ -72,3 +72,16 @@ gh release edit vX.Y.Z --draft=false   # publikacja po sprawdzeniu szkicu
 - **Uprawnienia po aktualizacji:** podpis ad-hoc zmienia się z każdą wersją, więc macOS może ponownie zapytać
   o mikrofon (dyktowanie) i o dostęp do Pęku kluczy (tokeny Dysku Google, przycisk „Zawsze pozwalaj”).
 - Na tym Macu (aplikacja budowana lokalnie, bez kwarantanny) nic się nie zmienia.
+
+## 5. Windows
+
+- **Instalator** (`windows/installer/CantatePresenter.iss`, Inno Setup 6) powstaje w CI po `dotnet publish`
+  i jest sprawdzany (cicha instalacja dla użytkownika, skrót w menu Start, odinstalowanie). Instalacja bez uprawnień
+  administratora do `%LOCALAPPDATA%\Programs\CantatePresenter`; nowa wersja instaluje się na miejscu starej
+  (ten sam `AppId`). Dane w `%APPDATA%\CantatePresenter` zostają po odinstalowaniu.
+- Bez podpisu Authenticode SmartScreen ostrzega przy pierwszym uruchomieniu instalatora („Więcej informacji” →
+  „Uruchom mimo to”). Brak automatycznych aktualizacji w Windows.
+- **Dysk Google:** klient OAuth (ten sam „Aplikacja komputerowa” co w macOS) jest wbudowywany przy budowaniu
+  z `google-oauth-client.json` albo `$GOOGLE_OAUTH_CLIENT_JSON`. W CI pochodzi z sekretu repozytorium
+  `GOOGLE_OAUTH_CLIENT_JSON` (treść pliku); bez sekretu wydanie Windows ma nieaktywne logowanie Google.
+  Ustawienie sekretu (właściciel): `gh secret set GOOGLE_OAUTH_CLIENT_JSON < google-oauth-client.json`.
