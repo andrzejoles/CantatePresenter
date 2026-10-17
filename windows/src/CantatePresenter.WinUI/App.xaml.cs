@@ -18,6 +18,8 @@ public static class Services
     public static Catalog Catalog { get; private set; } = new();
     public static IReadOnlyList<Logo> Logos { get; private set; } = [];
     public static GoogleDriveService Drive { get; private set; } = null!;
+    /// <summary>Aplikacja się zamyka: okna pomocnicze mogą się naprawdę zamknąć (zamiast chować).</summary>
+    public static bool AppClosing { get; set; }
 
     /// <summary>Klient OAuth wbudowany przy budowaniu (google-oauth-client.json, jak Info.plist w macOS); null bez pliku.</summary>
     public static GoogleOAuthClient? BundledGoogleClient()
@@ -53,6 +55,10 @@ public static class Services
 
     /// <summary>Tekst interfejsu: kluczem jest polski tekst (jak L("…") w macOS).</summary>
     public static string L(string key, params object[] args) => Catalog.T(key, args);
+
+    /// <summary>Tekst z katalogu wspólnego z macOS, ze skrótami zapisanymi po windowsowemu (⌘E → Ctrl+E, Cmd ? → F1).</summary>
+    public static string Lw(string key, params object[] args) => L(key, args)
+        .Replace("⌘+Return", "Ctrl+Enter").Replace("Cmd ?", "F1").Replace("Cmd E", "Ctrl+E").Replace("⌘", "Ctrl+").Replace("Cmd ", "Ctrl ");
 
     /// <summary>Ślad kroków dla próby w CI (CANTATE_TRACE = plik); bez zmiennej nic nie robi.</summary>
     public static void Trace(string step)

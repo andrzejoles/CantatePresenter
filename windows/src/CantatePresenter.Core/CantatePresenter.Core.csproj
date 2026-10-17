@@ -12,5 +12,7 @@
     <!-- Strony pilota i dla muzyków: te same pliki serwuje aplikacja macOS. -->
     <EmbeddedResource Include="..\..\..\Sources\CantatePresenterCore\Resources\remote_page.html" LogicalName="remote_page.html" />
     <EmbeddedResource Include="..\..\..\Sources\CantatePresenterCore\Resources\stage_page.html" LogicalName="stage_page.html" />
+    <!-- Wbudowana baza chwytów z macOS (windows/tools/export_chords_catalog.py). -->
+    <EmbeddedResource Include="Chords\chords_catalog.json" LogicalName="chords_catalog.json" />
   </ItemGroup>
 </Project>

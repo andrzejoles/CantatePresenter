@@ -156,16 +156,39 @@ public static class ImportExport
         }
     }
 
-    public static async Task ExportSongAsync(MainWindow window)
+    private static string SafeName(string title, string fallback)
     {
-        if (Services.Library.SelectedSong is not Song song) return;
-        var name = string.Concat(song.Title.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
-        if (await PickSaveAsync(window, name.Length > 0 ? name : "piesn", "Text", ".txt") is not string path) return;
+        var name = string.Concat(title.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c)).Trim();
+        return name.Length > 0 ? name : fallback;
+    }
+
+    public static async Task ExportSongAsync(MainWindow window, Song? chosen = null)
+    {
+        if ((chosen ?? Services.Library.SelectedSong) is not Song song) return;
+        if (await PickSaveAsync(window, SafeName(song.Title, "piesn"), "Text", ".txt") is not string path) return;
         // Nagłówki eksportu .txt to format danych (nie tłumaczone), jak SongExporter w macOS.
         var header = new[] { $"Tytuł: {song.Title}", song.Author.Length > 0 ? $"Autor: {song.Author}" : null, song.Key.Length > 0 ? $"Tonacja: {song.Key}" : null,
             song.Tags.Count > 0 ? $"Tagi: {string.Join(", ", song.Tags)}" : null }.OfType<string>();
         await File.WriteAllTextAsync(path, $"{string.Join("\n", header)}\n\n{song.RawLyrics}\n");
     }
+
+    /// <summary>Pieśni jako tablica JSON w formacie songs.json (jak „Eksportuj jako plik JSON” w macOS).</summary>
+    public static async Task ExportSongsJsonAsync(MainWindow window, IReadOnlyList<Song> songs, string suggestedName)
+    {
+        if (songs.Count == 0) return;
+        if (await PickSaveAsync(window, SafeName(suggestedName, "Baza_piesni"), "JSON", ".json") is not string path) return;
+        var array = new JsonArray(songs.Select(s => (JsonNode)s.ToJson()).ToArray());
+        try
+        {
+            await File.WriteAllTextAsync(path, array.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            await Dialogs.InfoAsync(window, L("Błąd zapisu"), error.Message);
+        }
+    }
+
+    public static Task ExportLibraryJsonAsync(MainWindow window) => ExportSongsJsonAsync(window, Services.Library.Songs, "Baza_piesni");
 
     public static async Task ExportCcliAsync(MainWindow window)
     {
