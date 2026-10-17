@@ -43,6 +43,7 @@ h2 { font-size:13px; text-transform:uppercase; letter-spacing:0.06em; color:var(
 #query:focus { outline:2px solid var(--accent); outline-offset:-1px; }
 #results { margin-top:8px; }
 .empty { color:var(--muted); padding:6px 2px; }
+#plan { margin-top:8px; }
 </style>
 </head>
 <body>
@@ -68,7 +69,7 @@ h2 { font-size:13px; text-transform:uppercase; letter-spacing:0.06em; color:var(
   <button id="previousSong" data-command="previousSong"></button>
   <button id="nextSong" data-command="nextSong"></button>
 </div>
-<div id="plan" class="list" style="margin-top:8px"></div>
+<div id="plan" class="list"></div>
 <script>
 "use strict";
 const token = new URLSearchParams(location.search).get("t") || "";
@@ -153,7 +154,8 @@ async function send(command, index, id) {
   try {
     const response = await fetch(withToken("/api/command"), {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      // X-Cantate-Request: zabezpieczenie CSRF serwera wersji webowej (macOS i Windows go nie potrzebują).
+      headers: { "Content-Type": "application/json", "X-Cantate-Request": "1" },
       body: JSON.stringify(id !== undefined ? { command, id } : index === undefined ? { command } : { command, index })
     });
     if (!response.ok) throw new Error(response.status);

@@ -25,7 +25,7 @@ import { APP_VERSION } from "../version.js";
  *   importFiles: (files: FileList | File[]) => Promise<void>, exportBackup: () => Promise<void>,
  *   restoreBackup: (file: File) => Promise<void>, undoRestore: () => Promise<void>, canUndoRestore: () => boolean,
  *   exportSongText: (song: Song) => void, user: string, logout: () => void, openMusicians: () => void,
- *   exportCCLIReport: () => void,
+ *   exportCCLIReport: () => void, remote: import("./remote.js").RemoteController,
  * }} Actions
  */
 
@@ -39,6 +39,8 @@ export class AppUI {
   constructor(store, actions) {
     this.store = store;
     this.actions = actions;
+    /** Odświeżenie otwartego okna pilota. @type {(() => void) | undefined} */
+    this.renderRemoteDialog = undefined;
     this.query = "";
     this.scope = SearchScope.all;
     this.onlyWithChords = false;
@@ -105,6 +107,7 @@ export class AppUI {
       h("button", { onclick: () => this.openImportExport(), title: t("Import/Eksport") }, "⇅ ", t("Import/Eksport")),
       h("button", { onclick: () => this.openOnlineSearch(), title: t("Wyszukiwanie pieśni religijnych w internecie") }, "🌐 ", t("Online")),
       h("button", { onclick: () => this.actions.openMusicians(), title: t("Ekran dla muzyków: chwyty nad tekstem. Na tabletach otwórz {0} i zaloguj się.", `${location.origin}/musicians.html`) }, "🎸 ", t("Muzycy")),
+      h("button", { class: this.actions.remote.enabled ? "remote-on" : "", onclick: () => this.openRemote(), title: t("Pilot ze smartfona") }, "📱 ", t("Pilot")),
       h("div", { class: "spacer" }),
       h("span", { class: "zoom" }, t("Rozmiar UI"),
         h("button", { onclick: () => zoom(-0.05), title: "−" }, "A−"), `${scale}%`, h("button", { onclick: () => zoom(0.05), title: "+" }, "A+")),
@@ -331,6 +334,37 @@ export class AppUI {
       item(keyName(s.prevSlideKey), "Poprzedni"), item(keyName(s.nextSlideKey), "Następny"), item("R", "Refren"), item("1–9", "Zwrotka"),
       item(keyName(s.blackScreenKey), "Czarny"), item(keyName(s.clearTextKey), "Czysty"), item(keyName(s.prevSongKey), "Poprz. pieśń"),
       item(keyName(s.nextSongKey), "Nast. pieśń"), item(keyName(s.startPresentationKey), "Prezentuj"), item("Ctrl/⌘ T", "Szybki tekst"));
+  }
+
+  // MARK: - Remote
+
+  /** Stan pilota się zmienił (włączenie, liczba telefonów, błąd). */
+  remoteChanged() {
+    this.renderToolbar();
+    this.renderRemoteDialog?.();
+  }
+
+  /** Pilot ze smartfona jak RemoteControlSheet w macOS, ale przez serwer: telefon loguje się tym samym kontem. */
+  openRemote() {
+    const remote = this.actions.remote;
+    const address = `${location.origin}/remote`;
+    const content = h("div", { class: "remote-dialog" });
+    const render = () => {
+      const toggle = /** @type {HTMLInputElement} */ (h("input", { type: "checkbox", checked: remote.enabled, onchange: () => remote.setEnabled(toggle.checked) }));
+      replace(content,
+        h("label", { class: "remote-toggle" }, toggle, " ", h("strong", null, t("Włącz pilota"))),
+        remote.enabled ? h("div", { class: "remote-code" },
+          h("div", { class: "qr-box" }, qrSVG(address, 220)),
+          h("div", { class: "hint-text" }, t("Zeskanuj kod telefonem i zaloguj się tym samym kontem (hasło i kod z aplikacji uwierzytelniającej). Polecenia z telefonu trafiają do tej karty przeglądarki.")),
+          h("code", null, address),
+          h("div", null, h("strong", null, t("Połączone telefony: {0}", remote.phones)))) : null,
+        remote.error ? h("div", { class: "error-text" }, remote.error) : null,
+        h("div", { class: "hint-text" }, t("Pilot działa, dopóki ta karta jest otwarta. Telefon nie musi być w tej samej sieci.")));
+    };
+    render();
+    this.renderRemoteDialog = render;
+    const dialog = this.dialog("📱 " + t("Pilot ze smartfona"), [content], [h("button", { class: "primary", onclick: () => dialog.close() }, t("Zamknij"))]);
+    dialog.addEventListener("close", () => { this.renderRemoteDialog = undefined; });
   }
 
   // MARK: - Dialogs
