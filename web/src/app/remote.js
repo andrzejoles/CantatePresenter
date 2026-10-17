@@ -85,6 +85,7 @@ export class RemoteController {
     this.onStatus = onStatus;
     this.enabled = false;
     this.phones = 0;
+    this.handled = 0;
     /** @type {string | null} */ this.error = null;
     this.lastState = "";
     /** @type {(() => void) | null} */ this.unsubscribe = null;
@@ -121,10 +122,12 @@ export class RemoteController {
 
   publish(force = false) {
     if (!this.enabled) return;
-    const state = JSON.stringify(remoteState(this.store));
+    const snapshot = remoteState(this.store);
+    const state = JSON.stringify(snapshot);
     if (!force && state === this.lastState) return;
     this.lastState = state;
-    request("/api/remote/state", { method: "POST", body: state })
+    // „handled”: numer ostatniego wykonanego polecenia; serwer oddaje telefonowi stan dopiero po jego poleceniu.
+    request("/api/remote/state", { method: "POST", body: JSON.stringify({ ...snapshot, handled: this.handled }) })
       .then((response) => response.ok ? response.json() : null)
       .then((result) => { if (result && result.phones !== this.phones) { this.phones = result.phones; this.onStatus(); } })
       .catch(() => {});
@@ -136,10 +139,12 @@ export class RemoteController {
       try {
         const response = await request("/api/remote/commands?wait=25");
         if (!response.ok) throw new Error(String(response.status));
-        const { commands, phones } = await response.json();
+        const { commands, handled, phones } = await response.json();
         if (serial !== this.loopSerial) return;
         for (const command of commands) performRemote(command, this.store);
-        this.publish(commands.length > 0);
+        const answered = Number.isInteger(handled) && handled !== this.handled;
+        if (answered) this.handled = handled;
+        this.publish(commands.length > 0 || answered);
         const error = this.error;
         this.error = null;
         if (phones !== this.phones || error) { this.phones = phones; this.onStatus(); }

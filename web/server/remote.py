@@ -102,12 +102,22 @@ class RemoteRelay:
         self.commands: list[tuple[float, dict]] = []
         self.operator_seen = 0.0
         self.phones: dict[str, float] = {}
+        # Numery poleceń: ostatnie zakolejkowane, ostatnie pobrane przez kartę i ostatnie, którego skutek karta opublikowała.
+        # Telefon czeka na stan po swoim poleceniu, a nie na dowolną (np. spóźnioną) publikację.
+        self.queued = 0
+        self.taken = 0
+        self.handled = 0
+        self.reports_handled = False
 
     def operator_connected(self, now: float | None = None) -> bool:
         return (now or time.time()) - self.operator_seen < OPERATOR_WINDOW
 
     def publish(self, state: dict):
+        handled = state.pop("handled", None)
         with self.condition:
+            if isinstance(handled, int) and not isinstance(handled, bool):
+                self.reports_handled = True
+                self.handled = max(self.handled, min(handled, self.taken))
             self.state = state
             self.version += 1
             self.operator_seen = time.time()
@@ -136,14 +146,21 @@ class RemoteRelay:
             if self.state is None or not self.operator_connected():
                 return None
             self._seen(phone)
+            self.queued += 1
+            number = self.queued
             self.commands.append((time.time(), command))
             start_version = self.version
             self.condition.notify_all()
-            self.condition.wait_for(lambda: self.version != start_version, timeout=wait)
+            # Starsza karta operatora (bez pola „handled”): wystarczy dowolny nowy stan.
+            self.condition.wait_for(lambda: self.handled >= number if self.reports_handled else self.version != start_version, timeout=wait)
             return self.state
 
     def take_commands(self, wait: float = 25.0) -> list[dict]:
-        """Długie odpytywanie przez kartę operatora: polecenia albo pusta lista po czasie."""
+        return self.take(wait)[0]
+
+    def take(self, wait: float = 25.0) -> tuple[list[dict], int]:
+        """Długie odpytywanie przez kartę operatora: polecenia (albo pusta lista po czasie) i numer ostatniego z nich,
+        który karta odsyła w polu „handled” stanu po ich wykonaniu."""
         with self.condition:
             self.operator_seen = time.time()
             phones = self._phone_count(time.time())
@@ -152,7 +169,8 @@ class RemoteRelay:
             self.operator_seen = now
             fresh = [command for queued, command in self.commands if now - queued < COMMAND_TTL]
             self.commands = []
-            return fresh
+            self.taken = self.queued
+            return fresh, self.taken
 
     def connected_phones(self, now: float | None = None) -> int:
         with self.condition:
