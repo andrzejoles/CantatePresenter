@@ -1,6 +1,7 @@
 using System.Globalization;
 using CantatePresenter.Core.Data;
 using CantatePresenter.Core.GoogleDrive;
+using CantatePresenter.Core.Models;
 using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
@@ -28,11 +29,11 @@ public static class GoogleDriveDialog
     public static async Task<RemoteBackupItem> UploadBackupAsync(string comment, CancellationToken cancellation = default)
     {
         var archive = Path.Combine(Path.GetTempPath(), Backup.FileName());
-        Backup.Create(Library, archive, Version, comment);
+        Backup.Create(Services.Library, archive, Services.Version, comment);
         try
         {
-            var item = await Drive.UploadAsync(archive, Library.Settings.GoogleDrive.FolderName, cancellation);
-            Library.UpdateSettings(s => s.GoogleDrive.LastBackupDate = Core.Models.Json.IsoDate());
+            var item = await Drive.UploadAsync(archive, Services.Library.Settings.GoogleDrive.FolderName, cancellation);
+            Services.Library.UpdateSettings(s => s.GoogleDrive.LastBackupDate = Json.IsoDate());
             return item;
         }
         finally
@@ -43,7 +44,7 @@ public static class GoogleDriveDialog
 
     public static async Task ShowAsync(MainWindow window)
     {
-        var settings = Library.Settings.GoogleDrive;
+        var settings = Services.Library.Settings.GoogleDrive;
         using var cancellation = new CancellationTokenSource();
         string? downloaded = null;
         ContentDialog? dialog = null;
@@ -113,7 +114,7 @@ public static class GoogleDriveDialog
                 disconnect.Click += (_, _) =>
                 {
                     Drive.SignOut();
-                    Library.UpdateSettings(s => s.GoogleDrive.AccountEmail = "");
+                    Services.Library.UpdateSettings(s => s.GoogleDrive.AccountEmail = "");
                     backups.Children.Clear();
                     Render();
                     Status(L("Rozłączono konto Google. Tokeny usunięto z Menedżera poświadczeń Windows."), true);
@@ -128,7 +129,7 @@ public static class GoogleDriveDialog
                     try
                     {
                         var address = await Drive.SignInAsync(url => _ = Windows.System.Launcher.LaunchUriAsync(new Uri(url)), cancellation.Token);
-                        Library.UpdateSettings(s => s.GoogleDrive.AccountEmail = address);
+                        Services.Library.UpdateSettings(s => s.GoogleDrive.AccountEmail = address);
                         Status(address.Length == 0 ? L("Połączono z kontem Google.") : L("Połączono z kontem Google: {0}.", address), true);
                     }
                     catch (Exception error) when (error is GoogleOAuthException or GoogleDriveException or HttpRequestException or IOException)
@@ -148,7 +149,7 @@ public static class GoogleDriveDialog
             details.Children.Add(account);
 
             var folder = new TextBox { Text = settings.TargetFolder, PlaceholderText = GoogleDriveSettings.DefaultFolder };
-            folder.LostFocus += (_, _) => { if (folder.Text.Trim() != settings.TargetFolder) Library.UpdateSettings(s => s.GoogleDrive.TargetFolder = folder.Text.Trim()); };
+            folder.LostFocus += (_, _) => { if (folder.Text.Trim() != settings.TargetFolder) Services.Library.UpdateSettings(s => s.GoogleDrive.TargetFolder = folder.Text.Trim()); };
             var folderRow = new Grid { ColumnSpacing = 10 };
             folderRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(140) });
             folderRow.ColumnDefinitions.Add(new ColumnDefinition());
@@ -158,7 +159,7 @@ public static class GoogleDriveDialog
             details.Children.Add(folderRow);
 
             var autoBackup = new CheckBox { Content = L("Twórz i wysyłaj kopię na Dysk Google automatycznie przy zamykaniu aplikacji"), IsChecked = settings.AutoBackupOnExit };
-            autoBackup.Click += (_, _) => Library.UpdateSettings(s => s.GoogleDrive.AutoBackupOnExit = autoBackup.IsChecked == true);
+            autoBackup.Click += (_, _) => Services.Library.UpdateSettings(s => s.GoogleDrive.AutoBackupOnExit = autoBackup.IsChecked == true);
             details.Children.Add(autoBackup);
 
             var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
@@ -168,7 +169,7 @@ public static class GoogleDriveDialog
                 try
                 {
                     var item = await UploadBackupAsync(L("Ręczny backup z Ustawień"), cancellation.Token);
-                    Status(L("Pomyślnie przesłano kopię '{0}' na Dysk Google ({1}) do folderu '{2}'!", item.Name, FormatSize(item.Size), Library.Settings.GoogleDrive.FolderName), true);
+                    Status(L("Pomyślnie przesłano kopię '{0}' na Dysk Google ({1}) do folderu '{2}'!", item.Name, FormatSize(item.Size), Services.Library.Settings.GoogleDrive.FolderName), true);
                 }
                 catch (Exception error) when (error is GoogleOAuthException or GoogleDriveException or HttpRequestException or IOException or UnauthorizedAccessException)
                 {
@@ -181,9 +182,9 @@ public static class GoogleDriveDialog
                 backups.Children.Clear();
                 try
                 {
-                    var items = await Drive.ListAsync(Library.Settings.GoogleDrive.FolderName, cancellation.Token);
+                    var items = await Drive.ListAsync(Services.Library.Settings.GoogleDrive.FolderName, cancellation.Token);
                     backups.Children.Add(new TextBlock { Text = L("Kopie zapasowe na Dysku Google"), FontWeight = FontWeights.SemiBold });
-                    if (items.Count == 0) backups.Children.Add(new TextBlock { Text = L("Brak zapisanych kopii zapasowych w folderze '{0}'", Library.Settings.GoogleDrive.FolderName), Opacity = 0.7, TextWrapping = TextWrapping.Wrap });
+                    if (items.Count == 0) backups.Children.Add(new TextBlock { Text = L("Brak zapisanych kopii zapasowych w folderze '{0}'", Services.Library.Settings.GoogleDrive.FolderName), Opacity = 0.7, TextWrapping = TextWrapping.Wrap });
                     foreach (var item in items) backups.Children.Add(BackupRow(item));
                 }
                 catch (Exception error) when (error is GoogleOAuthException or GoogleDriveException or HttpRequestException or IOException)
@@ -226,7 +227,7 @@ public static class GoogleDriveDialog
 
         enabled.Click += (_, _) =>
         {
-            Library.UpdateSettings(s => s.GoogleDrive.IsEnabled = enabled.IsChecked == true);
+            Services.Library.UpdateSettings(s => s.GoogleDrive.IsEnabled = enabled.IsChecked == true);
             Render();
         };
         body.Children.Add(enabled);
@@ -266,7 +267,7 @@ public static class GoogleDriveDialog
     /// Kopia przy zamykaniu, gdy włączona: okno z postępem i „Pomiń i zamknij”, limit 60 s. Gdy wysyłka się nie uda,
     /// kopia zostaje w katalogu danych (backups/, 5 najnowszych), jak ExitBackupCoordinator w macOS.
     /// </summary>
-    public static bool ShouldBackupOnExit => Library.Settings.GoogleDrive is { IsEnabled: true, AutoBackupOnExit: true } && Drive.IsSignedIn;
+    public static bool ShouldBackupOnExit => Services.Library.Settings.GoogleDrive is { IsEnabled: true, AutoBackupOnExit: true } && Drive.IsSignedIn;
 
     public static async Task BackupOnExitAsync(MainWindow window)
     {
@@ -282,7 +283,7 @@ public static class GoogleDriveDialog
         var archive = Path.Combine(Path.GetTempPath(), Backup.FileName());
         try
         {
-            Backup.Create(Library, archive, Version, "Automatyczny backup przy zamykaniu CantatePresenter");
+            Backup.Create(Services.Library, archive, Services.Version, "Automatyczny backup przy zamykaniu CantatePresenter");
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
         {
@@ -290,7 +291,7 @@ public static class GoogleDriveDialog
             dialog.Hide();
             return;
         }
-        var folder = Library.Settings.GoogleDrive.FolderName;
+        var folder = Services.Library.Settings.GoogleDrive.FolderName;
         var work = Task.Run(async () =>
         {
             try
@@ -309,7 +310,7 @@ public static class GoogleDriveDialog
         var finished = await Task.WhenAny(work, shown, timeout);
         var uploaded = finished == work && work.Result;
         cancellation.Cancel();
-        if (uploaded) Library.UpdateSettings(s => s.GoogleDrive.LastBackupDate = Core.Models.Json.IsoDate());
+        if (uploaded) Services.Library.UpdateSettings(s => s.GoogleDrive.LastBackupDate = Json.IsoDate());
         else KeepLocally(archive);
         dialog.Hide();
         // Wysyłka przerwana przez „Pomiń” kończy się sama po anulowaniu; plik usuwamy, gdy już go nie czyta.
@@ -322,7 +323,7 @@ public static class GoogleDriveDialog
         try
         {
             if (!File.Exists(archive)) return;
-            var directory = Path.Combine(Library.DataDirectory, "backups");
+            var directory = Path.Combine(Services.Library.DataDirectory, "backups");
             Directory.CreateDirectory(directory);
             File.Copy(archive, Path.Combine(directory, Path.GetFileName(archive)), overwrite: true);
             foreach (var old in Directory.GetFiles(directory).Where(f => !Path.GetFileName(f).StartsWith('.')).Order(StringComparer.Ordinal).SkipLast(5)) File.Delete(old);
