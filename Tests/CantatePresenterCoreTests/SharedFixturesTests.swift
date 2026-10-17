@@ -42,6 +42,43 @@ struct SharedFixturesTests {
         }
     }
 
+    @Test("Duplikaty przy imporcie (ten sam wynik w wersji webowej)")
+    func deduplication() throws {
+        func songs(_ value: Any?) throws -> [Song] {
+            try (try #require(value as? [[String: String]])).map { item in
+                Song(id: try #require(UUID(uuidString: item["id"] ?? "")), title: item["title"] ?? "", author: item["author"] ?? "", rawLyrics: item["rawLyrics"] ?? "")
+            }
+        }
+        for fixture in try Self.load("dedup.json") {
+            let name = fixture["name"] as? String ?? "?"
+            let expected = try #require(fixture["expected"] as? [String: Any])
+            let report = SongDeduplicationService.shared.processAndDeduplicate(incoming: try songs(fixture["incoming"]), existingLibrary: try songs(fixture["existing"]))
+            #expect(report.uniqueSongs.map(\.id.uuidString) == expected["unique"] as? [String], "\(name)")
+            let duplicates = try #require(expected["duplicates"] as? [[String: Any]])
+            #expect(report.duplicateRecords.count == duplicates.count, "\(name)")
+            for (record, wanted) in zip(report.duplicateRecords, duplicates) {
+                #expect(record.primarySong.id.uuidString == wanted["primary"] as? String, "\(name)")
+                #expect(record.duplicateSong.id.uuidString == wanted["duplicate"] as? String, "\(name)")
+                #expect(record.similarityScore == wanted["score"] as? Int, "\(name)")
+                #expect(record.reason == Lnow(try #require(wanted["reason"] as? String), record.similarityScore), "\(name)")
+            }
+            let collisions = try #require(expected["collisions"] as? [[String: Any]])
+            #expect(report.existingCollisions.count == collisions.count, "\(name)")
+            for (record, wanted) in zip(report.existingCollisions, collisions) {
+                #expect(record.primarySong.id.uuidString == wanted["library"] as? String, "\(name)")
+                #expect(record.duplicateSong.id.uuidString == wanted["incoming"] as? String, "\(name)")
+                #expect(record.similarityScore == wanted["score"] as? Int, "\(name)")
+                #expect(record.shouldSkipDuplicate == wanted["skip"] as? Bool, "\(name)")
+            }
+            let defaults = report.songsToCommit(workingSongs: report.uniqueSongs, duplicateSkips: [:], collisionSkips: [:])
+            #expect(defaults.map(\.title) == expected["commit"] as? [String], "\(name)")
+            let none = report.songsToCommit(workingSongs: report.uniqueSongs,
+                                            duplicateSkips: Dictionary(uniqueKeysWithValues: report.duplicateRecords.map { ($0.id, false) }),
+                                            collisionSkips: Dictionary(uniqueKeysWithValues: report.existingCollisions.map { ($0.id, false) }))
+            #expect(none.map(\.title) == expected["commitNothingSkipped"] as? [String], "\(name)")
+        }
+    }
+
     @Test("Transpozycja akordów")
     func transpose() throws {
         for fixture in try Self.load("transpose.json") {

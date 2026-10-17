@@ -12,6 +12,7 @@ import { slideLabel } from "./labels.js";
 import { searchWikisource } from "../core/wikisource.js";
 import { searchURL } from "../core/songselect.js";
 import { qrSVG } from "../core/qr.js";
+import { songsToCommit } from "../core/dedup.js";
 import { request } from "../api.js";
 import { allLogos, logoById, svgDataURL } from "./logos.js";
 import { APP_VERSION } from "../version.js";
@@ -412,6 +413,67 @@ export class AppUI {
       field(t("Chwyty"), chords)],
     buttons);
     title.focus();
+  }
+
+  /**
+   * Przegląd importu jak ImportReviewSheet w macOS: duplikaty wewnątrz importu i pieśni o tym samym tytule
+   * w bibliotece; dla każdej decyzja „pomiń” (domyślnie jak w macOS).
+   * @param {import("../core/dedup.js").ImportReport} report
+   * @param {(songs: Song[]) => void} onCommit
+   */
+  openImportReview(report, onCommit) {
+    /** @type {Map<string, boolean>} */ const duplicateSkips = new Map();
+    /** @type {Map<string, boolean>} */ const collisionSkips = new Map();
+    const commit = () => songsToCommit(report, duplicateSkips, collisionSkips);
+    const countValue = h("div", { class: "metric-value" }, String(commit().length));
+    const importButton = h("button", { class: "primary", onclick: () => { dialog.close(); onCommit(commit()); } }, t("Zaimportuj {0} pieśni", commit().length));
+    const refresh = () => {
+      countValue.textContent = String(commit().length);
+      importButton.textContent = t("Zaimportuj {0} pieśni", commit().length);
+    };
+    const metric = (/** @type {string} */ title, /** @type {string | HTMLElement} */ value, /** @type {string} */ subtitle) =>
+      h("div", { class: "metric" }, h("div", { class: "muted" }, title), typeof value === "string" ? h("div", { class: "metric-value" }, value) : value, h("div", { class: "muted" }, subtitle));
+    const songLine = (/** @type {string} */ label, /** @type {Song} */ song) =>
+      h("div", { class: "review-song" }, h("div", { class: "muted" }, label), h("strong", null, song.title), " · ", h("span", { class: "muted" }, song.author || t("Autor nieznany")));
+    /**
+     * @param {import("../core/dedup.js").DuplicateRecord} record @param {Map<string, boolean>} skips
+     * @param {string} toggleLabel @param {string} primaryLabel @param {(skipped: boolean) => string} secondLabel
+     */
+    const card = (record, skips, toggleLabel, primaryLabel, secondLabel) => {
+      const checkbox = /** @type {HTMLInputElement} */ (h("input", { type: "checkbox" }));
+      checkbox.checked = record.shouldSkipDuplicate;
+      const second = h("div");
+      const render = () => replace(second, songLine(secondLabel(checkbox.checked), record.duplicateSong));
+      checkbox.addEventListener("change", () => { skips.set(record.id, checkbox.checked); render(); refresh(); });
+      render();
+      return h("div", { class: "review-card" },
+        h("div", { class: "review-head" }, h("span", null, record.reason), h("span", { class: "key-badge" }, t("Zgodność: {0}%", record.similarityScore))),
+        h("label", { class: "review-toggle" }, checkbox, " ", toggleLabel),
+        songLine(primaryLabel, record.primarySong), second);
+    };
+    const body = [
+      h("div", { class: "metrics" },
+        metric(t("Wczytano z pliku"), String(report.totalScanned), t("utworów")),
+        metric(t("Wykryte duplikaty"), String(report.duplicateRecords.length), t("pominięte")),
+        metric(t("Do zaimportowania"), countValue, t("unikalnych pieśni")))];
+    if (report.duplicateRecords.length) {
+      body.push(h("h3", null, t("Wykryte duplikaty ({0})", report.duplicateRecords.length)),
+        ...report.duplicateRecords.map((r) => card(r, duplicateSkips, t("Pomiń ten duplikat"), t("Wersja główna (zachowywana):"),
+          (skipped) => skipped ? t("Wersja zduplikowana (pomijana):") : t("Wersja zduplikowana (zostanie dodana):"))));
+    }
+    if (report.existingCollisions.length) {
+      body.push(h("h3", null, t("Kolizje z bazą ({0})", report.existingCollisions.length)),
+        ...report.existingCollisions.map((r) => {
+          const checkbox = /** @type {HTMLInputElement} */ (h("input", { type: "checkbox" }));
+          checkbox.checked = r.shouldSkipDuplicate;
+          checkbox.addEventListener("change", () => { collisionSkips.set(r.id, checkbox.checked); refresh(); });
+          return h("div", { class: "review-card collision" },
+            h("div", { class: "review-head" }, h("span", null, "⚠ ", r.primarySong.title), h("label", { class: "review-toggle" }, checkbox, " ", t("Pomiń (jest w bibliotece)"))),
+            h("div", { class: "muted" }, r.reason));
+        }));
+    }
+    const dialog = this.dialog(t("Podsumowanie importu i deduplikacji pieśni"), body, [h("button", { onclick: () => dialog.close() }, t("Anuluj")), importButton]);
+    dialog.classList.add("wide-dialog");
   }
 
   /** Wikiźródła (domena publiczna i wolne licencje) oraz odnośnik do CCLI SongSelect, jak w macOS. */
