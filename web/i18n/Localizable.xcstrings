@@ -11425,6 +11425,34 @@
         }
       }
     },
+    "Odmówiono dostępu do mikrofonu. Zezwól aplikacjom klasycznym na dostęp do mikrofonu w Ustawieniach systemu Windows → Prywatność i zabezpieczenia → Mikrofon.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone access was denied. Allow desktop apps to access the microphone in Windows Settings → Privacy & security → Microphone."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Zugriff auf das Mikrofon wurde verweigert. Erlaube Desktop-Apps den Mikrofonzugriff unter Windows-Einstellungen → Datenschutz und Sicherheit → Mikrofon."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se denegó el acceso al micrófono. Permite que las aplicaciones de escritorio accedan al micrófono en Configuración de Windows → Privacidad y seguridad → Micrófono."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ до мікрофона заборонено. Дозвольте класичним програмам доступ до мікрофона в Параметрах Windows → Конфіденційність і захист → Мікрофон."
+          }
+        }
+      }
+    },
     "Odmówiono dostępu do mikrofonu. Zezwól na mikrofon dla tej strony w ustawieniach przeglądarki.": {
       "localizations": {
         "en": {
@@ -16129,6 +16157,34 @@
         }
       }
     },
+    "Rozpoznawanie mowy online jest wyłączone w systemie Windows. Włącz je w Ustawieniach systemu Windows → Prywatność i zabezpieczenia → Mowa.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Online speech recognition is turned off in Windows. Turn it on in Windows Settings → Privacy & security → Speech."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Online-Spracherkennung ist in Windows deaktiviert. Aktiviere sie unter Windows-Einstellungen → Datenschutz und Sicherheit → Spracherkennung."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El reconocimiento de voz en línea está desactivado en Windows. Actívalo en Configuración de Windows → Privacidad y seguridad → Voz."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Онлайн-розпізнавання мовлення вимкнено в Windows. Увімкніть його в Параметрах Windows → Конфіденційність і захист → Мовлення."
+          }
+        }
+      }
+    },
     "Rozłącz": {
       "localizations": {
         "en": {
@@ -16909,6 +16965,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Синхронізація та копії в обліковому записі Google Диска"
+          }
+        }
+      }
+    },
+    "System Windows nie rozpoznaje mowy w wybranym języku ({0}). Dodaj ten język w Ustawieniach systemu Windows → Czas i język → Mowa.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows does not recognize speech in the selected language ({0}). Add this language in Windows Settings → Time & language → Speech."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows erkennt keine Sprache in der gewählten Sprache ({0}). Füge diese Sprache unter Windows-Einstellungen → Zeit und Sprache → Spracherkennung hinzu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows no reconoce la voz en el idioma seleccionado ({0}). Añade este idioma en Configuración de Windows → Hora e idioma → Voz."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows не розпізнає мовлення вибраною мовою ({0}). Додайте цю мову в Параметрах Windows → Час і мова → Мовлення."
           }
         }
       }
@@ -19961,6 +20045,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вікіджерела"
+          }
+        }
+      }
+    },
+    "Windows rozpoznaje dyktowany tekst tylko w usłudze online firmy Microsoft. Aby dyktować, wyłącz w Ustawieniach opcję „Rozpoznawaj mowę tylko na tym urządzeniu”.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows recognizes dictated text only through Microsoft's online service. To dictate, turn off “Recognize speech on this device only” in Settings."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows erkennt diktierten Text nur über den Onlinedienst von Microsoft. Um zu diktieren, deaktiviere in den Einstellungen die Option „Sprache nur auf diesem Gerät erkennen“."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows reconoce el texto dictado solo mediante el servicio en línea de Microsoft. Para dictar, desactiva en Ajustes la opción «Reconocer la voz solo en este dispositivo»."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows розпізнає диктований текст лише через онлайн-службу Microsoft. Щоб диктувати, вимкніть у Налаштуваннях опцію «Розпізнавати мовлення лише на цьому пристрої»."
+          }
+        }
+      }
+    },
+    "Windows rozpoznaje dyktowany tekst w usłudze online firmy Microsoft (Ustawienia systemu Windows → Prywatność i zabezpieczenia → Mowa). Przy opcji „tylko na tym urządzeniu” dyktowanie jest wyłączone.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows recognizes dictated text through Microsoft's online service (Windows Settings → Privacy & security → Speech). With “on this device only”, dictation is turned off."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows erkennt diktierten Text über den Onlinedienst von Microsoft (Windows-Einstellungen → Datenschutz und Sicherheit → Spracherkennung). Mit „nur auf diesem Gerät“ ist das Diktieren deaktiviert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows reconoce el texto dictado mediante el servicio en línea de Microsoft (Configuración de Windows → Privacidad y seguridad → Voz). Con «solo en este dispositivo», el dictado está desactivado."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows розпізнає диктований текст через онлайн-службу Microsoft (Параметри Windows → Конфіденційність і захист → Мовлення). З опцією «лише на цьому пристрої» диктування вимкнено."
           }
         }
       }

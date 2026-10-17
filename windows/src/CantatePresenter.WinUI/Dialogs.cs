@@ -81,8 +81,8 @@ public static class Dialogs
         var title = Field("", L("Szybki tekst"));
         var text = Field("", L("Wpisz tekst ogłoszenia lub modlitwy. Pusta linia oddziela slajdy."), multiline: true, height: 200);
         var panel = new StackPanel { Spacing = 10, MinWidth = 480 };
-        panel.Children.Add(Labeled(L("Tytuł (opcjonalnie)"), title));
-        panel.Children.Add(Labeled(L("Tekst"), text));
+        panel.Children.Add(Labeled(L("Tytuł (opcjonalnie)"), Dictation.WithMic(title, DictationMode.Replace)));
+        panel.Children.Add(Labeled(L("Tekst"), Dictation.WithMic(text, DictationMode.AppendNewline)));
         panel.Children.Add(new TextBlock { Text = L("Tekst nie trafia do biblioteki."), Opacity = 0.65, FontSize = 12 });
         var dialog = new ContentDialog { Title = L("Szybki tekst"), Content = panel, PrimaryButtonText = L("Pokaż na ekranie"), CloseButtonText = L("Anuluj"), DefaultButton = ContentDialogButton.Primary };
         text.Loaded += (_, _) => text.Focus(FocusState.Programmatic);
@@ -105,11 +105,11 @@ public static class Dialogs
         row.ColumnDefinitions.Add(new ColumnDefinition());
         row.ColumnDefinitions.Add(new ColumnDefinition());
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
-        var authorField = Labeled(L("Autor / Źródło"), author);
+        var authorField = Labeled(L("Autor / Źródło"), Dictation.WithMic(author, DictationMode.Replace));
         var keyField = Labeled(L("Tonacja (Key)"), key);
         Grid.SetColumn(authorField, 1);
         Grid.SetColumn(keyField, 2);
-        row.Children.Add(Labeled(L("Tytuł pieśni *"), title));
+        row.Children.Add(Labeled(L("Tytuł pieśni *"), Dictation.WithMic(title, DictationMode.Replace)));
         row.Children.Add(authorField);
         row.Children.Add(keyField);
         var rights = new Grid { ColumnSpacing = 10 };
@@ -123,7 +123,7 @@ public static class Dialogs
         panel.Children.Add(row);
         panel.Children.Add(rights);
         panel.Children.Add(Labeled(L("Tagi / Kategorie (rozdzielone przecinkami)"), tags));
-        panel.Children.Add(Labeled(L("Tekst pieśni (pusta linia oddziela slajdy; nagłówki np. [Refren], [Zwrotka 2])"), lyrics));
+        panel.Children.Add(Labeled(L("Tekst pieśni (pusta linia oddziela slajdy; nagłówki np. [Refren], [Zwrotka 2])"), Dictation.WithMic(lyrics, DictationMode.AppendNewline)));
         panel.Children.Add(Labeled(L("Chwyty"), chords));
         var dialog = new ContentDialog
         {
@@ -183,6 +183,18 @@ public static class Dialogs
         uiScale.ValueChanged += (_, e) => uiScaleLabel.Text = L("Skala interfejsu: {0}%", Math.Round(e.NewValue * 100));
         panel.Children.Add(uiScaleLabel);
         panel.Children.Add(uiScale);
+
+        panel.Children.Add(new TextBlock { Text = L("Języki i dyktowanie głosowe"), FontWeight = FontWeights.Bold });
+        var dictationLanguage = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+        foreach (var (code, name, flag) in Dictation.Languages)
+        {
+            dictationLanguage.Items.Add(new ComboBoxItem { Content = $"{flag}  {name}", Tag = code });
+            if (code == s.DictationLanguage) dictationLanguage.SelectedIndex = dictationLanguage.Items.Count - 1;
+        }
+        panel.Children.Add(Labeled(L("Język dyktowania głosem:"), dictationLanguage));
+        var dictationOnDevice = new CheckBox { Content = L("Rozpoznawaj mowę tylko na tym urządzeniu"), IsChecked = s.DictationOnDeviceOnly };
+        panel.Children.Add(dictationOnDevice);
+        panel.Children.Add(new TextBlock { Text = L("Windows rozpoznaje dyktowany tekst w usłudze online firmy Microsoft (Ustawienia systemu Windows → Prywatność i zabezpieczenia → Mowa). Przy opcji „tylko na tym urządzeniu” dyktowanie jest wyłączone."), TextWrapping = TextWrapping.Wrap, Opacity = 0.65, FontSize = 12 });
 
         string[] fonts = ["Segoe UI", "Arial", "Calibri", "Helvetica Neue", "Georgia", "Times New Roman", "Verdana", "Trebuchet MS", "Cambria", "Bahnschrift"];
         var font = new ComboBox { IsEditable = true, HorizontalAlignment = HorizontalAlignment.Stretch, Text = s.FontFamily };
@@ -294,6 +306,8 @@ public static class Dialogs
             settings.CcliLicenseNumber = license.Text.Trim();
             settings.CopyrightNoticePlacement = Tag(placement, settings.CopyrightNoticePlacement);
             settings.AppLanguage = Tag(language, settings.AppLanguage);
+            settings.DictationLanguage = Tag(dictationLanguage, settings.DictationLanguage);
+            settings.DictationOnDeviceOnly = dictationOnDevice.IsChecked == true;
             if (Math.Abs(uiScale.Value - initialScale) > 0.001) settings.UiScale = Math.Round(uiScale.Value, 2);
         });
     }
@@ -372,6 +386,7 @@ public static class Dialogs
         var top = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         query.Width = 380;
         top.Children.Add(query);
+        top.Children.Add(Dictation.Button(query, DictationMode.Replace));
         top.Children.Add(languageBox);
         top.Children.Add(search);
         var body = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };

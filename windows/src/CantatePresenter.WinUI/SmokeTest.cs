@@ -69,6 +69,20 @@ public static class SmokeTest
 
             await RemoteChecks(window, outputDirectory, report, Check);
 
+            // Powiększenie interfejsu: układ dla rozmiaru okna podzielonego przez skalę.
+            window.Zoom(0.25);
+            await Task.Delay(800);
+            var (rootWidth, hostWidth) = window.ScaleWidths;
+            report["zoomWidths"] = $"{rootWidth:0} x {window.UiScale} = {hostWidth:0}";
+            Check("uiZoom", Math.Abs(rootWidth * window.UiScale - hostWidth) < 2 && Math.Abs(window.UiScale - 1.25) < 0.001);
+            await Capture(window.Content as FrameworkElement, Path.Combine(outputDirectory, "9-main-zoom.png"));
+            window.Zoom(0);
+            Check("uiZoomReset", Math.Abs(window.UiScale - 1) < 0.001);
+
+            // Dyktowanie: języki mowy systemu (bez mikrofonu w CI tylko do raportu).
+            report["speechLanguages"] = string.Join(", ", Dictation.SystemLanguages());
+            report["speechPolish"] = Dictation.SupportsLanguage("pl-PL");
+
             window.HandleKey(Windows.System.VirtualKey.B, Core.Input.KeyContext.Presentation);
             Check("blackScreen", library.IsBlackScreen);
             library.StopLive();

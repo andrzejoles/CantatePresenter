@@ -130,6 +130,9 @@ public sealed partial class MainWindow : Window
 
     private Grid? mainGrid;
 
+    /// <summary>Szerokość układu i okna (próba w CI sprawdza skalowanie).</summary>
+    internal (double Root, double Host) ScaleWidths => (root.Width, scaleHost.ActualWidth);
+
     public double UiScale => Math.Clamp(library.Settings.UiScale, 0.7, 2);
 
     private void ApplyScale()
@@ -348,7 +351,7 @@ public sealed partial class MainWindow : Window
         Grid.SetColumn(chordsFilter, 1);
         filters.Children.Add(scopeBox);
         filters.Children.Add(chordsFilter);
-        header.Children.Add(searchBox);
+        header.Children.Add(Dictation.WithMic(searchBox, DictationMode.Replace));
         header.Children.Add(filters);
         Grid.SetRow(header, 1);
         leftPanel.Children.Add(header);
