@@ -4621,6 +4621,34 @@
         }
       }
     },
+    "Dostępna jest nowa wersja {0} (masz {1}).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A new version {0} is available (you have {1})."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine neue Version {0} ist verfügbar (installiert: {1})."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hay una nueva versión {0} disponible (tienes la {1})."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступна нова версія {0} (у вас {1})."
+          }
+        }
+      }
+    },
     "Dostępna próbka bazy Holyrics (.mufl)": {
       "localizations": {
         "en": {
@@ -8989,6 +9017,34 @@
         }
       }
     },
+    "Masz najnowszą wersję ({0}).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have the latest version ({0})."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sie haben die neueste Version ({0})."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tienes la versión más reciente ({0})."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У вас найновіша версія ({0})."
+          }
+        }
+      }
+    },
     "Minimalizuj": {
       "localizations": {
         "en": {
@@ -9937,6 +9993,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не вдається прочитати файл {0}"
+          }
+        }
+      }
+    },
+    "Nie można pobrać uaktualnienia: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot download the update: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Aktualisierung kann nicht heruntergeladen werden: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede descargar la actualización: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося завантажити оновлення: {0}"
+          }
+        }
+      }
+    },
+    "Nie można sprawdzić uaktualnień: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot check for updates: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisierungen können nicht geprüft werden: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pueden buscar actualizaciones: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося перевірити оновлення: {0}"
           }
         }
       }
@@ -12041,6 +12153,34 @@
         }
       }
     },
+    "Otwórz stronę pobierania": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open download page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download-Seite öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir página de descarga"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відкрити сторінку завантаження"
+          }
+        }
+      }
+    },
     "Otwórz źródło": {
       "localizations": {
         "en": {
@@ -13077,6 +13217,34 @@
         }
       }
     },
+    "Pobieranie {0}...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading {0}..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{0} wird heruntergeladen..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargando {0}..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завантаження {0}..."
+          }
+        }
+      }
+    },
     "Pobierz jako plik": {
       "localizations": {
         "en": {
@@ -13101,6 +13269,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Завантажити як файл"
+          }
+        }
+      }
+    },
+    "Pobrany instalator jest niekompletny albo uszkodzony.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The downloaded installer is incomplete or damaged."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das heruntergeladene Installationsprogramm ist unvollständig oder beschädigt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El instalador descargado está incompleto o dañado."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завантажений інсталятор неповний або пошкоджений."
           }
         }
       }
@@ -15933,6 +16129,34 @@
         }
       }
     },
+    "Później": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Später"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más tarde"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пізніше"
+          }
+        }
+      }
+    },
     "Raport użycia: zapisane wyświetlenia: {0}": {
       "localizations": {
         "en": {
@@ -16773,6 +16997,34 @@
         }
       }
     },
+    "Sprawdzaj uaktualnienia przy uruchamianiu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for updates at startup"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beim Start nach Aktualisierungen suchen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar actualizaciones al iniciar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перевіряти оновлення під час запуску"
+          }
+        }
+      }
+    },
     "Sprawdź uaktualnienia...": {
       "localizations": {
         "en": {
@@ -17525,6 +17777,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "ТЕКСТ ПРИХОВАНО"
+          }
+        }
+      }
+    },
+    "Ta kopia nie jest zainstalowana instalatorem, więc pobierz nową wersję ze strony wydania.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This copy was not installed with the installer, so download the new version from the release page."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Kopie wurde nicht mit dem Installationsprogramm installiert. Laden Sie die neue Version von der Release-Seite herunter."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta copia no se instaló con el instalador, así que descarga la nueva versión desde la página de la publicación."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цю копію встановлено не інсталятором, тому завантажте нову версію зі сторінки випуску."
           }
         }
       }
@@ -18757,6 +19037,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Назва:"
+          }
+        }
+      }
+    },
+    "Uaktualnienia": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisierungen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizaciones"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оновлення"
           }
         }
       }
@@ -22569,6 +22877,34 @@
         }
       }
     },
+    "Zainstaluj i uruchom ponownie": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install and restart"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installieren und neu starten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalar y reiniciar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Встановити й перезапустити"
+          }
+        }
+      }
+    },
     "Zainstaluj w Programach": {
       "localizations": {
         "en": {
@@ -23013,6 +23349,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Закрити тестове вікно"
+          }
+        }
+      }
+    },
+    "Zamykanie aplikacji i instalacja...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closing the app and installing..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App wird geschlossen und installiert..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrando la aplicación e instalando..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Закриття програми та встановлення..."
           }
         }
       }

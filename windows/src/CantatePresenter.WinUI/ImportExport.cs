@@ -59,20 +59,6 @@ public static class ImportExport
         return song;
     }
 
-    /// <summary>Te same pieśni (tytuł i tekst bez znaków diakrytycznych i interpunkcji) są pomijane.</summary>
-    public static (List<Song> Unique, int Duplicates) WithoutDuplicates(IEnumerable<Song> imported, IEnumerable<Song> library)
-    {
-        static string Signature(Song s) => TextFold.SearchFold(s.Title) + "\n" + TextFold.SearchFold(s.RawLyrics);
-        var known = library.Select(Signature).ToHashSet();
-        var unique = new List<Song>();
-        var duplicates = 0;
-        foreach (var song in imported)
-        {
-            if (known.Add(Signature(song))) unique.Add(song); else duplicates++;
-        }
-        return (unique, duplicates);
-    }
-
     public static async Task ImportFilesAsync(MainWindow window)
     {
         var files = await PickFilesAsync(window, true, ".txt", ".json", ".pro", ".cho", ".chopro", ".chordpro", ".usr", ".mufl", ".muf", ".hly", ".holyrics", ".zip", ".xml");
@@ -92,9 +78,13 @@ public static class ImportExport
                 unreadable++;
             }
         }
-        var (unique, duplicates) = WithoutDuplicates(imported, Services.Library.Songs);
-        if (unique.Count > 0) Services.Library.AddSongs(unique);
-        var parts = new List<string> { L("Zaimportowano {0} pieśni.", unique.Count) };
+        // Duplikaty i pieśni o tym samym tytule w bibliotece jak w macOS (SongDeduplicationService); przegląd tylko, gdy jest o czym decydować.
+        var report = SongDeduplication.Process(imported, Services.Library.Songs, (key, args) => L(key, args));
+        var toAdd = report.NeedsReview ? await ImportReviewDialog.ShowAsync(window, report) : report.UniqueSongs;
+        if (toAdd is null) return;
+        if (toAdd.Count > 0) Services.Library.AddSongs(toAdd);
+        var duplicates = Math.Max(0, imported.Count - toAdd.Count);
+        var parts = new List<string> { L("Zaimportowano {0} pieśni.", toAdd.Count) };
         if (duplicates > 0) parts.Add(L("Pominięto duplikaty: {0}.", duplicates));
         if (unreadable > 0) parts.Add(L("Nieczytelne pliki: {0}.", unreadable));
         await Dialogs.InfoAsync(window, L("Import/Eksport"), string.Join(" ", parts));

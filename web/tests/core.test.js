@@ -5,10 +5,20 @@ import { foldString, searchFold, songMatches, matchingSnippet, SearchScope } fro
 import { transpose, isChordLine } from "../src/core/chords.js";
 import { linesForSlide, splitConcatenatedChords } from "../src/core/chordsheet.js";
 import { processAndDeduplicate, songsToCommit } from "../src/core/dedup.js";
+import { optimalFontSize } from "../src/core/autofit.js";
 
 test("Wspólne pliki: podział na slajdy", async () => {
   for (const f of await fixture("lyrics.json")) {
     equal(parseLyrics(f.input), f.expected, f.name);
+  }
+});
+
+test("Wspólne pliki: Auto-Fit (stały pomiar szerokości)", async () => {
+  const { cases } = await fixture("autofit.json");
+  /** @param {string} text @param {string} _font @param {number} size */
+  const measure = (text, _font, size) => text.length * size * 0.6;
+  for (const c of cases) {
+    equal(optimalFontSize(c.text, { width: c.width, height: c.height, lineSpacingFactor: c.lineSpacingFactor, marginPercent: c.marginPercent, measure }), c.expected, c.name);
   }
 });
 

@@ -125,5 +125,6 @@ public partial class App : Application
             return;
         }
         if (smokeDirectory is not null) _ = SmokeTest.RunAsync(window, smokeDirectory);
+        else _ = Updater.CheckOnStartAsync(window);
     }
 }

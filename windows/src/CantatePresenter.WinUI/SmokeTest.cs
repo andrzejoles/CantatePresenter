@@ -97,6 +97,35 @@ public static class SmokeTest
             Check("driveDialogClosed", driveDialog.IsCompleted);
             library.UpdateSettings(s => s.GoogleDrive.IsEnabled = false);
 
+            // Przegląd importu: duplikat wewnątrz importu i pieśń o tym samym tytule w bibliotece.
+            var known = library.Songs.First();
+            var reviewReport = Core.Import.SongDeduplication.Process(
+                [Song.Create("Pieśń próbna", "Jan Testowy", rawLyrics: "Pierwsza linia próbnej pieśni\ndruga linia tekstu"),
+                 Song.Create("Pieśń próbna", "", rawLyrics: "Pierwsza linia próbnej pieśni\ndruga linia tekstu"),
+                 Song.Create(known.Title, known.Author, rawLyrics: known.RawLyrics)],
+                library.Songs, (key, args) => Services.L(key, args));
+            var reviewDialog = ImportReviewDialog.ShowAsync(window, reviewReport);
+            await Task.Delay(1200);
+            var reviewPopup = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetOpenPopupsForXamlRoot(window.Content.XamlRoot).FirstOrDefault();
+            await Capture(reviewPopup?.Child as FrameworkElement, Path.Combine(outputDirectory, "11-import-review.png"));
+            Check("importReview", reviewPopup is not null && reviewReport.DuplicateRecords.Count == 1 && reviewReport.ExistingCollisions.Count == 1);
+            (reviewPopup?.Child as Microsoft.UI.Xaml.Controls.ContentDialog)?.Hide();
+            await Task.WhenAny(reviewDialog, Task.Delay(3000));
+            Check("importReviewCancelled", reviewDialog.IsCompleted && reviewDialog.Result is null);
+
+            // Aktualizacje: prawdziwe API GitHub (tylko do raportu, sieć w CI bywa zawodna).
+            try
+            {
+                using var updateHttp = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+                var latest = await Core.Updates.UpdateChecker.LatestAsync(updateHttp);
+                report["latestRelease"] = latest is null ? "brak" : $"{latest.Version} {latest.SetupName} {latest.SetupSize}";
+            }
+            catch (Exception error) when (error is HttpRequestException or TaskCanceledException)
+            {
+                report["latestRelease"] = "błąd: " + error.Message;
+            }
+            report["installed"] = Updater.IsInstalled;
+
             // Dyktowanie: języki mowy systemu (bez mikrofonu w CI tylko do raportu).
             report["speechLanguages"] = string.Join(", ", Dictation.SystemLanguages());
             report["speechPolish"] = Dictation.SupportsLanguage("pl-PL");
