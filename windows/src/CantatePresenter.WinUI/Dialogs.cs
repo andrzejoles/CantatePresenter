@@ -196,6 +196,10 @@ public static class Dialogs
         panel.Children.Add(dictationOnDevice);
         panel.Children.Add(new TextBlock { Text = L("Windows rozpoznaje dyktowany tekst w usłudze online firmy Microsoft (Ustawienia systemu Windows → Prywatność i zabezpieczenia → Mowa). Przy opcji „tylko na tym urządzeniu” dyktowanie jest wyłączone."), TextWrapping = TextWrapping.Wrap, Opacity = 0.65, FontSize = 12 });
 
+        panel.Children.Add(new TextBlock { Text = L("Uaktualnienia"), FontWeight = FontWeights.Bold });
+        var checkUpdates = new CheckBox { Content = L("Sprawdzaj uaktualnienia przy uruchamianiu"), IsChecked = s.CheckForUpdatesAutomatically };
+        panel.Children.Add(checkUpdates);
+
         string[] fonts = ["Segoe UI", "Arial", "Calibri", "Helvetica Neue", "Georgia", "Times New Roman", "Verdana", "Trebuchet MS", "Cambria", "Bahnschrift"];
         var font = new ComboBox { IsEditable = true, HorizontalAlignment = HorizontalAlignment.Stretch, Text = s.FontFamily };
         foreach (var f in fonts) font.Items.Add(f);
@@ -308,6 +312,7 @@ public static class Dialogs
             settings.AppLanguage = Tag(language, settings.AppLanguage);
             settings.DictationLanguage = Tag(dictationLanguage, settings.DictationLanguage);
             settings.DictationOnDeviceOnly = dictationOnDevice.IsChecked == true;
+            settings.CheckForUpdatesAutomatically = checkUpdates.IsChecked == true;
             if (Math.Abs(uiScale.Value - initialScale) > 0.001) settings.UiScale = Math.Round(uiScale.Value, 2);
         });
     }
@@ -319,7 +324,8 @@ public static class Dialogs
         panel.Children.Add(new TextBlock { Text = L("Wersja {0}", Services.Version) + " · Windows" });
         panel.Children.Add(new TextBlock { Text = L("Autor: Andrzej Oles\nOpracowano we współpracy z Claude (Anthropic)"), TextWrapping = TextWrapping.Wrap });
         panel.Children.Add(new TextBlock { Text = Services.Library.DataDirectory, Opacity = 0.6, FontSize = 12, IsTextSelectionEnabled = true, TextWrapping = TextWrapping.Wrap });
-        await ShowAsync(window, new ContentDialog { Title = L("O programie"), Content = panel, CloseButtonText = L("Zamknij") });
+        var dialog = new ContentDialog { Title = L("O programie"), Content = panel, CloseButtonText = L("Zamknij"), SecondaryButtonText = L("Sprawdź uaktualnienia...") };
+        if (await ShowAsync(window, dialog) == ContentDialogResult.Secondary) await Updater.CheckAsync(window, manual: true);
     }
 
     /// <summary>Wikiźródła (domena publiczna i wolne licencje) i odnośnik do CCLI SongSelect, jak w macOS.</summary>

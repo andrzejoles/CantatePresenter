@@ -161,6 +161,15 @@ jobs:
           }
           $shortcut = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\CantatePresenter.lnk"
           if (-not (Test-Path $shortcut)) { throw "Brak skrótu w menu Start" }
+          # Aktualizacja jak z aplikacji (Updater.cs): bez /DIR i /CURRENTUSER, ten sam katalog, nowa wersja startuje sama.
+          $p = Start-Process $setup -ArgumentList "/SILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CLOSEAPPLICATIONS", "/RELAUNCH=1" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Aktualizacja: kod $($p.ExitCode)" }
+          $exe = Join-Path $dir "CantatePresenter.exe"
+          $running = $null
+          for ($i = 0; $i -lt 20 -and -not $running; $i++) { Start-Sleep -Seconds 1; $running = Get-Process CantatePresenter -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $exe } }
+          if (-not $running) { throw "Po aktualizacji aplikacja nie wystartowała z $exe" }
+          $running | Stop-Process -Force
+          Start-Sleep -Seconds 2
           $u = Start-Process (Join-Path $dir "unins000.exe") -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait -PassThru
           if ($u.ExitCode -ne 0) { throw "Odinstalowanie: kod $($u.ExitCode)" }
           # Deinstalator kończy pracę w procesie potomnym; czekamy na usunięcie plików.

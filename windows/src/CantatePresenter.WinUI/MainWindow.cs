@@ -91,6 +91,7 @@ public sealed partial class MainWindow : Window
             RemoteDialog.StopServer();
             presentation.Close();
             musicians?.Close();
+            Updater.LaunchPendingSetup();
         };
         BuildUi();
     }

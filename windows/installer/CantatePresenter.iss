@@ -58,3 +58,11 @@ Name: "{autodesktop}\CantatePresenter"; Filename: "{app}\CantatePresenter.exe"; 
 
 [Run]
 Filename: "{app}\CantatePresenter.exe"; Description: "{cm:LaunchProgram,CantatePresenter}"; Flags: nowait postinstall skipifsilent
+; Aktualizacja z aplikacji (Updater.cs): cicha instalacja z /RELAUNCH=1 uruchamia nową wersję.
+Filename: "{app}\CantatePresenter.exe"; Flags: nowait; Check: ShouldRelaunch
+
+[Code]
+function ShouldRelaunch: Boolean;
+begin
+  Result := WizardSilent and (ExpandConstant('{param:RELAUNCH|0}') = '1');
+end;
