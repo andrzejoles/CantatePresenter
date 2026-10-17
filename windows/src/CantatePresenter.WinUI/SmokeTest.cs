@@ -113,6 +113,19 @@ public static class SmokeTest
             await Task.WhenAny(reviewDialog, Task.Delay(3000));
             Check("importReviewCancelled", reviewDialog.IsCompleted && reviewDialog.Result is null);
 
+            // Aktualizacje: prawdziwe API GitHub (tylko do raportu, sieć w CI bywa zawodna).
+            try
+            {
+                using var updateHttp = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+                var latest = await Core.Updates.UpdateChecker.LatestAsync(updateHttp);
+                report["latestRelease"] = latest is null ? "brak" : $"{latest.Version} {latest.SetupName} {latest.SetupSize}";
+            }
+            catch (Exception error) when (error is HttpRequestException or TaskCanceledException)
+            {
+                report["latestRelease"] = "błąd: " + error.Message;
+            }
+            report["installed"] = Updater.IsInstalled;
+
             // Dyktowanie: języki mowy systemu (bez mikrofonu w CI tylko do raportu).
             report["speechLanguages"] = string.Join(", ", Dictation.SystemLanguages());
             report["speechPolish"] = Dictation.SupportsLanguage("pl-PL");

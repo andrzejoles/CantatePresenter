@@ -58,6 +58,7 @@ public sealed class AppSettings
         json["musicianFontSize"] = Clamp(Json.Number(json["musicianFontSize"]), 30, 14, 80);
         json["musicianTranspose"] = (Json.Int(json["musicianTranspose"]) ?? 0) % 12;
         json["onlineSearchLanguage"] = Json.Str(json["onlineSearchLanguage"], "pl");
+        json["checkForUpdatesAutomatically"] = Json.Bool(json["checkForUpdatesAutomatically"]) ?? true;
         json["dictationLanguage"] = Json.Str(json["dictationLanguage"], "pl-PL");
         json["dictationOnDeviceOnly"] = Json.Bool(json["dictationOnDeviceOnly"]) ?? false;
         var shortcuts = json["shortcuts"] as JsonObject ?? new JsonObject();
@@ -115,6 +116,8 @@ public sealed class AppSettings
 
     public string DictationLanguage { get => Json.Str(json["dictationLanguage"], "pl-PL"); set => json["dictationLanguage"] = value; }
     public bool DictationOnDeviceOnly { get => Json.Bool(json["dictationOnDeviceOnly"]) ?? false; set => json["dictationOnDeviceOnly"] = value; }
+    /// <summary>Tylko Windows (w macOS decyduje Sparkle): sprawdzanie nowej wersji przy starcie.</summary>
+    public bool CheckForUpdatesAutomatically { get => Json.Bool(json["checkForUpdatesAutomatically"]) ?? true; set => json["checkForUpdatesAutomatically"] = value; }
 
     /// <summary>Kopie na Dysku Google (obiekt „googleDrive” jak GoogleDriveSettings w macOS). Tokeny nigdy tu nie trafiają.</summary>
     public GoogleDriveSettings GoogleDrive => new(json["googleDrive"] as JsonObject ?? (JsonObject)(json["googleDrive"] = new JsonObject()));

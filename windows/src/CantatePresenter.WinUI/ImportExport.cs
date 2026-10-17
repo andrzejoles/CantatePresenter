@@ -80,11 +80,11 @@ public static class ImportExport
         }
         // Duplikaty i pieśni o tym samym tytule w bibliotece jak w macOS (SongDeduplicationService); przegląd tylko, gdy jest o czym decydować.
         var report = SongDeduplication.Process(imported, Services.Library.Songs, (key, args) => L(key, args));
-        var songs = report.NeedsReview ? await ImportReviewDialog.ShowAsync(window, report) : report.UniqueSongs;
-        if (songs is null) return;
-        if (songs.Count > 0) Services.Library.AddSongs(songs);
-        var duplicates = Math.Max(0, imported.Count - songs.Count);
-        var parts = new List<string> { L("Zaimportowano {0} pieśni.", songs.Count) };
+        var toAdd = report.NeedsReview ? await ImportReviewDialog.ShowAsync(window, report) : report.UniqueSongs;
+        if (toAdd is null) return;
+        if (toAdd.Count > 0) Services.Library.AddSongs(toAdd);
+        var duplicates = Math.Max(0, imported.Count - toAdd.Count);
+        var parts = new List<string> { L("Zaimportowano {0} pieśni.", toAdd.Count) };
         if (duplicates > 0) parts.Add(L("Pominięto duplikaty: {0}.", duplicates));
         if (unreadable > 0) parts.Add(L("Nieczytelne pliki: {0}.", unreadable));
         await Dialogs.InfoAsync(window, L("Import/Eksport"), string.Join(" ", parts));

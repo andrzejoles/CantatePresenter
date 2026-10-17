@@ -80,7 +80,11 @@ gh release edit vX.Y.Z --draft=false   # publikacja po sprawdzeniu szkicu
   administratora do `%LOCALAPPDATA%\Programs\CantatePresenter`; nowa wersja instaluje się na miejscu starej
   (ten sam `AppId`). Dane w `%APPDATA%\CantatePresenter` zostają po odinstalowaniu.
 - Bez podpisu Authenticode SmartScreen ostrzega przy pierwszym uruchomieniu instalatora („Więcej informacji” →
-  „Uruchom mimo to”). Brak automatycznych aktualizacji w Windows.
+  „Uruchom mimo to”).
+- **Aktualizacje:** zainstalowana aplikacja sprawdza przy starcie `releases/latest` (API GitHub) i proponuje
+  instalator `CantatePresenter-Windows-x64-Setup-<wersja>.exe` z opublikowanego wydania (szkice są pomijane).
+  Pobrany plik musi mieć rozmiar i SHA-256 podane przez GitHub; potem aplikacja się zamyka, a instalator działa
+  w trybie cichym i uruchamia nową wersję. Wystarczy więc opublikować wydanie z instalatorem (`scripts/release.sh`).
 - **Dysk Google:** klient OAuth (ten sam „Aplikacja komputerowa” co w macOS) jest wbudowywany przy budowaniu
   z `google-oauth-client.json` albo `$GOOGLE_OAUTH_CLIENT_JSON`. W CI pochodzi z sekretu repozytorium
   `GOOGLE_OAUTH_CLIENT_JSON` (treść pliku); bez sekretu wydanie Windows ma nieaktywne logowanie Google.
