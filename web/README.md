@@ -16,6 +16,12 @@ więc ta sama biblioteka jest dostępna z każdego komputera po zalogowaniu.
 - Ekran dla muzyków (przycisk „Muzycy”): bieżący i następny slajd z chwytami nad tekstem. Na tym samym komputerze
   otwiera się w osobnym oknie; na tabletach otwórz `https://ADRES/musicians.html` i zaloguj się (stan projekcji
   przychodzi przez serwer). Każde urządzenie ma własną transpozycję i wielkość czcionki.
+- Pilot ze smartfona (przycisk „Pilot”): ta sama strona telefonu co w macOS i Windows (`web/remote_page.html`, kopia
+  `Sources/CantatePresenterCore/Resources/remote_page.html`; test serwera pilnuje zgodności). Telefon otwiera
+  `https://ADRES/remote` z kodu QR i loguje się tym samym kontem (hasło i TOTP, bez tokenu w adresie). Polecenia idą
+  przez serwer do karty, w której włączono pilota (długie odpytywanie `/api/remote/commands`), a karta publikuje stan
+  (`/api/remote/state`); wyszukiwanie działa na serwerze (`server/remote.py`, zgodne z `shared/fixtures/search.json`).
+  Strona telefonu ma własną politykę CSP: tylko jej skrypt i styl (skróty SHA-256).
 
 ## Uruchomienie na serwerze
 

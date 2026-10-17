@@ -11,6 +11,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import appversion  # noqa: E402
 import auth  # noqa: E402
+import remote  # noqa: E402
 import server  # noqa: E402
 from storage import KINDS, Conflict, Storage  # noqa: E402
 
@@ -205,7 +206,7 @@ class ServerTests(unittest.TestCase):
         client = Client(self.port)
         status, _, headers = client.request("GET", "/index.html")
         self.assertEqual(status, 302)
-        self.assertEqual(headers["Location"], "/login.html")
+        self.assertEqual(headers["Location"], "/login.html?next=/index.html")
         self.assertEqual(client.request("GET", "/src/app/main.js")[0], 401)
         self.assertEqual(client.request("GET", "/api/data")[0], 401)
         self.assertEqual(client.request("GET", "/src/i18n.js")[0], 200)
@@ -300,6 +301,60 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(client.request("POST", "/api/live", ["nie", "obiekt"])[0], 400)
         self.assertEqual(client.request("POST", "/api/live", {"pad": "x" * 3_000_000})[0], 400)
 
+    def test_remote_relay(self):
+        """Pilot: telefon i karta operatora tym samym kontem; polecenia przez serwer, stan od operatora."""
+        anonymous = Client(self.port)
+        status, _, headers = anonymous.request("GET", "/remote")
+        self.assertEqual((status, headers["Location"]), (302, "/login.html?next=/remote"))
+        for path in ("/api/state", "/api/search?q=a", "/api/remote/commands?wait=0"):
+            self.assertEqual(anonymous.request("GET", path)[0], 401, path)
+        self.assertEqual(anonymous.request("POST", "/api/command", {"command": "next"})[0], 401)
+
+        operator = Client(self.port)
+        _, codes = self.login(operator)
+        phone = Client(self.port)
+        phone.request("POST", "/api/login", {"username": "ala", "password": PASSWORD})
+        self.assertEqual(phone.request("POST", "/api/login/totp", {"code": codes[0]})[0], 200)
+
+        # Strona telefonu: wspólny plik z macOS, CSP tylko dla jej własnego skryptu i stylu.
+        status, page, headers = phone.request("GET", "/remote")
+        self.assertEqual(status, 200)
+        self.assertTrue(page.startswith(b'<!doctype html>\n<html lang="pl">'))
+        self.assertIn("script-src 'sha256-", headers["Content-Security-Policy"])
+        self.assertNotIn("unsafe-inline", headers["Content-Security-Policy"])
+
+        self.assertEqual(phone.request("GET", "/api/state")[0], 503, "bez karty operatora")
+        self.assertEqual(phone.request("POST", "/api/command", {"command": "next"})[0], 503)
+        state = {"isLive": False, "songTitle": "", "slideIndex": 0, "labels": {"next": "Dalej"}}
+        self.assertEqual(operator.request("POST", "/api/remote/state", state)[0], 200)
+        self.assertEqual(phone.request("GET", "/api/state")[1], state)
+
+        # Polecenie czeka na nowy stan od operatora, który odbiera je długim odpytywaniem.
+        def operate():
+            status, reply, _ = operator.request("GET", "/api/remote/commands?wait=5")
+            self.assertEqual(status, 200)
+            self.assertEqual(reply["commands"], [{"command": "song", "id": "11111111-1111-1111-1111-111111111111"}])
+            self.assertEqual(reply["phones"], 1)
+            operator.request("POST", "/api/remote/state", {**state, "isLive": True, "songTitle": "Pieśń"})
+        worker = threading.Thread(target=operate)
+        worker.start()
+        time.sleep(0.2)
+        self.assertEqual(phone.request("POST", "/api/command", {"command": "song", "id": "11111111-1111-1111-1111-111111111111"}, csrf=False)[0], 403)
+        status, reply, _ = phone.request("POST", "/api/command", {"command": "song", "id": "11111111-1111-1111-1111-111111111111"})
+        worker.join()
+        self.assertEqual((status, reply["isLive"], reply["songTitle"]), (200, True, "Pieśń"))
+        self.assertEqual(phone.request("POST", "/api/command", {"command": "format"})[0], 400)
+
+        # Wyszukiwanie po stronie serwera, w danych biblioteki.
+        operator.request("PUT", "/api/data/songs", [{"id": "A", "title": "Święty dzień", "author": "", "rawLyrics": "Tekst", "slides": [{"text": "Pierwszy wers\ndrugi"}]},
+                                                   {"id": "B", "title": "Inna", "author": "", "rawLyrics": "jest swiety"}], {"If-Match": "0"})
+        status, results, _ = phone.request("GET", "/api/search?q=swiety")
+        self.assertEqual([r["title"] for r in results], ["Święty dzień", "Inna"])
+        self.assertEqual(results[0]["firstLine"], "Pierwszy wers")
+
+        self.assertEqual(operator.request("POST", "/api/remote/stop", {})[0], 200)
+        self.assertEqual(phone.request("GET", "/api/state")[0], 503)
+
     def test_wrong_password_and_lockout(self):
         client = Client(self.port)
         self.assertEqual(client.request("POST", "/api/login", {"username": "nikt", "password": "x"})[0], 401)
@@ -337,3 +392,42 @@ class ServerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RemoteTests(unittest.TestCase):
+    ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+    def test_fold_matches_shared_fixture(self):
+        with open(os.path.join(self.ROOT, "shared", "fixtures", "search.json"), encoding="utf-8") as source:
+            for case in json.load(source):
+                self.assertEqual(remote.fold(case["input"]), case["fold"], case["input"])
+                self.assertEqual(remote.search_fold(case["input"]), case["searchFold"], case["input"])
+
+    def test_page_is_the_shared_file(self):
+        """web/remote_page.html to kopia strony z macOS/Windows (cp Sources/CantatePresenterCore/Resources/remote_page.html web/)."""
+        shared = os.path.join(self.ROOT, "Sources", "CantatePresenterCore", "Resources", "remote_page.html")
+        if not os.path.exists(shared):
+            self.skipTest("bez repozytorium (sam katalog web/)")
+        with open(shared, "rb") as a, open(os.path.join(self.ROOT, "web", "remote_page.html"), "rb") as b:
+            self.assertEqual(a.read(), b.read())
+
+    def test_commands(self):
+        self.assertEqual(remote.validate_command({"command": "next"}), {"command": "next"})
+        self.assertEqual(remote.validate_command({"command": "slide", "index": 2}), {"command": "slide", "index": 2})
+        self.assertIsNone(remote.validate_command({"command": "slide", "index": -1}))
+        self.assertIsNone(remote.validate_command({"command": "slide", "index": True}))
+        self.assertIsNone(remote.validate_command({"command": "song", "id": "x"}))
+        self.assertEqual(remote.validate_command({"command": "song", "id": "11111111-1111-1111-1111-11111111111A"})["id"], "11111111-1111-1111-1111-11111111111a")
+        self.assertIsNone(remote.validate_command(["next"]))
+
+    def test_relay_drops_stale_commands_and_counts_phones(self):
+        relay = remote.RemoteRelay()
+        self.assertIsNone(relay.send("p", {"command": "next"}, wait=0))
+        relay.publish({"isLive": True})
+        self.assertEqual(relay.send("p", {"command": "next"}, wait=0), {"isLive": True})
+        relay.commands[0] = (time.time() - remote.COMMAND_TTL - 1, {"command": "next"})
+        self.assertEqual(relay.take_commands(wait=0), [])
+        self.assertEqual(relay.connected_phones(), 1)
+        self.assertEqual(relay.connected_phones(time.time() + remote.PHONE_WINDOW + 1), 0)
+        relay.stop()
+        self.assertIsNone(relay.phone_state("p"))

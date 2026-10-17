@@ -193,3 +193,9 @@ button.mic.recording { color: var(--live); background: var(--warn-soft); border-
 .logo-choice span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chords-filter { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; font-size: 0.9em; }
 .chords-mark { font-size: 0.85em; }
+.toolbar button.remote-on { background: var(--ok-soft); border-color: var(--ok); }
+.remote-dialog { display: grid; gap: 12px; }
+.remote-toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.remote-code { display: grid; gap: 8px; justify-items: center; text-align: center; }
+.remote-code .qr-box { background: #fff; padding: 10px; border-radius: 8px; line-height: 0; }
+.error-text { color: var(--live); }
