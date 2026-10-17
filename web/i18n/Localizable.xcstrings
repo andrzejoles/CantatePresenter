@@ -1401,6 +1401,34 @@
         }
       }
     },
+    "Bez tej opcji przeglądarka może wysyłać nagranie do swojej usługi rozpoznawania mowy (Chrome: Google, Edge: Microsoft, Safari: Apple). Tylko na urządzeniu działa w nowszych przeglądarkach z pobranym modelem mowy.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Without this option the browser may send the recording to its speech recognition service (Chrome: Google, Edge: Microsoft, Safari: Apple). On-device recognition works in newer browsers with a downloaded speech model."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne diese Option kann der Browser die Aufnahme an seinen Spracherkennungsdienst senden (Chrome: Google, Edge: Microsoft, Safari: Apple). Erkennung nur auf dem Gerät funktioniert in neueren Browsern mit heruntergeladenem Sprachmodell."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin esta opción, el navegador puede enviar la grabación a su servicio de reconocimiento de voz (Chrome: Google, Edge: Microsoft, Safari: Apple). El reconocimiento solo en el dispositivo funciona en navegadores recientes con un modelo de voz descargado."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без цього параметра браузер може надсилати запис до свого сервісу розпізнавання мовлення (Chrome: Google, Edge: Microsoft, Safari: Apple). Розпізнавання лише на пристрої працює в новіших браузерах із завантаженою мовною моделлю."
+          }
+        }
+      }
+    },
     "Bez tytułu": {
       "localizations": {
         "en": {
@@ -1929,6 +1957,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Немає з'єднання із сервером. Екран оновиться після відновлення з'єднання."
+          }
+        }
+      }
+    },
+    "Brak połączenia z usługą rozpoznawania mowy.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection to the speech recognition service."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Verbindung zum Spracherkennungsdienst."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay conexión con el servicio de reconocimiento de voz."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає з’єднання із сервісом розпізнавання мовлення."
           }
         }
       }
@@ -10333,6 +10389,34 @@
         }
       }
     },
+    "Nie znaleziono mikrofonu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No microphone found."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Mikrofon gefunden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encontró ningún micrófono."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мікрофон не знайдено."
+          }
+        }
+      }
+    },
     "Nie znaleziono pieśni": {
       "localizations": {
         "en": {
@@ -11281,6 +11365,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Читання й аналіз бази даних..."
+          }
+        }
+      }
+    },
+    "Odmówiono dostępu do mikrofonu. Zezwól na mikrofon dla tej strony w ustawieniach przeglądarki.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone access was denied. Allow the microphone for this site in the browser settings."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Zugriff auf das Mikrofon wurde verweigert. Erlaube das Mikrofon für diese Seite in den Browsereinstellungen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se denegó el acceso al micrófono. Permite el micrófono para este sitio en la configuración del navegador."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ до мікрофона заборонено. Дозвольте мікрофон для цього сайту в налаштуваннях браузера."
           }
         }
       }
@@ -14841,6 +14953,34 @@
         }
       }
     },
+    "Przeglądarka nie rozpoznaje mowy w wybranym języku.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The browser cannot recognize speech in the selected language."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Browser erkennt keine Sprache in der gewählten Sprache."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El navegador no reconoce la voz en el idioma seleccionado."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Браузер не розпізнає мовлення вибраною мовою."
+          }
+        }
+      }
+    },
     "Przeglądarka zablokowała okno projekcji. Zezwól na wyskakujące okna dla tej strony.": {
       "localizations": {
         "en": {
@@ -15817,6 +15957,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Розпізнавати мовлення лише на цьому Mac"
+          }
+        }
+      }
+    },
+    "Rozpoznawaj mowę tylko na tym urządzeniu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recognize speech on this device only"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprache nur auf diesem Gerät erkennen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconocer la voz solo en este dispositivo"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Розпізнавати мовлення лише на цьому пристрої"
           }
         }
       }
@@ -17105,6 +17273,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "У цій пісні немає акордів. Додайте їх у редакторі."
+          }
+        }
+      }
+    },
+    "Ta przeglądarka nie potrafi rozpoznawać mowy tylko na urządzeniu. Wyłącz tę opcję w Ustawieniach albo użyj nowszej przeglądarki.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This browser cannot recognize speech on the device only. Turn this option off in Settings or use a newer browser."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Browser kann Sprache nicht nur auf dem Gerät erkennen. Schalte diese Option in den Einstellungen aus oder verwende einen neueren Browser."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este navegador no puede reconocer la voz solo en el dispositivo. Desactiva esta opción en Ajustes o usa un navegador más reciente."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цей браузер не вміє розпізнавати мовлення лише на пристрої. Вимкніть цей параметр у Налаштуваннях або скористайтеся новішим браузером."
           }
         }
       }
