@@ -8541,6 +8541,34 @@
         }
       }
     },
+    "Kopie trafiają na Dysk Google Twojego konta. Aplikacja widzi tylko pliki, które sama utworzyła. Dane logowania są w Menedżerze poświadczeń Windows.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backups go to your own Google Drive. The app can only see the files it created itself. The sign-in data is kept in Windows Credential Manager."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherungen landen in deinem eigenen Google Drive. Die App sieht nur Dateien, die sie selbst erstellt hat. Die Anmeldedaten liegen in der Windows-Anmeldeinformationsverwaltung."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las copias se guardan en tu propio Google Drive. La aplicación solo ve los archivos que ella misma creó. Los datos de inicio de sesión se guardan en el Administrador de credenciales de Windows."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Копії зберігаються на вашому Google Диску. Програма бачить лише файли, які створила сама. Дані входу зберігаються в Диспетчері облікових даних Windows."
+          }
+        }
+      }
+    },
     "Kopie zapasowe bazy pieśni i ustawień aplikacji CantatePresenter": {
       "localizations": {
         "en": {
@@ -9965,6 +9993,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не вдається створити запит розпізнавання мовлення."
+          }
+        }
+      }
+    },
+    "Nie można zapisać danych logowania w Menedżerze poświadczeń Windows (kod {0}).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot save the sign-in data in Windows Credential Manager (code {0})."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Anmeldedaten können nicht in der Windows-Anmeldeinformationsverwaltung gespeichert werden (Code {0})."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pueden guardar los datos de inicio de sesión en el Administrador de credenciales de Windows (código {0})."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдається зберегти дані входу в Диспетчері облікових даних Windows (код {0})."
           }
         }
       }
@@ -12989,6 +13045,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Завантаження акордів з інтернету"
+          }
+        }
+      }
+    },
+    "Pobieranie kopii z Dysku Google...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading the backup from Google Drive..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherung wird von Google Drive heruntergeladen..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargando la copia de Google Drive..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завантаження копії з Google Диска..."
           }
         }
       }
@@ -16209,6 +16293,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Від’єднати"
+          }
+        }
+      }
+    },
+    "Rozłączono konto Google. Tokeny usunięto z Menedżera poświadczeń Windows.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google account disconnected. The tokens were removed from Windows Credential Manager."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google-Konto getrennt. Die Tokens wurden aus der Windows-Anmeldeinformationsverwaltung entfernt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta de Google desconectada. Los tokens se eliminaron del Administrador de credenciales de Windows."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обліковий запис Google від'єднано. Токени видалено з Диспетчера облікових даних Windows."
           }
         }
       }

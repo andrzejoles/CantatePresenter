@@ -117,10 +117,16 @@ public static class ImportExport
     {
         var files = await PickFilesAsync(window, false, ".cantatebackup", ".holyricsbackup", ".zip");
         if (files.Count == 0) return;
-        if (!await Dialogs.ConfirmAsync(window, L("Przywrócić kopię? Obecna biblioteka ({0} pieśni) zostanie zastąpiona przez {1} pieśni z kopii. Poprzedni stan można przywrócić przyciskiem „Cofnij ostatnie przywrócenie”.", Services.Library.Songs.Count, SongsInArchive(files[0].Path)))) return;
+        await RestoreArchiveAsync(window, files[0].Path);
+    }
+
+    /// <summary>Przywraca kopię z pliku (wybranego na dysku albo pobranego z Dysku Google) po potwierdzeniu.</summary>
+    public static async Task RestoreArchiveAsync(MainWindow window, string path)
+    {
+        if (!await Dialogs.ConfirmAsync(window, L("Przywrócić kopię? Obecna biblioteka ({0} pieśni) zostanie zastąpiona przez {1} pieśni z kopii. Poprzedni stan można przywrócić przyciskiem „Cofnij ostatnie przywrócenie”.", Services.Library.Songs.Count, SongsInArchive(path)))) return;
         try
         {
-            var result = Backup.Restore(files[0].Path, Services.Library.DataDirectory, (key, args) => L(key, args));
+            var result = Backup.Restore(path, Services.Library.DataDirectory, (key, args) => L(key, args));
             Services.Library.Reload();
             await Dialogs.InfoAsync(window, L("Import/Eksport"), L("Przywrócono kopię: {0} pieśni, {1} planów.", result.SongsCount, result.PlansCount));
         }
