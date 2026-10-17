@@ -1,5 +1,7 @@
 using System.Text.Json;
 using CantatePresenter.Core.Chords;
+using CantatePresenter.Core.Import;
+using CantatePresenter.Core.Models;
 using CantatePresenter.Core.Input;
 using CantatePresenter.Core.Text;
 using Xunit;
@@ -35,6 +37,35 @@ public class SharedFixtureTests
         {
             Assert.Equal(f.Str("fold"), TextFold.Fold(f.Str("input")));
             Assert.Equal(f.Str("searchFold"), TextFold.SearchFold(f.Str("input")));
+        }
+    }
+
+    [Fact]
+    public void Deduplication()
+    {
+        static string Format(string key, object[] args) => args.Select((a, i) => (a, i)).Aggregate(key, (text, p) => text.Replace($"{{{p.i}}}", p.a.ToString()));
+        static List<Song> Songs(JsonElement list) => list.EnumerateArray().Select(s =>
+        {
+            var song = Song.Create(s.Str("title")!, s.Str("author") ?? "", rawLyrics: s.Str("rawLyrics") ?? "");
+            song.Id = s.Str("id")!;
+            return song;
+        }).ToList();
+        foreach (var f in Fixtures.Load("dedup.json").EnumerateArray())
+        {
+            var name = f.Str("name");
+            var e = f.GetProperty("expected");
+            var report = SongDeduplication.Process(Songs(f.GetProperty("incoming")), Songs(f.GetProperty("existing")), Format);
+            Assert.True(e.GetProperty("unique").EnumerateArray().Select(x => x.GetString()).SequenceEqual(report.UniqueSongs.Select(s => s.Id)), $"{name}: unikalne");
+            Assert.Equal(
+                e.GetProperty("duplicates").EnumerateArray().Select(d => (d.Str("primary"), d.Str("duplicate"), d.GetProperty("score").GetInt32(), Format(d.Str("reason")!, [d.GetProperty("score").GetInt32()]))).ToList(),
+                report.DuplicateRecords.Select(r => ((string?)r.PrimarySong.Id, (string?)r.DuplicateSong.Id, r.SimilarityScore, r.Reason)).ToList());
+            Assert.Equal(
+                e.GetProperty("collisions").EnumerateArray().Select(c => (c.Str("library"), c.Str("incoming"), c.GetProperty("score").GetInt32(), c.GetProperty("skip").GetBoolean(), Format(c.Str("reason")!, [c.GetProperty("score").GetInt32()]))).ToList(),
+                report.ExistingCollisions.Select(r => ((string?)r.PrimarySong.Id, (string?)r.DuplicateSong.Id, r.SimilarityScore, r.ShouldSkipDuplicate, r.Reason)).ToList());
+            Assert.Equal(e.GetProperty("commit").EnumerateArray().Select(x => x.GetString()!).ToList(), SongDeduplication.SongsToCommit(report).Select(s => s.Title).ToList());
+            var none = (IEnumerable<DuplicateRecord> records) => records.ToDictionary(r => r.Id, _ => false);
+            Assert.Equal(e.GetProperty("commitNothingSkipped").EnumerateArray().Select(x => x.GetString()!).ToList(),
+                SongDeduplication.SongsToCommit(report, none(report.DuplicateRecords), none(report.ExistingCollisions)).Select(s => s.Title).ToList());
         }
     }
 
