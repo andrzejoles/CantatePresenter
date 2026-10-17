@@ -53,6 +53,8 @@ for _ in range(100):
         time.sleep(0.05)
 base = f"{'https' if TLS else 'http'}://127.0.0.1:{port}"
 browser = Browser(extra_args=("--ignore-certificate-errors",) if TLS else ())
+# Dyktowanie: przeglądarka bez okna nie ma mikrofonu, więc rozpoznawanie mowy jest podstawione (zwraca stały tekst).
+browser.call("Page.addScriptToEvaluateOnNewDocument", source="window.SpeechRecognition = class { start() { window.__dictationLang = this.lang; setTimeout(() => { this.onresult?.({ results: [[{ transcript: 'ocalił' }]] }); setTimeout(() => this.onend?.(), 50); }, 50); } stop() { this.onend?.(); } abort() { this.onend?.(); } };")
 failures = []
 
 
@@ -134,6 +136,14 @@ try:
     check("Esc wychodzi z pola wyszukiwania", browser.evaluate("document.activeElement?.id") != "search")
     browser.key("Escape", "Escape")
     check("Esc poza polem kończy projekcję", not browser.evaluate("document.querySelector('.live-head .pill').classList.contains('on')"))
+
+    browser.evaluate("(() => { const i = document.getElementById('search'); i.value = ''; i.dispatchEvent(new Event('input')); })()")
+    browser.click(".search-row button.mic")
+    browser.wait_for("document.getElementById('search').value === 'ocalił'")
+    time.sleep(0.2)
+    check("dyktowanie do wyszukiwania (język z ustawień)", count(".song-row") == 1 and browser.evaluate("window.__dictationLang") == "pl-PL")
+    check("dyktowanie: przycisk wraca po zakończeniu", browser.evaluate("!document.querySelector('.search-row button.mic').classList.contains('recording')"))
+    browser.evaluate("(() => { const i = document.getElementById('search'); i.value = ''; i.dispatchEvent(new Event('input')); })()")
 
     browser.click(".tabs button:nth-child(2)")
     browser.wait_for("document.querySelectorAll('.plan-item').length > 0")

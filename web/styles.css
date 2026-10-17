@@ -169,6 +169,11 @@ dialog.wide-dialog { width: min(1100px, 96vw); }
 .review-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; font-weight: 600; flex-wrap: wrap; }
 .review-toggle { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 .review-song { overflow-wrap: anywhere; }
+button.mic { padding: 2px 7px; border-color: transparent; background: transparent; }
+button.mic.recording { color: var(--live); background: var(--warn-soft); border-color: var(--live); font-weight: 600; }
+.with-mic { display: flex; gap: 4px; align-items: center; }
+.with-mic > input { flex: 1; min-width: 0; }
+.field > span button.mic { margin-left: 6px; }
 .review-card.collision { background: color-mix(in srgb, #f5c400 8%, var(--card)); }
 .online-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 12px; min-height: 340px; }
 .online-results { display: flex; flex-direction: column; gap: 6px; overflow: auto; max-height: 52vh; }
