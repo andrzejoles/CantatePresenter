@@ -24,8 +24,6 @@ public static class Labels
 /// <summary>Okna dialogowe (ContentDialog). Gdy któreś jest otwarte, skróty prezentacji nie działają (jak arkusze w macOS).</summary>
 public static class Dialogs
 {
-    private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(15) };
-
     public static async Task<ContentDialogResult> ShowAsync(MainWindow window, ContentDialog dialog)
     {
         dialog.XamlRoot = window.Content.XamlRoot;
@@ -141,101 +139,5 @@ public static class Dialogs
         panel.Children.Add(new TextBlock { Text = Services.Library.DataDirectory, Opacity = 0.6, FontSize = 12, IsTextSelectionEnabled = true, TextWrapping = TextWrapping.Wrap });
         var dialog = new ContentDialog { Title = L("O programie"), Content = panel, CloseButtonText = L("Zamknij"), SecondaryButtonText = L("Sprawdź uaktualnienia...") };
         if (await ShowAsync(window, dialog) == ContentDialogResult.Secondary) await Updater.CheckAsync(window, manual: true);
-    }
-
-    /// <summary>Wikiźródła (domena publiczna i wolne licencje) i odnośnik do CCLI SongSelect, jak w macOS.</summary>
-    public static async Task OnlineSearchAsync(MainWindow window)
-    {
-        var library = Services.Library;
-        var query = Field("", L("Wpisz tytuł lub słowa pieśni (np. Kiedy ranne wstają zorze)..."));
-        var languageBox = new ComboBox { MinWidth = 140 };
-        foreach (var (code, name) in new[] { ("pl", "Polski"), ("en", "English"), ("de", "Deutsch"), ("es", "Español"), ("uk", "Українська"), ("la", "Latina") })
-        {
-            languageBox.Items.Add(new ComboBoxItem { Content = name, Tag = code });
-            if (code == library.Settings.OnlineSearchLanguage) languageBox.SelectedIndex = languageBox.Items.Count - 1;
-        }
-        var search = new Button { Content = L("Szukaj"), Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
-        var status = new TextBlock { Opacity = 0.7 };
-        var results = new ListView { Height = 300, Width = 320, SelectionMode = ListViewSelectionMode.Single };
-        var titleBox = Field("");
-        var authorBox = Field("");
-        var source = new HyperlinkButton { Content = L("Otwórz źródło") };
-        var license = new TextBlock { Opacity = 0.7, FontSize = 12 };
-        var lyrics = new TextBlock { TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true };
-        var preview = new StackPanel { Spacing = 6, Width = 380 };
-        preview.Children.Add(Labeled(L("Tytuł:"), titleBox));
-        preview.Children.Add(Labeled(L("Autor:"), authorBox));
-        preview.Children.Add(license);
-        preview.Children.Add(source);
-        preview.Children.Add(new ScrollViewer { Content = lyrics, Height = 170 });
-        preview.Visibility = Visibility.Collapsed;
-        List<WikisourceResult> found = [];
-        string LicenseLabel(string code) => code == "publicDomain" ? L("Domena publiczna") : code == "ccBySA" ? "CC BY-SA" : L("Licencja: zobacz stronę źródła");
-
-        async Task Run()
-        {
-            var text = query.Text.Trim();
-            if (text.Length == 0) return;
-            var language = (languageBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "pl";
-            library.UpdateSettings(s => s.OnlineSearchLanguage = language);
-            status.Text = L("Przeszukiwanie Wikiźródeł...");
-            results.Items.Clear();
-            try
-            {
-                found = await Wikisource.SearchAsync(Http, text, language, Services.Version);
-            }
-            catch (Exception error) when (error is HttpRequestException or TaskCanceledException)
-            {
-                status.Text = L("Błąd połączenia: {0}", error.Message);
-                return;
-            }
-            status.Text = found.Count == 0 ? L("Nie znaleziono pieśni dla podanej frazy") : "";
-            foreach (var result in found) results.Items.Add(new ListViewItem { Content = $"{result.Title}\n{result.Author}", Tag = result });
-        }
-        search.Click += async (_, _) => await Run();
-        query.KeyDown += async (_, e) => { if (e.Key == Windows.System.VirtualKey.Enter) await Run(); };
-        results.SelectionChanged += (_, _) =>
-        {
-            if ((results.SelectedItem as ListViewItem)?.Tag is not WikisourceResult result) return;
-            titleBox.Text = result.Title;
-            authorBox.Text = result.Author;
-            license.Text = $"{L("Wikiźródła")} · {LicenseLabel(result.License)}";
-            source.NavigateUri = new Uri(result.Url);
-            lyrics.Text = result.Lyrics;
-            preview.Visibility = Visibility.Visible;
-        };
-        var top = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        query.Width = 380;
-        top.Children.Add(query);
-        top.Children.Add(Dictation.Button(query, DictationMode.Replace));
-        top.Children.Add(languageBox);
-        top.Children.Add(search);
-        var body = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
-        body.Children.Add(results);
-        body.Children.Add(preview);
-        var songSelect = new HyperlinkButton { Content = L("Szukaj w SongSelect") };
-        songSelect.Click += (_, _) => songSelect.NavigateUri = new Uri(Core.Import.SongSelectImporter.SearchUrl(query.Text.Trim()));
-        var panel = new StackPanel { Spacing = 10 };
-        panel.Children.Add(top);
-        panel.Children.Add(new TextBlock { Text = L("Źródło: Wikiźródła. Tradycyjne pieśni w domenie publicznej lub na wolnej licencji; adres strony zostaje zapisany w pieśni."), TextWrapping = TextWrapping.Wrap, Opacity = 0.65, FontSize = 12 });
-        panel.Children.Add(status);
-        panel.Children.Add(body);
-        panel.Children.Add(songSelect);
-        var dialog = new ContentDialog
-        {
-            Title = L("Wyszukiwanie pieśni religijnych w internecie"),
-            Content = panel,
-            PrimaryButtonText = L("Importuj do programu"),
-            CloseButtonText = L("Zamknij"),
-            DefaultButton = ContentDialogButton.None,
-        };
-        dialog.Resources["ContentDialogMaxWidth"] = 900.0;
-        if (await ShowAsync(window, dialog) != ContentDialogResult.Primary) return;
-        if ((results.SelectedItem as ListViewItem)?.Tag is not WikisourceResult chosen) return;
-        var song = Song.Create(titleBox.Text.Trim().Length > 0 ? titleBox.Text.Trim() : chosen.Title,
-            authorBox.Text.Trim().Length > 0 ? authorBox.Text.Trim() : L("Nieznany"), tags: [L("Wikiźródła")], rawLyrics: chosen.Lyrics);
-        song.Source = chosen.Url;
-        song.Copyright = LicenseLabel(chosen.License);
-        library.AddSong(song);
     }
 }

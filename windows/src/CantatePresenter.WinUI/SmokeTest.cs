@@ -129,6 +129,8 @@ public static class SmokeTest
             await DialogShot("settingsDialog", "12-settings.png", () => SettingsDialog.ShowAsync(window), 2500);
             await DialogShot("editorDialog", "13-editor.png", () => SongEditorDialog.ShowAsync(window, song));
             await DialogShot("chordsDialog", "14-chords.png", () => ChordsDialog.ShowAsync(window, song, (_, _) => { }));
+            await DialogShot("importExportDialog", "19-import-export.png", () => ImportExportDialog.ShowAsync(window));
+            await DialogShot("onlineDialog", "20-online.png", () => OnlineSearchDialog.ShowAsync(window));
             await DialogShot("quickTextDialog", "15-quick-text.png", () => Dialogs.QuickTextAsync(window));
             await DialogShot("lookupDialog", "16-lookup.png", () => AuthorTitleLookupDialog.ShowAsync(window, library.Songs.First(s => s.Title.StartsWith("Kiedy", StringComparison.Ordinal))), 5000);
             Check("chordsCatalog", Core.Chords.ChordsCatalog.Search("Barka").Count > 0);

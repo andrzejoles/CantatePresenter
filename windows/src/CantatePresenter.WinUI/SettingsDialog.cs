@@ -72,6 +72,8 @@ public static class SettingsDialog
         ("Ctrl+F", L("Szukaj pieśni (Enter: wybór pierwszego wyniku)")),
         ("Ctrl+T", L("Szybki tekst na żywo")),
         ("Ctrl+E", L("Edycja zaznaczonej pieśni")),
+        ("Ctrl+I", L("Import pieśni")),
+        ("Ctrl+B", L("Utwórz pełną kopię zapasową")),
         ("Ctrl+ / Ctrl− / Ctrl+0", L("Powiększenie / pomniejszenie / domyślna skala interfejsu")),
         ("F1", L("Instrukcja obsługi")),
     ];

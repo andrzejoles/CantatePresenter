@@ -32,7 +32,7 @@ public sealed partial class MainWindow : Window
     private TextBlock? zoomLabel;
     private readonly Grid leftPanel = new();
     private readonly Grid middlePanel = new();
-    private readonly StackPanel rightPanel = new() { Spacing = 14, Padding = new Thickness(14) };
+    private readonly StackPanel rightPanel = new() { Padding = new Thickness(14) };
     private ShortcutBar? shortcutBar;
     internal bool DialogOpen;
     private bool exitBackupDone;
@@ -297,7 +297,7 @@ public sealed partial class MainWindow : Window
         editButton = Action(Glyphs.Edit, L("Edytuj"), async (_, _) => { if (library.SelectedSong is Song s && s != library.TemporarySong) await EditSongAsync(s); }, Lw("Edytuj wybraną pieśń (podwójny klik lub ⌘E)"));
         Action(Glyphs.ImportExport, L("Import/Eksport"), async (_, _) => await ImportExportDialog.ShowAsync(this));
         Action(Glyphs.Contact, L("Tytuł/Autor"), async (_, _) => await AuthorTitleLookupDialog.ShowAsync(this, library.SelectedSong), L("Wyszukiwarka tytułu i autora (dla zaznaczonej lub dla wszystkich)"));
-        Action(Glyphs.Globe, L("Online"), async (_, _) => await Dialogs.OnlineSearchAsync(this), L("Wyszukiwanie pieśni religijnych w internecie"));
+        Action(Glyphs.Globe, L("Online"), async (_, _) => await OnlineSearchDialog.ShowAsync(this), L("Wyszukiwanie pieśni religijnych w internecie"));
         musiciansButton = Action(Glyphs.Music, L("Muzycy"), (_, _) => ToggleMusicians(), L("Ekran dla muzyków: bieżący slajd z chwytami (okno na osobny monitor)"));
         remoteButton = Action(Glyphs.Phone, L("Pilot"), async (_, _) => await RemoteDialog.ShowAsync(this), L("Pilot ze smartfona"));
         left.Children.Add(actions);
@@ -494,7 +494,7 @@ public sealed partial class MainWindow : Window
     private async void OnPreviewKeyDown(object sender, KeyRoutedEventArgs e)
     {
         if (DialogOpen) return;
-        // Skróty okna (w macOS z menu): Ctrl+E edycja, Ctrl+F szukaj, F1 instrukcja.
+        // Skróty okna (w macOS z menu): Ctrl+E edycja, Ctrl+F szukaj, Ctrl+I import, Ctrl+B kopia, F1 instrukcja.
         if (ControlDown && e.Key == VirtualKey.E)
         {
             e.Handled = true;
@@ -505,6 +505,18 @@ public sealed partial class MainWindow : Window
         {
             e.Handled = true;
             FocusSearch();
+            return;
+        }
+        if (ControlDown && e.Key == VirtualKey.I)
+        {
+            e.Handled = true;
+            await ImportExportDialog.ShowAsync(this, startTab: 1);
+            return;
+        }
+        if (ControlDown && e.Key == VirtualKey.B)
+        {
+            e.Handled = true;
+            await ImportExport.CreateBackupAsync(this);
             return;
         }
         if (e.Key == VirtualKey.F1)

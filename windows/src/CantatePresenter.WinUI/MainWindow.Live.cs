@@ -23,18 +23,6 @@ public sealed partial class MainWindow
     private Border? nextLabel;
     private StackPanel? nextPlaceholder;
 
-    /// <summary>Stała ramka podglądu odłączona od panelu z poprzedniego rysowania (element ma tylko jednego rodzica).</summary>
-    private static T Detached<T>(T element) where T : FrameworkElement
-    {
-        switch (element.Parent)
-        {
-            case Panel panel: panel.Children.Remove(element); break;
-            case Border border: border.Child = null; break;
-            case ContentControl control: control.Content = null; break;
-        }
-        return element;
-    }
-
     private Size TargetSize()
     {
         if (presentation.IsOpen && !presentation.IsWindowed) return presentation.TargetSize;
@@ -65,13 +53,20 @@ public sealed partial class MainWindow
     private void RenderRight()
     {
         rightPanel.Children.Clear();
+        // Odstępy jak w macOS: 6 w sekcji, 14 między sekcjami. Stałe ramki podglądów idą prosto do panelu,
+        // który jest czyszczony w całości (element XAML może mieć tylko jednego rodzica).
+        void Add(FrameworkElement element, double top)
+        {
+            element.Margin = new Thickness(0, rightPanel.Children.Count == 0 ? 0 : top, 0, 0);
+            rightPanel.Children.Add(element);
+        }
         var target = TargetSize();
         var ratio = AspectRatio(target);
         var width = rightPanelWidth > 0 ? Math.Clamp(rightPanelWidth - 30, 200, 640) : 320.0;
         var height = width * target.Height / target.Width;
 
         // MARK: Ekran na żywo
-        var live = new StackPanel { Spacing = 6 };
+
         UIElement state;
         if (library.IsLive)
         {
@@ -84,7 +79,7 @@ public sealed partial class MainWindow
         {
             state = Ui.MutedBadge(L("OFF AIR"), 11);
         }
-        live.Children.Add(SectionHead(Glyphs.Monitor, L("Ekran na żywo"), ratio, state));
+        Add(SectionHead(Glyphs.Monitor, L("Ekran na żywo"), ratio, state), 0);
 
         livePreview.Width = width;
         livePreview.Height = height;
@@ -102,14 +97,13 @@ public sealed partial class MainWindow
         liveOverlay.Foreground = library.IsBlackScreen ? Ui.Brush(Colors.White, 0.5) : Ui.Brush(SlideView.ParseColor(library.Settings.TextColorHex, Colors.White), 0.4);
         liveFrameBorder!.BorderBrush = library.IsLive ? Ui.Brush(Ui.Red, 0.8) : Ui.Brush(Ui.Gray, 0.35);
         liveFrameBorder.BorderThickness = new Thickness(library.IsLive ? 2 : 1);
-        live.Children.Add(Detached(liveFrameBorder));
+        Add(liveFrameBorder, 6);
         if (library.IsLive && library.ActiveSong is Song activeSong)
         {
             var songLine = new TextBlock { Text = activeSong.Title, FontSize = 12, FontWeight = FontWeights.Medium, TextTrimming = TextTrimming.CharacterEllipsis, MaxLines = 1 };
             var slideLine = new TextBlock { Text = L("Slajd {0}/{1}", library.ActiveSlideIndex + 1, activeSong.Slides.Count), FontSize = 12, Foreground = Ui.Secondary };
-            live.Children.Add(Ui.Columns(8, (songLine, -1), (slideLine, 0)));
+            Add(Ui.Columns(8, (songLine, -1), (slideLine, 0)), 6);
         }
-        rightPanel.Children.Add(live);
 
         // MARK: Sterowanie
         var controls = new Grid { ColumnSpacing = 8, RowSpacing = 8 };
@@ -156,14 +150,13 @@ public sealed partial class MainWindow
             ToolTipService.SetToolTip(resume, tip);
             Ui.AutomationName(resume, tip);
         }
-        rightPanel.Children.Add(controls);
-        rightPanel.Children.Add(Ui.Divider());
+        Add(controls, 14);
+        Add(Ui.Divider(), 16);
 
         // MARK: Podgląd następnego slajdu
         var next = library.IsLive ? library.NextSlidePreview : null;
-        var nextSection = new StackPanel { Spacing = 6 };
         UIElement nextState = next is null ? Ui.MutedBadge(L("KONIEC"), 11) : Ui.Badge(L("NASTĘPNY"), Ui.Orange, 11);
-        nextSection.Children.Add(SectionHead(Glyphs.Next, L("Podgląd następnego slajdu"), ratio, nextState));
+        Add(SectionHead(Glyphs.Next, L("Podgląd następnego slajdu"), ratio, nextState), 16);
         if (nextFrame is null)
         {
             nextLabel = new Border
@@ -209,16 +202,15 @@ public sealed partial class MainWindow
             nextPreview.Height = height;
             nextPreview.Render(ScreenState.FromLibrary(dimmed: true, textOverride: next.Text), target);
         }
-        nextSection.Children.Add(Detached(nextFrameBorder!));
+        Add(nextFrameBorder!, 6);
         if (next is not null)
         {
             var lines = next.Text.Split('\n').Length;
-            nextSection.Children.Add(Ui.Columns(8,
+            Add(Ui.Columns(8,
                 (new TextBlock { Text = L("Następny: {0}", Labels.Slide(next)), FontSize = 12, FontWeight = FontWeights.Medium, Foreground = Ui.Secondary, TextTrimming = TextTrimming.CharacterEllipsis }, -1),
-                (new TextBlock { Text = L("{0} linie", lines), FontSize = 11, Foreground = Ui.Secondary }, 0)));
+                (new TextBlock { Text = L("{0} linie", lines), FontSize = 11, Foreground = Ui.Secondary }, 0)), 6);
         }
-        rightPanel.Children.Add(nextSection);
-        rightPanel.Children.Add(Ui.Divider());
+        Add(Ui.Divider(), 16);
 
         // MARK: Ekrany i projektor
         var screensSection = new StackPanel { Spacing = 8 };
@@ -257,6 +249,6 @@ public sealed partial class MainWindow
         };
         test.Click += (_, _) => ToggleTestWindow();
         screensSection.Children.Add(test);
-        rightPanel.Children.Add(screensSection);
+        Add(screensSection, 16);
     }
 }
