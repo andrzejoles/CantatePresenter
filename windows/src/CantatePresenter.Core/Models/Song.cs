@@ -35,6 +35,10 @@ public sealed class Song
     public List<string> Tags { get; set; } = [];
     public string RawLyrics { get; set; } = "";
     public string? Chords { get; set; }
+
+    /// <summary>Pieśń ma arkusz chwytów (pusty albo same spacje się nie liczy), jak Song.hasChords w macOS.</summary>
+    public bool HasChords => !string.IsNullOrWhiteSpace(Chords);
+
     public List<SongSlide> Slides { get; set; } = [];
     public string CreatedAt { get; set; } = Json.IsoDate();
     public string UpdatedAt { get; set; } = Json.IsoDate();

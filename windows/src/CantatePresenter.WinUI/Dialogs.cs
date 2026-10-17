@@ -176,6 +176,14 @@ public static class Dialogs
         }
         panel.Children.Add(Labeled(L("Język interfejsu"), language));
 
+        // Skala interfejsu jak suwak w macOS (0,8–1,5); Ctrl +/− i A−/A+ na pasku pozwalają wyjść poza ten zakres.
+        var initialScale = Math.Clamp(s.UiScale, 0.8, 1.5);
+        var uiScale = new Slider { Minimum = 0.8, Maximum = 1.5, StepFrequency = 0.05, Value = initialScale };
+        var uiScaleLabel = new TextBlock { Text = L("Skala interfejsu: {0}%", Math.Round(s.UiScale * 100)), FontWeight = FontWeights.SemiBold, FontSize = 12 };
+        uiScale.ValueChanged += (_, e) => uiScaleLabel.Text = L("Skala interfejsu: {0}%", Math.Round(e.NewValue * 100));
+        panel.Children.Add(uiScaleLabel);
+        panel.Children.Add(uiScale);
+
         string[] fonts = ["Segoe UI", "Arial", "Calibri", "Helvetica Neue", "Georgia", "Times New Roman", "Verdana", "Trebuchet MS", "Cambria", "Bahnschrift"];
         var font = new ComboBox { IsEditable = true, HorizontalAlignment = HorizontalAlignment.Stretch, Text = s.FontFamily };
         foreach (var f in fonts) font.Items.Add(f);
@@ -286,6 +294,7 @@ public static class Dialogs
             settings.CcliLicenseNumber = license.Text.Trim();
             settings.CopyrightNoticePlacement = Tag(placement, settings.CopyrightNoticePlacement);
             settings.AppLanguage = Tag(language, settings.AppLanguage);
+            if (Math.Abs(uiScale.Value - initialScale) > 0.001) settings.UiScale = Math.Round(uiScale.Value, 2);
         });
     }
 
