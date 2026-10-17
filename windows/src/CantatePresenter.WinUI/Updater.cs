@@ -92,7 +92,7 @@ public static class Updater
         };
         dialog.Resources["ContentDialogMaxWidth"] = 640.0;
         var downloading = false;
-        dialog.PrimaryButtonClick += async (_, e) =>
+        dialog.PrimaryButtonClick += async (sender, e) =>
         {
             if (!IsInstalled)
             {
