@@ -17,6 +17,17 @@ public sealed class TempDirectory : IDisposable
 public class LibraryTests
 {
     [Fact]
+    public void HasChordsOnlyForNonEmptySheet()
+    {
+        var song = Song.Create("A", rawLyrics: "x");
+        Assert.False(song.HasChords);
+        song.Chords = "  \n ";
+        Assert.False(song.HasChords);
+        song.Chords = "G  D\nTekst";
+        Assert.True(song.HasChords);
+    }
+
+    [Fact]
     public void FirstRunCreatesSamplesAndCurrentSchema()
     {
         using var dir = new TempDirectory();

@@ -29,6 +29,7 @@ public sealed class SongRow
     public string Subtitle { get; set; } = "";
     public string Info { get; set; } = "";
     public string Snippet { get; set; } = "";
+    public Visibility GuitarVisibility { get; set; } = Visibility.Collapsed;
     public Visibility SnippetVisibility => Snippet.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
 }
 
@@ -42,6 +43,11 @@ public sealed partial class MainWindow : Window
     private readonly PresentationWindow presentation = new();
     private MusiciansWindow? musicians;
     private readonly Grid root = new();
+    // Powiększenie interfejsu (uiScale, jak w macOS): układ liczony dla rozmiaru okna podzielonego przez skalę
+    // i powiększany przez Viewbox, więc wszystko (tekst, przyciski, odstępy) rośnie razem.
+    private readonly Grid scaleHost = new();
+    private readonly Viewbox scaleBox = new() { Stretch = Stretch.Fill };
+    private TextBlock? zoomLabel;
     private readonly Grid leftPanel = new();
     private readonly Grid middlePanel = new();
     private readonly StackPanel rightPanel = new() { Spacing = 10, Padding = new Thickness(12) };
@@ -51,21 +57,35 @@ public sealed partial class MainWindow : Window
     private TextBox? searchBox;
     private string query = "";
     private SearchScope scope = SearchScope.All;
+    private bool onlyWithChords;
     private bool showingPlan;
     private bool showChords;
     private int chordsTranspose;
     internal bool DialogOpen;
+    private bool exitBackupDone;
 
     public MainWindow()
     {
         Title = L("CantatePresenter — Prezenter Pieśni & Słowa");
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico"));
         AppWindow.Resize(new Windows.Graphics.SizeInt32(1500, 920));
-        Content = root;
+        scaleBox.Child = root;
+        scaleHost.Children.Add(scaleBox);
+        scaleHost.SizeChanged += (_, _) => ApplyScale();
+        Content = scaleHost;
         root.PreviewKeyDown += OnPreviewKeyDown;
         presentation.KeyPressed += key => HandleKey(key, KeyContext.Presentation);
         presentation.AppWindow.Hide();
         library.Changed += reason => DispatcherQueue.TryEnqueue(() => OnLibraryChanged(reason));
+        // Kopia na Dysk Google przy zamykaniu (gdy włączona): zamknięcie czeka na wysyłkę, „Pomiń” albo limit czasu.
+        AppWindow.Closing += async (_, e) =>
+        {
+            if (exitBackupDone || DialogOpen || !GoogleDriveDialog.ShouldBackupOnExit) return;
+            e.Cancel = true;
+            exitBackupDone = true;
+            await GoogleDriveDialog.BackupOnExitAsync(this);
+            Close();
+        };
         Closed += (_, _) =>
         {
             RemoteDialog.StopServer();
@@ -89,6 +109,7 @@ public sealed partial class MainWindow : Window
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         root.RequestedTheme = ElementTheme.Default;
         root.Background = (Brush)Application.Current.Resources["ApplicationPageBackgroundThemeBrush"];
+        scaleHost.Background = root.Background;
 
         var toolbar = Toolbar();
         Grid.SetRow(toolbar, 0);
@@ -118,16 +139,41 @@ public sealed partial class MainWindow : Window
     }
 
     private Grid? mainGrid;
+    private double rightPanelWidth;
+
+    /// <summary>Szerokość układu i okna (próba w CI sprawdza skalowanie).</summary>
+    internal (double Root, double Host) ScaleWidths => (root.Width, scaleHost.ActualWidth);
+
+    public double UiScale => Math.Clamp(library.Settings.UiScale, 0.7, 2);
+
+    private void ApplyScale()
+    {
+        if (scaleHost.ActualWidth <= 0 || scaleHost.ActualHeight <= 0) return;
+        root.Width = scaleHost.ActualWidth / UiScale;
+        root.Height = scaleHost.ActualHeight / UiScale;
+        if (zoomLabel is not null) zoomLabel.Text = $"{Math.Round(UiScale * 100)}%";
+    }
+
+    /// <summary>Zmiana skali o krok (A−/A+, Ctrl +/−), zaokrąglona do setnych jak w macOS i wersji webowej.</summary>
+    public void Zoom(double delta) => library.UpdateSettings(s => s.UiScale = delta == 0 ? 1 : Math.Round(s.UiScale + delta, 2));
 
     private Grid MainGrid()
     {
         var main = new Grid { ColumnSpacing = 0 };
-        main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(320), MinWidth = 220 });
-        main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 260 });
-        main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(400), MinWidth = 280 });
+        // Proporcje 320 : 780 : 400 przy oknie 1500 pt; przy powiększeniu lub wąskim oknie panele zwężają się razem.
+        main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(320, GridUnitType.Star), MinWidth = 220 });
+        main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(780, GridUnitType.Star), MinWidth = 260 });
+        main.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(400, GridUnitType.Star), MinWidth = 280 });
         var leftBorder = Panel(leftPanel);
         var middleBorder = Panel(middlePanel);
         var rightBorder = Panel(new ScrollViewer { Content = rightPanel });
+        // Podglądy dopasowane do szerokości prawego panelu (zmienia się z oknem i powiększeniem).
+        rightBorder.SizeChanged += (_, e) =>
+        {
+            if (Math.Abs(e.NewSize.Width - rightPanelWidth) < 8) return;
+            rightPanelWidth = e.NewSize.Width;
+            RenderRight();
+        };
         Grid.SetColumn(leftBorder, 0);
         Grid.SetColumn(middleBorder, 1);
         Grid.SetColumn(rightBorder, 2);
@@ -183,6 +229,7 @@ public sealed partial class MainWindow : Window
         Item(L("Utwórz kopię zapasową"), () => ImportExport.CreateBackupAsync(this));
         Item(L("Przywróć z kopii..."), () => ImportExport.RestoreBackupAsync(this));
         Item(L("Cofnij ostatnie przywrócenie"), () => ImportExport.UndoRestoreAsync(this), Backup.CanUndo(library.DataDirectory));
+        Item("☁  " + L("Kopie zapasowe na Dysku Google"), () => GoogleDriveDialog.ShowAsync(this));
         menu.Items.Add(new MenuFlyoutSeparator());
         Item(L("Zapisz wybraną pieśń jako .txt"), () => ImportExport.ExportSongAsync(this), library.SelectedSong is not null);
         Item(L("Eksportuj raport CCLI (CSV)..."), () => ImportExport.ExportCcliAsync(this), library.CcliUsage.Count > 0);
@@ -196,6 +243,19 @@ public sealed partial class MainWindow : Window
         RenderToolbar();
         bar.Children.Add(ToolButton("⚙", L("Ustawienia"), async (_, _) => await Dialogs.SettingsAsync(this)));
         bar.Children.Add(ToolButton("?", L("O programie"), async (_, _) => await Dialogs.AboutAsync(this)));
+        var zoom = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+        zoom.Children.Add(new TextBlock { Text = L("Rozmiar UI"), VerticalAlignment = VerticalAlignment.Center, Opacity = 0.75, Margin = new Thickness(0, 0, 4, 0) });
+        var smaller = new Button { Content = "A−", Padding = new Thickness(8, 4, 8, 4) };
+        smaller.Click += (_, _) => Zoom(-0.05);
+        ToolTipService.SetToolTip(smaller, "Ctrl −");
+        var larger = new Button { Content = "A+", Padding = new Thickness(8, 4, 8, 4) };
+        larger.Click += (_, _) => Zoom(0.05);
+        ToolTipService.SetToolTip(larger, "Ctrl +");
+        zoomLabel = new TextBlock { Text = $"{Math.Round(UiScale * 100)}%", VerticalAlignment = VerticalAlignment.Center, MinWidth = 40, TextAlignment = TextAlignment.Center };
+        zoom.Children.Add(smaller);
+        zoom.Children.Add(zoomLabel);
+        zoom.Children.Add(larger);
+        bar.Children.Add(zoom);
         return new ScrollViewer { Content = bar, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled };
     }
 
@@ -256,7 +316,10 @@ public sealed partial class MainWindow : Window
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
             <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-            <TextBlock Grid.Column="1" Text="{Binding Info}" Opacity="0.6" FontSize="12"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="🎸" Foreground="Orange" FontSize="11" Visibility="{Binding GuitarVisibility}" VerticalAlignment="Center"/>
+              <TextBlock Text="{Binding Info}" Opacity="0.6" FontSize="12"/>
+            </StackPanel>
             <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Subtitle}" Opacity="0.65" FontSize="12" TextTrimming="CharacterEllipsis"/>
             <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding Snippet}" Visibility="{Binding SnippetVisibility}" FontStyle="Italic" Opacity="0.7" FontSize="12" TextTrimming="CharacterEllipsis"/>
           </Grid>
@@ -298,8 +361,18 @@ public sealed partial class MainWindow : Window
             if (value == scope) scopeBox.SelectedIndex = scopeBox.Items.Count - 1;
         }
         scopeBox.SelectionChanged += (_, _) => { scope = (SearchScope)((ComboBoxItem)scopeBox.SelectedItem).Tag; RenderSongList(); };
-        header.Children.Add(searchBox);
-        header.Children.Add(scopeBox);
+        // Filtr „Z chwytami” obok zakresu wyszukiwania, jak w macOS.
+        var chordsFilter = new ToggleButton { Content = "🎸 " + L("Z chwytami"), IsChecked = onlyWithChords };
+        ToolTipService.SetToolTip(chordsFilter, L("Pokaż tylko pieśni z chwytami"));
+        chordsFilter.Click += (_, _) => { onlyWithChords = chordsFilter.IsChecked == true; RenderSongList(); };
+        var filters = new Grid { ColumnSpacing = 6 };
+        filters.ColumnDefinitions.Add(new ColumnDefinition());
+        filters.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(chordsFilter, 1);
+        filters.Children.Add(scopeBox);
+        filters.Children.Add(chordsFilter);
+        header.Children.Add(Dictation.WithMic(searchBox, DictationMode.Replace));
+        header.Children.Add(filters);
         Grid.SetRow(header, 1);
         leftPanel.Children.Add(header);
 
@@ -322,6 +395,7 @@ public sealed partial class MainWindow : Window
     {
         if (songList is null || showingPlan) return;
         var songs = library.FilteredSongs(query, scope);
+        if (onlyWithChords) songs = songs.Where(s => s.HasChords).ToList();
         var rows = songs.Select(s => new SongRow
         {
             Id = s.Id,
@@ -329,6 +403,7 @@ public sealed partial class MainWindow : Window
             Subtitle = s.Author.Length > 0 ? s.Author : L("Autor nieznany"),
             Info = (s.Key.Length > 0 ? s.Key + " · " : "") + L("{0} sl.", s.Slides.Count),
             Snippet = query.Length > 0 && SongSearch.MatchingSnippet(s.Title, s.RawLyrics, query) is string snippet ? $"„{snippet}”" : "",
+            GuitarVisibility = s.HasChords ? Visibility.Visible : Visibility.Collapsed,
         }).ToList();
         songList.ItemsSource = rows;
         var selected = rows.FindIndex(r => r.Id == library.SelectedSongId);
@@ -548,7 +623,7 @@ public sealed partial class MainWindow : Window
         head.Children.Add(pill);
         rightPanel.Children.Add(head);
 
-        var width = 370.0;
+        var width = rightPanelWidth > 0 ? Math.Clamp(rightPanelWidth - 30, 200, 560) : 370.0;
         livePreview.Width = width;
         livePreview.Height = width * target.Height / target.Width;
         livePreview.Render(ScreenState.FromLibrary(), target);
@@ -661,6 +736,7 @@ public sealed partial class MainWindow : Window
                 {
                     RenderRight();
                 }
+                ApplyScale();
                 break;
             default:
                 BuildUi();
@@ -717,9 +793,9 @@ public sealed partial class MainWindow : Window
             case "chorus": library.JumpToChorus(); break;
             case "verse": library.JumpToVerse(action.Number ?? 1); break;
             case "quickText": _ = QuickTextAsync(); break;
-            case "zoomIn": library.UpdateSettings(s => s.UiScale += 0.05); break;
-            case "zoomOut": library.UpdateSettings(s => s.UiScale -= 0.05); break;
-            case "zoomReset": library.UpdateSettings(s => s.UiScale = 1); break;
+            case "zoomIn": Zoom(0.05); break;
+            case "zoomOut": Zoom(-0.05); break;
+            case "zoomReset": Zoom(0); break;
             case "endTextEditing": songList?.Focus(FocusState.Programmatic); break;
             case "startPresentation": if (library.SelectedSong is Song song) library.Present(song); break;
             case "stopPresentation": library.StopLive(); break;

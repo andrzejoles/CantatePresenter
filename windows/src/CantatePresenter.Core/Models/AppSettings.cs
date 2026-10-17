@@ -58,6 +58,8 @@ public sealed class AppSettings
         json["musicianFontSize"] = Clamp(Json.Number(json["musicianFontSize"]), 30, 14, 80);
         json["musicianTranspose"] = (Json.Int(json["musicianTranspose"]) ?? 0) % 12;
         json["onlineSearchLanguage"] = Json.Str(json["onlineSearchLanguage"], "pl");
+        json["dictationLanguage"] = Json.Str(json["dictationLanguage"], "pl-PL");
+        json["dictationOnDeviceOnly"] = Json.Bool(json["dictationOnDeviceOnly"]) ?? false;
         var shortcuts = json["shortcuts"] as JsonObject ?? new JsonObject();
         var defaults = new ShortcutSettings();
         int Key(string name, int fallback) => Json.Int(shortcuts[name]) is int v && v is >= 0 and < 65536 ? v : fallback;
@@ -111,5 +113,36 @@ public sealed class AppSettings
     /// <summary>Ekran projekcji w Windows (nazwa urządzenia monitora); macOS używa własnych pól.</summary>
     public string WindowsScreenDevice { get => Json.Str(json["windowsScreenDevice"]); set => json["windowsScreenDevice"] = value; }
 
+    public string DictationLanguage { get => Json.Str(json["dictationLanguage"], "pl-PL"); set => json["dictationLanguage"] = value; }
+    public bool DictationOnDeviceOnly { get => Json.Bool(json["dictationOnDeviceOnly"]) ?? false; set => json["dictationOnDeviceOnly"] = value; }
+
+    /// <summary>Kopie na Dysku Google (obiekt „googleDrive” jak GoogleDriveSettings w macOS). Tokeny nigdy tu nie trafiają.</summary>
+    public GoogleDriveSettings GoogleDrive => new(json["googleDrive"] as JsonObject ?? (JsonObject)(json["googleDrive"] = new JsonObject()));
+
     public JsonObject ToJson() => (JsonObject)json.DeepClone();
+}
+
+/// <summary>Widok na obiekt „googleDrive” w settings.json; pozostałe pola (np. ze starszych wersji macOS) zostają bez zmian.</summary>
+public sealed class GoogleDriveSettings(JsonObject json)
+{
+    public const string DefaultFolder = "CantatePresenter_Backups";
+
+    public bool IsEnabled { get => Json.Bool(json["isEnabled"]) ?? false; set { Fill(); json["isEnabled"] = value; } }
+    /// <summary>Adres konta ustawiany po zalogowaniu; tylko do wyświetlenia.</summary>
+    public string AccountEmail { get => Json.Str(json["accountEmail"]); set { Fill(); json["accountEmail"] = value; } }
+    public string TargetFolder { get => Json.Str(json["targetFolder"], DefaultFolder); set { Fill(); json["targetFolder"] = value; } }
+    /// <summary>Folder do zapytań: pusta nazwa oznacza domyślny folder, jak w macOS.</summary>
+    public string FolderName => TargetFolder.Trim().Length > 0 ? TargetFolder.Trim() : DefaultFolder;
+    public bool AutoBackupOnExit { get => Json.Bool(json["autoBackupOnExit"]) ?? false; set { Fill(); json["autoBackupOnExit"] = value; } }
+    /// <summary>Data ostatniej kopii (ISO 8601, jak daty w plikach macOS).</summary>
+    public string? LastBackupDate { get => Json.OptStr(json["lastBackupDate"]); set { Fill(); json["lastBackupDate"] = value; } }
+
+    /// <summary>Komplet pól jak przy zapisie z macOS.</summary>
+    private void Fill()
+    {
+        json["isEnabled"] ??= false;
+        json["accountEmail"] ??= "";
+        json["targetFolder"] ??= DefaultFolder;
+        json["autoBackupOnExit"] ??= false;
+    }
 }
