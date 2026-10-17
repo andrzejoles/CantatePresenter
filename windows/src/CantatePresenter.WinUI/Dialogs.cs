@@ -114,6 +114,7 @@ public static class Dialogs
             Title = head, Content = panel, PrimaryButtonText = "⚡ " + L("Wyświetl teraz"), CloseButtonText = L("Anuluj"),
             DefaultButton = ContentDialogButton.Primary, IsPrimaryButtonEnabled = false,
         };
+        dialog.Resources["ContentDialogMaxWidth"] = 640.0;
         text.TextChanged += (_, _) => dialog.IsPrimaryButtonEnabled = text.Text.Trim().Length > 0;
         var submitted = false;
         text.PreviewKeyDown += (_, e) =>

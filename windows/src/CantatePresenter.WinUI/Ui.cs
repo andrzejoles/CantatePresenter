@@ -24,7 +24,7 @@ public static class Glyphs
     public const string FontDecrease = "";
     public const string FontIncrease = "";
     public const string Play = "";
-    public const string Stop = "";
+    public const string Stop = "\uE15B";
     public const string ArrowLeft = "";
     public const string ArrowRight = "";
     public const string ChevronLeft = "";
