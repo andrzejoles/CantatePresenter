@@ -72,13 +72,19 @@ Uruchom \`CantatePresenter-Windows-x64-Setup-$VERSION.exe\` (instalacja dla bie�
 \`CantatePresenter-Web-$VERSION.zip\` zawiera katalog \`web/\` z plikiem \`VERSION\`. Instalacja i konta: \`web/README.md\`. Aktualizacja: podmień katalog \`web/\`, dane serwera zostają.
 
 Pliki \`CantatePresenter-$VERSION.zip\` i \`appcast.xml\` służą automatycznym aktualizacjom macOS.
+
+## Bezpieczeństwo
+Poprawki bezpieczeństwa trafiają tylko do najnowszego wydania. Podatności zgłaszaj prywatnie: Security → Report a vulnerability (https://github.com/andrzejoles/CantatePresenter/security/advisories/new). Zasady: \`SECURITY.md\`.
+
+## Licencja
+Licencja MIT, plik \`LICENSE\` w repozytorium i w wydaniu. Teksty pieśni nie są objęte licencją programu.
 NOTES
 } > "$RELEASE_DIR/notes.md"
 
 git tag "$TAG"
 git push origin "$TAG"
 gh release create "$TAG" --draft --title "CantatePresenter $VERSION" --notes-file "$RELEASE_DIR/notes.md" \
-    "$RELEASE_DIR/CantatePresenter-$VERSION.zip" "$RELEASE_DIR/appcast.xml" \
+    "$RELEASE_DIR/CantatePresenter-$VERSION.zip" "$RELEASE_DIR/appcast.xml" "$ROOT/LICENSE" \
     "dist/CantatePresenter-$VERSION.dmg" "dist/CantatePresenter-$VERSION.pkg" \
     "$WINDOWS_SETUP" "$WINDOWS_ZIP" "$WEB_ZIP"
 echo "Szkic wydania $TAG gotowy. Sprawdź go na GitHubie i opublikuj: gh release edit $TAG --draft=false"
