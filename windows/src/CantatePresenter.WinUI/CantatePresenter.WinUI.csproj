@@ -45,6 +45,7 @@
     <Content Include="..\..\..\Sources\CantatePresenterCore\Resources\Localizable.xcstrings" Link="Resources\Localizable.xcstrings" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\..\web\logos.json" Link="Resources\logos.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\..\INSTRUKCJA.md" Link="Resources\INSTRUKCJA.md" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\LICENSE" Link="LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Assets\app.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

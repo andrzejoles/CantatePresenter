@@ -42,6 +42,8 @@ install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS_DIR/Cantat
 
 # Instrukcja obsługi (Pomoc → Otwórz plik INSTRUKCJA.md), S11
 cp "$DIR/INSTRUKCJA.md" "$RESOURCES_DIR/INSTRUKCJA.md"
+# Licencja MIT w pakiecie aplikacji
+cp "$DIR/LICENSE" "$RESOURCES_DIR/LICENSE"
 
 if [ -f "$DIR/Resources/AppIcon.icns" ]; then
     cp "$DIR/Resources/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"

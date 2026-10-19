@@ -166,3 +166,7 @@ CantatePresenter/
 └── Tests/CantatePresenterCoreTests/ # Testy (swift test)
 ```
 
+
+## Licencja
+
+CantatePresenter jest udostępniany na licencji MIT (plik [LICENSE](LICENSE)). Biblioteka Sparkle (aktualizacje macOS) ma własną licencję MIT. Teksty pieśni w bibliotece użytkownika i w kopiach zapasowych nie są objęte licencją programu; ich prawa autorskie i licencje (np. CCLI) pozostają po stronie autorów i wydawców.
