@@ -73,6 +73,9 @@ Uruchom \`CantatePresenter-Windows-x64-Setup-$VERSION.exe\` (instalacja dla bie�
 
 Pliki \`CantatePresenter-$VERSION.zip\` i \`appcast.xml\` służą automatycznym aktualizacjom macOS.
 
+## Bezpieczeństwo
+Poprawki bezpieczeństwa trafiają tylko do najnowszego wydania. Podatności zgłaszaj prywatnie: Security → Report a vulnerability (https://github.com/andrzejoles/CantatePresenter/security/advisories/new). Zasady: \`SECURITY.md\`.
+
 ## Licencja
 Licencja MIT, plik \`LICENSE\` w repozytorium i w wydaniu. Teksty pieśni nie są objęte licencją programu.
 NOTES
