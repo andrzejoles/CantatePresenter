@@ -111,6 +111,13 @@ struct StandbyZoomTests {
         #expect(StandbyZoom.factor(forWidth: 1920) == 2.0)
         #expect(StandbyZoom.factor(forWidth: 960) == 1.0)
         #expect(StandbyZoom.factor(forWidth: 3840) == 4.0)
-        #expect(StandbyZoom.factor(forWidth: 120) == 0.3)
+        #expect(StandbyZoom.factor(forWidth: 48) == 0.1)
+    }
+
+    @Test("Wąski podgląd w prawym panelu mieści całą planszę (R8-11)")
+    func narrowPreviewFits() {
+        for width: CGFloat in [132, 160, 200, 250, 288] {
+            #expect(abs(StandbyZoom.factor(forWidth: width) * StandbyZoom.designWidth - width) < 0.001, "\(width)")
+        }
     }
 }
