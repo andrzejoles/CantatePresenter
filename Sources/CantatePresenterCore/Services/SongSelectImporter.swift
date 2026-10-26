@@ -154,7 +154,9 @@ public enum SongSelectImporter {
             if trimmed.hasPrefix("{"), trimmed.hasSuffix("}") {
                 let inner = String(trimmed.dropFirst().dropLast())
                 let parts = inner.split(separator: ":", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
-                let name = parts[0].lowercased()
+                // `split` pomija puste części: dla `{}` i `{:}` tablica jest pusta (R6-01).
+                guard let first = parts.first else { continue }
+                let name = first.lowercased()
                 let value = parts.count > 1 ? parts[1] : ""
                 switch name {
                 case "title", "t": title = value
