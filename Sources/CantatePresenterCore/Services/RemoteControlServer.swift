@@ -3,6 +3,28 @@ import Network
 import Observation
 import os
 
+// MARK: - Connection Counter
+
+/// Otwarte połączenia pilota: łącznie i na adres telefonu (R3-05). Jedno urządzenie w sieci nie może zająć
+/// wszystkich miejsc bezczynnymi połączeniami.
+struct RemoteConnectionCounter: Sendable {
+    private(set) var total = 0
+    private(set) var perHost: [String: Int] = [:]
+    
+    mutating func admit(host: String, maxTotal: Int, maxPerHost: Int) -> Bool {
+        guard total < maxTotal, perHost[host, default: 0] < maxPerHost else { return false }
+        total += 1
+        perHost[host, default: 0] += 1
+        return true
+    }
+    
+    mutating func release(host: String) {
+        total = max(0, total - 1)
+        let remaining = perHost[host, default: 0] - 1
+        perHost[host] = remaining > 0 ? remaining : nil
+    }
+}
+
 // MARK: - Remote Control Server
 
 /// Serwer pilota w sieci lokalnej: strona dla telefonu i proste API (HTTP, bez zależności zewnętrznych).
@@ -17,9 +39,9 @@ public final class RemoteControlServer {
     
     public private(set) var isRunning = false
     public private(set) var port: UInt16?
-    public private(set) var token = RemoteRouter.makeToken()
+    public private(set) var token: String
     /// Token dla muzyków: tylko podgląd slajdu z chwytami.
-    public private(set) var stageToken = RemoteRouter.makeToken()
+    public private(set) var stageToken: String
     public private(set) var errorMessage: String?
     public private(set) var lastSeen: [String: Date] = [:]
     
@@ -27,14 +49,28 @@ public final class RemoteControlServer {
     var route: @MainActor (RemoteHTTPRequest, String, String) -> RemoteHTTPResponse
     
     @ObservationIgnored private var listener: NWListener?
+    /// Numer bieżącego odbiornika: zdarzenia starszych (po zatrzymaniu albo ponownym starcie) są pomijane (R3-06).
+    @ObservationIgnored private(set) var listenerGeneration = 0
     @ObservationIgnored private let queue = DispatchQueue(label: "com.cantate.presenter.remote")
     /// Otwarte połączenia; ponad limit nowe są od razu zamykane (telefony i tablety pytają co sekundę i rozłączają się).
-    @ObservationIgnored nonisolated private let openConnections = OSAllocatedUnfairLock(initialState: 0)
+    @ObservationIgnored nonisolated private let openConnections = OSAllocatedUnfairLock(initialState: RemoteConnectionCounter())
+    /// Kopia tokenów dla kolejki sieci: zły token dostaje 403 bez przechodzenia na wątek główny (R3-05).
+    @ObservationIgnored nonisolated private let acceptedTokens: OSAllocatedUnfairLock<(control: String, stage: String)>
     nonisolated private let maxConnections: Int
+    nonisolated private let maxConnectionsPerHost: Int
+    /// Telefon wysyła żądanie (ok. 300 B) zaraz po połączeniu; dłużej czekające połączenie jest zamykane.
+    nonisolated static let requestDeadline: TimeInterval = 3
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "remote")
     
-    init(maxConnections: Int = 32, route: (@MainActor (RemoteHTTPRequest, String, String) -> RemoteHTTPResponse)? = nil) {
+    init(maxConnections: Int = 32, maxConnectionsPerHost: Int = 8,
+         route: (@MainActor (RemoteHTTPRequest, String, String) -> RemoteHTTPResponse)? = nil) {
+        let control = RemoteRouter.makeToken()
+        let stage = RemoteRouter.makeToken()
+        self.token = control
+        self.stageToken = stage
+        self.acceptedTokens = OSAllocatedUnfairLock(initialState: (control: control, stage: stage))
         self.maxConnections = maxConnections
+        self.maxConnectionsPerHost = maxConnectionsPerHost
         self.route = route ?? { request, token, stageToken in
             RemoteControlBridge.response(for: request, token: token, stageToken: stageToken, store: DataStore.shared)
         }
@@ -45,8 +81,12 @@ public final class RemoteControlServer {
     public func start(port requestedPort: UInt16 = RemoteControlServer.preferredPort) {
         guard listener == nil else { return }
         errorMessage = nil
+        listenerGeneration += 1
+        let generation = listenerGeneration
         do {
             let parameters = NWParameters.tcp
+            // Tylko SO_REUSEADDR (ponowny start na tym samym porcie), nie SO_REUSEPORT: drugi odbiornik na tym
+            // porcie się nie uruchomi, co sprawdza test (R3-07).
             parameters.allowLocalEndpointReuse = true
             let nwPort = NWEndpoint.Port(rawValue: requestedPort) ?? .any
             let listener = try NWListener(using: parameters, on: nwPort)
@@ -54,7 +94,7 @@ public final class RemoteControlServer {
                 self?.accept(connection)
             }
             listener.stateUpdateHandler = { [weak self] state in
-                Task { @MainActor in self?.listenerChanged(state, requestedPort: requestedPort) }
+                Task { @MainActor in self?.listenerChanged(state, generation: generation, requestedPort: requestedPort) }
             }
             self.listener = listener
             listener.start(queue: queue)
@@ -64,6 +104,7 @@ public final class RemoteControlServer {
     }
     
     public func stop() {
+        listenerGeneration += 1
         listener?.cancel()
         listener = nil
         isRunning = false
@@ -75,10 +116,14 @@ public final class RemoteControlServer {
     public func regenerateToken() {
         token = RemoteRouter.makeToken()
         stageToken = RemoteRouter.makeToken()
+        let tokens = (control: token, stage: stageToken)
+        acceptedTokens.withLock { $0 = tokens }
         lastSeen = [:]
     }
     
-    private func listenerChanged(_ state: NWListener.State, requestedPort: UInt16) {
+    func listenerChanged(_ state: NWListener.State, generation: Int, requestedPort: UInt16) {
+        // Spóźnione `.cancelled`/`.failed` poprzedniego odbiornika nie może wyłączyć ani zrestartować obecnego.
+        guard generation == listenerGeneration else { return }
         switch state {
         case .ready:
             isRunning = true
@@ -127,10 +172,9 @@ public final class RemoteControlServer {
     // MARK: - Connections
     
     nonisolated private func accept(_ connection: NWConnection) {
-        let accepted = openConnections.withLock { count in
-            guard count < maxConnections else { return false }
-            count += 1
-            return true
+        let host = Self.host(of: connection.endpoint)
+        let accepted = openConnections.withLock {
+            $0.admit(host: host, maxTotal: maxConnections, maxPerHost: maxConnectionsPerHost)
         }
         guard accepted else {
             connection.cancel()
@@ -141,14 +185,14 @@ public final class RemoteControlServer {
             case .failed:
                 connection.cancel()
             case .cancelled:
-                self?.openConnections.withLock { $0 -= 1 }
+                self?.openConnections.withLock { $0.release(host: host) }
             default:
                 break
             }
         }
         connection.start(queue: queue)
-        // Połączenie, które nie przyśle żądania w 10 s, jest zamykane.
-        queue.asyncAfter(deadline: .now() + 10) { connection.cancel() }
+        // Połączenie, które nie przyśle żądania w porę, jest zamykane (R3-05).
+        queue.asyncAfter(deadline: .now() + Self.requestDeadline) { connection.cancel() }
         receive(on: connection, buffer: Data())
     }
     
@@ -160,8 +204,13 @@ public final class RemoteControlServer {
             case .incomplete where error == nil && !isComplete:
                 self?.receive(on: connection, buffer: buffer)
             case .complete(let request):
+                // Każda ścieżka wymaga tokenu sterowania albo muzyków: bez niego 403 od razu, na kolejce sieci.
+                guard let self, self.isAuthorized(request) else {
+                    Self.send(RemoteRouter.forbidden(), on: connection)
+                    return
+                }
                 let host = Self.host(of: connection.endpoint)
-                Task { @MainActor in
+                Task { @MainActor [weak self] in
                     guard let self else { connection.cancel(); return }
                     let response = self.route(request, self.token, self.stageToken)
                     if response.status == 200 { self.lastSeen[host] = Date() }
@@ -170,6 +219,13 @@ public final class RemoteControlServer {
             default:
                 Self.send(.text("Bad request", status: 400), on: connection)
             }
+        }
+    }
+    
+    nonisolated private func isAuthorized(_ request: RemoteHTTPRequest) -> Bool {
+        let given = request.query["t"] ?? ""
+        return acceptedTokens.withLock {
+            RemoteRouter.constantTimeEquals(given, $0.control) || RemoteRouter.constantTimeEquals(given, $0.stage)
         }
     }
     

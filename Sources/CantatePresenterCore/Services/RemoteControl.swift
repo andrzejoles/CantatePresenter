@@ -117,9 +117,7 @@ public struct RemoteRouter {
             let semitones = Int(request.query["transpose"] ?? "0").map { max(-11, min(11, $0)) } ?? 0
             return RemoteHTTPResponse(status: 200, contentType: "application/json; charset=utf-8", body: stageState(semitones))
         }
-        guard isController else {
-            return .text(Lnow("Brak dostępu. Zeskanuj ponownie kod QR w aplikacji CantatePresenter."), status: 403)
-        }
+        guard isController else { return Self.forbidden() }
         switch (request.method, request.path) {
         case ("GET", "/"):
             return RemoteHTTPResponse(status: 200, contentType: "text/html; charset=utf-8", body: Data(page().utf8))
@@ -138,6 +136,11 @@ public struct RemoteRouter {
         default:
             return .text("Not found", status: 404)
         }
+    }
+    
+    /// Odpowiedź bez ważnego tokenu (także z kolejki sieci serwera, R3-05).
+    static func forbidden() -> RemoteHTTPResponse {
+        .text(Lnow("Brak dostępu. Zeskanuj ponownie kod QR w aplikacji CantatePresenter."), status: 403)
     }
     
     /// Porównanie bez wczesnego wyjścia, żeby czas odpowiedzi nie zdradzał zgodnych znaków tokenu.
