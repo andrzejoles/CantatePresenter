@@ -221,19 +221,26 @@ extension Song {
 
 extension KeyboardRouter {
     /// Klawisze, których nie zmienia się w Ustawieniach; pokazywane w Ustawieniach i w instrukcji.
-    public static var fixedKeysHelp: [(keys: String, action: String)] { [
-        ("← / ↑", Lnow("Poprzedni slajd (↑ na liście pieśni: poprzednia pieśń)")),
-        ("→ / ↓", Lnow("Następny slajd (↓ na liście pieśni: następna pieśń)")),
-        ("Page Up / Page Down", Lnow("Poprzedni / następny slajd (pilot), także w polu wyszukiwania")),
-        ("Enter w oknie projekcji", Lnow("Następny slajd")),
-        ("Esc", Lnow("Zakończenie projekcji; w polu wyszukiwania: wyjście z pola")),
-        ("R", Lnow("Refren")),
-        ("1 – 9", Lnow("Zwrotka o tym numerze")),
-        ("⌘F", Lnow("Szukaj pieśni (Enter: wybór pierwszego wyniku)")),
-        ("⌘T", Lnow("Szybki tekst na żywo")),
-        ("⌘+ / ⌘− / ⌘0", Lnow("Powiększenie / pomniejszenie / domyślna skala interfejsu"))
-    ] }
-    
+    public static var fixedKeysHelp: [(keys: String, action: String)] {
+        fixedKeysHelp(language: Localization.currentLanguage)
+    }
+
+    static func fixedKeysHelp(language: String) -> [(keys: String, action: String)] {
+        func t(_ key: String) -> String { Localization.string(key, language: language) }
+        return [
+            ("← / ↑", t("Poprzedni slajd (↑ na liście pieśni: poprzednia pieśń)")),
+            ("→ / ↓", t("Następny slajd (↓ na liście pieśni: następna pieśń)")),
+            ("Page Up / Page Down", t("Poprzedni / następny slajd (pilot), także w polu wyszukiwania")),
+            (t("Enter w oknie projekcji"), t("Następny slajd")),
+            ("Esc", t("Zakończenie projekcji; w polu wyszukiwania: wyjście z pola")),
+            ("R", t("Refren")),
+            ("1 – 9", t("Zwrotka o tym numerze")),
+            ("⌘F", t("Szukaj pieśni (Enter: wybór pierwszego wyniku)")),
+            ("⌘T", t("Szybki tekst na żywo")),
+            ("⌘+ / ⌘− / ⌘0", t("Powiększenie / pomniejszenie / domyślna skala interfejsu"))
+        ]
+    }
+
     public static var shortcutsNote: String { Lnow("Skróty działają, gdy pole wyszukiwania jest nieaktywne (po starcie albo po Esc). Klawisz wybrany powyżej ma pierwszeństwo przed klawiszem stałym, np. R przypisane do czarnego ekranu przestaje włączać refren.") }
 }
 
@@ -242,30 +249,38 @@ extension KeyboardRouter {
 extension ShortcutSettings {
     /// Opisy konfliktów do pokazania w Ustawieniach (W5).
     public var conflicts: [String] {
-        let entries: [(String, UInt16)] = [
-            ("Poprzedni slajd", prevSlideKey),
-            (Lnow("Następny slajd"), nextSlideKey),
-            (Lnow("Poprzedni utwór"), prevSongKey),
-            (Lnow("Następny utwór"), nextSongKey),
-            ("Uruchomienie prezentacji", startPresentationKey),
-            ("Zatrzymanie prezentacji", stopPresentationKey),
-            (Lnow("Czarny ekran"), blackScreenKey),
-            ("Ukrycie tekstu", clearTextKey)
+        conflicts(language: Localization.currentLanguage)
+    }
+
+    /// Akcje porównywane po wartości, a nazwy tłumaczone dopiero do wyświetlenia (R4-28).
+    func conflicts(language: String) -> [String] {
+        func t(_ key: String, _ args: Any...) -> String {
+            Localization.format(Localization.string(key, language: language), args)
+        }
+        let entries: [(action: KeyboardAction, name: String, code: UInt16)] = [
+            (.prevSlide, t("Poprzedni slajd"), prevSlideKey),
+            (.nextSlide, t("Następny slajd"), nextSlideKey),
+            (.prevSong, t("Poprzedni utwór"), prevSongKey),
+            (.nextSong, t("Następny utwór"), nextSongKey),
+            (.startPresentation, t("Uruchomienie prezentacji"), startPresentationKey),
+            (.stopPresentation, t("Zatrzymanie prezentacji"), stopPresentationKey),
+            (.blackScreen, t("Czarny ekran"), blackScreenKey),
+            (.clearText, t("Ukrycie tekstu"), clearTextKey)
         ]
         var result: [String] = []
 
-        let grouped = Dictionary(grouping: entries, by: { $0.1 })
+        let grouped = Dictionary(grouping: entries, by: { $0.code })
         for (code, group) in grouped.sorted(by: { $0.key < $1.key }) where group.count > 1 {
-            let names = group.map(\.0).joined(separator: ", ")
-            result.append(Lnow("{0}: {1}. Zadziała tylko pierwsza akcja.", ShortcutPresets.nameForKeyCode(code), names))
+            let names = group.map(\.name).joined(separator: ", ")
+            result.append(t("{0}: {1}. Zadziała tylko pierwsza akcja.", ShortcutPresets.nameForKeyCode(code), names))
         }
-        for (name, code) in entries {
-            if code == KeyboardRouter.Key.r {
-                result.append(Lnow("{0} na klawiszu R: klawisz przestanie przechodzić do refrenu.", name))
-            } else if KeyboardRouter.Key.digits.contains(code) {
-                result.append(Lnow("{0} na klawiszu cyfry: cyfra przestanie przechodzić do zwrotki.", name))
-            } else if code == KeyboardRouter.Key.escape, name != "Zatrzymanie prezentacji" {
-                result.append(Lnow("{0} na klawiszu Esc: Esc przestanie kończyć projekcję.", name))
+        for entry in entries {
+            if entry.code == KeyboardRouter.Key.r {
+                result.append(t("{0} na klawiszu R: klawisz przestanie przechodzić do refrenu.", entry.name))
+            } else if KeyboardRouter.Key.digits.contains(entry.code) {
+                result.append(t("{0} na klawiszu cyfry: cyfra przestanie przechodzić do zwrotki.", entry.name))
+            } else if entry.code == KeyboardRouter.Key.escape, entry.action != .stopPresentation {
+                result.append(t("{0} na klawiszu Esc: Esc przestanie kończyć projekcję.", entry.name))
             }
         }
         return result
