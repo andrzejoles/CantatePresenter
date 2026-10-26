@@ -30,7 +30,8 @@ public struct UserManualView: View {
     @State private var selectedSectionId: String = "intro"
     @State private var searchText: String = ""
     
-    private let sections: [UserManualSection] = [
+    /// Wyliczane przy każdym odświeżeniu widoku, więc zmiana języka od razu zmienia treść (R4-20).
+    private var sections: [UserManualSection] { [
         UserManualSection(
             id: "intro",
             title: L("1. Wprowadzenie"),
@@ -58,15 +59,24 @@ public struct UserManualView: View {
                     tip: L("Możesz także otworzyć 'Okno testowe' w prawym panelu, aby testować wygląd slajdów bez podłączania projektora.")
                 ),
                 ManualParagraph(
-                    heading: L("Prezentacja na jednym ekranie & Wyjście ESC"),
-                    body: L("Gdy podłączony jest tylko 1 ekran, prezentacja uruchamia się w trybie pełnoekranowym na Twoim Macu. Naciśnij w dowolnym momencie klawisz ESC, aby natychmiast wrócić do aplikacji."),
+                    heading: L("Jeden ekran, dwa ekrany i klawisz Esc"),
+                    body: L("Przy jednym ekranie przycisk 'Prezentuj na pełnym ekranie' zakrywa ekran Maca, a Esc zamyka pełny ekran i kończy projekcję. Przy dwóch ekranach Esc w oknie głównym gasi tekst (projektor pokazuje planszę); w oknie projekcji pierwsze Esc gasi tekst, a drugie zamyka okno projekcji. Po zatrzymaniu strzałki i Spacja nie zmieniają slajdów: projekcję wznawia Enter albo kliknięcie slajdu."),
                     shortcuts: [
-                        ("ESC", L("Natychmiastowe wyjście z pełnego ekranu")),
-                        (L("Spacja / → / ↓ / Page Down / Enter"), L("Przejście do następnego slajdu")),
+                        ("ESC", L("Zakończenie projekcji (przy dwóch ekranach: zgaszenie tekstu)")),
+                        (L("Spacja / → / ↓ / Page Down"), L("Przejście do następnego slajdu")),
                         (L("← / ↑ / Page Up"), L("Przejście do poprzedniego slajdu")),
+                        (L("Enter w oknie projekcji"), L("Następny slajd")),
                         ("B", L("Czarny ekran (Black Screen)")),
                         ("C", L("Ukrycie tekstu (Clear Text)"))
                     ]
+                ),
+                ManualParagraph(
+                    heading: L("Ekran dla muzyków"),
+                    body: L("Przycisk 'Muzycy' otwiera okno z bieżącym i następnym slajdem oraz chwytami nad tekstem; przenieś je na monitor muzyków. Na tabletach i telefonach: w oknie 'Pilot' wybierz 'Muzycy (chwyty, tylko podgląd)' i daj muzykom zeskanować kod. Każdy ekran ma własną transpozycję i wielkość czcionki.")
+                ),
+                ManualParagraph(
+                    heading: L("Pilot ze smartfona"),
+                    body: L("Przycisk 'Pilot' włącza sterowanie z telefonu (iPhone lub Android) bez instalowania aplikacji: zeskanuj kod QR; telefon musi być w tej samej sieci Wi-Fi. Telefon przełącza slajdy, włącza czarny ekran, wybiera pieśni z planu i wyszukuje pieśni w bibliotece. 'Nowy kod (rozłącza telefony)' odłącza wszystkie telefony.")
                 )
             ]
         ),
@@ -99,6 +109,10 @@ public struct UserManualView: View {
                     heading: L("Obsługiwane sekcje utworu"),
                     body: L("Program rozpoznaje znaczniki:\n• [Zwrotka 1], [Zwrotka 2], [1], [2]\n• [Refren], [Refren 1], [R]\n• [Coda] lub [Koda]\n• [Bridge] lub [Mostek]\n• [Przejście] lub [Interlude]\n• [Zakończenie] lub [Ending]\n• [Intro] oraz [Outro]"),
                     tip: L("Możesz też po prostu oddzielać zwrotki pustą linią — program sam podzieli tekst na slajdy.")
+                ),
+                ManualParagraph(
+                    heading: L("Teksty z Wikiźródeł"),
+                    body: L("Przycisk 'Online' przeszukuje Wikiźródła: tradycyjne pieśni w domenie publicznej lub na wolnej licencji. W pieśni zapisuje się adres strony źródłowej i licencja. Współczesne pieśni chronione prawem autorskim importujesz z plików CCLI SongSelect.")
                 )
             ]
         ),
@@ -112,8 +126,8 @@ public struct UserManualView: View {
                     body: L("Pieśń może zawierać chwyty gitarowe (np. D A h G). Przyciski +1 / -1 pozwalają transponować tonację całego utworu jednym kliknięciem.")
                 ),
                 ManualParagraph(
-                    heading: L("Pobieranie chwytów z internetu"),
-                    body: L("Kliknij 'Szukaj chwytów online' — aplikacja przeszuka polskie serwisy (tekstowo.pl, kompasje.pl) i pozwoli wstawić akordy bezpośrednio do pieśni.")
+                    heading: L("Okno chwytów"),
+                    body: L("Przycisk 'Chwyty' w środkowym panelu (w edytorze: 'Wyszukaj chwyty online...') pokazuje pasujące opracowania z wbudowanej bazy chwytów popularnych pieśni. Wybierz opracowanie, w razie potrzeby transponuj i kliknij 'Zastosuj chwyty do pieśni'. Chwyty możesz też wpisać w edytorze (widok 'Chwyty gitarowe / Taby') albo zaimportować z pliku ChordPro.")
                 )
             ]
         ),
@@ -136,7 +150,7 @@ public struct UserManualView: View {
             content: [
                 ManualParagraph(
                     heading: L("Przygotowanie listy utworów"),
-                    body: L("W lewym panelu przełącz na 'Plan'. Utwórz nowy plan na mszę lub spotkanie i przeciągaj pieśni z biblioteki. Naciśnięcie spacji na końcu utworu płynnie przełącza do kolejnej pieśni z planu!")
+                    body: L("W lewym panelu przełącz na 'Plan nabożeństwa'. Przycisk '+' tworzy nowy plan. Pieśni dodajesz przyciskiem '+ Do planu' albo poleceniem 'Dodaj do aktywnego planu' w menu pod prawym przyciskiem myszy; kolejność zmieniasz strzałkami ▲/▼ przy pieśni. W trakcie projekcji Spacja na ostatnim slajdzie przechodzi do następnej pieśni z planu.")
                 )
             ]
         ),
@@ -149,6 +163,10 @@ public struct UserManualView: View {
                     heading: L("Formaty Holyrics, OpenLyrics, JSON i TXT"),
                     body: L("W oknie Import/Eksport (Cmd I) możesz importować bazy Holyrics (.mufl, .muf), pliki tekstowe .txt (pojedyncze i całe foldery), pliki JSON oraz XML."),
                     tip: L("Aplikacja automatycznie naprawia polskie litery z kodowań Windows-1250 i ISO-8859-2 oraz wykrywa duplikaty.")
+                ),
+                ManualParagraph(
+                    heading: L("Licencja CCLI i prawa autorskie"),
+                    body: L("W Ustawieniach wpisz numer licencji CCLI parafii i wybierz, na którym slajdzie pokazywać informację o prawach autorskich. Program zapisuje wyświetlenia pieśni z numerem CCLI (raz dziennie), a przycisk 'Eksportuj raport CCLI (CSV)...' zapisuje je do pliku. Pliki z SongSelect (.txt, .usr, ChordPro) importujesz w oknie Import/Eksport.")
                 )
             ]
         ),
@@ -163,8 +181,8 @@ public struct UserManualView: View {
                 ),
                 ManualParagraph(
                     heading: L("Integracja z Google Drive"),
-                    body: L("Po autoryzacji Google OAuth w Ustawieniach, kopie są automatycznie przesyłane do dedykowanego folderu CantatePresenter_Backups w chmurze."),
-                    tip: L("Włącz opcję 'Automatyczny backup przy zamykaniu', aby program tworzył kopię po każdym użyciu.")
+                    body: L("W Ustawieniach kliknij 'Połącz z kontem Google...' i dokończ logowanie w przeglądarce. Przycisk 'Wyślij bieżący backup na Dysk Google' wysyła kopię do folderu CantatePresenter_Backups, a 'Przeglądaj i przywróć kopie z Dysku Google...' pokazuje wcześniejsze kopie."),
+                    tip: L("Opcja 'Twórz i wysyłaj kopię na Dysk Google automatycznie przy zamykaniu aplikacji' wysyła kopię przy każdym zamknięciu programu; bez niej kopie wysyłasz ręcznie.")
                 )
             ]
         ),
@@ -191,7 +209,7 @@ public struct UserManualView: View {
                 )
             ]
         )
-    ]
+    ] }
     
     public init() {}
     
