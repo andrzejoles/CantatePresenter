@@ -113,7 +113,7 @@ Weryfikacja przez właściciela:
 Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTests/`) testuje bibliotekę `CantatePresenterCore` przez `@testable import`, więc typy nie muszą być `public`. Używaj Swift Testing (`import Testing`, `@Suite`, `@Test`, `#expect`); przed indeksowaniem wyników używaj `try #require(...)`, bo przekroczenie zakresu wywraca cały proces testowy. Wymaga pełnego Xcode, nie samych Command Line Tools.
 
 - Priorytet testów: `Song.parseLyrics`, `GuitarChordsService.transpose`, `HolyricsJavaDeserializer` (pliki z `data/holyrics_samples/` oraz ich obcięte/uszkodzone kopie), `TextImporter.readTextWithBestEncoding`, deduplikacja, zgodność wstecz dekoderów modeli (stary JSON musi się wczytać).
-- Testy nigdy nie mogą czytać ani zapisywać prawdziwego katalogu danych. Ścieżki wstrzykuj, używaj katalogów tymczasowych.
+- Testy nigdy nie mogą czytać ani zapisywać prawdziwego katalogu danych. Ścieżki wstrzykuj, używaj katalogów tymczasowych. Kod pod testem nie może sięgać do `DataStore.shared` ani `L()` (czyta `DataStore.shared`): język i `DataStore` podawaj jako parametr (R5-01). Zabezpieczenia: `AppPaths.shared` w procesie testów (`AppPaths.isRunningTests`) bez `CANTATE_DATA_DIR` wskazuje katalog tymczasowy, a CI uruchamia testy z `CANTATE_DATA_DIR` na nieistniejący katalog i przerywa, jeśli powstanie.
 - Każdy błąd naprawiany z raportu: najpierw test, który go odtwarza, potem poprawka.
 
 ## Weryfikacja zmian

@@ -144,12 +144,19 @@ extension SongSlide {
     /// własne etykiety (np. „Wstęp”) bez zmian.
     @MainActor
     public var displayLabel: String {
+        displayLabel(language: DataStore.shared.settings.appLanguage)
+    }
+
+    /// Etykieta w podanym języku; usługi (pilot, ekran muzyków) podają język swojego `DataStore`,
+    /// żeby nie sięgać do `DataStore.shared` (R5-01).
+    public func displayLabel(language: String) -> String {
         let base = type.polishName
+        let translated = Localization.string(base, language: language)
         if label == base {
-            return L(base)
+            return translated
         }
         if let number, label == "\(base) \(number)" {
-            return "\(L(base)) \(number)"
+            return "\(translated) \(number)"
         }
         return label
     }

@@ -152,6 +152,24 @@ struct RemoteHTTPTests {
 @MainActor
 @Suite("Pilot: sterowanie prezentacją")
 struct RemoteBridgeTests {
+    @Test("Teksty pilota i ekranu muzyków w języku podanego DataStore, bez DataStore.shared (R5-01)")
+    func labelsFollowStoreLanguage() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let store = DataStore(dataDirectory: dir.url)
+        store.settings.appLanguage = "de"
+        let song = Song(title: "Pierwsza", rawLyrics: "[Refren]\nA1")
+        store.songs = [song]
+        RemoteControlBridge.perform(.song(song.id), on: store)
+
+        let state = RemoteControlBridge.state(of: store)
+        #expect(state.labels["next"] == "Weiter")
+        #expect(state.slides.first?.label == "Refrain")
+        #expect(RemoteControlBridge.stageLabels(language: "en")["title"] == "Musicians' screen")
+        #expect(RemoteControlBridge.labels(language: "pl")["next"] == "Dalej")
+        #expect(MusicianStage.make(store: store, semitones: 0).current?.label == "Refrain")
+    }
+
     @Test("Stan i polecenia działają na DataStore: slajdy, czarny ekran, pozycja planu")
     func bridge() throws {
         let dir = try TestDirectory()

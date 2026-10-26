@@ -28,6 +28,62 @@ struct AppPathsTests {
         )
     }
 
+    @Test("Proces testów jest rozpoznawany, aplikacja nie (R5-01)")
+    func detectsTestProcess() {
+        #expect(AppPaths.isRunningTests)
+        #expect(!AppPaths.isTestProcess(
+            processName: "CantatePresenter",
+            arguments: ["/Applications/CantatePresenter.app/Contents/MacOS/CantatePresenter"],
+            environment: ["HOME": "/Users/x"],
+            xctestLoaded: false
+        ))
+        #expect(AppPaths.isTestProcess(
+            processName: "xctest",
+            arguments: ["/usr/bin/xctest", "/tmp/.build/debug/CantatePresenterPackageTests.xctest"],
+            environment: [:],
+            xctestLoaded: false
+        ))
+        #expect(AppPaths.isTestProcess(
+            processName: "swiftpm-testing-helper",
+            arguments: [],
+            environment: [:],
+            xctestLoaded: false
+        ))
+    }
+
+    @Test("W testach bez CANTATE_DATA_DIR katalog tymczasowy, nigdy Application Support ani migracja (R5-01)")
+    func testProcessNeverUsesApplicationSupport() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        _ = try makeLegacyData(in: dir)
+        let applicationSupport = dir.url.appendingPathComponent("Application Support")
+
+        let paths = AppPaths.resolve(
+            environment: [:],
+            bundleURL: dir.url.appendingPathComponent("Programy/CantatePresenter.app"),
+            currentDirectory: dir.url.appendingPathComponent("terminal"),
+            applicationSupport: applicationSupport,
+            isTestProcess: true
+        )
+
+        #expect(paths.migration == .notNeeded)
+        #expect(!paths.dataDirectory.path.hasPrefix(dir.url.path))
+        #expect(paths.dataDirectory.path.hasPrefix(FileManager.default.temporaryDirectory.path))
+        #expect(!FileManager.default.fileExists(atPath: applicationSupport.path))
+        try? FileManager.default.removeItem(at: paths.dataDirectory)
+
+        // CANTATE_DATA_DIR nadal wygrywa (CI sprawdza nim, czy testy nie sięgają do danych).
+        let override = dir.url.appendingPathComponent("canary")
+        let overridden = AppPaths.resolve(
+            environment: [AppPaths.environmentKey: override.path],
+            bundleURL: dir.url.appendingPathComponent("Programy/CantatePresenter.app"),
+            currentDirectory: dir.url.appendingPathComponent("terminal"),
+            applicationSupport: applicationSupport,
+            isTestProcess: true
+        )
+        #expect(overridden.dataDirectory.standardizedFileURL == override.standardizedFileURL)
+    }
+
     @Test("Dane trafiają do Application Support/CantatePresenter, nie obok aplikacji")
     func usesApplicationSupport() throws {
         let dir = try TestDirectory()

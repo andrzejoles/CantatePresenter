@@ -277,7 +277,7 @@ enum RemoteControlBridge {
             perform: { perform($0, on: store) },
             stagePage: { MusicianStagePage.html(language: store.settings.appLanguage) },
             stageState: { semitones in
-                let payload = StagePayload(stage: MusicianStage.make(store: store, semitones: semitones), labels: stageLabels())
+                let payload = StagePayload(stage: MusicianStage.make(store: store, semitones: semitones), labels: stageLabels(language: store.settings.appLanguage))
                 return (try? JSONEncoder().encode(payload)) ?? Data("{}".utf8)
             },
             search: { query in (try? JSONEncoder().encode(search(query, in: store))) ?? Data("[]".utf8) }
@@ -315,9 +315,11 @@ enum RemoteControlBridge {
         let labels: [String: String]
     }
 
-    /// Teksty strony dla muzyków w języku interfejsu aplikacji.
-    static func stageLabels() -> [String: String] {
-        [
+    /// Teksty strony dla muzyków w języku interfejsu aplikacji. Język podaje wywołujący (z `store`),
+    /// bez `L()`, które czyta `DataStore.shared` (R5-01: testy nie mogą dotykać prawdziwych danych).
+    static func stageLabels(language: String) -> [String: String] {
+        func L(_ key: String) -> String { Localization.string(key, language: language) }
+        return [
             "title": L("Ekran dla muzyków"),
             "key": L("Tonacja: {0}"),
             "next": L("Następny slajd"),
@@ -336,6 +338,7 @@ enum RemoteControlBridge {
     static func state(of store: DataStore) -> RemoteState {
         let song = store.activeSong
         let plan = store.activePlan
+        let language = store.settings.appLanguage
         let titles = Dictionary(store.songs.map { ($0.id, $0.title) }, uniquingKeysWith: { first, _ in first })
         return RemoteState(
             isLive: store.isLive,
@@ -345,13 +348,13 @@ enum RemoteControlBridge {
             slideIndex: store.activeSlideIndex,
             slideText: store.currentLiveSlide?.text ?? "",
             slides: (song?.slides ?? []).map { slide in
-                RemoteState.SlideInfo(label: slide.displayLabel, preview: slide.text.components(separatedBy: "\n").first ?? "")
+                RemoteState.SlideInfo(label: slide.displayLabel(language: language), preview: slide.text.components(separatedBy: "\n").first ?? "")
             },
             planName: plan?.name ?? "",
             plan: (plan?.items ?? []).map { item in
                 RemoteState.PlanEntry(title: titles[item.songId] ?? "?", isCurrent: item.songId == song?.id)
             },
-            labels: labels(),
+            labels: labels(language: language),
             canStart: !store.isLive && startCandidate(in: store) != nil,
             startTitle: store.isLive ? "" : (startCandidate(in: store)?.title ?? "")
         )
@@ -389,9 +392,10 @@ enum RemoteControlBridge {
         }
     }
     
-    /// Teksty strony telefonu w języku interfejsu aplikacji.
-    static func labels() -> [String: String] {
-        [
+    /// Teksty strony telefonu w języku interfejsu aplikacji (język z `store`, R5-01).
+    static func labels(language: String) -> [String: String] {
+        func L(_ key: String) -> String { Localization.string(key, language: language) }
+        return [
             "next": L("Dalej"),
             "previous": L("Wstecz"),
             "nextSong": L("Następna pieśń"),

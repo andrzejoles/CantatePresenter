@@ -30,10 +30,11 @@ public struct MusicianStage: Codable, Equatable, Sendable {
     public static func make(store: DataStore, semitones: Int) -> MusicianStage {
         let song = store.isLive ? store.activeSong : nil
         let shift = semitones % 12
+        let language = store.settings.appLanguage
 
         func slide(_ slide: SongSlide, of song: Song) -> Slide {
             let result = ChordSheet.lines(for: slide, sheet: song.chords, semitones: shift)
-            return Slide(label: slide.displayLabel, lines: result.lines, borrowedFrom: result.borrowedFrom)
+            return Slide(label: slide.displayLabel(language: language), lines: result.lines, borrowedFrom: result.borrowedFrom)
         }
 
         var current: Slide?

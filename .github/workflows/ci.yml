@@ -37,8 +37,17 @@ jobs:
       - name: Build
         run: swift build --build-tests -Xswiftc -warnings-as-errors
 
+      # Testy nie mogą sięgać do katalogu danych (R5-01): CANTATE_DATA_DIR wskazuje nieistniejący
+      # katalog, który po testach nadal nie może istnieć (powstałby przy użyciu DataStore.shared).
       - name: Test
-        run: swift test -Xswiftc -warnings-as-errors
+        run: |
+          CANARY="$RUNNER_TEMP/cantate-data-canary"
+          rm -rf "$CANARY"
+          CANTATE_DATA_DIR="$CANARY" swift test -Xswiftc -warnings-as-errors
+          if [ -e "$CANARY" ]; then
+            echo "::error::Testy użyły prawdziwego katalogu danych (DataStore.shared/AppPaths.shared): $(ls -A "$CANARY")"
+            exit 1
+          fi
 
       - name: Remote control page check (headless Chrome)
         run: python3 -I scripts/remote_check.py
