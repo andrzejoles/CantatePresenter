@@ -34,7 +34,7 @@ struct StandbyCreditsTests {
     func defaultStandby() throws {
         let url = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent("data/standby.html")
+            .appendingPathComponent("Sources/CantatePresenterCore/Resources/standby.html")
         let html = try String(contentsOf: url, encoding: .utf8)
         #expect(StandbyCredits.inject(into: html, credits: credits).contains("Andrzej Oles"))
     }

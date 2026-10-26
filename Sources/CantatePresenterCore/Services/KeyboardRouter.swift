@@ -168,24 +168,113 @@ public enum KeyboardRouter {
     }
 }
 
+// MARK: - Stop Presentation
+
+extension KeyboardRouter {
+    /// Czy zatrzymanie projekcji (Esc) ma też zamknąć okno projekcji (R4-02).
+    ///
+    /// Jeden ekran: tak, bo okno projekcji zasłania okno główne. Dwa ekrany: z okna głównego nigdy
+    /// (projektor pokazuje planszę); w oknie projekcji dopiero drugie Esc, gdy tekst jest już zgaszony,
+    /// żeby jedno przypadkowe Esc nie pokazało zgromadzeniu pulpitu projektora.
+    public static func stopClosesPresentationWindow(screenCount: Int, context: Context, isLive: Bool) -> Bool {
+        if screenCount <= 1 { return true }
+        return context == .presentationWindow && !isLive
+    }
+}
+
+// MARK: - Slide Keys
+
+extension Song {
+    /// Slajd wybierany cyfrą: zwrotka o tym numerze (po numerze, nie po polskiej etykiecie, S10).
+    /// Tylko w pieśni bez numerowanych zwrotek cyfra wybiera slajd na tej pozycji; wcześniej np. 4 w pieśni
+    /// z trzema zwrotkami przechodziło do czwartego slajdu, czyli do refrenu albo Cody (R4-03).
+    public func slideIndex(forVerse number: Int) -> Int? {
+        if let index = slides.firstIndex(where: { $0.type == .verse && $0.number == number }) {
+            return index
+        }
+        guard !slides.contains(where: { $0.type == .verse && $0.number != nil }) else { return nil }
+        return slides.indices.contains(number - 1) ? number - 1 : nil
+    }
+
+    /// Slajd wybierany klawiszem R: pierwszy refren.
+    public var chorusSlideIndex: Int? {
+        slides.firstIndex(where: { $0.type == .chorus })
+    }
+
+    /// Klawisz pokazywany na karcie slajdu: dokładnie ten, który do niej przechodzi (R4-03).
+    /// Karty, do których nie prowadzi ani R, ani cyfra 1–9, nie mają znaczka.
+    public var slideShortcutHints: [Int: String] {
+        var hints: [Int: String] = [:]
+        if let chorus = chorusSlideIndex {
+            hints[chorus] = "R"
+        }
+        for number in 1...9 {
+            if let index = slideIndex(forVerse: number), hints[index] == nil {
+                hints[index] = String(number)
+            }
+        }
+        return hints
+    }
+}
+
 // MARK: - Fixed Keys Help
 
 extension KeyboardRouter {
     /// Klawisze, których nie zmienia się w Ustawieniach; pokazywane w Ustawieniach i w instrukcji.
-    public static var fixedKeysHelp: [(keys: String, action: String)] { [
-        ("← / ↑", Lnow("Poprzedni slajd (↑ na liście pieśni: poprzednia pieśń)")),
-        ("→ / ↓", Lnow("Następny slajd (↓ na liście pieśni: następna pieśń)")),
-        ("Page Up / Page Down", Lnow("Poprzedni / następny slajd (pilot), także w polu wyszukiwania")),
-        ("Enter w oknie projekcji", Lnow("Następny slajd")),
-        ("Esc", Lnow("Zakończenie projekcji; w polu wyszukiwania: wyjście z pola")),
-        ("R", Lnow("Refren")),
-        ("1 – 9", Lnow("Zwrotka o tym numerze")),
-        ("⌘F", Lnow("Szukaj pieśni (Enter: wybór pierwszego wyniku)")),
-        ("⌘T", Lnow("Szybki tekst na żywo")),
-        ("⌘+ / ⌘− / ⌘0", Lnow("Powiększenie / pomniejszenie / domyślna skala interfejsu"))
-    ] }
-    
+    public static var fixedKeysHelp: [(keys: String, action: String)] {
+        fixedKeysHelp(language: Localization.currentLanguage)
+    }
+
+    static func fixedKeysHelp(language: String) -> [(keys: String, action: String)] {
+        func t(_ key: String) -> String { Localization.string(key, language: language) }
+        return [
+            ("← / ↑", t("Poprzedni slajd (↑ na liście pieśni: poprzednia pieśń)")),
+            ("→ / ↓", t("Następny slajd (↓ na liście pieśni: następna pieśń)")),
+            ("Page Up / Page Down", t("Poprzedni / następny slajd (pilot), także w polu wyszukiwania")),
+            (t("Enter w oknie projekcji"), t("Następny slajd")),
+            ("Esc", t("Zakończenie projekcji; w polu wyszukiwania: wyjście z pola")),
+            ("R", t("Refren")),
+            ("1 – 9", t("Zwrotka o tym numerze")),
+            ("⌘F", t("Szukaj pieśni (Enter: wybór pierwszego wyniku)")),
+            ("⌘T", t("Szybki tekst na żywo")),
+            ("⌘+ / ⌘− / ⌘0", t("Powiększenie / pomniejszenie / domyślna skala interfejsu"))
+        ]
+    }
+
     public static var shortcutsNote: String { Lnow("Skróty działają, gdy pole wyszukiwania jest nieaktywne (po starcie albo po Esc). Klawisz wybrany powyżej ma pierwszeństwo przed klawiszem stałym, np. R przypisane do czarnego ekranu przestaje włączać refren.") }
+}
+
+// MARK: - Key Names
+
+extension KeyboardRouter {
+    /// Krótka nazwa klawisza na przyciskach i w pasku skrótów; po zmianie skrótu w Ustawieniach etykiety
+    /// pokazują nowy klawisz (R4-22).
+    @MainActor
+    public static func shortKeyName(for code: UInt16) -> String {
+        switch code {
+        case 49: return L("Spacja")
+        case 124: return "→"
+        case 123: return "←"
+        case 125: return "↓"
+        case 126: return "↑"
+        case 36: return "↵ Enter"
+        case 53: return "Esc"
+        case 11: return "B"
+        case 8: return "C"
+        case 15: return "R"
+        case 30: return "]"
+        case 33: return "["
+        case 48: return "Tab"
+        case 51: return "⌫"
+        case 121: return "PgDn"
+        case 116: return "PgUp"
+        case 96: return "F5"
+        case 97: return "F6"
+        case 45: return "N"
+        case 35: return "P"
+        default: return "\(code)"
+        }
+    }
 }
 
 // MARK: - Shortcut Conflicts
@@ -193,30 +282,38 @@ extension KeyboardRouter {
 extension ShortcutSettings {
     /// Opisy konfliktów do pokazania w Ustawieniach (W5).
     public var conflicts: [String] {
-        let entries: [(String, UInt16)] = [
-            ("Poprzedni slajd", prevSlideKey),
-            (Lnow("Następny slajd"), nextSlideKey),
-            (Lnow("Poprzedni utwór"), prevSongKey),
-            (Lnow("Następny utwór"), nextSongKey),
-            ("Uruchomienie prezentacji", startPresentationKey),
-            ("Zatrzymanie prezentacji", stopPresentationKey),
-            (Lnow("Czarny ekran"), blackScreenKey),
-            ("Ukrycie tekstu", clearTextKey)
+        conflicts(language: Localization.currentLanguage)
+    }
+
+    /// Akcje porównywane po wartości, a nazwy tłumaczone dopiero do wyświetlenia (R4-28).
+    func conflicts(language: String) -> [String] {
+        func t(_ key: String, _ args: Any...) -> String {
+            Localization.format(Localization.string(key, language: language), args)
+        }
+        let entries: [(action: KeyboardAction, name: String, code: UInt16)] = [
+            (.prevSlide, t("Poprzedni slajd"), prevSlideKey),
+            (.nextSlide, t("Następny slajd"), nextSlideKey),
+            (.prevSong, t("Poprzedni utwór"), prevSongKey),
+            (.nextSong, t("Następny utwór"), nextSongKey),
+            (.startPresentation, t("Uruchomienie prezentacji"), startPresentationKey),
+            (.stopPresentation, t("Zatrzymanie prezentacji"), stopPresentationKey),
+            (.blackScreen, t("Czarny ekran"), blackScreenKey),
+            (.clearText, t("Ukrycie tekstu"), clearTextKey)
         ]
         var result: [String] = []
 
-        let grouped = Dictionary(grouping: entries, by: { $0.1 })
+        let grouped = Dictionary(grouping: entries, by: { $0.code })
         for (code, group) in grouped.sorted(by: { $0.key < $1.key }) where group.count > 1 {
-            let names = group.map(\.0).joined(separator: ", ")
-            result.append(Lnow("{0}: {1}. Zadziała tylko pierwsza akcja.", ShortcutPresets.nameForKeyCode(code), names))
+            let names = group.map(\.name).joined(separator: ", ")
+            result.append(t("{0}: {1}. Zadziała tylko pierwsza akcja.", ShortcutPresets.nameForKeyCode(code), names))
         }
-        for (name, code) in entries {
-            if code == KeyboardRouter.Key.r {
-                result.append(Lnow("{0} na klawiszu R: klawisz przestanie przechodzić do refrenu.", name))
-            } else if KeyboardRouter.Key.digits.contains(code) {
-                result.append(Lnow("{0} na klawiszu cyfry: cyfra przestanie przechodzić do zwrotki.", name))
-            } else if code == KeyboardRouter.Key.escape, name != "Zatrzymanie prezentacji" {
-                result.append(Lnow("{0} na klawiszu Esc: Esc przestanie kończyć projekcję.", name))
+        for entry in entries {
+            if entry.code == KeyboardRouter.Key.r {
+                result.append(t("{0} na klawiszu R: klawisz przestanie przechodzić do refrenu.", entry.name))
+            } else if KeyboardRouter.Key.digits.contains(entry.code) {
+                result.append(t("{0} na klawiszu cyfry: cyfra przestanie przechodzić do zwrotki.", entry.name))
+            } else if entry.code == KeyboardRouter.Key.escape, entry.action != .stopPresentation {
+                result.append(t("{0} na klawiszu Esc: Esc przestanie kończyć projekcję.", entry.name))
             }
         }
         return result
@@ -325,10 +422,8 @@ public final class KeyboardMonitor {
                 store.present(song: song, slideIndex: 0)
             }
         case .stopPresentation:
-            // Na jednym ekranie albo z fokusem w oknie projekcji Esc zamyka okno projekcji;
-            // przy dwóch ekranach z okna głównego tylko gasi tekst (projektor pokazuje planszę).
             if screenManager.isPresentationActive,
-               NSScreen.screens.count == 1 || context == .presentationWindow {
+               KeyboardRouter.stopClosesPresentationWindow(screenCount: NSScreen.screens.count, context: context, isLive: store.isLive) {
                 screenManager.stopPresentation()
             }
             store.stopLive()

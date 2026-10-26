@@ -43,11 +43,13 @@ public struct GoogleDriveBackupsSheet: View {
             
             // Subtitle & Folder
             HStack {
-                Text(L("Folder na dysku: "))
+                // Interpolacja `Text` zamiast `Text + Text` (przestarzałe od macOS 26, R1-06).
+                let label = Text(L("Folder na dysku: "))
                     .font(.scaled(11, weight: .medium, scale: scale))
                     .foregroundColor(.secondary)
-                + Text(store.settings.googleDrive.targetFolder)
+                let folder = Text(store.settings.googleDrive.targetFolder)
                     .font(.scaled(11, weight: .bold, scale: scale))
+                Text("\(label)\(folder)")
                 
                 Spacer()
                 

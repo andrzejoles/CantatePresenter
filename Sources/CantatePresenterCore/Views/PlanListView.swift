@@ -5,8 +5,7 @@ public struct PlanListView: View {
     @Bindable var store = DataStore.shared
     @State private var isCreatingPlan: Bool = false
     @State private var newPlanName: String = ""
-    @State private var editingNoteItemId: UUID?
-    @State private var tempNoteText: String = ""
+    @State private var isConfirmingPlanDeletion = false
     
     public init() {}
     
@@ -40,22 +39,37 @@ public struct PlanListView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help(L("Utwórz nowy plan"))
+                    .helpLabel(L("Utwórz nowy plan"))
                     
-                    if store.plans.count > 1, let activeId = store.activePlanId {
+                    if store.plans.count > 1, store.activePlanId != nil {
                         Button(action: {
-                            store.deletePlan(id: activeId)
+                            isConfirmingPlanDeletion = true
                         }) {
                             Image(systemName: "trash")
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
-                        .help(L("Usuń ten plan"))
+                        .helpLabel(L("Usuń ten plan"))
+                        // Bez cofania, więc z potwierdzeniem (R4-17).
+                        .confirmationDialog(
+                            L("Usunąć plan „{0}”?", store.activePlan?.name ?? ""),
+                            isPresented: $isConfirmingPlanDeletion,
+                            titleVisibility: .visible
+                        ) {
+                            Button(L("Usuń"), role: .destructive) {
+                                if let activeId = store.activePlanId {
+                                    store.deletePlan(id: activeId)
+                                }
+                            }
+                            Button(L("Anuluj"), role: .cancel) {}
+                        } message: {
+                            Text(L("Pieśni zostaną w bibliotece."))
+                        }
                     }
                 }
                 
                 HStack {
-                    Text(L("{0} pieśni w planie", activePlanItems.count))
+                    Text(L("Pieśni w planie: {0}", activePlanItems.count))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                     
@@ -237,7 +251,7 @@ private struct PlanItemRowView: View {
                         .foregroundColor(.green)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .help(L("Prezentuj teraz"))
+                .helpLabel(L("Prezentuj teraz"))
                 
                 Button(action: onMoveUp) {
                     Image(systemName: "chevron.up")
@@ -245,7 +259,7 @@ private struct PlanItemRowView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(2)
-                .help(L("Przesuń wyżej"))
+                .helpLabel(L("Przesuń wyżej"))
                 
                 Button(action: onMoveDown) {
                     Image(systemName: "chevron.down")
@@ -253,7 +267,7 @@ private struct PlanItemRowView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(2)
-                .help(L("Przesuń niżej"))
+                .helpLabel(L("Przesuń niżej"))
                 
                 Button(action: onRemove) {
                     Image(systemName: "xmark")
@@ -262,7 +276,7 @@ private struct PlanItemRowView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(2)
-                .help(L("Usuń z planu"))
+                .helpLabel(L("Usuń z planu"))
             }
         }
         .padding(.vertical, 4)

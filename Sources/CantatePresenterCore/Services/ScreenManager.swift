@@ -34,6 +34,7 @@ public final class ScreenManager: ObservableObject {
     
     public private(set) var presentationWindow: NSWindow?
     private var windowedPreviewWindow: NSWindow?
+    private var windowedPreviewCloseObserver: (any NSObjectProtocol)?
     
     public init() {
         refreshScreens()
@@ -60,7 +61,8 @@ public final class ScreenManager: ObservableObject {
             let height = Int(screen.frame.height)
             let isPrimary = (index == 0)
             
-            let label = "\(name) (\(width)x\(height))\(isPrimary ? " [Główny]" : " [Zewnętrzny]")"
+            // Dopisek „[główny]” dodaje widok w języku interfejsu; „zewnętrzny” trafiał też na wbudowany ekran (R4-29).
+            let label = "\(name) (\(width)x\(height))"
             list.append(DisplayScreenItem(
                 id: index,
                 displayID: DisplayDescriptor(screen, isPrimary: isPrimary).id,
@@ -164,7 +166,13 @@ public final class ScreenManager: ObservableObject {
         window.contentViewController = hostingController
         window.setFrame(targetScreen.frame, display: true)
         
-        window.makeKeyAndOrderFront(nil)
+        let operatorScreen = (AppDelegate.shared?.mainWindow?.screen).map { DisplayDescriptor($0, isPrimary: false).id }
+        if ScreenSelection.presentationWindowTakesKeyboard(projector: presentingDisplay?.id ?? 0, operatorScreen: operatorScreen) {
+            window.makeKeyAndOrderFront(nil)
+        } else {
+            // Projektor na osobnym ekranie: okno główne zostaje kluczowe (R4-02).
+            window.orderFrontRegardless()
+        }
         self.presentationWindow = window
         self.isPresentationActive = true
     }
@@ -244,20 +252,23 @@ public final class ScreenManager: ObservableObject {
             defer: false
         )
         
-        window.title = "Podgląd projekcji (Okno testowe)"
+        window.title = Lnow("Podgląd projekcji (Okno testowe)")
         window.minSize = NSSize(width: 400, height: 250)
         window.backgroundColor = NSColor.black
         window.contentViewController = hostingController
         window.isReleasedWhenClosed = false
-        
-        NotificationCenter.default.addObserver(
+
+        // Jeden obserwator na okno, usuwany przy zamknięciu. Bez przeskoku przez `Task`: szybkie ponowne
+        // otwarcie nie może wyzerować nowego okna (R4-19).
+        windowedPreviewCloseObserver = NotificationCenter.default.addObserver(
             forName: NSWindow.willCloseNotification,
             object: window,
             queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in
-                self?.isWindowedPreviewActive = false
-                self?.windowedPreviewWindow = nil
+        ) { [weak self] notification in
+            let closed = (notification.object as AnyObject?).map(ObjectIdentifier.init)
+            MainActor.assumeIsolated {
+                guard let self, closed == self.windowedPreviewWindow.map(ObjectIdentifier.init) else { return }
+                self.windowedPreviewDidClose()
             }
         }
         
@@ -268,8 +279,21 @@ public final class ScreenManager: ObservableObject {
     
     public func stopWindowedPreview() {
         windowedPreviewWindow?.close()
+        windowedPreviewDidClose()
+    }
+
+    private func windowedPreviewDidClose() {
+        if let observer = windowedPreviewCloseObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        windowedPreviewCloseObserver = nil
         windowedPreviewWindow = nil
         isWindowedPreviewActive = false
+    }
+
+    /// Tytuły okien AppKit po zmianie języka (R4-20).
+    public func updateWindowTitles() {
+        windowedPreviewWindow?.title = Lnow("Podgląd projekcji (Okno testowe)")
     }
     
     public func toggleWindowedPreview() {

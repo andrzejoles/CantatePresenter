@@ -83,26 +83,9 @@ public struct LiveOutputView: View {
                                 .font(.scaled(11, weight: .bold, scale: scale))
                                 .foregroundColor(.white.opacity(0.5))
                         } else if !store.isLive {
-                            GeometryReader { geo in
-                                let size = geo.size
-                                let logoDim = min(80.0, max(44.0, size.height * 0.38))
-                                Color(hex: "#0b0f19")
-                                VStack(spacing: max(2.0, size.height * 0.025)) {
-                                    let activeLogo = LogoCatalog.getById(store.settings.activeLogoId)
-                                    SVGThumbnailView(svgString: activeLogo.svgContent)
-                                        .frame(width: logoDim, height: logoDim)
-                                        .cornerRadius(6)
-                                    
-                                    Text("CantatePresenter")
-                                        .font(.scaled(max(11.0, size.height * 0.085), weight: .bold, scale: scale))
-                                        .foregroundColor(.white)
-                                    
-                                    Text(L("Wersja {0}", AppVersion.current))
-                                        .font(.scaled(max(8.5, size.height * 0.06), weight: .medium, scale: scale))
-                                        .foregroundColor(.white.opacity(0.75))
-                                }
-                                .frame(width: size.width, height: size.height)
-                            }
+                            // Ta sama plansza co na projektorze (własny plik, zegar, napis gotowości), pomniejszona (R4-15).
+                            StandbyWebView(htmlPath: store.settings.standbyHtmlPath, activeLogoId: store.settings.activeLogoId)
+                                .allowsHitTesting(false)
                         } else if store.isClearText {
                             bgColor
                             Text(L("TEKST UKRYTY"))
@@ -165,7 +148,7 @@ public struct LiveOutputView: View {
                                 Circle()
                                     .fill(store.isBlackScreen ? Color.red : Color.secondary.opacity(0.4))
                                     .frame(width: 8, height: 8)
-                                Text(L("Czarny (B)"))
+                                Text(L("Czarny ({0})", KeyboardRouter.shortKeyName(for: store.settings.shortcuts.blackScreenKey)))
                                     .font(.scaled(11, scale: scale))
                             }
                             .frame(maxWidth: .infinity)
@@ -178,7 +161,7 @@ public struct LiveOutputView: View {
                                 Circle()
                                     .fill(store.isClearText ? Color.orange : Color.secondary.opacity(0.4))
                                     .frame(width: 8, height: 8)
-                                Text(L("Czysty (C)"))
+                                Text(L("Czysty ({0})", KeyboardRouter.shortKeyName(for: store.settings.shortcuts.clearTextKey)))
                                     .font(.scaled(11, scale: scale))
                             }
                             .frame(maxWidth: .infinity)
@@ -192,7 +175,7 @@ public struct LiveOutputView: View {
                                     .foregroundColor(.red)
                             }
                             .buttonStyle(.bordered)
-                            .help(L("Zatrzymaj prezentację"))
+                            .helpLabel(L("Zatrzymaj prezentację"))
                         }
                     }
                 }
@@ -273,7 +256,7 @@ public struct LiveOutputView: View {
                                 .font(.scaled(11, weight: .medium, scale: scale))
                                 .foregroundColor(.secondary)
                             Spacer()
-                            Text(L("{0} linie", next.lines.count))
+                            Text(L("Linie: {0}", next.lines.count))
                                 .font(.scaled(10, scale: scale))
                                 .foregroundColor(.secondary)
                         }
@@ -292,7 +275,7 @@ public struct LiveOutputView: View {
                             Image(systemName: "arrow.clockwise")
                         }
                         .buttonStyle(PlainButtonStyle())
-                        .help(L("Odśwież listę monitorów"))
+                        .helpLabel(L("Odśwież listę monitorów"))
                     }
                     
                     Picker(L("Docelowy ekran:"), selection: Binding(
@@ -304,7 +287,7 @@ public struct LiveOutputView: View {
                         }
                     )) {
                         ForEach(screenManager.availableScreens) { screen in
-                            Text(screen.name).tag(screen.id)
+                            Text(screen.isPrimary ? "\(screen.name) [\(L("główny"))]" : screen.name).tag(screen.id)
                         }
                     }
                     .pickerStyle(MenuPickerStyle())

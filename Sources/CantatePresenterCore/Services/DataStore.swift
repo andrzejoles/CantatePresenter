@@ -88,6 +88,8 @@ public final class DataStore {
     @ObservationIgnored private var lockedFileNames: Set<String> = []
     /// Dane z nowszej wersji formatu (`DataSchema`): wszystkie zapisy pominięte.
     @ObservationIgnored public private(set) var isReadOnlyNewerSchema = false
+    /// Ustawienia w stanie z ostatniego zapisu lub wczytania (`saveSettingsIfChanged`).
+    @ObservationIgnored private var lastSavedSettings: AppSettings?
     /// Ostatnia pieśń z aktywnego planu; po „szybkim tekście” poprzednia/następna pieśń liczy się od niej (N11).
     @ObservationIgnored private var lastPlanSongId: UUID?
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "persistence")
@@ -273,6 +275,7 @@ public final class DataStore {
         case .loaded(let decoded):
             unlock(settingsFileURL)
             self.settings = decoded
+            lastSavedSettings = decoded
             applySchemaVersion(decoded.schemaVersion)
             if settings.googleDrive.hasLegacySecrets {
                 migrateGoogleSecrets()
@@ -323,6 +326,15 @@ public final class DataStore {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         persist(settings, to: settingsFileURL, encoder: encoder)
+        lastSavedSettings = settings
+    }
+
+    /// Zapisuje ustawienia tylko wtedy, gdy zmieniły się od ostatniego zapisu lub wczytania.
+    /// Wywoływane przy zamknięciu arkusza Ustawień (także Esc) i przy zamykaniu aplikacji: pola arkusza
+    /// zmieniają `settings` bezpośrednio, a wcześniej zapisywał je tylko przycisk „Gotowe” (R4-05, R2-22).
+    public func saveSettingsIfChanged() {
+        guard settings != lastSavedSettings else { return }
+        saveSettings()
     }
     
     public func dismissPersistenceIssue(_ issue: PersistenceIssue) {
@@ -393,17 +405,24 @@ public final class DataStore {
     }
     
     public func updateSong(_ song: Song) {
+        var updated = song
+        updated.updatedAt = Date()
         if let idx = songs.firstIndex(where: { $0.id == song.id }) {
-            var updated = song
-            updated.updatedAt = Date()
             songs[idx] = updated
-            if activeSong?.id == song.id {
-                activeSong = updated
-                if activeSlideIndex >= updated.slides.count {
-                    activeSlideIndex = max(0, updated.slides.count - 1)
-                }
-            }
+            refreshActiveSong(with: updated)
             saveSongs()
+        } else if temporarySong?.id == song.id {
+            // Szybki tekst nie jest w bibliotece: poprawka zmienia tylko to, co na ekranie (R4-06).
+            temporarySong = updated
+            refreshActiveSong(with: updated)
+        }
+    }
+
+    private func refreshActiveSong(with updated: Song) {
+        guard activeSong?.id == updated.id else { return }
+        activeSong = updated
+        if activeSlideIndex >= updated.slides.count {
+            activeSlideIndex = max(0, updated.slides.count - 1)
         }
     }
     
@@ -513,7 +532,8 @@ public final class DataStore {
         let quickSong = Song(
             id: UUID(),
             title: songTitle,
-            author: "Tymczasowy",
+            // Bez autora: wcześniej nieprzetłumaczone „Tymczasowy” w nagłówku środkowego panelu (R4-30).
+            author: "",
             key: "",
             tags: [Lnow("Szybki tekst")],
             rawLyrics: trimmed
@@ -524,8 +544,11 @@ public final class DataStore {
         self.present(song: quickSong, slideIndex: 0)
     }
     
+    /// Slajdy przełączają się tylko w trakcie projekcji (R4-01): po Esc strzałki, Spacja, R i cyfry
+    /// nie przesuwają ukrytego slajdu ani nie wyświetlają następnej pieśni z planu.
+    /// Wznowienie: Enter (start projekcji) albo kliknięcie slajdu.
     public func nextSlide() {
-        guard let song = activeSong else { return }
+        guard isLive, let song = activeSong else { return }
         if activeSlideIndex < song.slides.count - 1 {
             activeSlideIndex += 1
             isClearText = false
@@ -537,7 +560,7 @@ public final class DataStore {
     }
     
     public func prevSlide() {
-        guard let _ = activeSong else { return }
+        guard isLive, activeSong != nil else { return }
         if activeSlideIndex > 0 {
             activeSlideIndex -= 1
             isClearText = false
@@ -546,7 +569,7 @@ public final class DataStore {
     }
     
     public func jumpToSlide(index: Int) {
-        guard let song = activeSong else { return }
+        guard isLive, let song = activeSong else { return }
         if index >= 0 && index < song.slides.count {
             activeSlideIndex = index
             isClearText = false
@@ -554,21 +577,15 @@ public final class DataStore {
         }
     }
     
+    /// Klawisz cyfry; ten sam slajd pokazuje znaczek na karcie (`Song.slideShortcutHints`, R4-03).
     public func jumpToVerse(number: Int) {
-        guard let song = activeSong else { return }
-        // Po numerze zwrotki, nie po polskiej etykiecie (S10).
-        if let idx = song.slides.firstIndex(where: { $0.type == .verse && $0.number == number }) {
-            jumpToSlide(index: idx)
-        } else if number - 1 < song.slides.count {
-            jumpToSlide(index: number - 1)
-        }
+        guard isLive, let index = activeSong?.slideIndex(forVerse: number) else { return }
+        jumpToSlide(index: index)
     }
     
     public func jumpToChorus() {
-        guard let song = activeSong else { return }
-        if let idx = song.slides.firstIndex(where: { $0.type == .chorus }) {
-            jumpToSlide(index: idx)
-        }
+        guard isLive, let index = activeSong?.chorusSlideIndex else { return }
+        jumpToSlide(index: index)
     }
     
     public func toggleBlackScreen() {

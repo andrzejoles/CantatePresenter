@@ -149,6 +149,26 @@ struct KeyboardRouterTests {
         #expect(action(47, ".", shortcuts: custom, in: .presentationWindow) == .stopPresentation)
     }
 
+    // MARK: Esc a okno projekcji (R4-02)
+
+    @Test("Dwa ekrany: pierwsze Esc w oknie projekcji gasi tekst, okno zostaje; drugie je zamyka")
+    func escapeInPresentationWindowOnTwoScreens() {
+        #expect(!KeyboardRouter.stopClosesPresentationWindow(screenCount: 2, context: .presentationWindow, isLive: true))
+        #expect(KeyboardRouter.stopClosesPresentationWindow(screenCount: 2, context: .presentationWindow, isLive: false))
+    }
+
+    @Test("Dwa ekrany: Esc z okna głównego nigdy nie zamyka okna projekcji")
+    func escapeInMainWindowOnTwoScreens() {
+        #expect(!KeyboardRouter.stopClosesPresentationWindow(screenCount: 2, context: mainWindow, isLive: true))
+        #expect(!KeyboardRouter.stopClosesPresentationWindow(screenCount: 2, context: mainWindow, isLive: false))
+    }
+
+    @Test("Jeden ekran: Esc zamyka okno projekcji, które zasłania okno główne")
+    func escapeOnSingleScreen() {
+        #expect(KeyboardRouter.stopClosesPresentationWindow(screenCount: 1, context: .presentationWindow, isLive: true))
+        #expect(KeyboardRouter.stopClosesPresentationWindow(screenCount: 1, context: mainWindow, isLive: true))
+    }
+
     // MARK: Konflikty w ustawieniach
 
     @Test("Wykrywanie konfliktów skrótów")
@@ -162,5 +182,33 @@ struct KeyboardRouterTests {
 
         #expect(conflicts.contains { $0.contains("Poprzedni utwór") && $0.contains("Następny utwór") })
         #expect(conflicts.contains { $0.contains("refren") })
+    }
+
+    @Test("Opisy konfliktów są w całości przetłumaczone (R4-28)")
+    func conflictsAreTranslated() {
+        var custom = ShortcutSettings()
+        custom.prevSlideKey = 15 // R
+        custom.startPresentationKey = 53 // Esc
+        custom.clearTextKey = custom.stopPresentationKey
+        let conflicts = custom.conflicts(language: "en")
+
+        #expect(conflicts.contains { $0.contains("Previous slide") })
+        #expect(conflicts.contains { $0.contains("Start presentation") })
+        #expect(conflicts.contains { $0.contains("Hide text") && $0.contains("Stop presentation") })
+        #expect(!conflicts.contains { $0.contains("Poprzedni") || $0.contains("Uruchomienie") || $0.contains("Ukrycie") || $0.contains("Zatrzymanie") })
+    }
+
+    @Test("Esc przypisane do zatrzymania nie jest zgłaszane jako konflikt, w każdym języku")
+    func escapeOnStopIsNoConflict() {
+        var custom = ShortcutSettings()
+        custom.stopPresentationKey = 53
+        #expect(custom.conflicts(language: "en").isEmpty)
+        #expect(custom.conflicts(language: "pl").isEmpty)
+    }
+
+    @Test("Stałe klawisze w pomocy są przetłumaczone (R4-28)")
+    func fixedKeysHelpTranslated() {
+        let help = KeyboardRouter.fixedKeysHelp(language: "en")
+        #expect(help.contains { $0.keys == "Enter in the projection window" })
     }
 }

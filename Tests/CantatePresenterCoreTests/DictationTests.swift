@@ -53,3 +53,39 @@ struct DictationFallbackTests {
         #expect(!DictationFallback.shouldRetryWithServer(usedOnDevice: true, recognizedText: "", alreadyRetried: true))
     }
 }
+
+@Suite("Dyktowanie: stan przycisku z usługi (R4-11)")
+struct DictationOwnershipTests {
+    private let button = UUID()
+
+    @Test("Błąd przed startem nagrywania (np. brak mikrofonu) kończy sesję przycisku i zostawia przy nim komunikat")
+    func errorBeforeRecordingEndsSession() {
+        var ownership = DictationOwnership()
+        ownership.start(button, isRetry: false)
+        ownership.fail()
+        #expect(ownership.active == nil)
+        #expect(ownership.failed == button)
+        ownership.clearError()
+        #expect(ownership.failed == nil)
+    }
+
+    @Test("Ponowienie przez serwer Apple nie zmienia przycisku, który dyktuje")
+    func serverRetryKeepsOwner() {
+        var ownership = DictationOwnership()
+        ownership.start(button, isRetry: false)
+        ownership.start(nil, isRetry: true)
+        #expect(ownership.active == button)
+    }
+
+    @Test("Nowa sesja innego przycisku czyści stary błąd; zatrzymanie kończy sesję")
+    func newSessionAndStop() {
+        var ownership = DictationOwnership()
+        ownership.start(button, isRetry: false)
+        ownership.fail()
+        let other = UUID()
+        ownership.start(other, isRetry: false)
+        #expect(ownership.failed == nil && ownership.active == other)
+        ownership.end()
+        #expect(ownership.active == nil)
+    }
+}

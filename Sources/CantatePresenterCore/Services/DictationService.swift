@@ -12,6 +12,8 @@ public final class DictationService: ObservableObject {
     @Published public var currentRecognizedText: String = ""
     @Published public var errorMessage: String? = nil
     @Published public var isAuthorized: Bool = false
+    /// Który przycisk dyktowania prowadzi sesję i przy którym pokazać błąd (R4-11).
+    @Published public private(set) var ownership = DictationOwnership()
     
     private var speechRecognizer: SFSpeechRecognizer?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
@@ -57,6 +59,7 @@ public final class DictationService: ObservableObject {
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "dictation")
     
     public func startDictation(
+        owner: UUID? = nil,
         localeIdentifier: String,
         onPartial: @escaping (String) -> Void,
         onFinal: @escaping (String) -> Void
@@ -69,6 +72,8 @@ public final class DictationService: ObservableObject {
             stopDictation()
             return
         }
+        // Ponowienie przez serwer (`forceServerRecognition`) to ta sama sesja tego samego przycisku.
+        ownership.start(owner, isRetry: forceServerRecognition)
         
         self.partialHandler = onPartial
         self.finalHandler = onFinal
@@ -80,8 +85,7 @@ public final class DictationService: ObservableObject {
         AVCaptureDevice.requestAccess(for: .audio) { @Sendable [weak self] micGranted in
             guard micGranted else {
                 Task { @MainActor in
-                    self?.errorMessage = Lnow("Brak dostępu do mikrofonu. Nadaj uprawnienia w Ustawienia systemowe > Prywatność i ochrona > Mikrofon.")
-                    self?.isRecording = false
+                    self?.fail(Lnow("Brak dostępu do mikrofonu. Nadaj uprawnienia w Ustawienia systemowe > Prywatność i ochrona > Mikrofon."))
                 }
                 return
             }
@@ -89,8 +93,7 @@ public final class DictationService: ObservableObject {
             SFSpeechRecognizer.requestAuthorization { @Sendable [weak self] authStatus in
                 Task { @MainActor in
                     guard authStatus == .authorized else {
-                        self?.errorMessage = Lnow("Brak uprawnień do rozpoznawania mowy. Włącz uprawnienia w Ustawieniach systemowych.")
-                        self?.isRecording = false
+                        self?.fail(Lnow("Brak uprawnień do rozpoznawania mowy. Włącz uprawnienia w Ustawieniach systemowych."))
                         return
                     }
                     self?.isAuthorized = true
@@ -111,15 +114,13 @@ public final class DictationService: ObservableObject {
         speechRecognizer = SFSpeechRecognizer(locale: locale)
         
         guard let recognizer = speechRecognizer, recognizer.isAvailable else {
-            self.errorMessage = Lnow("Rozpoznawanie mowy dla języka {0} nie jest obecnie dostępne na tym urządzeniu.", localeIdentifier)
-            self.isRecording = false
+            fail(Lnow("Rozpoznawanie mowy dla języka {0} nie jest obecnie dostępne na tym urządzeniu.", localeIdentifier))
             return
         }
         
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
         guard let request = recognitionRequest else {
-            self.errorMessage = Lnow("Nie można utworzyć żądania rozpoznawania mowy.")
-            self.isRecording = false
+            fail(Lnow("Nie można utworzyć żądania rozpoznawania mowy."))
             return
         }
         
@@ -135,22 +136,19 @@ public final class DictationService: ObservableObject {
         let recordingFormat = inputNode.outputFormat(forBus: 0)
         
         guard recordingFormat.sampleRate > 0 && recordingFormat.channelCount > 0 else {
-            self.errorMessage = Lnow("Nieprawidłowy format wejścia mikrofonu.")
-            self.isRecording = false
+            fail(Lnow("Nieprawidłowy format wejścia mikrofonu."))
             return
         }
         
         inputNode.removeTap(onBus: 0)
-        Self.installTap(on: inputNode, format: recordingFormat, feeding: request)
-        
-        audioEngine.prepare()
-        
         do {
+            try Self.installTap(on: inputNode, format: recordingFormat, feeding: request)
+            audioEngine.prepare()
             try audioEngine.start()
             self.isRecording = true
         } catch {
-            self.errorMessage = Lnow("Nie udało się uruchomić silnika audio: {0}", error.localizedDescription)
-            self.isRecording = false
+            inputNode.removeTap(onBus: 0)
+            fail(Lnow("Nie udało się uruchomić silnika audio: {0}", error.localizedDescription))
             return
         }
         
@@ -193,6 +191,7 @@ public final class DictationService: ObservableObject {
             if nsError.domain != "kAFAssistantErrorDomain" || (nsError.code != 203 && nsError.code != 216) {
                 if !self.transcribedTextWasEmitted {
                     self.errorMessage = error.localizedDescription
+                    self.ownership.fail()
                 }
             }
             self.stopDictation()
@@ -203,7 +202,28 @@ public final class DictationService: ObservableObject {
     
     /// Bufory z mikrofonu przychodzą w wątku audio, więc domknięcie nie może należeć do głównego aktora
     /// (w trybie Swift 6 takie wywołanie zatrzymuje aplikację). `append` można wołać z dowolnego wątku.
+    /// Od macOS 27 wersja zgłaszająca błąd (np. niezgodny format po zmianie mikrofonu) zamiast wyjątku
+    /// Objective-C, który zamykał aplikację (R1-06). Wymaga SDK macOS 27 (Swift 6.4).
     nonisolated private static func installTap(
+        on node: AVAudioInputNode,
+        format: AVAudioFormat,
+        feeding request: SFSpeechAudioBufferRecognitionRequest
+    ) throws {
+        #if compiler(>=6.4)
+        if #available(macOS 27, *) {
+            try node.__installTap(onBus: 0, bufferSize: 1024, format: format, error: ()) { buffer, _ in
+                request.append(buffer)
+            }
+        } else {
+            legacyInstallTap(on: node, format: format, feeding: request)
+        }
+        #else
+        legacyInstallTap(on: node, format: format, feeding: request)
+        #endif
+    }
+
+    @available(macOS, deprecated: 27.0, message: "installTap(onBus:bufferSize:format:error:block:)")
+    nonisolated private static func legacyInstallTap(
         on node: AVAudioInputNode,
         format: AVAudioFormat,
         feeding request: SFSpeechAudioBufferRecognitionRequest
@@ -255,11 +275,58 @@ public final class DictationService: ObservableObject {
         recognitionRequest = nil
         recognitionTask?.cancel()
         recognitionTask = nil
-        
+
         if isRecording {
             isRecording = false
             finalDelivery.deliver(currentRecognizedText) { finalHandler?($0) }
         }
+        ownership.end()
+    }
+
+    /// Błąd przed nagrywaniem albo w jego trakcie: sesja się kończy, komunikat zostaje przy przycisku (R4-11).
+    private func fail(_ message: String) {
+        errorMessage = message
+        isRecording = false
+        ownership.fail()
+    }
+
+    public func clearError() {
+        errorMessage = nil
+        ownership.clearError()
+    }
+}
+
+// MARK: - Ownership
+
+/// Stan przycisku dyktowania wyliczany z usługi, a nie z lokalnego `@State` (R4-11): błąd przed startem
+/// nagrywania kończy sesję (przycisk nie zostaje czerwony), a ponowienie przez serwer jej nie kończy.
+public struct DictationOwnership: Equatable, Sendable {
+    /// Przycisk, który prowadzi bieżącą sesję.
+    public private(set) var active: UUID?
+    /// Przycisk, przy którym pokazać komunikat o błędzie.
+    public private(set) var failed: UUID?
+
+    public init() {}
+
+    mutating func start(_ owner: UUID?, isRetry: Bool) {
+        guard !isRetry else { return }
+        active = owner
+        failed = nil
+    }
+
+    mutating func fail() {
+        if active != nil {
+            failed = active
+        }
+        active = nil
+    }
+
+    mutating func end() {
+        active = nil
+    }
+
+    mutating func clearError() {
+        failed = nil
     }
 }
 
