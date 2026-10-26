@@ -2801,30 +2801,30 @@
         }
       }
     },
-    "CantatePresenter Pełny Backup (baza pieśni, chwyty, ustawienia, standby, języki, loga)": {
+    "CantatePresenter Pełny Backup (pieśni, chwyty, plany, ustawienia, języki)": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "CantatePresenter full backup (song library, chords, settings, standby, languages, logos)"
+            "value": "CantatePresenter full backup (songs, chords, plans, settings, languages)"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "CantatePresenter Vollsicherung (Liederbibliothek, Akkorde, Einstellungen, Standby, Sprachen, Logos)"
+            "value": "CantatePresenter Vollsicherung (Lieder, Akkorde, Pläne, Einstellungen, Sprachen)"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copia completa de CantatePresenter (biblioteca de canciones, acordes, ajustes, pantalla de espera, idiomas, logotipos)"
+            "value": "Copia completa de CantatePresenter (canciones, acordes, planes, ajustes, idiomas)"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Повна резервна копія CantatePresenter (бібліотека пісень, акорди, налаштування, екран очікування, мови, логотипи)"
+            "value": "Повна резервна копія CantatePresenter (пісні, акорди, плани, налаштування, мови)"
           }
         }
       }
@@ -6189,30 +6189,30 @@
         }
       }
     },
-    "Instrukcja obsługi CantatePresenter (Cmd ?)": {
+    "Instrukcja obsługi CantatePresenter (⌘?)": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "CantatePresenter user guide (Cmd ?)"
+            "value": "CantatePresenter user guide (⌘?)"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Benutzerhandbuch CantatePresenter (Cmd ?)"
+            "value": "Benutzerhandbuch CantatePresenter (⌘?)"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Manual de usuario de CantatePresenter (Cmd ?)"
+            "value": "Manual de usuario de CantatePresenter (⌘?)"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Посібник користувача CantatePresenter (Cmd ?)"
+            "value": "Посібник користувача CantatePresenter (⌘?)"
           }
         }
       }
@@ -6973,30 +6973,30 @@
         }
       }
     },
-    "Kliknij 'Nowa pieśń' lub wybierz pieśń i kliknij 'Edytuj' (Cmd E). Edytor posiada podgląd podziału na slajdy na żywo.": {
+    "Kliknij 'Nowa pieśń' lub wybierz pieśń i kliknij 'Edytuj' (⌘E). Edytor posiada podgląd podziału na slajdy na żywo.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Click 'New song' or select a song and click 'Edit' (Cmd E). The editor shows a live preview of how the text is split into slides."
+            "value": "Click 'New song' or select a song and click 'Edit' (⌘E). The editor shows a live preview of how the text is split into slides."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Klicke auf 'Neues Lied' oder wähle ein Lied und klicke auf 'Bearbeiten' (Cmd E). Der Editor zeigt live, wie der Text in Folien aufgeteilt wird."
+            "value": "Klicke auf 'Neues Lied' oder wähle ein Lied und klicke auf 'Bearbeiten' (⌘E). Der Editor zeigt live, wie der Text in Folien aufgeteilt wird."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Haz clic en 'Nueva canción' o elige una canción y haz clic en 'Editar' (Cmd E). El editor muestra en vivo cómo se divide el texto en diapositivas."
+            "value": "Haz clic en 'Nueva canción' o elige una canción y haz clic en 'Editar' (⌘E). El editor muestra en vivo cómo se divide el texto en diapositivas."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Натисніть 'Нова пісня' або виберіть пісню й натисніть 'Редагувати' (Cmd E). Редактор наживо показує, як текст ділиться на слайди."
+            "value": "Натисніть 'Нова пісня' або виберіть пісню й натисніть 'Редагувати' (⌘E). Редактор наживо показує, як текст ділиться на слайди."
           }
         }
       }
@@ -7561,30 +7561,30 @@
         }
       }
     },
-    "Kopia zapasowa zabezpiecza całą bazę pieśni, chwyty, plany, ustawienia, planszę standby, języki i loga.": {
+    "Kopia zapasowa zawiera bazę pieśni z chwytami, plany nabożeństw, ustawienia, własne języki i raport CCLI. Własnego pliku planszy startowej wybranego w Ustawieniach kopia nie zawiera: po przywróceniu na innym Macu wskaż go ponownie.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The backup protects the entire song library, chords, plans, settings, standby screen, languages and logos."
+            "value": "The backup contains the song library with chords, service plans, settings, custom languages and the CCLI report. It does not contain a custom start screen file chosen in Settings: after restoring on another Mac, choose it again."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Sicherung schützt die gesamte Liederbibliothek, Akkorde, Pläne, Einstellungen, den Wartebildschirm, Sprachen und Logos."
+            "value": "Die Sicherung enthält die Liederbibliothek mit Akkorden, Gottesdienstpläne, Einstellungen, eigene Sprachen und den CCLI-Bericht. Eine in den Einstellungen gewählte eigene Startbildschirm-Datei ist nicht enthalten: Wähle sie nach der Wiederherstellung auf einem anderen Mac erneut aus."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La copia protege toda la biblioteca de canciones, acordes, planes, ajustes, pantalla de espera, idiomas y logotipos."
+            "value": "La copia contiene la biblioteca de canciones con acordes, los planes de celebración, los ajustes, los idiomas propios y el informe CCLI. No contiene un archivo propio de pantalla de inicio elegido en Ajustes: tras restaurar en otro Mac, vuelve a elegirlo."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Резервна копія захищає всю бібліотеку пісень, акорди, плани, налаштування, екран очікування, мови й логотипи."
+            "value": "Резервна копія містить бібліотеку пісень з акордами, плани богослужінь, налаштування, власні мови та звіт CCLI. Власного файлу стартового екрана, вибраного в налаштуваннях, у копії немає: після відновлення на іншому Mac виберіть його знову."
           }
         }
       }
@@ -8093,30 +8093,30 @@
         }
       }
     },
-    "Możesz także używać skrótów Cmd + / Cmd - oraz przycisków w prawym górnym rogu paska narzędzi.": {
+    "Możesz także używać skrótów ⌘+ / ⌘− oraz przycisków w prawym górnym rogu paska narzędzi.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can also use Cmd + / Cmd - and the buttons in the top-right corner of the toolbar."
+            "value": "You can also use ⌘+ / ⌘− and the buttons in the top-right corner of the toolbar."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Du kannst auch Cmd + / Cmd - und die Schaltflächen oben rechts in der Symbolleiste verwenden."
+            "value": "Du kannst auch ⌘+ / ⌘− und die Schaltflächen oben rechts in der Symbolleiste verwenden."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "También puedes usar Cmd + / Cmd - y los botones de la esquina superior derecha de la barra de herramientas."
+            "value": "También puedes usar ⌘+ / ⌘− y los botones de la esquina superior derecha de la barra de herramientas."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Можна також користуватися Cmd + / Cmd - і кнопками у верхньому правому куті панелі інструментів."
+            "value": "Можна також користуватися ⌘+ / ⌘− і кнопками у верхньому правому куті панелі інструментів."
           }
         }
       }
@@ -8373,30 +8373,30 @@
         }
       }
     },
-    "Naciśnij ESC, aby wyjść z pełnego ekranu": {
+    "Naciśnij Esc, aby wyjść z pełnego ekranu": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Press ESC to exit full screen"
+            "value": "Press Esc to exit full screen"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "ESC drücken, um den Vollbildmodus zu verlassen"
+            "value": "Esc drücken, um den Vollbildmodus zu verlassen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pulsa ESC para salir de la pantalla completa"
+            "value": "Pulsa Esc para salir de la pantalla completa"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Натисніть ESC, щоб вийти з повноекранного режиму"
+            "value": "Натисніть Esc, щоб вийти з повноекранного режиму"
           }
         }
       }
@@ -10781,30 +10781,30 @@
         }
       }
     },
-    "Pełna kopia zapasowa zabezpiecza wszystkie elementy aplikacji: bazę pieśni wraz z chwytami, plany nabożeństw, pełne ustawienia, ekran początkowy Standby, zainstalowane języki tłumaczeń oraz bibliotekę oficjalnych logotypów.": {
+    "Pełna kopia zapasowa zawiera bazę pieśni wraz z chwytami, plany nabożeństw, ustawienia, własne języki tłumaczeń i raport CCLI. Logo są wbudowane w program. Własnego pliku planszy startowej wybranego w Ustawieniach kopia nie zawiera.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A full backup protects every part of the app: the song library with chords, service plans, all settings, the Standby start screen, installed translation languages and the library of official logos."
+            "value": "A full backup contains the song library with chords, service plans, settings, custom translation languages and the CCLI report. Logos are built into the app. It does not contain a custom start screen file chosen in Settings."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eine Vollsicherung schützt alle Teile der App: die Liederbibliothek mit Akkorden, Gottesdienstpläne, alle Einstellungen, den Standby-Startbildschirm, installierte Übersetzungssprachen und die Bibliothek der offiziellen Logos."
+            "value": "Eine Vollsicherung enthält die Liederbibliothek mit Akkorden, Gottesdienstpläne, Einstellungen, eigene Übersetzungssprachen und den CCLI-Bericht. Die Logos sind in die App eingebaut. Eine in den Einstellungen gewählte eigene Startbildschirm-Datei ist nicht enthalten."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La copia completa protege todos los elementos de la aplicación: la biblioteca de canciones con acordes, los planes de celebración, todos los ajustes, la pantalla inicial Standby, los idiomas de traducción instalados y la biblioteca de logotipos oficiales."
+            "value": "Una copia completa contiene la biblioteca de canciones con acordes, los planes de celebración, los ajustes, los idiomas de traducción propios y el informe CCLI. Los logotipos vienen integrados en la aplicación. No contiene un archivo propio de pantalla de inicio elegido en Ajustes."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Повна резервна копія захищає всі елементи програми: бібліотеку пісень з акордами, плани богослужінь, усі налаштування, початковий екран Standby, встановлені мови перекладу та бібліотеку офіційних логотипів."
+            "value": "Повна резервна копія містить бібліотеку пісень з акордами, плани богослужінь, налаштування, власні мови перекладу та звіт CCLI. Логотипи вбудовано в програму. Власного файлу стартового екрана, вибраного в налаштуваннях, у копії немає."
           }
         }
       }
@@ -13889,30 +13889,30 @@
         }
       }
     },
-    "Przy jednym ekranie przycisk 'Prezentuj na pełnym ekranie' zakrywa ekran Maca, a Esc zamyka pełny ekran i kończy projekcję. Przy dwóch ekranach Esc w oknie głównym gasi tekst (projektor pokazuje planszę); w oknie projekcji pierwsze Esc gasi tekst, a drugie zamyka okno projekcji. Po zatrzymaniu strzałki i Spacja nie zmieniają slajdów: projekcję wznawia Enter albo kliknięcie slajdu.": {
+    "Przy jednym ekranie przycisk 'Prezentuj na pełnym ekranie' zakrywa ekran Maca, a Esc zamyka pełny ekran i kończy projekcję. Polecenia menu otwierające okna (np. Szybki tekst, Import) są wtedy nieaktywne: najpierw zakończ projekcję klawiszem Esc. Przy dwóch ekranach Esc w oknie głównym gasi tekst (projektor pokazuje planszę); w oknie projekcji pierwsze Esc gasi tekst, a drugie zamyka okno projekcji. Po zatrzymaniu strzałki i Spacja nie zmieniają slajdów: Enter w oknie głównym pokazuje zaznaczoną pieśń od pierwszego slajdu, a kliknięcie slajdu pokazuje ten slajd.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "With one screen, 'Present full screen' covers the Mac's screen, and Esc closes full screen and ends the projection. With two screens, Esc in the main window hides the text (the projector shows the standby screen); in the projection window the first Esc hides the text and the second one closes the projection window. After stopping, the arrow keys and Space do not change slides: Enter or a click on a slide resumes the projection."
+            "value": "With one screen, 'Present full screen' covers the Mac's screen, and Esc closes full screen and ends the projection. Menu commands that open windows (such as Quick text or Import) are then unavailable: end the projection with Esc first. With two screens, Esc in the main window hides the text (the projector shows the standby screen); in the projection window the first Esc hides the text and the second one closes the projection window. After stopping, the arrow keys and Space do not change slides: Enter in the main window shows the selected song from its first slide, and a click on a slide shows that slide."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mit einem Bildschirm deckt 'Im Vollbild präsentieren' den Bildschirm des Macs ab, und Esc schließt das Vollbild und beendet die Projektion. Mit zwei Bildschirmen blendet Esc im Hauptfenster den Text aus (der Projektor zeigt den Wartebildschirm); im Projektionsfenster blendet das erste Esc den Text aus und das zweite schließt das Projektionsfenster. Nach dem Stoppen wechseln die Pfeiltasten und die Leertaste keine Folien: Enter oder ein Klick auf eine Folie setzt die Projektion fort."
+            "value": "Mit einem Bildschirm deckt 'Im Vollbild präsentieren' den Bildschirm des Macs ab, und Esc schließt das Vollbild und beendet die Projektion. Menübefehle, die Fenster öffnen (z. B. Schnelltext oder Import), sind dann nicht verfügbar: Beende die Projektion zuerst mit Esc. Mit zwei Bildschirmen blendet Esc im Hauptfenster den Text aus (der Projektor zeigt den Wartebildschirm); im Projektionsfenster blendet das erste Esc den Text aus und das zweite schließt das Projektionsfenster. Nach dem Stoppen wechseln die Pfeiltasten und die Leertaste keine Folien: Enter im Hauptfenster zeigt das ausgewählte Lied ab der ersten Folie, ein Klick auf eine Folie zeigt diese Folie."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Con una pantalla, 'Presentar a pantalla completa' cubre la pantalla del Mac, y Esc cierra la pantalla completa y termina la proyección. Con dos pantallas, Esc en la ventana principal oculta el texto (el proyector muestra la pantalla de espera); en la ventana de proyección el primer Esc oculta el texto y el segundo cierra la ventana de proyección. Después de detenerla, las flechas y la barra espaciadora no cambian de diapositiva: Enter o un clic en una diapositiva reanuda la proyección."
+            "value": "Con una pantalla, 'Presentar a pantalla completa' cubre la pantalla del Mac, y Esc cierra la pantalla completa y termina la proyección. Los comandos de menú que abren ventanas (como Texto rápido o Importar) no están disponibles entonces: termina primero la proyección con Esc. Con dos pantallas, Esc en la ventana principal oculta el texto (el proyector muestra la pantalla de espera); en la ventana de proyección el primer Esc oculta el texto y el segundo cierra la ventana de proyección. Después de detenerla, las flechas y la barra espaciadora no cambian de diapositiva: Enter en la ventana principal muestra la canción seleccionada desde la primera diapositiva, y un clic en una diapositiva muestra esa diapositiva."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "З одним екраном 'Показати на весь екран' закриває екран Mac, а Esc закриває повноекранний режим і завершує проєкцію. З двома екранами Esc у головному вікні приховує текст (проєктор показує заставку); у вікні проєкції перше натискання Esc приховує текст, а друге закриває вікно проєкції. Після зупинки стрілки й пробіл не перемикають слайди: проєкцію відновлює Enter або клацання на слайді."
+            "value": "З одним екраном 'Показати на весь екран' закриває екран Mac, а Esc закриває повноекранний режим і завершує проєкцію. Команди меню, що відкривають вікна (як-от Швидкий текст чи Імпорт), тоді недоступні: спершу завершіть проєкцію клавішею Esc. З двома екранами Esc у головному вікні приховує текст (проєктор показує заставку); у вікні проєкції перше натискання Esc приховує текст, а друге закриває вікно проєкції. Після зупинки стрілки й пробіл не перемикають слайди: Enter у головному вікні показує вибрану пісню з першого слайда, а клацання на слайді показує цей слайд."
           }
         }
       }
@@ -14169,30 +14169,30 @@
         }
       }
     },
-    "Przywróć 100% rozmiaru (Cmd 0)": {
+    "Przywróć 100% rozmiaru (⌘0)": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Restore 100% size (Cmd 0)"
+            "value": "Restore 100% size (⌘0)"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "100 % Größe wiederherstellen (Cmd 0)"
+            "value": "100 % Größe wiederherstellen (⌘0)"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Restablecer el tamaño al 100 % (Cmd 0)"
+            "value": "Restablecer el tamaño al 100 % (⌘0)"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Повернути розмір 100% (Cmd 0)"
+            "value": "Повернути розмір 100% (⌘0)"
           }
         }
       }
@@ -14925,30 +14925,30 @@
         }
       }
     },
-    "Skróty działają, gdy pole wyszukiwania jest nieaktywne (po starcie albo po Esc). Klawisz wybrany powyżej ma pierwszeństwo przed klawiszem stałym, np. R przypisane do czarnego ekranu przestaje włączać refren.": {
+    "Skróty działają, gdy pole wyszukiwania jest nieaktywne (po starcie albo po Esc). Klawisz wybrany powyżej ma pierwszeństwo przed klawiszem stałym, np. R przypisane do czarnego ekranu przestaje włączać refren. Wyjątek: ↑ i ↓ na liście pieśni zawsze zmieniają zaznaczenie.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shortcuts work when the search field is not active (after launch or after Esc). A key chosen above takes precedence over a fixed key, e.g. R assigned to black screen no longer jumps to the chorus."
+            "value": "Shortcuts work when the search field is not active (after launch or after Esc). A key chosen above takes precedence over a fixed key, e.g. R assigned to black screen no longer jumps to the chorus. Exception: ↑ and ↓ in the song list always change the selection."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tastenkürzel funktionieren, wenn das Suchfeld nicht aktiv ist (nach dem Start oder nach Esc). Eine oben gewählte Taste hat Vorrang vor einer festen Taste, z. B. springt R als schwarzer Bildschirm nicht mehr zum Refrain."
+            "value": "Tastenkürzel funktionieren, wenn das Suchfeld nicht aktiv ist (nach dem Start oder nach Esc). Eine oben gewählte Taste hat Vorrang vor einer festen Taste, z. B. springt R als schwarzer Bildschirm nicht mehr zum Refrain. Ausnahme: ↑ und ↓ in der Liederliste ändern immer die Auswahl."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los atajos funcionan cuando el buscador no está activo (tras iniciar o tras Esc). Una tecla elegida arriba tiene prioridad sobre una tecla fija; p. ej., R asignada a pantalla negra deja de saltar al estribillo."
+            "value": "Los atajos funcionan cuando el buscador no está activo (tras iniciar o tras Esc). Una tecla elegida arriba tiene prioridad sobre una tecla fija; p. ej., R asignada a pantalla negra deja de saltar al estribillo. Excepción: ↑ y ↓ en la lista de canciones siempre cambian la selección."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Скорочення працюють, коли поле пошуку неактивне (після запуску або після Esc). Клавіша, вибрана вище, має пріоритет над фіксованою, напр. R для чорного екрана більше не переходить до приспіву."
+            "value": "Скорочення працюють, коли поле пошуку неактивне (після запуску або після Esc). Клавіша, вибрана вище, має пріоритет над фіксованою, напр. R для чорного екрана більше не переходить до приспіву. Виняток: ↑ і ↓ у списку пісень завжди змінюють вибір."
           }
         }
       }
@@ -16465,30 +16465,30 @@
         }
       }
     },
-    "Tworzenie kopii zapasowej na Dysku Google…": {
+    "Tworzenie kopii zapasowej na Dysku Google...": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creating a backup on Google Drive…"
+            "value": "Creating a backup on Google Drive..."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sicherung in Google Drive wird erstellt…"
+            "value": "Sicherung in Google Drive wird erstellt..."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creando una copia de seguridad en Google Drive…"
+            "value": "Creando una copia de seguridad en Google Drive..."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Створення резервної копії на Google Диску…"
+            "value": "Створення резервної копії на Google Диску..."
           }
         }
       }
@@ -17921,30 +17921,30 @@
         }
       }
     },
-    "W oknie Import/Eksport (Cmd I) możesz importować bazy Holyrics (.mufl, .muf), pliki tekstowe .txt (pojedyncze i całe foldery), pliki JSON oraz XML.": {
+    "W oknie Import/Eksport (⌘I) możesz importować bazy Holyrics (.mufl, .muf), pliki tekstowe .txt (pojedyncze i całe foldery), pliki JSON oraz XML.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "In the Import/Export window (Cmd I) you can import Holyrics databases (.mufl, .muf), .txt text files (single files and whole folders), JSON and XML files."
+            "value": "In the Import/Export window (⌘I) you can import Holyrics databases (.mufl, .muf), .txt text files (single files and whole folders), JSON and XML files."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Im Fenster Import/Export (Cmd I) kannst du Holyrics-Datenbanken (.mufl, .muf), .txt-Textdateien (einzeln oder ganze Ordner), JSON- und XML-Dateien importieren."
+            "value": "Im Fenster Import/Export (⌘I) kannst du Holyrics-Datenbanken (.mufl, .muf), .txt-Textdateien (einzeln oder ganze Ordner), JSON- und XML-Dateien importieren."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "En la ventana Importar/Exportar (Cmd I) puedes importar bases de Holyrics (.mufl, .muf), archivos de texto .txt (sueltos o carpetas enteras), archivos JSON y XML."
+            "value": "En la ventana Importar/Exportar (⌘I) puedes importar bases de Holyrics (.mufl, .muf), archivos de texto .txt (sueltos o carpetas enteras), archivos JSON y XML."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "У вікні Імпорт/Експорт (Cmd I) можна імпортувати бази Holyrics (.mufl, .muf), текстові файли .txt (окремі та цілі папки), файли JSON і XML."
+            "value": "У вікні Імпорт/Експорт (⌘I) можна імпортувати бази Holyrics (.mufl, .muf), текстові файли .txt (окремі та цілі папки), файли JSON і XML."
           }
         }
       }
@@ -21505,30 +21505,30 @@
         }
       }
     },
-    "Zmniejsz rozmiar interfejsu (Cmd -)": {
+    "Zmniejsz rozmiar interfejsu (⌘−)": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Decrease interface size (Cmd -)"
+            "value": "Decrease interface size (⌘−)"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Oberfläche verkleinern (Cmd -)"
+            "value": "Oberfläche verkleinern (⌘−)"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reducir el tamaño de la interfaz (Cmd -)"
+            "value": "Reducir el tamaño de la interfaz (⌘−)"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Зменшити розмір інтерфейсу (Cmd -)"
+            "value": "Зменшити розмір інтерфейсу (⌘−)"
           }
         }
       }
@@ -21645,30 +21645,30 @@
         }
       }
     },
-    "Zwiększ rozmiar interfejsu (Cmd +)": {
+    "Zwiększ rozmiar interfejsu (⌘+)": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Increase interface size (Cmd +)"
+            "value": "Increase interface size (⌘+)"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Oberfläche vergrößern (Cmd +)"
+            "value": "Oberfläche vergrößern (⌘+)"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aumentar el tamaño de la interfaz (Cmd +)"
+            "value": "Aumentar el tamaño de la interfaz (⌘+)"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Збільшити розмір інтерфейсу (Cmd +)"
+            "value": "Збільшити розмір інтерфейсу (⌘+)"
           }
         }
       }

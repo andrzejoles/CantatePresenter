@@ -40,8 +40,9 @@ Okno główne programu podzielone jest na 3 intuicyjne strefy:
 
 ### Prezentacja na pojedynczym ekranie (Single-Screen Mode)
 * Bez zewnętrznego ekranu przycisk **Prezentuj na pełnym ekranie** zakrywa ekran Twojego Maca. Program nie uruchamia pełnego ekranu sam.
-* **Wyjście z prezentacji**: klawisz **`ESC`** zamyka pełny ekran, kończy projekcję i wraca do okna głównego.
-* Na starcie pełnego ekranu wyświetla się na chwilę podpowiedź o klawiszu `ESC`.
+* **Wyjście z prezentacji**: klawisz **`Esc`** zamyka pełny ekran, kończy projekcję i wraca do okna głównego.
+* Na starcie pełnego ekranu wyświetla się na chwilę podpowiedź o klawiszu `Esc`.
+* Dopóki pełny ekran zakrywa okno główne (także przy obrazie lustrzanym na projektorze), polecenia menu otwierające okna i arkusze (np. **Szybki tekst**, **Importuj pieśni...**, kopia zapasowa, **Szukaj pieśni**) są nieaktywne, bo okno zostałoby pod projekcją. Najpierw zakończ projekcję klawiszem `Esc`. Pytanie przy zamykaniu programu (`⌘Q`) jest widoczne nad projekcją.
 
 ### Esc przy dwóch ekranach
 * Okno główne zostaje aktywne, a klawisze działają w nim jak zwykle. **`Esc`** gasi tekst: projektor pokazuje planszę czuwania, okno projekcji zostaje otwarte.
@@ -54,11 +55,12 @@ Okno główne programu podzielone jest na 3 intuicyjne strefy:
 * **Refren i zwrotki**: `R` przechodzi do pierwszego refrenu, cyfry `1`–`9` do zwrotki o tym numerze. Znaczek w nawiasie na karcie slajdu (np. `[2]`, `[R]`) pokazuje, który klawisz do niej prowadzi.
 * **Czarny ekran (Black Screen)**: Klawisz **`B`** — natychmiast wygasza rzutnik do czerni (np. na czas modlitwy w ciszy lub kazania).
 * **Ukrycie tekstu (Clear Text)**: Klawisz **`C`** — zachowuje tło/planszę, ukrywając sam tekst pieśni.
-* **Powrót do planszy czuwania**: przycisk **Stop** (`■`) albo `Esc`. Po zatrzymaniu strzałki, `Spacja`, `R` i cyfry nie zmieniają slajdów; projekcję wznawia `Enter` albo kliknięcie slajdu.
+* **Powrót do planszy czuwania**: przycisk **Stop** (`■`) albo `Esc`. Po zatrzymaniu strzałki, `Spacja`, `R` i cyfry nie zmieniają slajdów. `Enter` w oknie głównym pokazuje zaznaczoną pieśń od pierwszego slajdu (nie wraca do slajdu sprzed zatrzymania), a kliknięcie slajdu pokazuje ten slajd. Do tego samego slajdu wraca przycisk **Wznów projekcję** w pilocie.
+* **Zmiana pieśni z planu**: `[` / `]` i przyciski **Poprz. pieśń** / **Nast. pieśń** działają także po zatrzymaniu: od razu pokazują poprzednią albo następną pieśń z planu.
 
 ### Ekran dla muzyków (chwyty)
 Muzycy widzą bieżący slajd z chwytami nad tekstem i następny slajd:
-* **Na osobnym monitorze**: przycisk **Muzycy** na górnym pasku otwiera okno, które przenosisz na monitor muzyków (pełny ekran zielonym przyciskiem okna).
+* **Na osobnym monitorze**: przycisk **Muzycy** na górnym pasku otwiera okno, które przenosisz na monitor muzyków (pełny ekran zielonym przyciskiem okna). Okno muzyków nie obsługuje klawiszy prezentacji: po kliknięciu w nie kliknij z powrotem okno główne, żeby znów przełączać slajdy klawiaturą.
 * **Na tabletach i telefonach**: w oknie **Pilot** wybierz **Muzycy (chwyty, tylko podgląd)** i daj muzykom zeskanować kod. Ten kod nie pozwala sterować prezentacją.
 
 Każdy ekran ma własną **transpozycję** (np. pod capo) i wielkość czcionki. Gdy chwyty są zapisane tylko przy pierwszej zwrotce, kolejne zwrotki dostają te same chwyty (z dopiskiem „Chwyty jak w: …”). Chwyty dodajesz w edytorze pieśni (zakładka chwytów) albo importem ChordPro.
@@ -176,7 +178,8 @@ Program dba o pełne bezpieczeństwo Twojej bazy:
 
 ### Lokalna kopia zapasowa (`.cantatebackup`)
 * Wybierz z menu **Plik -> Utwórz pełną kopię zapasową...** (`⌘B`).
-* Plik archiwum zawiera kompletną bazę pieśni, chwyty, plany nabożeństw, ustawienia, planszę standby, własne języki oraz wybrane logotypy.
+* Plik archiwum zawiera bazę pieśni z chwytami, plany nabożeństw, ustawienia, własne języki i raport CCLI (oraz plik `standby.html` z folderu danych, jeśli został po starszej wersji). Logo są wbudowane w program.
+* Własnego pliku planszy wybranego w **Ustawieniach** kopia nie zawiera: po przywróceniu na innym Macu wskaż go ponownie (do tego czasu wyświetla się plansza wbudowana).
 * Przywrócenie kopii na nowym komputerze trwa kilka sekund.
 
 ### Kopia w chmurze Google Drive
@@ -198,7 +201,7 @@ Aplikacja jest w pełni przystosowana do pracy międzynarodowej:
 
 ## 11. Tabela Skrótów Klawiszowych
 
-Skróty prezentacji działają, gdy pole wyszukiwania jest nieaktywne (po uruchomieniu aplikacji albo po naciśnięciu `Esc` w polu). Pole aktywujesz kliknięciem albo `⌘ F`. Skróty z pierwszej tabeli zmienisz w **Ustawieniach → Skróty klawiszowe**; wybrany tam klawisz ma pierwszeństwo przed klawiszem stałym.
+Skróty prezentacji działają, gdy pole wyszukiwania jest nieaktywne (po uruchomieniu aplikacji albo po naciśnięciu `Esc` w polu). Pole aktywujesz kliknięciem albo `⌘F`. Skróty z pierwszej tabeli zmienisz w **Ustawieniach → Skróty klawiszowe**; wybrany tam klawisz ma pierwszeństwo przed klawiszem stałym. Wyjątek: `↑` i `↓` na liście pieśni zawsze zmieniają zaznaczenie.
 
 **Domyślne skróty (do zmiany w Ustawieniach)**
 
@@ -222,14 +225,14 @@ Skróty prezentacji działają, gdy pole wyszukiwania jest nieaktywne (po urucho
 | **Esc** w polu wyszukiwania | Wyjście z pola |
 | **R** | Refren (pierwszy w pieśni) |
 | **1 – 9** | Zwrotka o tym numerze (znaczek na karcie slajdu) |
-| **⌘ F** | Szukaj pieśni (**Enter**: wybór pierwszego wyniku) |
-| **⌘ T** | Szybki tekst na żywo |
-| **⌘ E** | Edytuj zaznaczoną pieśń |
-| **⌘ I** | Import pieśni |
-| **⌘ B** | Utwórz pełną kopię zapasową (.cantatebackup) |
-| **⌘ ?** | Instrukcja obsługi |
-| **⌘ +** / **⌘ -** / **⌘ 0** | Powiększenie / Pomniejszenie / Reset skali interfejsu (100%) |
-| **⌘ Q** | Zakończenie programu (z kopią na Dysk Google, jeśli włączona) |
+| **⌘F** | Szukaj pieśni (**Enter**: wybór pierwszego wyniku) |
+| **⌘T** | Szybki tekst na żywo |
+| **⌘E** | Edytuj zaznaczoną pieśń |
+| **⌘I** | Import pieśni |
+| **⌘B** | Utwórz pełną kopię zapasową (.cantatebackup) |
+| **⌘?** | Instrukcja obsługi |
+| **⌘+** / **⌘−** / **⌘0** | Powiększenie / Pomniejszenie / Reset skali interfejsu (100%) |
+| **⌘Q** | Zakończenie programu (z kopią na Dysk Google, jeśli włączona) |
 
 ---
 

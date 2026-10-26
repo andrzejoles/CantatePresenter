@@ -120,7 +120,7 @@ public struct MainView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .helpLabel(L("Zmniejsz rozmiar interfejsu (Cmd -)"))
+                    .helpLabel(L("Zmniejsz rozmiar interfejsu (⌘−)"))
                     
                     Button(action: { store.resetZoomUI() }) {
                         Text("\(Int(store.settings.uiScale * 100))%")
@@ -128,7 +128,7 @@ public struct MainView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help(L("Przywróć 100% rozmiaru (Cmd 0)"))
+                    .help(L("Przywróć 100% rozmiaru (⌘0)"))
                     
                     Button(action: { store.zoomInUI() }) {
                         Image(systemName: "textformat.size.larger")
@@ -136,7 +136,7 @@ public struct MainView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .helpLabel(L("Zwiększ rozmiar interfejsu (Cmd +)"))
+                    .helpLabel(L("Zwiększ rozmiar interfejsu (⌘+)"))
                 }
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
@@ -164,7 +164,7 @@ public struct MainView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .helpLabel(L("Instrukcja obsługi CantatePresenter (Cmd ?)"))
+                .helpLabel(L("Instrukcja obsługi CantatePresenter (⌘?)"))
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)

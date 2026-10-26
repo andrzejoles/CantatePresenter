@@ -241,7 +241,7 @@ extension KeyboardRouter {
         ]
     }
 
-    public static var shortcutsNote: String { Lnow("Skróty działają, gdy pole wyszukiwania jest nieaktywne (po starcie albo po Esc). Klawisz wybrany powyżej ma pierwszeństwo przed klawiszem stałym, np. R przypisane do czarnego ekranu przestaje włączać refren.") }
+    public static var shortcutsNote: String { Lnow("Skróty działają, gdy pole wyszukiwania jest nieaktywne (po starcie albo po Esc). Klawisz wybrany powyżej ma pierwszeństwo przed klawiszem stałym, np. R przypisane do czarnego ekranu przestaje włączać refren. Wyjątek: ↑ i ↓ na liście pieśni zawsze zmieniają zaznaczenie.") }
 }
 
 // MARK: - Key Names

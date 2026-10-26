@@ -487,7 +487,7 @@ private struct ExitBackupProgressView: View {
             HStack(spacing: 12) {
                 ProgressView()
                     .controlSize(.small)
-                Text(Lnow("Tworzenie kopii zapasowej na Dysku Google…"))
+                Text(Lnow("Tworzenie kopii zapasowej na Dysku Google..."))
                     .font(.system(size: 13, weight: .medium))
             }
             Text(Lnow("Jeśli wysyłka się nie uda, kopia zostanie zapisana lokalnie."))

@@ -60,9 +60,9 @@ public struct UserManualView: View {
                 ),
                 ManualParagraph(
                     heading: L("Jeden ekran, dwa ekrany i klawisz Esc"),
-                    body: L("Przy jednym ekranie przycisk 'Prezentuj na pełnym ekranie' zakrywa ekran Maca, a Esc zamyka pełny ekran i kończy projekcję. Przy dwóch ekranach Esc w oknie głównym gasi tekst (projektor pokazuje planszę); w oknie projekcji pierwsze Esc gasi tekst, a drugie zamyka okno projekcji. Po zatrzymaniu strzałki i Spacja nie zmieniają slajdów: projekcję wznawia Enter albo kliknięcie slajdu."),
+                    body: L("Przy jednym ekranie przycisk 'Prezentuj na pełnym ekranie' zakrywa ekran Maca, a Esc zamyka pełny ekran i kończy projekcję. Polecenia menu otwierające okna (np. Szybki tekst, Import) są wtedy nieaktywne: najpierw zakończ projekcję klawiszem Esc. Przy dwóch ekranach Esc w oknie głównym gasi tekst (projektor pokazuje planszę); w oknie projekcji pierwsze Esc gasi tekst, a drugie zamyka okno projekcji. Po zatrzymaniu strzałki i Spacja nie zmieniają slajdów: Enter w oknie głównym pokazuje zaznaczoną pieśń od pierwszego slajdu, a kliknięcie slajdu pokazuje ten slajd."),
                     shortcuts: [
-                        ("ESC", L("Zakończenie projekcji (przy dwóch ekranach: zgaszenie tekstu)")),
+                        ("Esc", L("Zakończenie projekcji (przy dwóch ekranach: zgaszenie tekstu)")),
                         (L("Spacja / → / ↓ / Page Down"), L("Przejście do następnego slajdu")),
                         (L("← / ↑ / Page Up"), L("Przejście do poprzedniego slajdu")),
                         (L("Enter w oknie projekcji"), L("Następny slajd")),
@@ -103,7 +103,7 @@ public struct UserManualView: View {
             content: [
                 ManualParagraph(
                     heading: L("Edycja istniejących pieśni i dodawanie nowych"),
-                    body: L("Kliknij 'Nowa pieśń' lub wybierz pieśń i kliknij 'Edytuj' (Cmd E). Edytor posiada podgląd podziału na slajdy na żywo.")
+                    body: L("Kliknij 'Nowa pieśń' lub wybierz pieśń i kliknij 'Edytuj' (⌘E). Edytor posiada podgląd podziału na slajdy na żywo.")
                 ),
                 ManualParagraph(
                     heading: L("Obsługiwane sekcje utworu"),
@@ -161,7 +161,7 @@ public struct UserManualView: View {
             content: [
                 ManualParagraph(
                     heading: L("Formaty Holyrics, OpenLyrics, JSON i TXT"),
-                    body: L("W oknie Import/Eksport (Cmd I) możesz importować bazy Holyrics (.mufl, .muf), pliki tekstowe .txt (pojedyncze i całe foldery), pliki JSON oraz XML."),
+                    body: L("W oknie Import/Eksport (⌘I) możesz importować bazy Holyrics (.mufl, .muf), pliki tekstowe .txt (pojedyncze i całe foldery), pliki JSON oraz XML."),
                     tip: L("Aplikacja automatycznie naprawia polskie litery z kodowań Windows-1250 i ISO-8859-2 oraz wykrywa duplikaty.")
                 ),
                 ManualParagraph(
@@ -177,7 +177,7 @@ public struct UserManualView: View {
             content: [
                 ManualParagraph(
                     heading: L("Pełny backup (.cantatebackup)"),
-                    body: L("Kopia zapasowa zabezpiecza całą bazę pieśni, chwyty, plany, ustawienia, planszę standby, języki i loga.")
+                    body: L("Kopia zapasowa zawiera bazę pieśni z chwytami, plany nabożeństw, ustawienia, własne języki i raport CCLI. Własnego pliku planszy startowej wybranego w Ustawieniach kopia nie zawiera: po przywróceniu na innym Macu wskaż go ponownie.")
                 ),
                 ManualParagraph(
                     heading: L("Integracja z Google Drive"),

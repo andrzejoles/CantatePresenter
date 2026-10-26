@@ -69,8 +69,8 @@ Jeżeli chcesz ponownie przebudować aplikację po edycji kodu:
 
 ### 7. ⌨️ Definiowalne w ustawieniach klawisze sterowania prezentacją
 W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla kluczowych akcji:
-- **Poprzedni slajd** (domyślnie: Strzałka w lewo / Strzałka w górę)
-- **Następny slajd** (domyślnie: Spacja / Strzałka w prawo / Strzałka w dół)
+- **Poprzedni slajd** (domyślnie: Strzałka w lewo; zawsze działają też stałe klawisze: Strzałka w górę i Page Up)
+- **Następny slajd** (domyślnie: Spacja; zawsze działają też stałe klawisze: Strzałka w prawo, Strzałka w dół i Page Down)
 - **Poprzedni utwór z planu** (domyślnie: `[`)
 - **Następny utwór z planu** (domyślnie: `]`)
 - **Uruchomienie prezentacji** (domyślnie: `Enter / Return`)
@@ -100,7 +100,7 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 - **Przesuwane panele**: Elastyczny `HSplitView` umożliwiający dowolną zmianę szerokości kolumn (Biblioteka / Zwrotki / Panel na żywo).
 - **Skalowanie czcionki całego interfejsu**:
   - Dedykowane przyciski na górnym pasku: `[A-]`, `[100%]`, `[A+]`.
-  - Skróty klawiszowe: `Cmd +` (powiększenie), `Cmd -` (pomniejszenie), `Cmd 0` (reset).
+  - Skróty klawiszowe: `⌘+` (powiększenie), `⌘−` (pomniejszenie), `⌘0` (reset).
   - Skalowanie dotyczy wyłącznie interfejsu operatora — okno prezentacji zawsze niezależnie wypełnia ekran czcionką obliczoną optymalnie (Auto-Fit).
 
 ### 11. 🎸 Akordy gitarowe, taby i transpozycja na żywo
@@ -135,7 +135,7 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 
 ### 17. 🌐 Wielojęzyczność i tłumaczenie dla Agenta AI
 - Wbudowane języki interfejsu (Polski, English, Deutsch, Español, Українська).
-- Eksport słownika interfejsu do pliku JSON z precyzyjnymi opisami kontekstu każdego elementu dla agentów AI i tłumaczy (`data/templates/holyrics_translations_template_pl.json`).
+- Eksport słownika interfejsu do pliku JSON (`cantate_translations_<język>.json`) z opisami kontekstu każdego elementu dla agentów AI i tłumaczy.
 - Import przetłumaczonego pliku JSON i natychmiastowa aktywacja nowego języka w interfejsie.
 
 ### 18. 🎵 Ekran dla muzyków
@@ -151,9 +151,9 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 - Rejestr wyświetleń pieśni z numerem CCLI i eksport raportu CSV.
 
 ### 21. 💾 Kopie zapasowe, Dysk Google i aktualizacje
-- Pełna kopia `.cantatebackup` (pieśni, plany, ustawienia, plansza, języki, loga) z przywracaniem i cofnięciem przywracania.
+- Pełna kopia `.cantatebackup` (pieśni z chwytami, plany, ustawienia, własne języki, raport CCLI) z przywracaniem i cofnięciem przywracania. Logo są wbudowane w program; własnego pliku planszy wskazanego w Ustawieniach kopia nie zawiera.
 - Kopie na Dysku Google (logowanie OAuth z PKCE, tokeny w Pęku kluczy), także automatycznie przy zamykaniu programu.
-- Automatyczne aktualizacje przez Sparkle (menu **Sprawdź uaktualnienia…**).
+- Automatyczne aktualizacje przez Sparkle (menu **Sprawdź uaktualnienia...**).
 
 ---
 
