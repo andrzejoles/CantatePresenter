@@ -8,7 +8,8 @@ struct DataSchemaTests {
     @Test("Stare settings.json bez pola: wersja 0, po wczytaniu zapisana bieżąca")
     func legacyIsMigrated() throws {
         let dir = try TestDirectory()
-        defer { dir.remove() }
+        // `settings.didSet` ustawia język całego procesu; inne zestawy testów biegną równolegle.
+        defer { dir.remove(); Localization.currentLanguage = Localization.sourceLanguage }
         try dir.write(#"{"appLanguage":"en"}"#, to: "settings.json")
         try dir.write("[]", to: "songs.json")
         try dir.write("[]", to: "plans.json")
@@ -36,7 +37,8 @@ struct DataSchemaTests {
     @Test("Dane z nowszej wersji: wczytane, ale nic nie jest zapisywane")
     func newerIsReadOnly() throws {
         let dir = try TestDirectory()
-        defer { dir.remove() }
+        // `settings.didSet` ustawia język całego procesu; inne zestawy testów biegną równolegle.
+        defer { dir.remove(); Localization.currentLanguage = Localization.sourceLanguage }
         let settings = #"{"schemaVersion":99,"appLanguage":"de","futureField":{"a":1}}"#
         try dir.write(settings, to: "settings.json")
         let songs = #"[{"id":"6F1C5A39-2B5E-4F0B-9C55-111111111111","title":"Przyszła","rawLyrics":"x","futureField":true}]"#

@@ -69,6 +69,25 @@ struct HolyricsArchiveTests {
         #expect(outcome.problems.count == 1)
     }
 
+    @Test("Archiwum w archiwum nie jest rozpakowywane, ale jest zgłaszane; pieśni obok wczytują się")
+    func nestedArchiveIsReported() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let inner = dir.file("wewnętrzne")
+        try FileManager.default.createDirectory(at: inner, withIntermediateDirectories: true)
+        try Data("Barka\n\nPan kiedyś stanął nad brzegiem".utf8).write(to: inner.appendingPathComponent("barka.txt"))
+        let outer = dir.file("zewnętrzne")
+        try FileManager.default.createDirectory(at: outer, withIntermediateDirectories: true)
+        try zip(inner, to: outer.appendingPathComponent("środek.zip"))
+        try Data("Pasterz\n\nPan jest pasterzem moim".utf8).write(to: outer.appendingPathComponent("pasterz.txt"))
+        try zip(outer, to: dir.file("paczka.zip"))
+
+        let outcome = TextImporter.importFile(dir.file("paczka.zip"))
+        #expect(outcome.songs.map(\.title) == ["Pasterz"])
+        #expect(outcome.problems.count == 1)
+        #expect(outcome.problems.first?.fileName.hasSuffix("środek.zip") == true)
+    }
+
     @Test("Plik .hly z tekstem Holyrics (nie ZIP) nadal się wczytuje")
     func textHlyStillImports() throws {
         let dir = try TestDirectory()
