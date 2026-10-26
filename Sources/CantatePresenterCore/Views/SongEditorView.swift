@@ -269,7 +269,7 @@ public struct SongEditorView: View {
                             Button(action: {
                                 isShowingChordsSearch = true
                             }) {
-                                Label(L("Szukaj w internecie..."), systemImage: "globe")
+                                Label(L("Wyszukaj chwyty..."), systemImage: "guitars")
                                     .font(.scaled(11, weight: .semibold, scale: scale))
                             }
                             .buttonStyle(.borderedProminent)

@@ -15569,34 +15569,6 @@
         }
       }
     },
-    "Szukaj w internecie...": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search the internet..."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Im Internet suchen..."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buscar en internet..."
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Шукати в інтернеті..."
-          }
-        }
-      }
-    },
     "Szukaj w tytule, autorze i tekście...": {
       "localizations": {
         "en": {
