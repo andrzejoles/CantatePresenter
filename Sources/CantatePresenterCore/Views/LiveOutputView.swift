@@ -304,7 +304,7 @@ public struct LiveOutputView: View {
                         }
                     )) {
                         ForEach(screenManager.availableScreens) { screen in
-                            Text(screen.name).tag(screen.id)
+                            Text(screen.isPrimary ? "\(screen.name) [\(L("główny"))]" : screen.name).tag(screen.id)
                         }
                     }
                     .pickerStyle(MenuPickerStyle())

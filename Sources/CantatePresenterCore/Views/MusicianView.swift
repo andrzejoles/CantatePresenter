@@ -175,6 +175,7 @@ public final class MusicianWindowManager: ObservableObject {
     public static let shared = MusicianWindowManager()
     @Published public private(set) var isOpen = false
     private var window: NSWindow?
+    private var closeObserver: (any NSObjectProtocol)?
 
     public func toggle() {
         if let window {
@@ -206,14 +207,26 @@ public final class MusicianWindowManager: ObservableObject {
         window.collectionBehavior.insert(.fullScreenPrimary)
         window.contentViewController = NSHostingController(rootView: MusicianView())
         window.isReleasedWhenClosed = false
-        NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) { [weak self] _ in
-            Task { @MainActor in
-                self?.window = nil
-                self?.isOpen = false
+        // Jeden obserwator na okno, usuwany przy zamknięciu (R4-19).
+        closeObserver = NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) { [weak self] notification in
+            let closed = (notification.object as AnyObject?).map(ObjectIdentifier.init)
+            MainActor.assumeIsolated {
+                guard let self, closed == self.window.map(ObjectIdentifier.init) else { return }
+                if let observer = self.closeObserver {
+                    NotificationCenter.default.removeObserver(observer)
+                }
+                self.closeObserver = nil
+                self.window = nil
+                self.isOpen = false
             }
         }
         window.makeKeyAndOrderFront(nil)
         self.window = window
         isOpen = true
+    }
+
+    /// Tytuł okna po zmianie języka (R4-20).
+    public func updateTitle() {
+        window?.title = Lnow("Ekran dla muzyków")
     }
 }

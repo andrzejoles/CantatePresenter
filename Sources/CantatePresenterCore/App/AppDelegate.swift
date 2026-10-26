@@ -26,6 +26,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             MainActor.assumeIsolated {
                 self?.setupMainMenu()
                 self?.mainWindow?.title = Lnow("CantatePresenter — Prezenter Pieśni & Słowa")
+                self?.manualWindow?.title = Lnow("Instrukcja obsługi — CantatePresenter")
+                ScreenManager.shared.updateWindowTitles()
+                MusicianWindowManager.shared.updateTitle()
             }
         }
         
@@ -212,6 +215,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let windowMenu = NSMenu(title: Lnow("Okno"))
         windowMenu.addItem(NSMenuItem(title: Lnow("Minimalizuj"), action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m"))
         windowMenu.addItem(NSMenuItem(title: Lnow("Powiększ"), action: #selector(NSWindow.performZoom(_:)), keyEquivalent: ""))
+        windowMenu.addItem(NSMenuItem.separator())
+        windowMenu.addItem(NSMenuItem(title: Lnow("Przenieś wszystko na wierzch"), action: #selector(NSApplication.arrangeInFront(_:)), keyEquivalent: ""))
         windowMenuItem.submenu = windowMenu
         mainMenu.addItem(windowMenuItem)
         
@@ -226,6 +231,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         mainMenu.addItem(helpMenuItem)
         
         NSApp.mainMenu = mainMenu
+        // Lista otwartych okien (muzycy, okno testowe, instrukcja) w menu Okno (R4-21).
+        NSApp.windowsMenu = windowMenu
         NSApp.helpMenu = helpMenu
     }
     

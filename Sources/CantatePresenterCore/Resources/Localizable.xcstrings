@@ -10893,6 +10893,34 @@
         }
       }
     },
+    "Podgląd projekcji (Okno testowe)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projection preview (test window)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projektionsvorschau (Testfenster)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista previa de la proyección (ventana de prueba)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Попередній перегляд проєкції (тестове вікно)"
+          }
+        }
+      }
+    },
     "Podgląd wygenerowanych slajdów ({0})": {
       "localizations": {
         "en": {
@@ -12765,6 +12793,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Переспрямування від Google не містить коду авторизації."
+          }
+        }
+      }
+    },
+    "Przenieś wszystko na wierzch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring All to Front"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle nach vorne bringen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traer todo al frente"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перенести все на передній план"
           }
         }
       }
