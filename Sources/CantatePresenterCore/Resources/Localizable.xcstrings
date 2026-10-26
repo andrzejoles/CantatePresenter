@@ -1446,7 +1446,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La biblioteca fue guardada por una versión más reciente de CantatePresenter (formato de datos {0}, esta versión admite {1}). Los cantos y planes se pueden mostrar, pero los cambios no se guardarán para no dañar los datos. Actualiza la aplicación."
+            "value": "La biblioteca fue guardada por una versión más reciente de CantatePresenter (formato de datos {0}, esta versión admite {1}). Las canciones y los planes se pueden mostrar, pero los cambios no se guardarán para no dañar los datos. Actualiza la aplicación."
           }
         },
         "uk": {
@@ -1530,7 +1530,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Este canto no tiene acordes"
+            "value": "Esta canción no tiene acordes"
           }
         },
         "uk": {
@@ -2461,34 +2461,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Помилка вивантаження на Google Диск: {0}"
-          }
-        }
-      }
-    },
-    "Błąd zapisu": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save error"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fehler beim Speichern"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Error al guardar"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Помилка збереження"
           }
         }
       }
@@ -3994,7 +3966,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se aplica a los cantos con número CCLI (p. ej. importados de SongSelect). La licencia CCLI exige mostrar el título, los autores, los derechos de autor y el número de licencia al proyectar la letra."
+            "value": "Se aplica a las canciones con número CCLI (p. ej. importadas de SongSelect). La licencia CCLI exige mostrar el título, los autores, los derechos de autor y el número de licencia al proyectar la letra."
           }
         },
         "uk": {
@@ -4481,34 +4453,6 @@
         }
       }
     },
-    "Ekran projekcji": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Projection screen"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Projektionsbildschirm"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pantalla de proyección"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Екран проєкції"
-          }
-        }
-      }
-    },
     "Ekrany i Projektor": {
       "localizations": {
         "en": {
@@ -4533,34 +4477,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Екрани та проєктор"
-          }
-        }
-      }
-    },
-    "Eksport": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Export"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Export"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Exportar"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Експорт"
           }
         }
       }
@@ -5909,34 +5825,6 @@
         }
       }
     },
-    "Instrukcja obsługi": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "User guide"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Benutzerhandbuch"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manual de usuario"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Посібник користувача"
-          }
-        }
-      }
-    },
     "Instrukcja obsługi (to okno)": {
       "localizations": {
         "en": {
@@ -6430,7 +6318,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cada canto con número CCLI se registra una vez al día cuando se proyecta. El archivo CSV te ayuda a informar el uso en el sitio web de CCLI."
+            "value": "Cada canción con número CCLI se registra una vez al día cuando se proyecta. El archivo CSV te ayuda a informar el uso en el sitio web de CCLI."
           }
         },
         "uk": {
@@ -7001,34 +6889,6 @@
         }
       }
     },
-    "Kod": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Code"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Code"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Código"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Код"
-          }
-        }
-      }
-    },
     "Kolizje z bazą ({0})": {
       "localizations": {
         "en": {
@@ -7057,34 +6917,6 @@
         }
       }
     },
-    "Kolor tekstu": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Text color"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Textfarbe"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Color del texto"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Колір тексту"
-          }
-        }
-      }
-    },
     "Kolor tekstu:": {
       "localizations": {
         "en": {
@@ -7109,34 +6941,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Колір тексту:"
-          }
-        }
-      }
-    },
-    "Kolor tła": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Background color"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hintergrundfarbe"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Color de fondo"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Колір тла"
           }
         }
       }
@@ -7305,34 +7109,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Копія в хмарі Google Диска"
-          }
-        }
-      }
-    },
-    "Kopia zapasowa": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Backup"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sicherung"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copia de seguridad"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Резервна копія"
           }
         }
       }
@@ -7725,34 +7501,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Рядки: {0}"
-          }
-        }
-      }
-    },
-    "Logowanie": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Anmelden"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Iniciar sesión"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Вхід"
           }
         }
       }
@@ -8390,7 +8138,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Siguiente canto"
+            "value": "Siguiente canción"
           }
         },
         "uk": {
@@ -8649,34 +8397,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Далі: {0}"
-          }
-        }
-      }
-    },
-    "Nazwa planu": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plan name"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Name des Ablaufs"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nombre del plan"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Назва плану"
           }
         }
       }
@@ -9258,7 +8978,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se encontraron cantos"
+            "value": "No se encontraron canciones"
           }
         },
         "uk": {
@@ -9657,34 +9377,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Номер ліцензії CCLI парафії:"
-          }
-        }
-      }
-    },
-    "O programie": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "About"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Über"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Acerca de"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Про програму"
           }
         }
       }
@@ -10714,7 +10406,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Canto con acordes"
+            "value": "Canción con acordes"
           }
         },
         "uk": {
@@ -11313,34 +11005,6 @@
         }
       }
     },
-    "Pogrubienie": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bold"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fett"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Negrita"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Жирний"
-          }
-        }
-      }
-    },
     "Pogrubienie tekstu (Bold)": {
       "localizations": {
         "en": {
@@ -11386,7 +11050,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar solo cantos con acordes"
+            "value": "Mostrar solo canciones con acordes"
           }
         },
         "uk": {
@@ -12282,7 +11946,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Canto anterior"
+            "value": "Canción anterior"
           }
         },
         "uk": {
@@ -12898,7 +12562,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La proyección no está en marcha. Elige un canto del plan o búscalo."
+            "value": "La proyección no está en marcha. Elige una canción del plan o búscala."
           }
         },
         "uk": {
@@ -15261,34 +14925,6 @@
         }
       }
     },
-    "Tekst": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Text"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Text"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Texto"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Текст"
-          }
-        }
-      }
-    },
     "Tekst i Slajdy": {
       "localizations": {
         "en": {
@@ -16941,34 +16577,6 @@
         }
       }
     },
-    "Użytkownik": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Username"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Benutzername"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usuario"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Користувач"
-          }
-        }
-      }
-    },
     "W Ustawieniach dostępna jest bogata galeria logotypów, w tym oficjalne logo Equipes Notre-Dame (END: ryba i obrączki przymierza), złota gitara akustyczna, Lira Dawidowa, klucz wiolinowy z korektorem, harfa i fale harmoniczne.": {
       "localizations": {
         "en": {
@@ -18341,34 +17949,6 @@
         }
       }
     },
-    "Wybierz pieśń z biblioteki": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose a song from the library"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wähle ein Lied aus der Bibliothek"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Elige un canto de la biblioteca"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Виберіть пісню з бібліотеки"
-          }
-        }
-      }
-    },
     "Wybierz pieśń z biblioteki po lewej stronie": {
       "localizations": {
         "en": {
@@ -18813,34 +18393,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Виявлено дублікати, виправлено польські літери, очищено форматування й додано гітарні акорди."
-          }
-        }
-      }
-    },
-    "Wyrównanie poziome": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Horizontal alignment"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Horizontale Ausrichtung"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alineación horizontal"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Горизонтальне вирівнювання"
           }
         }
       }
@@ -21382,7 +20934,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fuente: Wikisource. Cantos tradicionales de dominio público o con licencia libre; la dirección de la página se guarda en el canto."
+            "value": "Fuente: Wikisource. Canciones tradicionales de dominio público o con licencia libre; la dirección de la página se guarda en la canción."
           }
         },
         "uk": {
