@@ -851,7 +851,14 @@ public struct SettingsSheet: View {
     }
     
     private func refreshDriveState() {
-        isDriveSignedIn = GoogleDriveService.shared.isSignedIn
+        do {
+            isDriveSignedIn = try GoogleDriveService.shared.signInState()
+        } catch {
+            // Wpis jest, ale Pęk kluczy go nie udostępnił (R3-04): to nie „Nie połączono”; zostaje „Rozłącz”.
+            isDriveSignedIn = true
+            isBackupSuccess = false
+            backupStatusMessage = error.localizedDescription
+        }
     }
     
     private func connectGoogleAccount() {
@@ -874,12 +881,23 @@ public struct SettingsSheet: View {
     }
     
     private func disconnectGoogleAccount() {
-        GoogleDriveService.shared.signOut()
-        store.settings.googleDrive.accountEmail = ""
-        store.saveSettings()
-        refreshDriveState()
-        isBackupSuccess = true
-        backupStatusMessage = L("Rozłączono konto Google. Tokeny usunięto z Pęku kluczy.")
+        backupStatusMessage = nil
+        Task {
+            do {
+                // Odwołanie dostępu w Google, potem usunięcie tokenów z Pęku kluczy (R3-12).
+                let revoked = try await GoogleDriveService.shared.signOut()
+                store.settings.googleDrive.accountEmail = ""
+                store.saveSettings()
+                isBackupSuccess = true
+                backupStatusMessage = revoked
+                    ? L("Rozłączono konto Google: dostęp odwołany w Google, tokeny usunięte z Pęku kluczy.")
+                    : L("Rozłączono konto Google i usunięto tokeny z Pęku kluczy, ale Google nie potwierdził odwołania dostępu (np. brak internetu). Dostęp możesz odebrać na stronie myaccount.google.com/permissions.")
+            } catch {
+                isBackupSuccess = false
+                backupStatusMessage = L("Nie udało się rozłączyć konta Google: {0}", error.localizedDescription)
+            }
+            refreshDriveState()
+        }
     }
     
     private func shortcutRow(title: String, selection: Binding<UInt16>, scale: Double) -> some View {

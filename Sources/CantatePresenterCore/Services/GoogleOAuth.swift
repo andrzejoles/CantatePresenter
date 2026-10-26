@@ -9,6 +9,7 @@ import Network
 public enum GoogleOAuth {
     public static let authorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth"
     public static let tokenEndpoint = "https://oauth2.googleapis.com/token"
+    public static let revokeEndpoint = "https://oauth2.googleapis.com/revoke"
     public static let scopes = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email"
 
     // MARK: - Client
@@ -83,17 +84,34 @@ public enum GoogleOAuth {
         return components?.url
     }
 
+    /// Znaki niezastrzeżone z RFC 3986 (tylko ASCII: `CharacterSet.alphanumerics` przepuściłby np. „ł”).
+    private static let unreserved = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
+
+    /// Wartość parametru zakodowana w całości: `&`, `+`, `=` i znaki spoza ASCII też (R3-02).
+    static func percentEncode(_ value: String) -> String {
+        value.addingPercentEncoding(withAllowedCharacters: unreserved) ?? ""
+    }
+
     /// Żądanie `application/x-www-form-urlencoded` do endpointu tokenu.
     public static func tokenRequest(_ parameters: [String: String]) -> URLRequest {
-        var request = URLRequest(url: URL(string: tokenEndpoint)!)
+        formRequest(URL(string: tokenEndpoint)!, parameters)
+    }
+
+    /// Odwołanie zgody (refresh token unieważnia cały dostęp aplikacji do konta, R3-12).
+    public static func revokeRequest(token: String) -> URLRequest {
+        var request = formRequest(URL(string: revokeEndpoint)!, ["token": token])
+        request.timeoutInterval = 10
+        return request
+    }
+
+    private static func formRequest(_ url: URL, _ parameters: [String: String]) -> URLRequest {
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        var allowed = CharacterSet.alphanumerics
-        allowed.insert(charactersIn: "-._~")
         request.httpBody = parameters
             .filter { !$0.value.isEmpty }
             .sorted { $0.key < $1.key }
-            .map { "\($0.key)=\($0.value.addingPercentEncoding(withAllowedCharacters: allowed) ?? "")" }
+            .map { "\($0.key)=\(percentEncode($0.value))" }
             .joined(separator: "&")
             .data(using: .utf8)
         return request
@@ -140,17 +158,63 @@ public enum GoogleOAuth {
         return Callback(code: code, state: items["state"] ?? "")
     }
 
+    /// Wynik żądania do serwera loopback (R3-03). `nil`: to nie jest przekierowanie z tego logowania
+    /// (inny `state`, np. skanowanie portów przez stronę albo inny proces, albo /favicon.ico), więc czekamy dalej.
+    static func callbackOutcome(requestLine: String, expectedState: String) -> Result<Callback, Error>? {
+        let parts = requestLine.split(separator: " ")
+        guard parts.count >= 2, let components = URLComponents(string: "http://127.0.0.1" + parts[1]),
+              let state = components.queryItems?.first(where: { $0.name == "state" })?.value,
+              RemoteRouter.constantTimeEquals(state, expectedState) else {
+            return nil
+        }
+        do {
+            return .success(try parseCallback(requestLine: requestLine))
+        } catch OAuthError.missingCode {
+            return nil
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    /// Odpowiedź HTTP przeglądarce: stały szablon, treść błędu escapowana, bez skryptów (CSP).
+    static func loopbackHTTPResponse(for outcome: Result<Callback, Error>?) -> Data {
+        let body: String
+        switch outcome {
+        case .success: body = Lnow("Zalogowano. Możesz zamknąć tę kartę i wrócić do CantatePresenter.")
+        case .failure(let error): body = Lnow("Logowanie nie powiodło się: {0}", error.localizedDescription)
+        case nil: body = ""
+        }
+        let html = "<!doctype html><meta charset=\"utf-8\"><title>CantatePresenter</title><body style=\"font-family:-apple-system;padding:40px\"><h2>CantatePresenter</h2><p>\(escapeHTML(body))</p></body>"
+        let status = outcome == nil ? "404 Not Found" : "200 OK"
+        let response = "HTTP/1.1 \(status)\r\nContent-Type: text/html; charset=utf-8\r\n"
+            + "Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'\r\n"
+            + "Referrer-Policy: no-referrer\r\nContent-Length: \(html.utf8.count)\r\nConnection: close\r\n\r\n\(html)"
+        return Data(response.utf8)
+    }
+
+    static func escapeHTML(_ text: String) -> String {
+        text.replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+            .replacingOccurrences(of: "'", with: "&#39;")
+    }
+
     // MARK: - Loopback Server
 
     /// Jednorazowy serwer HTTP na `127.0.0.1` z losowym portem, który odbiera przekierowanie z przeglądarki.
+    /// Kończy logowanie tylko żądanie z oczekiwanym `state` (R3-03); inne dostają 404.
     public final class LoopbackServer: @unchecked Sendable {
         private let queue = DispatchQueue(label: "com.cantate.presenter.oauth-loopback")
+        private let expectedState: String
         private var listener: NWListener?
         private var result: Result<Callback, Error>?
         private var waiter: CheckedContinuation<Callback, Error>?
         private var startContinuation: CheckedContinuation<UInt16, Error>?
 
-        public init() {}
+        public init(expectedState: String) {
+            self.expectedState = expectedState
+        }
 
         public func start() async throws -> UInt16 {
             let parameters = NWParameters.tcp
@@ -237,25 +301,8 @@ public enum GoogleOAuth {
                 guard let self else { return }
                 let request = String(decoding: data ?? Data(), as: UTF8.self)
                 let requestLine = request.components(separatedBy: "\r\n").first ?? ""
-                let outcome: Result<Callback, Error>?
-                do {
-                    outcome = .success(try GoogleOAuth.parseCallback(requestLine: requestLine))
-                } catch OAuthError.missingCode {
-                    // Np. /favicon.ico: czekamy dalej na właściwe przekierowanie.
-                    outcome = nil
-                } catch {
-                    outcome = .failure(error)
-                }
-                let body: String
-                switch outcome {
-                case .success: body = Lnow("Zalogowano. Możesz zamknąć tę kartę i wrócić do CantatePresenter.")
-                case .failure(let error): body = Lnow("Logowanie nie powiodło się: {0}", error.localizedDescription)
-                case nil: body = ""
-                }
-                let html = "<!doctype html><meta charset=\"utf-8\"><title>CantatePresenter</title><body style=\"font-family:-apple-system;padding:40px\"><h2>CantatePresenter</h2><p>\(body)</p></body>"
-                let status = outcome == nil ? "404 Not Found" : "200 OK"
-                let response = "HTTP/1.1 \(status)\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: \(html.utf8.count)\r\nConnection: close\r\n\r\n\(html)"
-                connection.send(content: Data(response.utf8), completion: .contentProcessed { _ in
+                let outcome = GoogleOAuth.callbackOutcome(requestLine: requestLine, expectedState: self.expectedState)
+                connection.send(content: GoogleOAuth.loopbackHTTPResponse(for: outcome), completion: .contentProcessed { _ in
                     connection.cancel()
                 })
                 if let outcome {

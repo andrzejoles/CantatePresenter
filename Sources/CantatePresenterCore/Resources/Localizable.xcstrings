@@ -9017,6 +9017,34 @@
         }
       }
     },
+    "Nie udało się odczytać folderu kopii zapasowych na Dysku Google": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not read the backup folder on Google Drive"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherungsordner in Google Drive konnte nicht gelesen werden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo leer la carpeta de copias en Google Drive"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося прочитати папку резервних копій на Google Диску"
+          }
+        }
+      }
+    },
     "Nie udało się odświeżyć tokenu Google: {0}": {
       "localizations": {
         "en": {
@@ -9097,6 +9125,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не вдалося перенести дані"
+          }
+        }
+      }
+    },
+    "Nie udało się rozłączyć konta Google: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not disconnect the Google account: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google-Konto konnte nicht getrennt werden: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo desconectar la cuenta de Google: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося від’єднати обліковий запис Google: {0}"
           }
         }
       }
@@ -13553,6 +13609,34 @@
         }
       }
     },
+    "Pęk kluczy nie udostępnił danych logowania ({0}). Pozwól na dostęp, gdy macOS o to zapyta, albo usuń wpis „{1}” w aplikacji Dostęp do pęku kluczy i połącz konto Google ponownie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Keychain did not provide the sign-in data ({0}). Allow access when macOS asks, or delete the “{1}” item in Keychain Access and connect the Google account again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Schlüsselbund hat die Anmeldedaten nicht freigegeben ({0}). Erlaube den Zugriff, wenn macOS fragt, oder lösche den Eintrag „{1}“ in der Schlüsselbundverwaltung und verbinde das Google-Konto erneut."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El llavero no proporcionó los datos de inicio de sesión ({0}). Permite el acceso cuando macOS lo pida, o elimina el elemento «{1}» en Acceso a Llaveros y vuelve a conectar la cuenta de Google."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зв’язка ключів не надала дані входу ({0}). Дозвольте доступ, коли macOS запитає, або видаліть запис «{1}» у програмі «Доступ до ключів» і знову під’єднайте обліковий запис Google."
+          }
+        }
+      }
+    },
     "Raport użycia: zapisane wyświetlenia: {0}": {
       "localizations": {
         "en": {
@@ -13861,30 +13945,58 @@
         }
       }
     },
-    "Rozłączono konto Google. Tokeny usunięto z Pęku kluczy.": {
+    "Rozłączono konto Google i usunięto tokeny z Pęku kluczy, ale Google nie potwierdził odwołania dostępu (np. brak internetu). Dostęp możesz odebrać na stronie myaccount.google.com/permissions.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Google account disconnected. Tokens were removed from the Keychain."
+            "value": "Google account disconnected and tokens removed from the Keychain, but Google did not confirm that access was revoked (e.g. no internet). You can remove access at myaccount.google.com/permissions."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Google-Konto getrennt. Die Tokens wurden aus dem Schlüsselbund entfernt."
+            "value": "Google-Konto getrennt und Tokens aus dem Schlüsselbund entfernt, aber Google hat den Widerruf des Zugriffs nicht bestätigt (z. B. kein Internet). Du kannst den Zugriff unter myaccount.google.com/permissions entfernen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cuenta de Google desconectada. Los tokens se eliminaron del llavero."
+            "value": "Cuenta de Google desconectada y tokens eliminados del llavero, pero Google no confirmó la revocación del acceso (p. ej., sin internet). Puedes retirar el acceso en myaccount.google.com/permissions."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Обліковий запис Google від’єднано. Токени видалено зі Зв’язки ключів."
+            "value": "Обліковий запис Google від’єднано, токени видалено зі Зв’язки ключів, але Google не підтвердив відкликання доступу (наприклад, немає інтернету). Доступ можна відкликати на сторінці myaccount.google.com/permissions."
+          }
+        }
+      }
+    },
+    "Rozłączono konto Google: dostęp odwołany w Google, tokeny usunięte z Pęku kluczy.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google account disconnected: access revoked at Google, tokens removed from the Keychain."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google-Konto getrennt: Zugriff bei Google widerrufen, Tokens aus dem Schlüsselbund entfernt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta de Google desconectada: acceso revocado en Google y tokens eliminados del llavero."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обліковий запис Google від’єднано: доступ відкликано в Google, токени видалено зі Зв’язки ключів."
           }
         }
       }
