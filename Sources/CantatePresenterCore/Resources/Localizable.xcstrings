@@ -12237,6 +12237,34 @@
         }
       }
     },
+    "Poprzednia wersja programu jest w {0}.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The previous version of the app is in {0}."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die vorherige Version der App befindet sich in {0}."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La versión anterior de la aplicación está en {0}."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Попередня версія програми знаходиться в {0}."
+          }
+        }
+      }
+    },
     "Porównywanie tekstów, wykrywanie duplikatów i uzupełnianie autorów...": {
       "localizations": {
         "en": {
