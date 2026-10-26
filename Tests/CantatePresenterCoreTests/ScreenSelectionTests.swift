@@ -68,4 +68,17 @@ struct ScreenSelectionTests {
     func singleScreenModeStays() {
         #expect(ScreenSelection.placement(after: [mac], presentingOn: mac) == .show(0))
     }
+
+    // MARK: Fokus klawiatury (R4-02)
+
+    @Test("Projektor na innym ekranie niż okno główne nie przejmuje klawiatury")
+    func projectorOnOtherScreenStaysNonKey() {
+        #expect(!ScreenSelection.presentationWindowTakesKeyboard(projector: 2, operatorScreen: 1))
+    }
+
+    @Test("Projekcja na ekranie okna głównego (jeden ekran) przejmuje klawiaturę")
+    func projectorOnOperatorScreenTakesKeyboard() {
+        #expect(ScreenSelection.presentationWindowTakesKeyboard(projector: 1, operatorScreen: 1))
+        #expect(ScreenSelection.presentationWindowTakesKeyboard(projector: 1, operatorScreen: nil))
+    }
 }

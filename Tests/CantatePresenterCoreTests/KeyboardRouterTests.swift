@@ -149,6 +149,26 @@ struct KeyboardRouterTests {
         #expect(action(47, ".", shortcuts: custom, in: .presentationWindow) == .stopPresentation)
     }
 
+    // MARK: Esc a okno projekcji (R4-02)
+
+    @Test("Dwa ekrany: pierwsze Esc w oknie projekcji gasi tekst, okno zostaje; drugie je zamyka")
+    func escapeInPresentationWindowOnTwoScreens() {
+        #expect(!KeyboardRouter.stopClosesPresentationWindow(screenCount: 2, context: .presentationWindow, isLive: true))
+        #expect(KeyboardRouter.stopClosesPresentationWindow(screenCount: 2, context: .presentationWindow, isLive: false))
+    }
+
+    @Test("Dwa ekrany: Esc z okna głównego nigdy nie zamyka okna projekcji")
+    func escapeInMainWindowOnTwoScreens() {
+        #expect(!KeyboardRouter.stopClosesPresentationWindow(screenCount: 2, context: mainWindow, isLive: true))
+        #expect(!KeyboardRouter.stopClosesPresentationWindow(screenCount: 2, context: mainWindow, isLive: false))
+    }
+
+    @Test("Jeden ekran: Esc zamyka okno projekcji, które zasłania okno główne")
+    func escapeOnSingleScreen() {
+        #expect(KeyboardRouter.stopClosesPresentationWindow(screenCount: 1, context: .presentationWindow, isLive: true))
+        #expect(KeyboardRouter.stopClosesPresentationWindow(screenCount: 1, context: mainWindow, isLive: true))
+    }
+
     // MARK: Konflikty w ustawieniach
 
     @Test("Wykrywanie konfliktów skrótów")

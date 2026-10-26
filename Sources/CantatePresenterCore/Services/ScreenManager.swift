@@ -164,7 +164,13 @@ public final class ScreenManager: ObservableObject {
         window.contentViewController = hostingController
         window.setFrame(targetScreen.frame, display: true)
         
-        window.makeKeyAndOrderFront(nil)
+        let operatorScreen = (AppDelegate.shared?.mainWindow?.screen).map { DisplayDescriptor($0, isPrimary: false).id }
+        if ScreenSelection.presentationWindowTakesKeyboard(projector: presentingDisplay?.id ?? 0, operatorScreen: operatorScreen) {
+            window.makeKeyAndOrderFront(nil)
+        } else {
+            // Projektor na osobnym ekranie: okno główne zostaje kluczowe (R4-02).
+            window.orderFrontRegardless()
+        }
         self.presentationWindow = window
         self.isPresentationActive = true
     }
