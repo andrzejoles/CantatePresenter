@@ -13777,30 +13777,30 @@
         }
       }
     },
-    "Przycisk 'Chwyty' w środkowym panelu (w edytorze: 'Wyszukaj chwyty online...') pokazuje pasujące opracowania z wbudowanej bazy chwytów popularnych pieśni. Wybierz opracowanie, w razie potrzeby transponuj i kliknij 'Zastosuj chwyty do pieśni'. Chwyty możesz też wpisać w edytorze (widok 'Chwyty gitarowe / Taby') albo zaimportować z pliku ChordPro.": {
+    "Przycisk 'Chwyty' w środkowym panelu (w edytorze: 'Wyszukaj chwyty...') pokazuje pasujące opracowania z wbudowanej bazy chwytów popularnych pieśni. Wybierz opracowanie, w razie potrzeby transponuj i kliknij 'Zastosuj chwyty do pieśni'. Chwyty możesz też wpisać w edytorze (widok 'Chwyty gitarowe / Taby') albo zaimportować z pliku ChordPro.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The 'Chords' button in the middle panel (in the editor: 'Search chords online...') shows matching arrangements from the built-in chord collection of popular songs. Choose an arrangement, transpose it if needed and click 'Apply chords to the song'. You can also type chords in the editor ('Guitar chords / Tabs' view) or import them from a ChordPro file."
+            "value": "The 'Chords' button in the middle panel (in the editor: 'Search chords...') shows matching arrangements from the built-in chord collection of popular songs. Choose an arrangement, transpose it if needed and click 'Apply chords to the song'. You can also type chords in the editor ('Guitar chords / Tabs' view) or import them from a ChordPro file."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Schaltfläche 'Akkorde' im mittleren Bereich (im Editor: 'Akkorde online suchen...') zeigt passende Bearbeitungen aus der eingebauten Akkordsammlung bekannter Lieder. Wähle eine Bearbeitung, transponiere sie bei Bedarf und klicke auf 'Akkorde auf das Lied anwenden'. Akkorde kannst du auch im Editor eingeben (Ansicht 'Gitarrenakkorde / Tabs') oder aus einer ChordPro-Datei importieren."
+            "value": "Die Schaltfläche 'Akkorde' im mittleren Bereich (im Editor: 'Akkorde suchen...') zeigt passende Bearbeitungen aus der eingebauten Akkordsammlung bekannter Lieder. Wähle eine Bearbeitung, transponiere sie bei Bedarf und klicke auf 'Akkorde auf das Lied anwenden'. Akkorde kannst du auch im Editor eingeben (Ansicht 'Gitarrenakkorde / Tabs') oder aus einer ChordPro-Datei importieren."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El botón 'Acordes' del panel central (en el editor: 'Buscar acordes en línea...') muestra los arreglos que coinciden de la colección de acordes integrada de canciones populares. Elige un arreglo, transpórtalo si hace falta y haz clic en 'Aplicar acordes a la canción'. También puedes escribir los acordes en el editor (vista 'Acordes de guitarra / Tablaturas') o importarlos de un archivo ChordPro."
+            "value": "El botón 'Acordes' del panel central (en el editor: 'Buscar acordes...') muestra los arreglos que coinciden de la colección de acordes integrada de canciones populares. Elige un arreglo, transpórtalo si hace falta y haz clic en 'Aplicar acordes a la canción'. También puedes escribir los acordes en el editor (vista 'Acordes de guitarra / Tablaturas') o importarlos de un archivo ChordPro."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Кнопка 'Акорди' на середній панелі (у редакторі: 'Шукати акорди онлайн...') показує відповідні аранжування з вбудованої збірки акордів популярних пісень. Виберіть аранжування, за потреби транспонуйте й натисніть 'Застосувати акорди до пісні'. Акорди можна також ввести в редакторі (вигляд 'Гітарні акорди / Таби') або імпортувати з файлу ChordPro."
+            "value": "Кнопка 'Акорди' на середній панелі (у редакторі: 'Шукати акорди...') показує відповідні аранжування з вбудованої збірки акордів популярних пісень. Виберіть аранжування, за потреби транспонуйте й натисніть 'Застосувати акорди до пісні'. Акорди можна також ввести в редакторі (вигляд 'Гітарні акорди / Таби') або імпортувати з файлу ChordPro."
           }
         }
       }
@@ -19517,30 +19517,30 @@
         }
       }
     },
-    "Wyszukaj chwyty online...": {
+    "Wyszukaj chwyty...": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search chords online..."
+            "value": "Search chords..."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Akkorde online suchen..."
+            "value": "Akkorde suchen..."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Buscar acordes en línea..."
+            "value": "Buscar acordes..."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Шукати акорди онлайн..."
+            "value": "Шукати акорди..."
           }
         }
       }
@@ -21169,30 +21169,30 @@
         }
       }
     },
-    "Zmień / Szukaj chwytów online": {
+    "Zmień / Szukaj chwytów": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Change / Search chords online"
+            "value": "Change / Search chords"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ändern / Akkorde online suchen"
+            "value": "Ändern / Akkorde suchen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cambiar / Buscar acordes en línea"
+            "value": "Cambiar / Buscar acordes"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Змінити / Шукати акорди онлайн"
+            "value": "Змінити / Шукати акорди"
           }
         }
       }

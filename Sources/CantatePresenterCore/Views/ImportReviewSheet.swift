@@ -497,7 +497,7 @@ private struct ChordsSummaryRowView: View {
                 Spacer()
                 
                 Button(action: onSearchChords) {
-                    Label(L("Zmień / Szukaj chwytów online"), systemImage: "arrow.triangle.2.circlepath")
+                    Label(L("Zmień / Szukaj chwytów"), systemImage: "arrow.triangle.2.circlepath")
                         .font(.scaled(10, scale: scale))
                 }
                 .buttonStyle(.bordered)

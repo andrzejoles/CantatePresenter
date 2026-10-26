@@ -124,7 +124,7 @@ Edytor automatycznie rozpoznaje i formatuje oznaczenia sekcji:
 Przycisk **Online** przeszukuje [Wikiźródła](https://pl.wikisource.org): tradycyjne pieśni w domenie publicznej lub na wolnej licencji. Przy imporcie w pieśni zapisuje się adres strony źródłowej i licencja. Współczesnych pieśni objętych prawem autorskim tam nie ma; służy do nich CCLI SongSelect (rozdział 8).
 
 ### Okno chwytów
-1. Kliknij **Chwyty** w panelu środkowym albo **Wyszukaj chwyty online...** w edytorze.
+1. Kliknij **Chwyty** w panelu środkowym albo **Wyszukaj chwyty...** w edytorze.
 2. Program pokazuje pasujące opracowania z wbudowanej bazy chwytów popularnych pieśni.
 3. Wybierz opracowanie, w razie potrzeby transponuj i kliknij **Zastosuj chwyty do pieśni**.
 

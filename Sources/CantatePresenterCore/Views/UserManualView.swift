@@ -127,7 +127,7 @@ public struct UserManualView: View {
                 ),
                 ManualParagraph(
                     heading: L("Okno chwytów"),
-                    body: L("Przycisk 'Chwyty' w środkowym panelu (w edytorze: 'Wyszukaj chwyty online...') pokazuje pasujące opracowania z wbudowanej bazy chwytów popularnych pieśni. Wybierz opracowanie, w razie potrzeby transponuj i kliknij 'Zastosuj chwyty do pieśni'. Chwyty możesz też wpisać w edytorze (widok 'Chwyty gitarowe / Taby') albo zaimportować z pliku ChordPro.")
+                    body: L("Przycisk 'Chwyty' w środkowym panelu (w edytorze: 'Wyszukaj chwyty...') pokazuje pasujące opracowania z wbudowanej bazy chwytów popularnych pieśni. Wybierz opracowanie, w razie potrzeby transponuj i kliknij 'Zastosuj chwyty do pieśni'. Chwyty możesz też wpisać w edytorze (widok 'Chwyty gitarowe / Taby') albo zaimportować z pliku ChordPro.")
                 )
             ]
         ),
