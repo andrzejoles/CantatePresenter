@@ -60,7 +60,8 @@ function el(tag, cls, text) {
   if (text !== undefined) node.textContent = text;
   return node;
 }
-const fill = (template, value) => (template || "").replace("{0}", value);
+// Funkcja zamiany: `$'`, `$&` itp. w tytułach zostają dosłowne (R3-13).
+const fill = (template, value) => (template || "").replace("{0}", () => value);
 
 function rows(slide) {
   return slide.lines.reduce((n, l) => n + (l.chords ? 1 : 0) + (l.text ? 1 : 0), 0) + 0.6 + (slide.borrowedFrom ? 0.5 : 0);
