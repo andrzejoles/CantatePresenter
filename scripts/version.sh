@@ -5,10 +5,7 @@
 # - GŁÓWNY: od 1, rośnie, gdy środkowy przeskakuje z 9 na 0 (co 10 PR).
 # Scalony PR = commit „Merge pull request #…” w historii pierwszego rodzica (tak scala GitHub).
 # Przykłady: 8 PR i 0 commitów → 1.8.0; 8 PR i 3 commity → 1.8.3; 10 PR → 2.0.0.
-# Bez gita (np. kopia źródeł z archiwum) używany jest zapisany plik VERSION.
-#
-# Użycie: scripts/version.sh            wypisuje wersję
-#         scripts/version.sh --write    zapisuje ją też do pliku VERSION w katalogu głównym
+# Bez gita (np. kopia źródeł z archiwum GitHuba) wersja to „dev”.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -23,13 +20,7 @@ if git -C "$ROOT" rev-parse --verify -q HEAD >/dev/null 2>&1; then
         COMMITS="$(git -C "$ROOT" rev-list --count --first-parent HEAD)"
     fi
     VERSION="$((1 + PRS / 10)).$((PRS % 10)).$COMMITS"
-elif [ -f "$ROOT/VERSION" ]; then
-    VERSION="$(tr -d '[:space:]' < "$ROOT/VERSION")"
 else
     VERSION="dev"
-fi
-
-if [ "${1:-}" = "--write" ]; then
-    echo "$VERSION" > "$ROOT/VERSION"
 fi
 echo "$VERSION"
