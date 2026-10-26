@@ -599,12 +599,12 @@ public final class DataStore {
     
     // MARK: - UI Zoom Scaling (Keyboard & Button actions)
     public func zoomInUI() {
-        settings.uiScale = min(1.6, settings.uiScale + 0.1)
+        settings.uiScale = min(AppSettings.uiScaleRange.upperBound, settings.uiScale + 0.1)
         saveSettings()
     }
     
     public func zoomOutUI() {
-        settings.uiScale = max(0.8, settings.uiScale - 0.1)
+        settings.uiScale = max(AppSettings.uiScaleRange.lowerBound, settings.uiScale - 0.1)
         saveSettings()
     }
     

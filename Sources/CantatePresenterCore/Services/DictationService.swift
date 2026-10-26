@@ -26,7 +26,8 @@ public final class DictationService: ObservableObject {
     }
     
     public func checkPermissions() {
-        SFSpeechRecognizer.requestAuthorization { [weak self] authStatus in
+        // Odpowiedź przychodzi w dowolnej kolejce: domknięcie @Sendable, stan zmieniany dopiero na głównym aktorze.
+        SFSpeechRecognizer.requestAuthorization { @Sendable [weak self] authStatus in
             Task { @MainActor in
                 switch authStatus {
                 case .authorized:
@@ -76,7 +77,7 @@ public final class DictationService: ObservableObject {
         self.errorMessage = nil
         
         // Request microphone permission first
-        AVCaptureDevice.requestAccess(for: .audio) { [weak self] micGranted in
+        AVCaptureDevice.requestAccess(for: .audio) { @Sendable [weak self] micGranted in
             guard micGranted else {
                 Task { @MainActor in
                     self?.errorMessage = Lnow("Brak dostępu do mikrofonu. Nadaj uprawnienia w Ustawienia systemowe > Prywatność i ochrona > Mikrofon.")
@@ -85,7 +86,7 @@ public final class DictationService: ObservableObject {
                 return
             }
             
-            SFSpeechRecognizer.requestAuthorization { [weak self] authStatus in
+            SFSpeechRecognizer.requestAuthorization { @Sendable [weak self] authStatus in
                 Task { @MainActor in
                     guard authStatus == .authorized else {
                         self?.errorMessage = Lnow("Brak uprawnień do rozpoznawania mowy. Włącz uprawnienia w Ustawieniach systemowych.")
@@ -140,9 +141,7 @@ public final class DictationService: ObservableObject {
         }
         
         inputNode.removeTap(onBus: 0)
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] (buffer, _) in
-            self?.recognitionRequest?.append(buffer)
-        }
+        Self.installTap(on: inputNode, format: recordingFormat, feeding: request)
         
         audioEngine.prepare()
         
@@ -157,44 +156,71 @@ public final class DictationService: ObservableObject {
         
         sessionID += 1
         let session = sessionID
-        recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
+        recognitionTask = Self.recognize(with: recognizer, request: request) { [weak self] transcribed, isFinal, error in
             Task { @MainActor in
-                guard let self = self, session == self.sessionID else { return }
-                
-                if let result = result {
-                    let transcribed = result.bestTranscription.formattedString
-                    self.currentRecognizedText = transcribed
-                    self.partialHandler?(transcribed)
-                    
-                    if result.isFinal {
-                        // Wynik oddaje stopDictation; tu wcześniej był drugi raz (N4).
-                        self.stopDictation()
-                    }
-                }
-                
-                if let error = error {
-                    let nsError = error as NSError
-                    Self.logger.error("Rozpoznawanie mowy: \(nsError.domain, privacy: .public) \(nsError.code) (lokalnie: \(self.usedOnDeviceRecognition))")
-                    // macOS potrafi zgłaszać obsługę lokalną bez pobranego modelu mowy: wtedy jedno ponowienie
-                    // przez serwery Apple, zgodnie z opisem przy opcji w Ustawieniach (N4).
-                    if DictationFallback.shouldRetryWithServer(
-                        usedOnDevice: self.usedOnDeviceRecognition,
-                        recognizedText: self.currentRecognizedText,
-                        alreadyRetried: self.retriedWithServer
-                    ), let onPartial = self.partialHandler, let onFinal = self.finalHandler {
-                        self.retriedWithServer = true
-                        self.restartWithServerRecognition(onPartial: onPartial, onFinal: onFinal)
-                        return
-                    }
-                    // Ignore cancelation error
-                    if nsError.domain != "kAFAssistantErrorDomain" || (nsError.code != 203 && nsError.code != 216) {
-                        if !self.transcribedTextWasEmitted {
-                            self.errorMessage = error.localizedDescription
-                        }
-                    }
-                    self.stopDictation()
+                guard let self, session == self.sessionID else { return }
+                self.handleRecognition(transcribed: transcribed, isFinal: isFinal, error: error)
+            }
+        }
+    }
+    
+    private func handleRecognition(transcribed: String?, isFinal: Bool, error: Error?) {
+        if let transcribed {
+            self.currentRecognizedText = transcribed
+            self.partialHandler?(transcribed)
+            
+            if isFinal {
+                // Wynik oddaje stopDictation; tu wcześniej był drugi raz (N4).
+                self.stopDictation()
+            }
+        }
+        
+        if let error = error {
+            let nsError = error as NSError
+            Self.logger.error("Rozpoznawanie mowy: \(nsError.domain, privacy: .public) \(nsError.code) (lokalnie: \(self.usedOnDeviceRecognition))")
+            // macOS potrafi zgłaszać obsługę lokalną bez pobranego modelu mowy: wtedy jedno ponowienie
+            // przez serwery Apple, zgodnie z opisem przy opcji w Ustawieniach (N4).
+            if DictationFallback.shouldRetryWithServer(
+                usedOnDevice: self.usedOnDeviceRecognition,
+                recognizedText: self.currentRecognizedText,
+                alreadyRetried: self.retriedWithServer
+            ), let onPartial = self.partialHandler, let onFinal = self.finalHandler {
+                self.retriedWithServer = true
+                self.restartWithServerRecognition(onPartial: onPartial, onFinal: onFinal)
+                return
+            }
+            // Ignore cancelation error
+            if nsError.domain != "kAFAssistantErrorDomain" || (nsError.code != 203 && nsError.code != 216) {
+                if !self.transcribedTextWasEmitted {
+                    self.errorMessage = error.localizedDescription
                 }
             }
+            self.stopDictation()
+        }
+    }
+    
+    // MARK: - Audio Callbacks
+    
+    /// Bufory z mikrofonu przychodzą w wątku audio, więc domknięcie nie może należeć do głównego aktora
+    /// (w trybie Swift 6 takie wywołanie zatrzymuje aplikację). `append` można wołać z dowolnego wątku.
+    nonisolated private static func installTap(
+        on node: AVAudioInputNode,
+        format: AVAudioFormat,
+        feeding request: SFSpeechAudioBufferRecognitionRequest
+    ) {
+        node.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
+            request.append(buffer)
+        }
+    }
+    
+    /// Wyniki rozpoznawania przychodzą w kolejce systemowej; dalej idą tylko wartości `Sendable`.
+    nonisolated private static func recognize(
+        with recognizer: SFSpeechRecognizer,
+        request: SFSpeechAudioBufferRecognitionRequest,
+        handler: @escaping @Sendable (_ transcribed: String?, _ isFinal: Bool, _ error: Error?) -> Void
+    ) -> SFSpeechRecognitionTask {
+        recognizer.recognitionTask(with: request) { result, error in
+            handler(result?.bestTranscription.formattedString, result?.isFinal ?? false, error)
         }
     }
     

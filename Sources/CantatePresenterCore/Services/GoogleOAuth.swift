@@ -16,7 +16,7 @@ public enum GoogleOAuth {
     /// Klient OAuth aplikacji („Aplikacja komputerowa”), wbudowany przez `build_app.sh` w Info.plist.
     /// To identyfikator aplikacji wobec Google, nie konto: każdy użytkownik loguje się własnym kontem.
     /// Google nie traktuje sekretu klienta desktopowego jako tajemnicy, ale nie trzymamy go w repozytorium.
-    public struct Client: Equatable {
+    public struct Client: Equatable, Sendable {
         public let id: String
         public let secret: String
         
@@ -101,7 +101,7 @@ public enum GoogleOAuth {
 
     // MARK: - Callback
 
-    public struct Callback: Equatable {
+    public struct Callback: Equatable, Sendable {
         public let code: String
         public let state: String
     }
@@ -198,8 +198,8 @@ public enum GoogleOAuth {
         public func waitForCallback(timeout: Duration) async throws -> Callback {
             let timeoutTask = Task { [weak self] in
                 try? await Task.sleep(for: timeout)
-                guard !Task.isCancelled else { return }
-                self?.queue.async { self?.finish(.failure(OAuthError.timedOut)) }
+                guard !Task.isCancelled, let self else { return }
+                self.queue.async { self.finish(.failure(OAuthError.timedOut)) }
             }
             defer { timeoutTask.cancel() }
             return try await withCheckedThrowingContinuation { continuation in

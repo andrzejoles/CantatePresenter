@@ -1,6 +1,6 @@
 import Foundation
 
-public struct CanonicalSongData {
+public struct CanonicalSongData: Sendable {
     public let canonicalTitle: String
     public let canonicalAuthor: String
     public let tags: [String]
@@ -14,13 +14,13 @@ public struct CanonicalSongData {
     }
 }
 
-public final class SongEnrichmentService {
+public final class SongEnrichmentService: Sendable {
     public static let shared = SongEnrichmentService()
     
-    private var database: [String: CanonicalSongData] = [:]
+    private let database: [String: CanonicalSongData]
     
     public init() {
-        populateDatabase()
+        database = Self.makeDatabase()
     }
     
     /// Checks if an author string is essentially placeholder or empty
@@ -195,7 +195,8 @@ public final class SongEnrichmentService {
     }
     
     // MARK: - Populate Comprehensive Hymnal & Worship Database
-    private func populateDatabase() {
+    private static func makeDatabase() -> [String: CanonicalSongData] {
+        var database: [String: CanonicalSongData] = [:]
         func add(_ title: String, _ author: String, tags: [String] = [], phrases: [String] = []) {
             let key = Song.foldString(title)
             database[key] = CanonicalSongData(canonicalTitle: title, canonicalAuthor: author, tags: tags, keyPhrases: phrases)
@@ -307,5 +308,6 @@ public final class SongEnrichmentService {
         add("Bo góry mogą ustąpić", "Izajasz 54,10 / Odnowa w Duchu Świętym", tags: ["Uwielbienie"], phrases: ["Bo góry mogą ustąpić i pagórki się zachwiać", "ale miłość moja nie odstąpi od ciebie"])
         add("Boże mój, Boże, szukam Ciebie", "Psalm 63 / Wspólnota Miłości Ukrzyżowanej", tags: ["Uwielbienie"], phrases: ["Boże mój Boże szukam Ciebie i pragnie Ciebie moja dusza"])
         add("Zaufaj Mi", "s. Michaela Rak / Wspólnota Bożego Miłosierdzia", tags: ["Uwielbienie"], phrases: ["Ja z czułością cię utkałem i od wieków ukochałem", "Zaufaj Mi"])
+        return database
     }
 }

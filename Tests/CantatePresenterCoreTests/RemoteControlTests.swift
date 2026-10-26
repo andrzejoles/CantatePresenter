@@ -1,4 +1,6 @@
 import Foundation
+import Network
+import os
 import Testing
 @testable import CantatePresenterCore
 
@@ -267,5 +269,48 @@ struct RemoteServerTests {
         let (_, old) = try await URLSession.shared.data(from: url)
         #expect((old as? HTTPURLResponse)?.statusCode == 403)
         #expect(server.connectedDevices() == 0)
+    }
+
+    @Test("Ponad limit połączeń nowe są zamykane; po rozłączeniu serwer znów odpowiada")
+    func connectionLimit() async throws {
+        let server = RemoteControlServer(maxConnections: 2, route: { _, _, _ in .text("ok", status: 200) })
+        server.start(port: 0)
+        defer { server.stop() }
+        for _ in 0..<100 where !server.isRunning {
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        let port = try #require(server.port)
+        let url = try #require(URL(string: "http://127.0.0.1:\(port)/"))
+        let session = URLSession(configuration: .ephemeral)
+        defer { session.invalidateAndCancel() }
+
+        // Dwa połączenia bez żądania zajmują limit.
+        var idle: [NWConnection] = []
+        for _ in 0..<2 { idle.append(try await Self.openIdleConnection(port: port)) }
+        try await Task.sleep(nanoseconds: 200_000_000)
+        await #expect(throws: (any Error).self) { _ = try await session.data(from: url) }
+
+        idle.forEach { $0.cancel() }
+        try await Task.sleep(nanoseconds: 300_000_000)
+        let (data, _) = try await session.data(from: url)
+        #expect(String(decoding: data, as: UTF8.self) == "ok")
+    }
+
+    private static func openIdleConnection(port: UInt16) async throws -> NWConnection {
+        let connection = NWConnection(host: "127.0.0.1", port: try #require(NWEndpoint.Port(rawValue: port)), using: .tcp)
+        let opened = OSAllocatedUnfairLock(initialState: false)
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            connection.stateUpdateHandler = { state in
+                switch state {
+                case .ready, .failed, .cancelled:
+                    guard opened.withLock({ done in defer { done = true }; return !done }) else { return }
+                    if case .failed(let error) = state { continuation.resume(throwing: error) } else { continuation.resume() }
+                default:
+                    break
+                }
+            }
+            connection.start(queue: .global())
+        }
+        return connection
     }
 }

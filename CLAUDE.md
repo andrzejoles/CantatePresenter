@@ -95,7 +95,7 @@ Z przeglądu kodu (kolejność proponowana):
 Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
 - [x] Przepisanie historii gita: zrobione 2026-10-17 (`scripts/rewrite_history.sh --push`, kopie w `dist/history-backup-*.bundle`). Plik `.mufl` jest tylko lokalnie (`.gitignore`). Stare commity zostają jeszcze w odnośnikach zamkniętych PR na GitHubie; usunąć je może tylko GitHub Support. Uwaga: `git reset --keep` po przepisaniu kasuje `.mufl` z dysku (był śledzony w starej historii); odtworzenie: `git show <stary commit>:2026-10-14_16-19-00.mufl > 2026-10-14_16-19-00.mufl` albo z kopii `.bundle`.
 - [x] Podpis Developer ID i notaryzacja: przygotowane (`CANTATE_SIGN_IDENTITY`, `CANTATE_INSTALLER_IDENTITY`, `CANTATE_NOTARY_PROFILE`, `scripts/notarize.sh`, `Resources/CantatePresenter.entitlements`, `docs/RELEASE.md`). Decyzja właściciela 2026-10-16: **na razie bez konta Apple Developer** (koszt); wydania podpisane ad-hoc, nienotaryzowane (skutki: `docs/RELEASE.md`, punkt 4). Nie proponuj zakupu konta, dopóki właściciel nie wróci do tematu.
-- [x] Automatyczne aktualizacje: Sparkle 2.9.6 (`UpdateService`, menu „Sprawdź uaktualnienia…”), kanał `releases/latest/download/appcast.xml`, klucz EdDSA w Pęku kluczy (konto `cantate-presenter`), wydanie `scripts/release.sh` (szkic na GitHubie). Sprawdzone lokalnie: kopia z podpisem ad-hoc zaktualizowała się sama.
+- [x] Automatyczne aktualizacje: Sparkle 2.10.1 (`UpdateService`, menu „Sprawdź uaktualnienia…”), kanał `releases/latest/download/appcast.xml`, klucz EdDSA w Pęku kluczy (konto `cantate-presenter`), wydanie `scripts/release.sh` (szkic na GitHubie). Sprawdzone lokalnie: kopia z podpisem ad-hoc zaktualizowała się sama.
 - [ ] Weryfikacja aplikacji w Google (zniesienie limitu 100 testerów i ostrzeżenia przy logowaniu; wymaga m.in. polityki prywatności).
 - [x] Pole `schemaVersion` (decyzja 2026-10-16: tak): w `settings.json` i manifeście kopii, bez zmiany kształtu pozostałych plików; nowsze dane tylko do odczytu.
 
@@ -126,9 +126,11 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 
 ## Konwencje
 
-- Swift tools 5.9, macOS 14. Wcięcia 4 spacje, sekcje `// MARK: -`, `public` na typach jak w istniejącym kodzie.
+- Swift tools 6.0 (tryb języka Swift 6, pełne sprawdzanie współbieżności), macOS 14. Wcięcia 4 spacje, sekcje `// MARK: -`, `public` na typach jak w istniejącym kodzie.
+- Typy wartości współdzielone między wątkami są `Sendable`; serwisy bez stanu albo z niezmiennym stanem (`let`) też. Globalnego stanu zmiennego nie ma.
+- Domknięcia, które system wywołuje poza wątkiem głównym (wątek audio, kolejki Speech/AVFoundation), nie mogą powstawać w kodzie `@MainActor`: w trybie Swift 6 takie wywołanie zatrzymuje aplikację. Twórz je w funkcji `nonisolated` albo oznacz jako `@Sendable` (przykład: `DictationService.installTap`, `recognize`).
 - Serwisy dotykające UI lub `DataStore` są `@MainActor`. Długie operacje (import, ZIP, sieć) poza wątkiem głównym.
-- Teksty UI (S10): kluczem jest polski tekst. W widokach `L("…")` (odświeża się po zmianie języka), poza widokami `Lnow("…")`. Wartości wstawiane jako `{0}`, `{1}`: `L("Slajd {0}/{1}", a, b)`, nigdy interpolacja w kluczu. Każdy nowy tekst dodaj do `Sources/CantatePresenterCore/Resources/Localizable.xcstrings` z tłumaczeniem en, de, es, uk; test `LocalizationCatalogCompletenessTests` tego pilnuje.
+- Teksty UI (S10): kluczem jest polski tekst. W widokach `L("…")` (odświeża się po zmianie języka), poza widokami `Lnow("…")`. Wartości wstawiane jako `{0}`, `{1}`: `L("Slajd {0}/{1}", a, b)`, nigdy interpolacja w kluczu. Każdy nowy tekst dodaj do `Sources/CantatePresenterCore/Resources/Localizable.xcstrings` z tłumaczeniem en, de, es, uk (`python3 -I scripts/add_translation.py "Tekst" en de es uk`, zachowuje format pliku); test `LocalizationCatalogCompletenessTests` tego pilnuje.
 - Nie tłumacz danych i formatów: nagłówków eksportu `.txt` („Tytuł:”), znaczników sekcji wstawianych do tekstu („[Zwrotka]”), nazw plików i folderów (`CantatePresenter_Backups`, „przed przywróceniem”), wartości technicznych (HTTP, zapytania Dysku). Do JSON zapisuj stabilne kody, nie etykiety (np. `SlideType`).
 - Nowe pola modeli zapisywanych w JSON tylko z tolerancyjnym dekoderem (`decodeIfPresent` + wartość domyślna), jak w `AppSettings.init(from:)`. Inaczej stare pliki przestaną się wczytywać (K1).
 - Błędy zapisu nie mogą być połykane przez `try?` bez logowania (`os.Logger`) i informacji dla użytkownika.

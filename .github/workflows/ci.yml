@@ -16,7 +16,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # build_app.sh liczy numer kompilacji z historii (N10)
 

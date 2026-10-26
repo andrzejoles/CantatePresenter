@@ -1,6 +1,6 @@
 import Foundation
 
-public struct KeyChoice: Identifiable, Hashable {
+public struct KeyChoice: Identifiable, Hashable, Sendable {
     public let id: UInt16
     public let name: String
     
@@ -39,7 +39,7 @@ public struct ShortcutPresets {
     }
 }
 
-public struct ShortcutSettings: Codable, Equatable {
+public struct ShortcutSettings: Codable, Equatable, Sendable {
     public var nextSlideKey: UInt16
     public var prevSlideKey: UInt16
     public var prevSongKey: UInt16
@@ -97,7 +97,7 @@ public struct ShortcutSettings: Codable, Equatable {
 
 /// Wyrównanie poziome tekstu slajdu. W JSON te same napisy co wcześniej; stare „lewo”/„prawo”
 /// i nieznane wartości są przyjmowane bez błędu.
-public enum HorizontalTextAlignment: String, Codable, CaseIterable {
+public enum HorizontalTextAlignment: String, Codable, CaseIterable, Sendable {
     case left, center, right
     
     public init(from decoder: Decoder) throws {
@@ -110,7 +110,7 @@ public enum HorizontalTextAlignment: String, Codable, CaseIterable {
     }
 }
 
-public enum VerticalTextAlignment: String, Codable, CaseIterable {
+public enum VerticalTextAlignment: String, Codable, CaseIterable, Sendable {
     case top, center, bottom
     
     public init(from decoder: Decoder) throws {
@@ -120,7 +120,7 @@ public enum VerticalTextAlignment: String, Codable, CaseIterable {
 }
 
 /// Gdzie pokazywać informację o prawach autorskich (©, numer CCLI) przy pieśniach z numerem CCLI.
-public enum CopyrightNoticePlacement: String, Codable, CaseIterable {
+public enum CopyrightNoticePlacement: String, Codable, CaseIterable, Sendable {
     case none, firstSlide, lastSlide, allSlides
     
     public init(from decoder: Decoder) throws {
@@ -129,7 +129,7 @@ public enum CopyrightNoticePlacement: String, Codable, CaseIterable {
     }
 }
 
-public struct AppSettings: Codable, Equatable {
+public struct AppSettings: Codable, Equatable, Sendable {
     public var selectedScreenIndex: Int
     /// Ekran projekcji po identyfikatorze i nazwie (S1); `selectedScreenIndex` tylko dla starych plików.
     public var selectedScreenID: UInt32?
@@ -143,7 +143,9 @@ public struct AppSettings: Codable, Equatable {
     public var verticalAlignment: VerticalTextAlignment
     public var marginPercent: Double // 0.04 to 0.20
     public var lineSpacingFactor: Double // 1.0 to 1.6
-    public var uiScale: Double // 0.85 to 1.6
+    public var uiScale: Double
+    /// Zakres skali interfejsu: suwak w Ustawieniach i ⌘+/⌘−.
+    public static let uiScaleRange: ClosedRange<Double> = 0.8...1.6
     public var onlineSearchLanguage: String // "pl", "en", "de", "es", "all"
     public var isWindowedPreviewEnabled: Bool
     public var standbyHtmlPath: String
@@ -242,7 +244,7 @@ public struct AppSettings: Codable, Equatable {
     }
 }
 
-public struct GoogleDriveSettings: Codable, Equatable {
+public struct GoogleDriveSettings: Codable, Equatable, Sendable {
     public var isEnabled: Bool
     /// Adres konta ustawiany po zalogowaniu; tylko do wyświetlenia.
     public var accountEmail: String
@@ -317,7 +319,7 @@ public struct GoogleDriveSettings: Codable, Equatable {
     }
 }
 
-public struct LanguageChoice: Identifiable, Hashable {
+public struct LanguageChoice: Identifiable, Hashable, Sendable {
     public let code: String
     public let name: String
     public let flag: String

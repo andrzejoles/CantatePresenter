@@ -748,7 +748,7 @@ public struct SettingsSheet: View {
                                     .font(.scaled(12, weight: .medium, scale: scale))
                                     .frame(width: 160, alignment: .leading)
                                 
-                                Slider(value: $store.settings.uiScale, in: 0.8...1.5, step: 0.05)
+                                Slider(value: $store.settings.uiScale, in: AppSettings.uiScaleRange, step: 0.05)
                                 
                                 Button(L("Resetuj (100%)")) {
                                     store.resetZoomUI()

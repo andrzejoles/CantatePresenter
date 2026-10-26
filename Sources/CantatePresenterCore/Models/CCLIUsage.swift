@@ -3,7 +3,7 @@ import Foundation
 // MARK: - CCLI Usage Entry
 
 /// Jedno wyświetlenie pieśni z numerem CCLI, zapisywane do raportu dla CCLI (`ccli_usage.json`).
-public struct CCLIUsageEntry: Codable, Equatable, Identifiable {
+public struct CCLIUsageEntry: Codable, Equatable, Identifiable, Sendable {
     public var id: UUID
     public var date: Date
     public var title: String

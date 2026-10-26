@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 import UniformTypeIdentifiers
 
-public struct BackupManifest: Codable {
+public struct BackupManifest: Codable, Sendable {
     public let version: String
     public let appName: String
     public let createdAt: Date

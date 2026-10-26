@@ -1,6 +1,6 @@
 import Foundation
 
-public struct GuitarChordResult: Identifiable, Equatable {
+public struct GuitarChordResult: Identifiable, Equatable, Sendable {
     public let id = UUID()
     public var title: String
     public var artist: String
@@ -26,14 +26,14 @@ public struct GuitarChordResult: Identifiable, Equatable {
     }
 }
 
-public final class GuitarChordsService {
+public final class GuitarChordsService: Sendable {
     public static let shared = GuitarChordsService()
     
     // Curated offline chords database for most popular Polish worship hymns
-    private var curatedChords: [String: GuitarChordResult] = [:]
+    private let curatedChords: [String: GuitarChordResult]
     
     public init() {
-        populateCuratedChords()
+        curatedChords = Self.makeCuratedChords()
     }
     
     /// Returns curated chords for a song title if available in the built-in database
@@ -195,7 +195,8 @@ public final class GuitarChordsService {
     }
     
     // MARK: - Populate Curated Chords for Top Polish Hymns
-    private func populateCuratedChords() {
+    private static func makeCuratedChords() -> [String: GuitarChordResult] {
+        var curatedChords: [String: GuitarChordResult] = [:]
         func add(_ title: String, key: String, chords: String, artist: String = "Tradycyjna / Religijna") {
             let entry = GuitarChordResult(title: title, artist: artist, key: key, chordsSheet: chords, source: "Biblioteka Chwytów Holyrics")
             curatedChords[Song.foldString(title)] = entry
@@ -374,5 +375,6 @@ public final class GuitarChordsService {
         D         G           D
         Bo Jezus jest tu!
         """, artist: "Deus Meus")
+        return curatedChords
     }
 }

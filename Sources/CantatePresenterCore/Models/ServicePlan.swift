@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PlanItem: Identifiable, Codable, Equatable, Hashable {
+public struct PlanItem: Identifiable, Codable, Equatable, Hashable, Sendable {
     public var id: UUID
     public var songId: UUID
     public var note: String
@@ -24,7 +24,7 @@ public struct PlanItem: Identifiable, Codable, Equatable, Hashable {
     }
 }
 
-public struct ServicePlan: Identifiable, Codable, Equatable, Hashable {
+public struct ServicePlan: Identifiable, Codable, Equatable, Hashable, Sendable {
     public var id: UUID
     public var name: String
     public var items: [PlanItem]
