@@ -101,18 +101,6 @@ public struct HolyricsImporter {
         return readRawSongs(from: url)
     }
     
-    /// Imports songs with rich deduplication and metadata enrichment report
-    public static func importFromURLWithReport(_ url: URL, existingLibrary: [Song]) -> (songs: [Song], report: ImportProcessingResult) {
-        let rawSongs = readRawSongs(from: url)
-        if !rawSongs.isEmpty {
-            let result = SongDeduplicationService.shared.processAndDeduplicate(incoming: rawSongs, existingLibrary: existingLibrary)
-            return (result.uniqueSongs, result)
-        }
-        
-        let emptyResult = ImportProcessingResult(totalScanned: 0, uniqueSongs: [], duplicateRecords: [], enrichmentRecords: [], existingCollisions: [])
-        return ([], emptyResult)
-    }
-    
     /// Parses string content formatted as Holyrics Music File (.muf/.mufl), JSON, XML, or tagged TXT
     public static func parseHolyricsContent(_ rawContent: String, fallbackTitle: String = "Pieśń Holyrics") -> [Song] {
         let trimmed = rawContent.trimmingCharacters(in: .whitespacesAndNewlines)

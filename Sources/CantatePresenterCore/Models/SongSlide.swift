@@ -107,12 +107,4 @@ public struct SongSlide: Identifiable, Codable, Equatable, Hashable {
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
     }
-    
-    public var previewText: String {
-        let clean = lines.joined(separator: " / ")
-        if clean.count > 90 {
-            return String(clean.prefix(87)) + "..."
-        }
-        return clean
-    }
 }

@@ -34,7 +34,6 @@ public final class ScreenManager: ObservableObject {
     
     public private(set) var presentationWindow: NSWindow?
     private var windowedPreviewWindow: NSWindow?
-    private var cancellables = Set<AnyCancellable>()
     
     public init() {
         refreshScreens()
