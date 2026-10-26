@@ -24,4 +24,30 @@ struct UpdateConfigurationTests {
         #expect(config.feedURL == "http://127.0.0.1:8000/appcast.xml")
         #expect(config.isComplete)
     }
+
+    /// Info.plist i podpis składane przez `build_app.sh` (R3-01, R3-09).
+    private static let buildScript = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        .appendingPathComponent("build_app.sh")
+
+    @Test("Info.plist z build_app.sh: podpisany kanał i sprawdzenie archiwum przed rozpakowaniem")
+    func signedFeedRequired() throws {
+        let script = try String(contentsOf: Self.buildScript, encoding: .utf8)
+        let start = try #require(script.range(of: "<?xml"))
+        let end = try #require(script.range(of: "</plist>", range: start.upperBound..<script.endIndex))
+        let plist = try PropertyListSerialization.propertyList(from: Data(script[start.lowerBound..<end.upperBound].utf8), format: nil)
+        let info = try #require(plist as? [String: Any])
+        #expect(info["SURequireSignedFeed"] as? Bool == true)
+        #expect(info["SUVerifyUpdateBeforeExtraction"] as? Bool == true)
+        #expect(UpdateConfiguration.from(infoDictionary: info, environment: [:]).isComplete)
+        #expect((info["SUFeedURL"] as? String)?.hasPrefix("https://") == true)
+    }
+
+    @Test("Podpis zawsze z Hardened Runtime, bez zmiennych DYLD_*")
+    func hardenedRuntime() throws {
+        let script = try String(contentsOf: Self.buildScript, encoding: .utf8)
+        #expect(script.contains("SIGN_ARGS=(--force --options runtime --sign -)"))
+        #expect(!script.contains("codesign --force --sign -"))
+        #expect(!script.contains("com.apple.security.cs.allow-dyld-environment-variables"))
+    }
 }

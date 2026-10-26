@@ -2,7 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- Hardened Runtime (podpis Developer ID i notaryzacja): dyktowanie potrzebuje mikrofonu. -->
+    <!-- Hardened Runtime (każdy podpis, także ad-hoc, R3-01): dyktowanie potrzebuje mikrofonu.
+         Przy podpisie ad-hoc build_app.sh dodaje com.apple.security.cs.disable-library-validation. -->
     <key>com.apple.security.device.audio-input</key>
     <true/>
 </dict>

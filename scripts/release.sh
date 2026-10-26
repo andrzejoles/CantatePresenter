@@ -60,6 +60,7 @@ CHANGES="$(changelog)"
 } > "$RELEASE_DIR/CantatePresenter-$VERSION.md"
 
 # appcast.xml z tym wydaniem; aplikacja czyta go z releases/latest/download/appcast.xml.
+# Aplikacja wymaga podpisanego kanału (SURequireSignedFeed, R3-09), więc generate_appcast podpisuje też appcast.xml.
 scripts/sparkle_tools.sh generate_appcast \
     --download-url-prefix "https://github.com/andrzejoles/CantatePresenter/releases/download/$TAG/" \
     --link "https://github.com/andrzejoles/CantatePresenter/releases/tag/$TAG" \

@@ -102,6 +102,10 @@ cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
     <true/>
     <key>SUScheduledCheckInterval</key>
     <integer>86400</integer>
+    <key>SURequireSignedFeed</key>
+    <true/>
+    <key>SUVerifyUpdateBeforeExtraction</key>
+    <true/>
     <key>NSLocalNetworkUsageDescription</key>
     <string>Pilot ze smartfona łączy się z tym Macem w sieci lokalnej, żeby przełączać slajdy.</string>
 </dict>
@@ -134,28 +138,34 @@ if [ -n "$LEAKED" ]; then
     exit 1
 fi
 
-# Podpis: Developer ID z Hardened Runtime, gdy podano CANTATE_SIGN_IDENTITY (np. "Developer ID Application: Imię
-# Nazwisko (TEAMID)"; potrzebne do notaryzacji, docs/RELEASE.md), inaczej ad-hoc jak dotąd.
+# Podpis zawsze z Hardened Runtime (R3-01): bez niego dyld przyjmuje DYLD_INSERT_LIBRARIES, a wstrzyknięty kod
+# dostaje tokeny Google z Pęku kluczy i zgodę na mikrofon. Domyślnie ad-hoc ("-", decyzja właściciela: bez konta
+# Apple Developer), z CANTATE_SIGN_IDENTITY="Developer ID Application: Imię Nazwisko (TEAMID)" do notaryzacji
+# (docs/RELEASE.md). Uprawnienia: Resources/CantatePresenter.entitlements (mikrofon).
 # Bez `|| true`: nieudany podpis ma przerwać budowanie. Bez odradzanego `--deep`: zagnieżdżone pakiety od środka.
-SIGN_IDENTITY="${CANTATE_SIGN_IDENTITY:-}"
-if [ -n "$SIGN_IDENTITY" ]; then
+SIGN_IDENTITY="${CANTATE_SIGN_IDENTITY:--}"
+ENTITLEMENTS="$DIR/Resources/CantatePresenter.entitlements"
+if [ "$SIGN_IDENTITY" = "-" ]; then
+    echo "=== Podpisywanie aplikacji (ad-hoc, Hardened Runtime) ==="
+    SIGN_ARGS=(--force --options runtime --sign -)
+    # Podpis ad-hoc nie ma identyfikatora zespołu, więc kontrola bibliotek Hardened Runtime odrzuciłaby
+    # Sparkle.framework z pakietu (dyld: Library not loaded). Tylko to uprawnienie, bez
+    # allow-dyld-environment-variables: zmienne DYLD_* nadal są ignorowane.
+    ENTITLEMENTS="$(mktemp -t cantate-entitlements)"
+    trap 'rm -f "$ENTITLEMENTS"' EXIT
+    cp "$DIR/Resources/CantatePresenter.entitlements" "$ENTITLEMENTS"
+    /usr/libexec/PlistBuddy -c "Add :com.apple.security.cs.disable-library-validation bool true" "$ENTITLEMENTS"
+else
     echo "=== Podpisywanie aplikacji: $SIGN_IDENTITY (Hardened Runtime) ==="
     SIGN_ARGS=(--force --options runtime --timestamp --sign "$SIGN_IDENTITY")
-    # Podpis ad-hoc ("-") z Hardened Runtime służy do sprawdzenia tej ścieżki bez certyfikatu: bez znacznika czasu.
-    if [ "$SIGN_IDENTITY" = "-" ]; then SIGN_ARGS=(--force --options runtime --sign -); fi
-    if [ -d "$CONTENTS_DIR/Frameworks" ]; then
-        find "$CONTENTS_DIR/Frameworks" -depth ! -type l \( -name "*.xpc" -o -name "*.app" -o -name "Autoupdate" -o -name "*.framework" \) -print0 |
-            while IFS= read -r -d '' nested; do codesign "${SIGN_ARGS[@]}" "$nested"; done
-    fi
-    codesign "${SIGN_ARGS[@]}" --entitlements "$DIR/Resources/CantatePresenter.entitlements" "$APP_DIR"
-else
-    echo "=== Podpisywanie aplikacji (ad-hoc codesign) ==="
-    if [ -d "$CONTENTS_DIR/Frameworks" ]; then
-        find "$CONTENTS_DIR/Frameworks" -depth ! -type l \( -name "*.xpc" -o -name "*.app" -o -name "Autoupdate" -o -name "*.framework" \) -print0 |
-            while IFS= read -r -d '' nested; do codesign --force --sign - "$nested"; done
-    fi
-    codesign --force --sign - "$APP_DIR"
 fi
+if [ -d "$CONTENTS_DIR/Frameworks" ]; then
+    find "$CONTENTS_DIR/Frameworks" -depth ! -type l \( -name "*.xpc" -o -name "*.app" -o -name "Autoupdate" -o -name "*.framework" \) -print0 |
+        while IFS= read -r -d '' nested; do codesign "${SIGN_ARGS[@]}" "$nested"; done
+fi
+codesign "${SIGN_ARGS[@]}" --entitlements "$ENTITLEMENTS" "$APP_DIR"
 codesign --verify --strict "$APP_DIR"
+SIGNATURE_INFO="$(codesign -dv "$APP_DIR" 2>&1)"
+[[ "$SIGNATURE_INFO" =~ flags=[^[:space:]]*runtime ]] || { echo "BŁĄD: podpis bez Hardened Runtime" >&2; exit 1; }
 
 echo "=== Gotowe! Aplikacja została pomyślnie utworzona: $APP_DIR ==="
