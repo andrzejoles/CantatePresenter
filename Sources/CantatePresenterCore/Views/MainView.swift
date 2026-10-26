@@ -18,6 +18,8 @@ public struct MainView: View {
     @State private var isShowingQuickText: Bool = false
     @State private var songToEdit: Song?
     @State private var lookupTargetSong: Song?
+    /// Wysokość paska skrótów na początku przeciągania uchwytu (R4-10).
+    @State private var barDragStartHeight: Double?
     
     public init() {}
     
@@ -225,10 +227,15 @@ public struct MainView: View {
             .gesture(
                 DragGesture()
                     .onChanged { value in
-                        let newHeight = store.settings.bottomBarHeight - value.translation.height
-                        store.settings.bottomBarHeight = min(160, max(52, newHeight))
+                        let start = barDragStartHeight ?? store.settings.bottomBarHeight
+                        barDragStartHeight = start
+                        let height = Self.resizedBarHeight(start: start, dragTranslation: value.translation.height)
+                        if height != store.settings.bottomBarHeight {
+                            store.settings.bottomBarHeight = height
+                        }
                     }
                     .onEnded { _ in
+                        barDragStartHeight = nil
                         store.saveSettings()
                     }
             )
@@ -296,6 +303,12 @@ public struct MainView: View {
         }
     }
 
+    /// `translation` liczy się od początku przeciągania, więc odejmowany jest od wysokości z tego momentu,
+    /// a nie od bieżącej; wcześniej pasek przyspieszał i od razu skakał do 52 albo 160 px (R4-10).
+    nonisolated static func resizedBarHeight(start: Double, dragTranslation: Double) -> Double {
+        min(160, max(52, (start - dragTranslation).rounded()))
+    }
+    
     /// SwiftUI pokazuje jeden arkusz naraz; flaga drugiego zostałaby włączona bez arkusza (R4-04).
     private var isShowingAnySheet: Bool {
         isShowingEditor || isShowingRemoteControl || isShowingOnlineSearch || isShowingAuthorTitleLookup
