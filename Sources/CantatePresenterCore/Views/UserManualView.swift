@@ -300,6 +300,7 @@ public struct UserManualView: View {
                             .foregroundColor(.secondary)
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .helpLabel(L("Wyczyść wyszukiwanie"))
                 }
             }
             .padding(8)

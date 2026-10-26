@@ -148,7 +148,7 @@ public struct LiveOutputView: View {
                                 Circle()
                                     .fill(store.isBlackScreen ? Color.red : Color.secondary.opacity(0.4))
                                     .frame(width: 8, height: 8)
-                                Text(L("Czarny (B)"))
+                                Text(L("Czarny ({0})", KeyboardRouter.shortKeyName(for: store.settings.shortcuts.blackScreenKey)))
                                     .font(.scaled(11, scale: scale))
                             }
                             .frame(maxWidth: .infinity)
@@ -161,7 +161,7 @@ public struct LiveOutputView: View {
                                 Circle()
                                     .fill(store.isClearText ? Color.orange : Color.secondary.opacity(0.4))
                                     .frame(width: 8, height: 8)
-                                Text(L("Czysty (C)"))
+                                Text(L("Czysty ({0})", KeyboardRouter.shortKeyName(for: store.settings.shortcuts.clearTextKey)))
                                     .font(.scaled(11, scale: scale))
                             }
                             .frame(maxWidth: .infinity)
@@ -175,7 +175,7 @@ public struct LiveOutputView: View {
                                     .foregroundColor(.red)
                             }
                             .buttonStyle(.bordered)
-                            .help(L("Zatrzymaj prezentację"))
+                            .helpLabel(L("Zatrzymaj prezentację"))
                         }
                     }
                 }
@@ -275,7 +275,7 @@ public struct LiveOutputView: View {
                             Image(systemName: "arrow.clockwise")
                         }
                         .buttonStyle(PlainButtonStyle())
-                        .help(L("Odśwież listę monitorów"))
+                        .helpLabel(L("Odśwież listę monitorów"))
                     }
                     
                     Picker(L("Docelowy ekran:"), selection: Binding(

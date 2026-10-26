@@ -120,7 +120,7 @@ public struct MainView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help(L("Zmniejsz rozmiar interfejsu (Cmd -)"))
+                    .helpLabel(L("Zmniejsz rozmiar interfejsu (Cmd -)"))
                     
                     Button(action: { store.resetZoomUI() }) {
                         Text("\(Int(store.settings.uiScale * 100))%")
@@ -136,7 +136,7 @@ public struct MainView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help(L("Zwiększ rozmiar interfejsu (Cmd +)"))
+                    .helpLabel(L("Zwiększ rozmiar interfejsu (Cmd +)"))
                 }
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
@@ -153,7 +153,7 @@ public struct MainView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .help(L("Ustawienia wyglądu i prezentacji"))
+                .helpLabel(L("Ustawienia wyglądu i prezentacji"))
                 
                 // User Manual button
                 Button(action: {
@@ -164,7 +164,7 @@ public struct MainView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .help(L("Instrukcja obsługi CantatePresenter (Cmd ?)"))
+                .helpLabel(L("Instrukcja obsługi CantatePresenter (Cmd ?)"))
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
@@ -406,6 +406,14 @@ extension Notification.Name {
     /// Edycja → Szukaj pieśni (⌘F): przełącza na Bibliotekę i aktywuje pole wyszukiwania.
     static let focusSongSearch = Notification.Name("FocusSongSearch")
     static let focusSongSearchField = Notification.Name("FocusSongSearchField")
+}
+
+extension View {
+    /// Podpowiedź i etykieta VoiceOver dla przycisków z samą ikoną; bez etykiety VoiceOver czytał
+    /// nazwę symbolu, np. „xmark.circle.fill” (R4-24).
+    func helpLabel(_ text: String) -> some View {
+        help(text).accessibilityLabel(text)
+    }
 }
 
 /// Etykieta przycisku z napisem albo sama ikona (wąskie okno); napis zostaje jako podpowiedź.

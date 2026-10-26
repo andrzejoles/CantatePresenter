@@ -197,6 +197,7 @@ public struct ShortcutLegendBarView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.mini)
                 .help(L("Zmniejsz wysokość paska"))
+                .accessibilityLabel(L("Zmniejsz wysokość paska"))
                 
                 Button(action: {
                     store.settings.bottomBarHeight = 72.0
@@ -220,6 +221,7 @@ public struct ShortcutLegendBarView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.mini)
                 .help(L("Zwiększ wysokość paska"))
+                .accessibilityLabel(L("Zwiększ wysokość paska"))
             }
             .padding(.trailing, 10)
             .padding(.leading, 4)
@@ -229,29 +231,7 @@ public struct ShortcutLegendBarView: View {
     }
     
     private func shortKeyName(for code: UInt16) -> String {
-        switch code {
-        case 49: return L("Spacja")
-        case 124: return "→"
-        case 123: return "←"
-        case 125: return "↓"
-        case 126: return "↑"
-        case 36: return "↵ Enter"
-        case 53: return "Esc"
-        case 11: return "B"
-        case 8: return "C"
-        case 15: return "R"
-        case 30: return "]"
-        case 33: return "["
-        case 48: return "Tab"
-        case 51: return "⌫"
-        case 121: return "PgDn"
-        case 116: return "PgUp"
-        case 96: return "F5"
-        case 97: return "F6"
-        case 45: return "N"
-        case 35: return "P"
-        default: return "\(code)"
-        }
+        KeyboardRouter.shortKeyName(for: code)
     }
 }
 

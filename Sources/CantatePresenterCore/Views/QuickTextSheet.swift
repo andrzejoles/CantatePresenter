@@ -45,6 +45,7 @@ public struct QuickTextSheet: View {
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .helpLabel(L("Zamknij"))
             }
             
             Divider()
@@ -72,7 +73,7 @@ public struct QuickTextSheet: View {
                     DictationButtonView(text: $text, mode: .appendNewline, size: 12)
                     
                     if slideCount > 0 {
-                        Text("\(slideCount) \(slideCount == 1 ? "slajd" : "slajdy")")
+                        Text(L("Slajdy: {0}", slideCount))
                             .font(.scaled(10.5, weight: .semibold, scale: scale))
                             .foregroundColor(.accentColor)
                             .padding(.horizontal, 6)
@@ -138,7 +139,8 @@ public struct QuickTextSheet: View {
                 .buttonStyle(.borderedProminent)
                 .controlSize(.regular)
                 .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                .keyboardShortcut(.defaultAction)
+                // ⌘Return jak we wskazówce; zwykły Return w polu tekstu dodaje nową linię (R4-23).
+                .keyboardShortcut(.return, modifiers: .command)
             }
         }
         .padding(18)

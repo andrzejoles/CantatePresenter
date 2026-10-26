@@ -3193,30 +3193,30 @@
         }
       }
     },
-    "Czarny (B)": {
+    "Czarny ({0})": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Black (B)"
+            "value": "Black ({0})"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schwarz (B)"
+            "value": "Schwarz ({0})"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Negro (B)"
+            "value": "Negro ({0})"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Чорний (B)"
+            "value": "Чорний ({0})"
           }
         }
       }
@@ -3389,30 +3389,30 @@
         }
       }
     },
-    "Czysty (C)": {
+    "Czysty ({0})": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clear (C)"
+            "value": "Clear ({0})"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leer (C)"
+            "value": "Leer ({0})"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Limpio (C)"
+            "value": "Limpio ({0})"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Чистий (C)"
+            "value": "Чистий ({0})"
           }
         }
       }
@@ -14057,6 +14057,34 @@
         }
       }
     },
+    "Slajdy: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slides: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folien: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diapositivas: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слайди: {0}"
+          }
+        }
+      }
+    },
     "Sortowanie": {
       "localizations": {
         "en": {
@@ -20189,6 +20217,34 @@
         }
       }
     },
+    "Zmniejsz: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decrease: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verringern: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reducir: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зменшити: {0}"
+          }
+        }
+      }
+    },
     "Znalezione opracowania ({0})": {
       "localizations": {
         "en": {
@@ -20297,6 +20353,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Збільшити висоту панелі"
+          }
+        }
+      }
+    },
+    "Zwiększ: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Increase: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erhöhen: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aumentar: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Збільшити: {0}"
           }
         }
       }

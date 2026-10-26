@@ -38,7 +38,7 @@ public struct PlanListView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .help(L("Utwórz nowy plan"))
+                    .helpLabel(L("Utwórz nowy plan"))
                     
                     if store.plans.count > 1, let activeId = store.activePlanId {
                         Button(action: {
@@ -48,7 +48,7 @@ public struct PlanListView: View {
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
-                        .help(L("Usuń ten plan"))
+                        .helpLabel(L("Usuń ten plan"))
                     }
                 }
                 
@@ -235,7 +235,7 @@ private struct PlanItemRowView: View {
                         .foregroundColor(.green)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .help(L("Prezentuj teraz"))
+                .helpLabel(L("Prezentuj teraz"))
                 
                 Button(action: onMoveUp) {
                     Image(systemName: "chevron.up")
@@ -243,7 +243,7 @@ private struct PlanItemRowView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(2)
-                .help(L("Przesuń wyżej"))
+                .helpLabel(L("Przesuń wyżej"))
                 
                 Button(action: onMoveDown) {
                     Image(systemName: "chevron.down")
@@ -251,7 +251,7 @@ private struct PlanItemRowView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(2)
-                .help(L("Przesuń niżej"))
+                .helpLabel(L("Przesuń niżej"))
                 
                 Button(action: onRemove) {
                     Image(systemName: "xmark")
@@ -260,7 +260,7 @@ private struct PlanItemRowView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(2)
-                .help(L("Usuń z planu"))
+                .helpLabel(L("Usuń z planu"))
             }
         }
         .padding(.vertical, 4)

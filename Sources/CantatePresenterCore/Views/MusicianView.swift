@@ -95,11 +95,11 @@ public struct MusicianView: View {
             }
             .layoutPriority(1)
             Spacer(minLength: 8)
-            control(compact ? "♯♭" : L("Transpozycja"), value: stage.semitones > 0 ? "+\(stage.semitones)" : "\(stage.semitones)") { delta in
+            control(compact ? "♯♭" : L("Transpozycja"), name: L("Transpozycja"), value: stage.semitones > 0 ? "+\(stage.semitones)" : "\(stage.semitones)") { delta in
                 store.settings.musicianTranspose = (store.settings.musicianTranspose + delta) % 12
                 store.saveSettings()
             }
-            control(compact ? "A" : L("Czcionka"), value: "\(Int(store.settings.musicianFontSize))") { delta in
+            control(compact ? "A" : L("Czcionka"), name: L("Czcionka"), value: "\(Int(store.settings.musicianFontSize))") { delta in
                 store.settings.musicianFontSize = min(80, max(14, store.settings.musicianFontSize + Double(delta * 2)))
                 store.saveSettings()
             }
@@ -113,12 +113,14 @@ public struct MusicianView: View {
         .padding(.vertical, 12)
     }
 
-    private func control(_ title: String, value: String, change: @escaping (Int) -> Void) -> some View {
+    private func control(_ title: String, name: String, value: String, change: @escaping (Int) -> Void) -> some View {
         HStack(spacing: 4) {
             Text(title).font(.system(size: 12)).foregroundColor(.gray).fixedSize()
             Button("−") { change(-1) }
+                .helpLabel(L("Zmniejsz: {0}", name))
             Text(value).font(.system(size: 14, weight: .semibold, design: .monospaced)).frame(minWidth: 28)
             Button("+") { change(1) }
+                .helpLabel(L("Zwiększ: {0}", name))
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
