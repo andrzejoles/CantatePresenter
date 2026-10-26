@@ -393,17 +393,24 @@ public final class DataStore {
     }
     
     public func updateSong(_ song: Song) {
+        var updated = song
+        updated.updatedAt = Date()
         if let idx = songs.firstIndex(where: { $0.id == song.id }) {
-            var updated = song
-            updated.updatedAt = Date()
             songs[idx] = updated
-            if activeSong?.id == song.id {
-                activeSong = updated
-                if activeSlideIndex >= updated.slides.count {
-                    activeSlideIndex = max(0, updated.slides.count - 1)
-                }
-            }
+            refreshActiveSong(with: updated)
             saveSongs()
+        } else if temporarySong?.id == song.id {
+            // Szybki tekst nie jest w bibliotece: poprawka zmienia tylko to, co na ekranie (R4-06).
+            temporarySong = updated
+            refreshActiveSong(with: updated)
+        }
+    }
+
+    private func refreshActiveSong(with updated: Song) {
+        guard activeSong?.id == updated.id else { return }
+        activeSong = updated
+        if activeSlideIndex >= updated.slides.count {
+            activeSlideIndex = max(0, updated.slides.count - 1)
         }
     }
     
