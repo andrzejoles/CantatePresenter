@@ -112,6 +112,35 @@ struct HolyricsJavaDeserializerTests {
         #expect(ContinuousClock.now - start < .seconds(20))
     }
 
+    @Test("Obcięty .mufl: pieśni sprzed uszkodzenia i komunikat, nigdy binarna „pieśń” (R2-04)")
+    func truncatedFileImportsCompleteSongsWithProblem() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let data = JavaStream.musicList(songs)
+        let file = dir.file("biblioteka.mufl")
+        try data.prefix(data.count - 3).write(to: file)
+
+        let outcome = TextImporter.importFile(file)
+
+        #expect(outcome.songs.map(\.title) == ["Barka", "Abba Ojcze"])
+        #expect(!outcome.songs.contains { $0.rawLyrics.contains("\u{0}") || $0.title == "biblioteka" })
+        #expect(outcome.problems.count == 1)
+        #expect(outcome.problems.first?.fileName == "biblioteka.mufl")
+    }
+
+    @Test("Uszkodzony nagłówek .mufl: brak pieśni, jest komunikat (R2-04)")
+    func corruptFileReportsProblem() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let file = dir.file("zly.mufl")
+        try JavaStream.raw([0x7E, 0x00, 0x01, 0x02, 0x03]).write(to: file)
+
+        let outcome = TextImporter.importFile(file)
+
+        #expect(outcome.songs.isEmpty)
+        #expect(outcome.problems.count == 1)
+    }
+
     @Test("Referencja poniżej bazowego uchwytu: błąd zamiast przepełnienia")
     func referenceBelowBaseHandle() {
         #expect(throws: (any Error).self) {

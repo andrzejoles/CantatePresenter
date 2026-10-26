@@ -45,6 +45,8 @@ public final class HolyricsJavaDeserializer {
     private var pos: Int = 0
     private var depth: Int = 0
     private var handles: [Any?] = []
+    /// Kompletne obiekty `Music` w kolejności odczytu, do częściowego wyniku przy uszkodzonym pliku (R2-04).
+    private var completedRecords: [RawMusicRecord] = []
     
     public init(data: Data) {
         self.bytes = Array(data)
@@ -56,13 +58,13 @@ public final class HolyricsJavaDeserializer {
     
     public func deserializeMusicRecords() throws -> [RawMusicRecord] {
         guard bytes.count >= 4 else {
-            throw DeserializationError.invalidHeader("Plik jest za krótki")
+            throw DeserializationError.invalidHeader(Lnow("Plik jest za krótki"))
         }
         
         let magic = try readUInt16()
         let version = try readUInt16()
         guard magic == HolyricsJavaDeserializer.STREAM_MAGIC, version == HolyricsJavaDeserializer.STREAM_VERSION else {
-            throw DeserializationError.invalidHeader("Nieprawidłowy nagłówek Java ObjectStream (oczekiwano AC ED 00 05)")
+            throw DeserializationError.invalidHeader(Lnow("Nieprawidłowy nagłówek Java ObjectStream (oczekiwano AC ED 00 05)"))
         }
         
         var musicRecords: [RawMusicRecord] = []
@@ -88,6 +90,16 @@ public final class HolyricsJavaDeserializer {
         return musicRecords
     }
     
+    /// Jak `deserializeMusicRecords`, ale przy błędzie (np. obcięty plik) zwraca pieśni odczytane w całości
+    /// przed miejscem błędu razem z błędem, zamiast niczego (R2-04).
+    public func deserializeMusicRecordsPartially() -> (records: [RawMusicRecord], error: Error?) {
+        do {
+            return (try deserializeMusicRecords(), nil)
+        } catch {
+            return (completedRecords, error)
+        }
+    }
+    
     private enum DeserializationError: LocalizedError {
         case invalidHeader(String)
         case unexpectedToken(UInt8, Int)
@@ -98,12 +110,12 @@ public final class HolyricsJavaDeserializer {
         
         var errorDescription: String? {
             switch self {
-            case .invalidHeader(let msg): return "Błąd nagłówka: \(msg)"
-            case .unexpectedToken(let tok, let offset): return String(format: "Nieoczekiwany znacznik 0x%02X na pozycji %d", tok, offset)
-            case .prematureEndOfData(let offset): return "Przedwczesny koniec danych na pozycji \(offset)"
-            case .invalidReference(let ref): return "Nieprawidłowy uchwyt referencji \(ref)"
-            case .invalidLength(let length, let offset): return "Nieprawidłowa długość \(length) na pozycji \(offset)"
-            case .tooDeep(let offset): return "Zbyt głębokie zagnieżdżenie danych na pozycji \(offset)"
+            case .invalidHeader(let msg): return Lnow("Błąd nagłówka: {0}", msg)
+            case .unexpectedToken(let tok, let offset): return Lnow("Nieoczekiwany znacznik {0} na pozycji {1}", String(format: "0x%02X", tok), offset)
+            case .prematureEndOfData(let offset): return Lnow("Przedwczesny koniec danych na pozycji {0}", offset)
+            case .invalidReference(let ref): return Lnow("Nieprawidłowy uchwyt referencji {0}", ref)
+            case .invalidLength(let length, let offset): return Lnow("Nieprawidłowa długość {0} na pozycji {1}", length, offset)
+            case .tooDeep(let offset): return Lnow("Zbyt głębokie zagnieżdżenie danych na pozycji {0}", offset)
             }
         }
     }
@@ -404,6 +416,7 @@ public final class HolyricsJavaDeserializer {
             
             if let rec = musicRecord {
                 setHandle(h, rec)
+                completedRecords.append(rec)
                 return rec
             }
             

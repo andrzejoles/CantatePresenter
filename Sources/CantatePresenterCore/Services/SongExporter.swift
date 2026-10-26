@@ -1,20 +1,49 @@
 import Foundation
 import AppKit
+import os
 
 public struct SongExporter {
+    /// Linia oddzielająca tekst od arkusza chwytów w eksporcie .txt (format danych, nie tłumaczony).
+    public static let chordsSectionMarker = "--- Chwyty ---"
     
-    /// Converts a Song to cleanly formatted text file content
+    /// Eksport do folderu przerwany błędem: część plików już zapisano (R2-09).
+    public struct PartialExportError: LocalizedError {
+        public let written: Int
+        public let total: Int
+        public let underlying: Error
+        
+        public var errorDescription: String? {
+            Lnow("Zapisano {0} z {1} plików. Błąd: {2}", written, total, underlying.localizedDescription)
+        }
+    }
+    
+    private static let logger = Logger(subsystem: "com.cantate.presenter", category: "export")
+    
+    /// Converts a Song to cleanly formatted text file content.
+    /// Nagłówek i sekcja chwytów wracają przy imporcie (`TextImporter.parseString`, R2-21).
     public static func songToText(_ song: Song) -> String {
+        func oneLine(_ text: String) -> String {
+            text.components(separatedBy: .newlines).joined(separator: " ").trimmingCharacters(in: .whitespaces)
+        }
         var content = ""
-        content += "Tytuł: \(song.title)\n"
+        content += "Tytuł: \(oneLine(song.title))\n"
         if !song.author.isEmpty {
-            content += "Autor: \(song.author)\n"
+            content += "Autor: \(oneLine(song.author))\n"
         }
         if !song.key.isEmpty {
             content += "Tonacja: \(song.key)\n"
         }
         if !song.tags.isEmpty {
             content += "Tagi: \(song.tags.joined(separator: ", "))\n"
+        }
+        if let ccli = song.ccliNumber, !ccli.isEmpty {
+            content += "CCLI: \(oneLine(ccli))\n"
+        }
+        if let copyright = song.copyright, !copyright.isEmpty {
+            content += "Copyright: \(oneLine(copyright))\n"
+        }
+        if let source = song.source, !source.isEmpty {
+            content += "Źródło: \(oneLine(source))\n"
         }
         content += "\n"
         
@@ -29,6 +58,9 @@ public struct SongExporter {
             }
         } else {
             content += song.rawLyrics
+        }
+        if song.hasChords, let chords = song.chords {
+            content += "\n\n\(chordsSectionMarker)\n\(chords.trimmingCharacters(in: .whitespacesAndNewlines))"
         }
         
         return content
@@ -61,6 +93,7 @@ public struct SongExporter {
                 try text.write(to: url, atomically: true, encoding: .utf8)
                 return true
             } catch {
+                reportFailure(error, file: url)
                 return false
             }
         }
@@ -70,7 +103,10 @@ public struct SongExporter {
     /// Exports all or selected songs to a single JSON backup file
     @MainActor
     public static func exportSongsAsJSONFile(_ songs: [Song], defaultName: String = "Baza_piesni") -> Bool {
-        guard let data = songsToJSONData(songs) else { return false }
+        guard let data = songsToJSONData(songs) else {
+            reportFailure(CocoaError(.fileWriteUnknown), file: nil)
+            return false
+        }
         
         let panel = NSSavePanel()
         panel.canCreateDirectories = true
@@ -86,6 +122,7 @@ public struct SongExporter {
                 try data.write(to: url, options: .atomic)
                 return true
             } catch {
+                reportFailure(error, file: url)
                 return false
             }
         }
@@ -110,13 +147,26 @@ public struct SongExporter {
         do {
             return try exportSongs(songs, to: folderURL)
         } catch {
+            reportFailure(error, file: folderURL)
             return 0
         }
     }
     
+    /// Błąd eksportu: wpis w dzienniku i komunikat (wcześniej eksport na pełny dysk „udawał się” po cichu).
+    @MainActor
+    private static func reportFailure(_ error: Error, file: URL?) {
+        logger.error("Eksport nie powiódł się (\(file?.path ?? "-", privacy: .public)): \(String(describing: error), privacy: .public)")
+        let alert = NSAlert()
+        alert.messageText = Lnow("Eksport nie powiódł się")
+        alert.informativeText = error.localizedDescription
+        alert.alertStyle = .warning
+        alert.runModal()
+    }
+    
     /// Zapisuje każdą pieśń jako osobny plik .txt. Powtórzone tytuły dostają sufiks „ (2)”, „ (3)”
     /// (porównanie bez wielkości liter, jak w APFS), więc żadna pieśń nie nadpisuje innej (S4).
-    /// Zwraca liczbę faktycznie zapisanych plików; błąd zapisu przerywa eksport.
+    /// Zwraca liczbę faktycznie zapisanych plików; błąd zapisu przerywa eksport (`PartialExportError`
+    /// z liczbą plików zapisanych wcześniej).
     public static func exportSongs(_ songs: [Song], to folderURL: URL) throws -> Int {
         var usedNames: Set<String> = []
         var written = 0
@@ -129,7 +179,11 @@ public struct SongExporter {
                 counter += 1
             }
             usedNames.insert(fileName.lowercased())
-            try songToText(song).write(to: folderURL.appendingPathComponent(fileName), atomically: true, encoding: .utf8)
+            do {
+                try songToText(song).write(to: folderURL.appendingPathComponent(fileName), atomically: true, encoding: .utf8)
+            } catch {
+                throw PartialExportError(written: written, total: songs.count, underlying: error)
+            }
             written += 1
         }
         return written

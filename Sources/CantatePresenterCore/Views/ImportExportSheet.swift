@@ -375,6 +375,7 @@ public struct ImportExportSheet: View {
             
             Task.detached(priority: .userInitiated) {
                 var rawSongs: [Song] = []
+                var problems: [ImportProblem] = []
                 let totalFiles = urls.count
                 
                 for (idx, url) in urls.enumerated() {
@@ -384,14 +385,19 @@ public struct ImportExportSheet: View {
                         self.importProgressTitle = L("Wczytywanie pliku {0} z {1}...", idx + 1, totalFiles)
                         self.importProgressDetail = url.lastPathComponent
                     }
-                    rawSongs.append(contentsOf: TextImporter.importFromURL(url))
+                    let outcome = TextImporter.importFile(url)
+                    rawSongs.append(contentsOf: outcome.songs)
+                    problems.append(contentsOf: outcome.problems)
                 }
                 
                 guard !rawSongs.isEmpty else {
+                    let details = problems.prefix(3).map { "\($0.fileName): \($0.message)" }.joined(separator: "\n")
                     await MainActor.run {
                         self.isProcessingImport = false
                         self.isSuccessStatus = false
-                        self.statusMessage = L("Nie znaleziono żadnych pieśni w wybranych plikach.")
+                        self.statusMessage = details.isEmpty
+                            ? L("Nie znaleziono żadnych pieśni w wybranych plikach.")
+                            : L("Nie znaleziono żadnych pieśni w wybranych plikach.") + "\n" + details
                     }
                     return
                 }
@@ -404,7 +410,8 @@ public struct ImportExportSheet: View {
                 }
                 
                 let existing = await MainActor.run { self.store.songs }
-                let report = SongDeduplicationService.shared.processAndDeduplicate(incoming: rawSongs, existingLibrary: existing)
+                var report = SongDeduplicationService.shared.processAndDeduplicate(incoming: rawSongs, existingLibrary: existing)
+                report.fileProblems = problems
                 
                 await MainActor.run {
                     self.importProgressValue = 1.0

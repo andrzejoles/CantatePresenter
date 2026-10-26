@@ -67,38 +67,65 @@ public struct HolyricsImporter {
         )
     }
     
-    /// Imports songs from any Holyrics file (.muf, .mufl, .hly, .holyrics, .xml, .json, .txt) with basic deduplication
     /// Reads raw songs from any Holyrics file without deduplication (for batch processing)
     public static func readRawSongs(from url: URL) -> [Song] {
+        readSongs(from: url).songs
+    }
+    
+    /// Pieśni z pliku Holyrics albo archiwum razem z problemami (uszkodzony plik, błąd rozpakowania).
+    public static func readSongs(from url: URL) -> ImportOutcome {
         let ext = url.pathExtension.lowercased()
+        let fileName = url.lastPathComponent
         
-        // 1. ZIP package
-        if ext == "zip" || ext == "hly" || ext == "holyrics" {
-            if let zipSongs = importFromArchive(at: url), !zipSongs.isEmpty {
-                return zipSongs
+        // 1. ZIP package (.hly/.holyrics bywają też zwykłym plikiem, więc dla nich jest dalszy ciąg)
+        if TextImporter.archiveExtensions.contains(ext) {
+            let archive = importFromArchive(at: url)
+            if ext == "zip" || !archive.songs.isEmpty {
+                return archive
             }
         }
         
-        // 2. Java ObjectStream (.mufl / .muf)
-        if let fileData = try? Data(contentsOf: url), HolyricsJavaDeserializer.isJavaSerializedStream(fileData) {
-            let deserializer = HolyricsJavaDeserializer(data: fileData)
-            if let rawRecords = try? deserializer.deserializeMusicRecords(), !rawRecords.isEmpty {
-                return rawRecords.map { convertRawRecordToSong($0) }
-            }
+        let fileData: Data
+        do {
+            fileData = try Data(contentsOf: url)
+        } catch {
+            return ImportOutcome(problems: [ImportProblem(fileName: fileName, message: error.localizedDescription)])
+        }
+        
+        // 2. Java ObjectStream (.mufl / .muf). Uszkodzony strumień nie jest już czytany jako tekst
+        // (cała biblioteka jako jedna „pieśń” z bajtów binarnych, R2-04): zostają pieśni sprzed błędu.
+        if HolyricsJavaDeserializer.isJavaSerializedStream(fileData) {
+            let (records, error) = HolyricsJavaDeserializer(data: fileData).deserializeMusicRecordsPartially()
+            let songs = records
+                .filter { !$0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !$0.lyrics.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                .map { convertRawRecordToSong($0) }
+            guard let error else { return ImportOutcome(songs: songs) }
+            let message = songs.isEmpty
+                ? Lnow("Plik Holyrics jest uszkodzony lub niepełny: {0}", error.localizedDescription)
+                : Lnow("Plik Holyrics jest uszkodzony lub niepełny: {0}. Wczytano {1} pieśni sprzed miejsca błędu.", error.localizedDescription, songs.count)
+            return ImportOutcome(songs: songs, problems: [ImportProblem(fileName: fileName, message: message)])
         }
         
         // 3. Text parsing (JSON, XML, or tagged TXT)
-        guard let content = TextImporter.readTextWithBestEncoding(from: url) else {
-            return []
+        guard let content = TextImporter.decodeText(fileData) else {
+            return ImportOutcome(problems: [ImportProblem(fileName: fileName, message: Lnow("Nie można odczytać pliku."))])
         }
-        
-        let filename = url.deletingPathExtension().lastPathComponent
-        return parseHolyricsContent(content, fallbackTitle: filename)
+        return ImportOutcome(songs: parseHolyricsContent(content, fallbackTitle: url.deletingPathExtension().lastPathComponent))
     }
     
-    /// Imports songs from any Holyrics file (.muf, .mufl, .hly, .holyrics, .xml, .json, .txt) with basic deduplication
+    /// Imports songs from any Holyrics file (.muf, .mufl, .hly, .holyrics, .xml, .json, .txt)
     public static func importFromURL(_ url: URL) -> [Song] {
-        return readRawSongs(from: url)
+        readSongs(from: url).songs
+    }
+    
+    /// Tekst w formacie Holyrics: znaczniki `@nome:`/`@title:` na początku albo znaczniki zwrotek `##(Verse 1)`.
+    public static func looksLikeHolyricsText(_ text: String) -> Bool {
+        if text.contains("##(") { return true }
+        let tags = ["@title:", "@nome:", "@titulo:", "@author:", "@autor:", "@artist:", "@artista:", "@key:", "@tom:"]
+        return text.split(whereSeparator: \.isNewline).prefix(5).contains { line in
+            let lower = line.trimmingCharacters(in: .whitespaces).lowercased()
+            return tags.contains { lower.hasPrefix($0) }
+        }
     }
     
     /// Parses string content formatted as Holyrics Music File (.muf/.mufl), JSON, XML, or tagged TXT
@@ -167,6 +194,12 @@ public struct HolyricsImporter {
             }
             
             let lower = line.lowercased()
+            
+            // Znaczniki tylko przed tekstem: linia „autor: …” w środku pieśni to tekst (R2-07).
+            if isInLyrics {
+                lyricsLines.append(rawLine)
+                continue
+            }
             
             // Holyrics metadata tags: @title, @nome, @autor, @artist, @tom, @key, @order, etc.
             if lower.hasPrefix("@title:") || lower.hasPrefix("@nome:") || lower.hasPrefix("@titulo:") || lower.hasPrefix("title:") || lower.hasPrefix("título:") || lower.hasPrefix("nome:") {
@@ -299,36 +332,40 @@ public struct HolyricsImporter {
     }
     
     // MARK: - Archive (.zip / .hly) extraction
-    private static func importFromArchive(at url: URL) -> [Song]? {
-        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("holyrics_import_\(UUID().uuidString)")
-        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        
+    /// Każdy plik z archiwum idzie przez `TextImporter.importFile`, jak plik wskazany bezpośrednio:
+    /// eksport do folderu, JSON i pliki SongSelect w ZIP-ie wracają bez strat (R2-07).
+    private static func importFromArchive(at url: URL) -> ImportOutcome {
+        let fileManager = FileManager.default
+        let fileName = url.lastPathComponent
+        if let size = ZipArchive.declaredUncompressedSize(of: url), size > ZipArchive.maxUncompressedSize {
+            return ImportOutcome(problems: [ImportProblem(fileName: fileName, message: Lnow("Archiwum po rozpakowaniu zajęłoby {0}; to nie jest kopia CantatePresenter.", ByteCountFormatter.string(fromByteCount: size, countStyle: .file)))])
+        }
+        let tempDir = fileManager.temporaryDirectory.appendingPathComponent("holyrics_import_\(UUID().uuidString)")
         defer {
-            try? FileManager.default.removeItem(at: tempDir)
+            try? fileManager.removeItem(at: tempDir)
         }
         
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
         process.arguments = ["-q", "-o", url.path, "-d", tempDir.path]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
         // `waitUntilExit` na procesie, który się nie uruchomił, zatrzymuje aplikację (N5).
         do {
+            try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
             try process.run()
         } catch {
-            return nil
+            return ImportOutcome(problems: [ImportProblem(fileName: fileName, message: error.localizedDescription)])
         }
         process.waitUntilExit()
         
-        var importedSongs: [Song] = []
-        if let enumerator = FileManager.default.enumerator(at: tempDir, includingPropertiesForKeys: [.isRegularFileKey]) {
-            for case let fileURL as URL in enumerator {
-                let ext = fileURL.pathExtension.lowercased()
-                if ext == "muf" || ext == "mufl" || ext == "txt" || ext == "json" || ext == "xml" {
-                    importedSongs.append(contentsOf: importFromURL(fileURL))
-                }
-            }
+        var outcome = TextImporter.importFile(tempDir, insideArchive: true)
+        outcome.problems = outcome.problems.map { ImportProblem(fileName: "\(fileName)/\($0.fileName)", message: $0.message) }
+        // Kod 1 = ostrzeżenia unzip (część plików rozpakowana); wyższy = błąd (R2-14).
+        if process.terminationStatus != 0 {
+            outcome.problems.insert(ImportProblem(fileName: fileName, message: Lnow("Archiwum rozpakowane z błędami (kod unzip: {0}); część pieśni mogła zostać pominięta.", process.terminationStatus)), at: 0)
         }
-        
-        return importedSongs.isEmpty ? nil : importedSongs
+        return outcome
     }
 }
 
@@ -350,10 +387,18 @@ final class HolyricsXMLReader: NSObject, XMLParserDelegate {
     private var documentFields: [String: String] = [:]
     private var field: String?
     private var text = ""
+    /// Tekst OpenLyrics (`<verse><lines>a<br/>b</lines></verse>`): liczy się tylko treść `<lines>`,
+    /// `<br/>` to nowa linia, `<verse>` to nowy slajd (R2-18).
+    private var structuredLyrics = false
+    private var linesDepth = 0
+    
+    /// Deklaracja `encoding="ISO-8859-2"` jest usuwana: tekst jest już zdekodowany i trafia do parsera jako UTF-8 (R2-18).
+    private static let encodingDeclaration = try! NSRegularExpression(pattern: #"^(\s*<\?xml[^>]*?)\s+encoding\s*=\s*["'][^"']*["']"#)
     
     static func records(in xml: String) -> [[String: String]] {
         let reader = HolyricsXMLReader()
-        let parser = XMLParser(data: Data(xml.utf8))
+        let utf8XML = encodingDeclaration.stringByReplacingMatches(in: xml, range: NSRange(xml.startIndex..., in: xml), withTemplate: "$1")
+        let parser = XMLParser(data: Data(utf8XML.utf8))
         parser.delegate = reader
         parser.parse()
         if reader.records.isEmpty, !reader.documentFields.isEmpty {
@@ -364,32 +409,80 @@ final class HolyricsXMLReader: NSObject, XMLParserDelegate {
     
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName: String?, attributes: [String: String] = [:]) {
         let name = elementName.lowercased()
+        if field == "lyrics" {
+            switch name {
+            case "verse":
+                startStructuredLyrics()
+                if !text.isEmpty && !text.hasSuffix("\n\n") { text += text.hasSuffix("\n") ? "\n" : "\n\n" }
+            case "lines", "line":
+                startStructuredLyrics()
+                if !text.isEmpty && !text.hasSuffix("\n") { text += "\n" }
+                linesDepth += 1
+            case "br":
+                if structuredLyrics { text += "\n" }
+            default:
+                break
+            }
+            return
+        }
         if Self.songElements.contains(name) {
             current = [:]
         } else if let alias = Self.fieldAliases[name] {
             field = alias
             text = ""
+            structuredLyrics = false
+            linesDepth = 0
+        }
+    }
+    
+    private func startStructuredLyrics() {
+        guard !structuredLyrics else { return }
+        structuredLyrics = true
+        // Dotychczasowy tekst to tylko wcięcia między elementami.
+        if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { text = "" }
+    }
+    
+    private func appendText(_ string: String) {
+        guard field != nil else { return }
+        if structuredLyrics {
+            guard linesDepth > 0 else { return }
+            // Wcięcia i końce linii w źródle XML to tylko formatowanie; linie wyznacza `<br/>`.
+            text += string.components(separatedBy: .whitespacesAndNewlines).joined(separator: " ")
+        } else {
+            text += string
         }
     }
     
     func parser(_ parser: XMLParser, foundCharacters string: String) {
-        if field != nil { text += string }
+        appendText(string)
     }
     
     func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
-        if field != nil { text += String(decoding: CDATABlock, as: UTF8.self) }
+        appendText(String(decoding: CDATABlock, as: UTF8.self))
     }
     
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName: String?) {
         let name = elementName.lowercased()
+        if field == "lyrics", name == "lines" || name == "line" {
+            linesDepth = max(0, linesDepth - 1)
+            return
+        }
         if let alias = Self.fieldAliases[name], alias == field {
-            let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            var value = text
+            if structuredLyrics {
+                value = value.components(separatedBy: "\n")
+                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                    .joined(separator: "\n")
+                    .replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
+            }
+            value = value.trimmingCharacters(in: .whitespacesAndNewlines)
             if current != nil {
                 if current?[alias]?.isEmpty ?? true { current?[alias] = value }
             } else if documentFields[alias]?.isEmpty ?? true {
                 documentFields[alias] = value
             }
             field = nil
+            structuredLyrics = false
         } else if Self.songElements.contains(name), let record = current {
             records.append(record)
             current = nil

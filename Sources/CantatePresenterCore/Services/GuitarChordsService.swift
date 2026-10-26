@@ -85,6 +85,24 @@ public final class GuitarChordsService: Sendable {
     private static let inlineParensChordRegex = try! NSRegularExpression(pattern: #"\(([A-Ha-h0-9#b\s/]{1,8})\)"#)
     private static let inlineBracketsChordRegex = try! NSRegularExpression(pattern: #"\[([A-Ha-h0-9#b/]{1,6})\]"#)
     
+    /// Usuwa z linii dopasowania, które są chwytami: każdy wyraz to akord albo znak neutralny, co najmniej
+    /// jeden akord. `[1]`, `(3)` czy `(ach)` zostają w tekście (R2-20). `nil`, gdy w linii nie ma chwytów.
+    private static func removingChordMatches(of regex: NSRegularExpression, in line: String) -> String? {
+        let ns = line as NSString
+        let matches = regex.matches(in: line, range: NSRange(location: 0, length: ns.length)).filter { match in
+            let content = ns.substring(with: match.range(at: 1))
+            let tokens = content.split(whereSeparator: { $0.isWhitespace }).map(String.init)
+            return tokens.contains { ChordTransposer.parse($0) != nil }
+                && tokens.allSatisfy { ChordTransposer.parse($0) != nil || $0 == "/" }
+        }
+        guard !matches.isEmpty else { return nil }
+        let result = NSMutableString(string: line)
+        for match in matches.reversed() {
+            result.replaceCharacters(in: match.range, with: "")
+        }
+        return result as String
+    }
+    
     /// Extracts chords from raw lyrics text, returning both cleaned lyrics (for projection) and extracted chords sheet (for musicians)
     public func extractChordsAndCleanLyrics(_ raw: String) -> (cleanLyrics: String, extractedChords: String?) {
         let lines = raw.components(separatedBy: .newlines)
@@ -108,17 +126,17 @@ public final class GuitarChordsService: Sendable {
             var cleanedLine = line
             
             // Check for inline chords in brackets [C]
-            if let bRegex = inlineBracketsChordRegex, bRegex.firstMatch(in: cleanedLine, options: [], range: NSRange(location: 0, length: (cleanedLine as NSString).length)) != nil {
+            if let bRegex = inlineBracketsChordRegex, let stripped = Self.removingChordMatches(of: bRegex, in: cleanedLine) {
                 foundAnyChords = true
                 chordSheetLines.append(cleanedLine)
                 // Remove bracketed chords for audience projection
-                cleanedLine = bRegex.stringByReplacingMatches(in: cleanedLine, options: [], range: NSRange(location: 0, length: (cleanedLine as NSString).length), withTemplate: "")
+                cleanedLine = stripped
             }
             // Check for inline chords in parens at end of line like "Pan kiedyś stanął nad brzegiem (D A)"
-            else if let pRegex = inlineParensChordRegex, pRegex.firstMatch(in: cleanedLine, options: [], range: NSRange(location: 0, length: (cleanedLine as NSString).length)) != nil {
+            else if let pRegex = inlineParensChordRegex, let stripped = Self.removingChordMatches(of: pRegex, in: cleanedLine) {
                 foundAnyChords = true
                 chordSheetLines.append(cleanedLine)
-                cleanedLine = pRegex.stringByReplacingMatches(in: cleanedLine, options: [], range: NSRange(location: 0, length: (cleanedLine as NSString).length), withTemplate: "")
+                cleanedLine = stripped
             } else {
                 chordSheetLines.append(cleanedLine)
             }

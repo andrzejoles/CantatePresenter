@@ -169,6 +169,34 @@
         }
       }
     },
+    "(z: „{0}”)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(from: “{0}”)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(aus: „{0}“)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(de: «{0}»)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(з: «{0}»)"
+          }
+        }
+      }
+    },
     "(zastosuj)": {
       "localizations": {
         "en": {
@@ -1009,6 +1037,62 @@
         }
       }
     },
+    "Archiwum rozpakowane z błędami (kod unzip: {0}); część pieśni mogła zostać pominięta.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The archive was unpacked with errors (unzip code: {0}); some songs may have been skipped."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Archiv wurde mit Fehlern entpackt (unzip-Code: {0}); einige Lieder wurden möglicherweise übersprungen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El archivo se descomprimió con errores (código de unzip: {0}); es posible que se hayan omitido algunas canciones."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Архів розпаковано з помилками (код unzip: {0}); деякі пісні могли бути пропущені."
+          }
+        }
+      }
+    },
+    "Archiwum w archiwum nie jest rozpakowywane.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archives inside an archive are not unpacked."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archive innerhalb eines Archivs werden nicht entpackt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los archivos comprimidos dentro de otro no se descomprimen."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Архіви всередині архіву не розпаковуються."
+          }
+        }
+      }
+    },
     "Autor (A-Z)": {
       "localizations": {
         "en": {
@@ -1033,6 +1117,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Автор (А-Я)"
+          }
+        }
+      }
+    },
+    "Autor (na podstawie tekstu): „{0}”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author (based on the lyrics): “{0}”"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autor (anhand des Textes): „{0}“"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autor (según la letra): «{0}»"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автор (за текстом): «{0}»"
           }
         }
       }
@@ -1257,6 +1369,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Автор: Andrzej Oles · у співпраці з Claude (Anthropic)"
+          }
+        }
+      }
+    },
+    "Autor: „{0}”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author: “{0}”"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autor: „{0}“"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autor: «{0}»"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автор: «{0}»"
           }
         }
       }
@@ -2181,6 +2321,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Помилка встановлення"
+          }
+        }
+      }
+    },
+    "Błąd nagłówka: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Header error: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopfzeilenfehler: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error de cabecera: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помилка заголовка: {0}"
           }
         }
       }
@@ -4089,6 +4257,34 @@
         }
       }
     },
+    "Dołączono chwyty gitarowe ({0})": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guitar chords added ({0})"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gitarrenakkorde hinzugefügt ({0})"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acordes de guitarra añadidos ({0})"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додано гітарні акорди ({0})"
+          }
+        }
+      }
+    },
     "Dyktowanie działa bezpośrednio w wyszukiwarkach (biblioteka, online, autor/tytuł) oraz w edytorze nowej pieśni (tytuł, autor i treść zwrotek).": {
       "localizations": {
         "en": {
@@ -4645,6 +4841,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Експорт"
+          }
+        }
+      }
+    },
+    "Eksport nie powiódł się": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export failed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export fehlgeschlagen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La exportación ha fallado"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Експорт не вдався"
           }
         }
       }
@@ -8905,6 +9129,34 @@
         }
       }
     },
+    "Nie można odczytać pliku.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The file cannot be read."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Datei kann nicht gelesen werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede leer el archivo."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдається прочитати файл."
+          }
+        }
+      }
+    },
     "Nie można uruchomić lokalnego odbiornika logowania: {0}.": {
       "localizations": {
         "en": {
@@ -9409,6 +9661,34 @@
         }
       }
     },
+    "Nie wszystkie pliki udało się wczytać:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not all files could be loaded:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht alle Dateien konnten geladen werden:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se han podido cargar todos los archivos:"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не всі файли вдалося завантажити:"
+          }
+        }
+      }
+    },
     "Nie znaleziono pieśni": {
       "localizations": {
         "en": {
@@ -9549,6 +9829,62 @@
         }
       }
     },
+    "Nieoczekiwany znacznik {0} na pozycji {1}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unexpected marker {0} at position {1}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unerwartete Markierung {0} an Position {1}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcador inesperado {0} en la posición {1}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неочікуваний маркер {0} у позиції {1}"
+          }
+        }
+      }
+    },
+    "Nieprawidłowa długość {0} na pozycji {1}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid length {0} at position {1}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültige Länge {0} an Position {1}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Longitud no válida {0} en la posición {1}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неправильна довжина {0} у позиції {1}"
+          }
+        }
+      }
+    },
     "Nieprawidłowa odpowiedź serwera Google": {
       "localizations": {
         "en": {
@@ -9629,6 +9965,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Неправильний формат входу мікрофона."
+          }
+        }
+      }
+    },
+    "Nieprawidłowy nagłówek Java ObjectStream (oczekiwano AC ED 00 05)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid Java ObjectStream header (expected AC ED 00 05)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültiger Java-ObjectStream-Header (erwartet AC ED 00 05)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cabecera Java ObjectStream no válida (se esperaba AC ED 00 05)"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неправильний заголовок Java ObjectStream (очікувалося AC ED 00 05)"
+          }
+        }
+      }
+    },
+    "Nieprawidłowy uchwyt referencji {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid reference handle {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültiges Referenz-Handle {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identificador de referencia no válido {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неправильний дескриптор посилання {0}"
           }
         }
       }
@@ -11089,6 +11481,62 @@
         }
       }
     },
+    "Plik Holyrics jest uszkodzony lub niepełny: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Holyrics file is damaged or incomplete: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Holyrics-Datei ist beschädigt oder unvollständig: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El archivo de Holyrics está dañado o incompleto: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл Holyrics пошкоджений або неповний: {0}"
+          }
+        }
+      }
+    },
+    "Plik Holyrics jest uszkodzony lub niepełny: {0}. Wczytano {1} pieśni sprzed miejsca błędu.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Holyrics file is damaged or incomplete: {0}. {1} songs before the damaged part were loaded."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Holyrics-Datei ist beschädigt oder unvollständig: {0}. {1} Lieder vor der beschädigten Stelle wurden geladen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El archivo de Holyrics está dañado o incompleto: {0}. Se han cargado {1} canciones anteriores a la parte dañada."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл Holyrics пошкоджений або неповний: {0}. Завантажено {1} пісень до пошкодженого місця."
+          }
+        }
+      }
+    },
     "Plik JSON (.json)": {
       "localizations": {
         "en": {
@@ -11141,6 +11589,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Файл пошкоджений або має невідомий формат. Програма не перезапише його: зміни в цій частині даних не зберігатимуться, доки не буде відновлено копію або перезапущено програму.\n\n{0}Подробиці: {1}"
+          }
+        }
+      }
+    },
+    "Plik jest za krótki": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The file is too short"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Datei ist zu kurz"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El archivo es demasiado corto"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл занадто короткий"
           }
         }
       }
@@ -12093,6 +12569,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Повторити"
+          }
+        }
+      }
+    },
+    "Poprawiono kodowanie znaków": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Character encoding fixed"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeichenkodierung korrigiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codificación de caracteres corregida"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Виправлено кодування символів"
+          }
+        }
+      }
+    },
+    "Poprawiono pisownię tytułu: „{0}”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title spelling fixed: “{0}”"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schreibweise des Titels korrigiert: „{0}“"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ortografía del título corregida: «{0}»"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Виправлено написання назви: «{0}»"
           }
         }
       }
@@ -13077,6 +13609,34 @@
         }
       }
     },
+    "Przedwczesny koniec danych na pozycji {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unexpected end of data at position {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unerwartetes Datenende an Position {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fin de datos inesperado en la posición {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неочікуваний кінець даних у позиції {0}"
+          }
+        }
+      }
+    },
     "Przeglądaj i przywróć kopie z Dysku Google...": {
       "localizations": {
         "en": {
@@ -13521,6 +14081,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Резервну копію відновлено"
+          }
+        }
+      }
+    },
+    "Przywrócono polskie litery: „{0}”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polish letters restored: “{0}”"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polnische Buchstaben wiederhergestellt: „{0}“"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letras polacas restauradas: «{0}»"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відновлено польські літери: «{0}»"
           }
         }
       }
@@ -16129,6 +16717,34 @@
         }
       }
     },
+    "Tytuł: „{0}” → „{1}”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title: “{0}” → “{1}”"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel: „{0}“ → „{1}“"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Título: «{0}» → «{1}»"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назва: «{0}» → «{1}»"
+          }
+        }
+      }
+    },
     "Ukończono! Znaleziono propozycje dla {0} z {1} pieśni.": {
       "localizations": {
         "en": {
@@ -18705,6 +19321,34 @@
         }
       }
     },
+    "Wyodrębniono chwyty gitarowe": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guitar chords extracted"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gitarrenakkorde extrahiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acordes de guitarra extraídos"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Виокремлено гітарні акорди"
+          }
+        }
+      }
+    },
     "Wyrównanie poziome": {
       "localizations": {
         "en": {
@@ -19881,6 +20525,34 @@
         }
       }
     },
+    "Zapisano {0} z {1} plików. Błąd: {2}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{0} of {1} files were saved. Error: {2}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{0} von {1} Dateien wurden gespeichert. Fehler: {2}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se han guardado {0} de {1} archivos. Error: {2}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Збережено {0} з {1} файлів. Помилка: {2}"
+          }
+        }
+      }
+    },
     "Zapisanych planów": {
       "localizations": {
         "en": {
@@ -20301,6 +20973,34 @@
         }
       }
     },
+    "Zbyt głębokie zagnieżdżenie danych na pozycji {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data nested too deeply at position {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu tief verschachtelte Daten an Position {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos anidados demasiado profundamente en la posición {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Занадто глибока вкладеність даних у позиції {0}"
+          }
+        }
+      }
+    },
     "Zeskanuj kod aparatem telefonu albo wpisz adres w przeglądarce:": {
       "localizations": {
         "en": {
@@ -20637,6 +21337,34 @@
         }
       }
     },
+    "brak": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "none"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "keiner"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ninguno"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "немає"
+          }
+        }
+      }
+    },
     "główny": {
       "localizations": {
         "en": {
@@ -20969,6 +21697,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "пісень"
+          }
+        }
+      }
+    },
+    "wzbogacone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "enriched"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ergänzt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "enriquecidas"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "доповнено"
           }
         }
       }
@@ -21417,6 +22173,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "• Ліва панель: бібліотека пісень з пошуком і плани богослужінь.\n• Середня панель: попередній перегляд слайдів вибраної пісні з гітарними акордами.\n• Права панель (Live Monitor): стан проєктора наживо, попередній перегляд наступного слайда й керування моніторами."
+          }
+        }
+      }
+    },
+    "… i {0} więcej": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "… and {0} more"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "… und {0} weitere"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "… y {0} más"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "… і ще {0}"
           }
         }
       }
