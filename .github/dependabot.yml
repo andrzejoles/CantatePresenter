@@ -1,0 +1,15 @@
+# Aktualizacje akcji GitHub w CI (R5-07). Dependabot otwiera PR; scalanie po przejrzeniu.
+#
+# Celowo bez `package-ecosystem: swift`: Sparkle jest przypięty `exact:` w Package.swift, a każda
+# zmiana wersji to decyzja właściciela (CLAUDE.md). Nowe wydania Sparkle sprawdzaj ręcznie
+# (https://github.com/sparkle-project/Sparkle/releases); alerty bezpieczeństwa Dependabota
+# działają niezależnie od tego pliku, z grafu zależności (Package.resolved).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(ci)"
