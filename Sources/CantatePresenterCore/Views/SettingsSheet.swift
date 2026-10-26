@@ -10,7 +10,8 @@ public struct SettingsSheet: View {
     @State private var availableFonts: [String] = []
     @State private var testDictationText: String = ""
     @State private var isShowingLogoGallery: Bool = false
-    @State private var translationNotice: String? = nil
+    /// Komunikat importu/eksportu tłumaczenia; błąd zapisany jawnie, nie zgadywany po słowie „Błąd” (R4-26).
+    @State private var translationNotice: (message: String, isError: Bool)? = nil
     @State private var ccliReportNotice: String? = nil
     @State private var isShowingGoogleDriveBackups: Bool = false
     @State private var isUploadingToDrive: Bool = false
@@ -89,15 +90,15 @@ public struct SettingsSheet: View {
                                 
                                 if let notice = translationNotice {
                                     HStack(spacing: 6) {
-                                        Image(systemName: notice.contains(L("Błąd")) ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
-                                            .foregroundColor(notice.contains(L("Błąd")) ? .red : .green)
-                                        Text(notice)
+                                        Image(systemName: notice.isError ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                                            .foregroundColor(notice.isError ? .red : .green)
+                                        Text(notice.message)
                                             .font(.scaled(11, weight: .medium, scale: scale))
-                                            .foregroundColor(notice.contains(L("Błąd")) ? .red : .green)
+                                            .foregroundColor(notice.isError ? .red : .green)
                                     }
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 4)
-                                    .background((notice.contains(L("Błąd")) ? Color.red : Color.green).opacity(0.12))
+                                    .background((notice.isError ? Color.red : Color.green).opacity(0.12))
                                     .cornerRadius(6)
                                 }
                             }
@@ -946,7 +947,7 @@ public struct SettingsSheet: View {
     // MARK: - Translation Export & Import
     private func exportTranslationTemplate() {
         guard let jsonString = LocalizationService.shared.exportTemplateJSON(sourceLanguage: store.settings.appLanguage) else {
-            translationNotice = L("Błąd: Nie udało się wygenerować szablonu JSON.")
+            translationNotice = (L("Błąd: Nie udało się wygenerować szablonu JSON."), true)
             return
         }
         
@@ -959,9 +960,9 @@ public struct SettingsSheet: View {
         if panel.runModal() == .OK, let url = panel.url {
             do {
                 try jsonString.write(to: url, atomically: true, encoding: .utf8)
-                translationNotice = L("Pomyślnie wyeksportowano szablon tłumaczenia do pliku: {0}", url.lastPathComponent)
+                translationNotice = (L("Pomyślnie wyeksportowano szablon tłumaczenia do pliku: {0}", url.lastPathComponent), false)
             } catch {
-                translationNotice = L("Błąd zapisu pliku: {0}", error.localizedDescription)
+                translationNotice = (L("Błąd zapisu pliku: {0}", error.localizedDescription), true)
             }
         }
     }
@@ -978,9 +979,9 @@ public struct SettingsSheet: View {
                 let res = try LocalizationService.shared.importTranslation(from: url)
                 store.settings.appLanguage = res.code
                 store.saveSettings()
-                translationNotice = L("Pomyślnie zaimportowano język: {0} ({1}) — {2} przetłumaczonych fraz!", res.name, res.code, res.count)
+                translationNotice = (L("Pomyślnie zaimportowano język: {0} ({1}) — {2} przetłumaczonych fraz!", res.name, res.code, res.count), false)
             } catch {
-                translationNotice = L("Błąd importu pliku: {0}", error.localizedDescription)
+                translationNotice = (L("Błąd importu pliku: {0}", error.localizedDescription), true)
             }
         }
     }
