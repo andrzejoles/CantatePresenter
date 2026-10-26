@@ -5,8 +5,6 @@ public struct PlanListView: View {
     @Bindable var store = DataStore.shared
     @State private var isCreatingPlan: Bool = false
     @State private var newPlanName: String = ""
-    @State private var editingNoteItemId: UUID?
-    @State private var tempNoteText: String = ""
     
     public init() {}
     
