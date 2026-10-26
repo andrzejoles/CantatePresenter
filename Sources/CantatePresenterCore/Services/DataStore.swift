@@ -488,8 +488,11 @@ public final class DataStore {
         self.present(song: quickSong, slideIndex: 0)
     }
     
+    /// Slajdy przełączają się tylko w trakcie projekcji (R4-01): po Esc strzałki, Spacja, R i cyfry
+    /// nie przesuwają ukrytego slajdu ani nie wyświetlają następnej pieśni z planu.
+    /// Wznowienie: Enter (start projekcji) albo kliknięcie slajdu.
     public func nextSlide() {
-        guard let song = activeSong else { return }
+        guard isLive, let song = activeSong else { return }
         if activeSlideIndex < song.slides.count - 1 {
             activeSlideIndex += 1
             isClearText = false
@@ -501,7 +504,7 @@ public final class DataStore {
     }
     
     public func prevSlide() {
-        guard let _ = activeSong else { return }
+        guard isLive, activeSong != nil else { return }
         if activeSlideIndex > 0 {
             activeSlideIndex -= 1
             isClearText = false
@@ -510,7 +513,7 @@ public final class DataStore {
     }
     
     public func jumpToSlide(index: Int) {
-        guard let song = activeSong else { return }
+        guard isLive, let song = activeSong else { return }
         if index >= 0 && index < song.slides.count {
             activeSlideIndex = index
             isClearText = false
@@ -519,7 +522,7 @@ public final class DataStore {
     }
     
     public func jumpToVerse(number: Int) {
-        guard let song = activeSong else { return }
+        guard isLive, let song = activeSong else { return }
         // Po numerze zwrotki, nie po polskiej etykiecie (S10).
         if let idx = song.slides.firstIndex(where: { $0.type == .verse && $0.number == number }) {
             jumpToSlide(index: idx)
@@ -529,7 +532,7 @@ public final class DataStore {
     }
     
     public func jumpToChorus() {
-        guard let song = activeSong else { return }
+        guard isLive, let song = activeSong else { return }
         if let idx = song.slides.firstIndex(where: { $0.type == .chorus }) {
             jumpToSlide(index: idx)
         }
