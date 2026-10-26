@@ -5,7 +5,11 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
 echo "=== Budowanie CantatePresenter (Apple Silicon arm64 Native) ==="
-swift build -c release
+# Domyślny system budowania SwiftPM (swiftbuild) wpisuje do LC_BUILD_VERSION wersję SDK równą minimalnej (14.0),
+# więc AppKit/SwiftUI działałyby w trybie zgodności ze starym SDK (R5-02). Wersję SDK podajemy linkerowi wprost.
+MIN_MACOS="14.0"
+SDK_VERSION="$(xcrun --sdk macosx --show-sdk-version)"
+swift build -c release -Xlinker -platform_version -Xlinker macos -Xlinker "$MIN_MACOS" -Xlinker "$SDK_VERSION"
 
 APP_NAME="CantatePresenter.app"
 APP_DIR="$DIR/$APP_NAME"
@@ -38,7 +42,23 @@ if [ ! -d "$SPARKLE_FRAMEWORK" ]; then
 fi
 mkdir -p "$CONTENTS_DIR/Frameworks"
 ditto "$SPARKLE_FRAMEWORK" "$CONTENTS_DIR/Frameworks/Sparkle.framework"
-install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS_DIR/CantatePresenter"
+
+# Ścieżki wyszukiwania bibliotek (R7-01): SwiftPM i sterownik dopisują @loader_path i bezwzględną ścieżkę
+# do narzędzi Xcode. Podpis ad-hoc wyłącza kontrolę bibliotek, więc Sparkle podłożony w nieistniejącym
+# na zwykłym Macu katalogu Xcode zostałby wczytany przed tym z pakietu. Zostają tylko /usr/lib/swift
+# (chroniony przez SIP) i Frameworks w pakiecie.
+ALLOWED_RPATHS=$'/usr/lib/swift\n@executable_path/../Frameworks'
+list_rpaths() {
+    otool -l "$1" | awk '$1 == "cmd" && $2 == "LC_RPATH" { getline; getline; print $2 }'
+}
+while IFS= read -r rpath; do
+    if [ -n "$rpath" ] && ! grep -qxF -- "$rpath" <<< "$ALLOWED_RPATHS"; then
+        install_name_tool -delete_rpath "$rpath" "$MACOS_DIR/CantatePresenter"
+    fi
+done <<< "$(list_rpaths "$MACOS_DIR/CantatePresenter")"
+if ! list_rpaths "$MACOS_DIR/CantatePresenter" | grep -qxF "@executable_path/../Frameworks"; then
+    install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS_DIR/CantatePresenter"
+fi
 
 # Instrukcja obsługi (Pomoc → Otwórz plik INSTRUKCJA.md), S11
 cp "$DIR/INSTRUKCJA.md" "$RESOURCES_DIR/INSTRUKCJA.md"
@@ -124,6 +144,51 @@ else
     echo "=== Logowanie Google: brak $GOOGLE_CLIENT_JSON, przycisk logowania będzie nieaktywny ==="
 fi
 
+# Opisy uprawnień i nazwa w języku systemu (R5-04); domyślny polski jest też w Info.plist.
+write_infoplist_strings() {
+    mkdir -p "$RESOURCES_DIR/$1.lproj"
+    cat > "$RESOURCES_DIR/$1.lproj/InfoPlist.strings"
+}
+write_infoplist_strings pl << 'STRINGS'
+"CFBundleDisplayName" = "CantatePresenter — Prezenter Pieśni & Słowa";
+"NSMicrophoneUsageDescription" = "Aplikacja wymaga dostępu do mikrofonu, aby umożliwić dyktowanie tekstu nowej pieśni oraz wyszukiwanie głosowe.";
+"NSSpeechRecognitionUsageDescription" = "Rozpoznawanie mowy jest używane do dyktowania tekstów pieśni oraz wyszukiwania utworów głosem.";
+"NSLocalNetworkUsageDescription" = "Pilot ze smartfona łączy się z tym Macem w sieci lokalnej, żeby przełączać slajdy.";
+STRINGS
+write_infoplist_strings en << 'STRINGS'
+"CFBundleDisplayName" = "CantatePresenter — Songs & Word Presenter";
+"NSMicrophoneUsageDescription" = "The app needs access to the microphone so you can dictate the lyrics of a new song and search by voice.";
+"NSSpeechRecognitionUsageDescription" = "Speech recognition is used to dictate song lyrics and to search for songs by voice.";
+"NSLocalNetworkUsageDescription" = "The smartphone remote connects to this Mac over the local network to switch slides.";
+STRINGS
+write_infoplist_strings de << 'STRINGS'
+"CFBundleDisplayName" = "CantatePresenter — Präsentation von Liedern & Wort";
+"NSMicrophoneUsageDescription" = "Die App benötigt Zugriff auf das Mikrofon, damit du den Text eines neuen Liedes diktieren und per Sprache suchen kannst.";
+"NSSpeechRecognitionUsageDescription" = "Die Spracherkennung wird verwendet, um Liedtexte zu diktieren und Lieder per Sprache zu suchen.";
+"NSLocalNetworkUsageDescription" = "Die Smartphone-Fernbedienung verbindet sich über das lokale Netzwerk mit diesem Mac, um Folien umzuschalten.";
+STRINGS
+write_infoplist_strings es << 'STRINGS'
+"CFBundleDisplayName" = "CantatePresenter — Presentador de Canciones y Palabra";
+"NSMicrophoneUsageDescription" = "La aplicación necesita acceso al micrófono para que puedas dictar la letra de una canción nueva y buscar por voz.";
+"NSSpeechRecognitionUsageDescription" = "El reconocimiento de voz se usa para dictar letras de canciones y buscar canciones por voz.";
+"NSLocalNetworkUsageDescription" = "El control remoto desde el móvil se conecta a este Mac por la red local para cambiar las diapositivas.";
+STRINGS
+write_infoplist_strings uk << 'STRINGS'
+"CFBundleDisplayName" = "CantatePresenter — Презентер пісень і Слова";
+"NSMicrophoneUsageDescription" = "Програмі потрібен доступ до мікрофона, щоб ви могли диктувати текст нової пісні та шукати голосом.";
+"NSSpeechRecognitionUsageDescription" = "Розпізнавання мовлення використовується для диктування текстів пісень і пошуку пісень голосом.";
+"NSLocalNetworkUsageDescription" = "Пульт на смартфоні підключається до цього Mac у локальній мережі, щоб перемикати слайди.";
+STRINGS
+for strings in "$RESOURCES_DIR"/*.lproj/InfoPlist.strings; do
+    /usr/bin/plutil -lint -s "$strings" || { echo "BŁĄD: niepoprawny $strings" >&2; exit 1; }
+done
+
+# Identyfikator paczki zasobów SwiftPM bierze się z nazwy katalogu repozytorium (R5-08); ustalamy go.
+RESOURCE_PLIST="$RESOURCES_DIR/CantatePresenter_CantatePresenterCore.bundle/Contents/Info.plist"
+if [ -f "$RESOURCE_PLIST" ]; then
+    /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.cantate.presenter.core-resources" "$RESOURCE_PLIST"
+fi
+
 # Wersja z historii gita (scripts/version.sh: PR i commity od ostatniego PR), numer kompilacji = liczba commitów
 VERSION="$("$DIR/scripts/version.sh")"
 BUILD_NUMBER="$(git -C "$DIR" rev-list --count HEAD 2>/dev/null || echo 1)"
@@ -167,5 +232,18 @@ codesign "${SIGN_ARGS[@]}" --entitlements "$ENTITLEMENTS" "$APP_DIR"
 codesign --verify --strict "$APP_DIR"
 SIGNATURE_INFO="$(codesign -dv "$APP_DIR" 2>&1)"
 [[ "$SIGNATURE_INFO" =~ flags=[^[:space:]]*runtime ]] || { echo "BŁĄD: podpis bez Hardened Runtime" >&2; exit 1; }
+
+# Kontrole gotowego programu: tylko dozwolone ścieżki bibliotek (R7-01) i prawdziwa wersja SDK (R5-02).
+FINAL_RPATHS="$(list_rpaths "$MACOS_DIR/CantatePresenter" | sort)"
+if [ "$FINAL_RPATHS" != "$(sort <<< "$ALLOWED_RPATHS")" ]; then
+    echo "BŁĄD: niedozwolone LC_RPATH w programie:" >&2
+    echo "$FINAL_RPATHS" >&2
+    exit 1
+fi
+BUILD_VERSION="$(otool -l "$MACOS_DIR/CantatePresenter" | awk '$1 == "cmd" && $2 == "LC_BUILD_VERSION" { found = 1 } found && $1 == "minos" { minos = $2 } found && $1 == "sdk" { print minos, $2; exit }')"
+if [ "$BUILD_VERSION" != "$MIN_MACOS $SDK_VERSION" ]; then
+    echo "BŁĄD: LC_BUILD_VERSION (minos sdk) = '$BUILD_VERSION', oczekiwano '$MIN_MACOS $SDK_VERSION'" >&2
+    exit 1
+fi
 
 echo "=== Gotowe! Aplikacja została pomyślnie utworzona: $APP_DIR ==="
