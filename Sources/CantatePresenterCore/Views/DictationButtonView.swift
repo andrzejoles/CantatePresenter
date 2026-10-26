@@ -18,7 +18,12 @@ public struct DictationButtonView: View {
     
     @State private var originalTextBeforeRecording: String = ""
     @State private var isPulsing: Bool = false
-    @State private var isThisButtonRecording: Bool = false
+    /// Identyfikator przycisku; stan „Dyktuję...” wynika z usługi, nie z lokalnej flagi (R4-11).
+    @State private var buttonID = UUID()
+
+    private var isThisButtonRecording: Bool {
+        dictationService.ownership.active == buttonID
+    }
     
     public init(
         text: Binding<String>,
@@ -62,15 +67,10 @@ public struct DictationButtonView: View {
         }
         .buttonStyle(PlainButtonStyle())
         .help(isThisButtonRecording ? L("Kliknij, aby zakończyć dyktowanie") : (customPrompt ?? L("Dyktuj głosowo ({0})", dictationLanguageName)))
-        .onChange(of: dictationService.isRecording) { _, isRec in
-            if !isRec && isThisButtonRecording {
-                isThisButtonRecording = false
-                isPulsing = false
-            }
-        }
+        .accessibilityLabel(isThisButtonRecording ? L("Kliknij, aby zakończyć dyktowanie") : L("Dyktuj głosowo ({0})", dictationLanguageName))
         .popover(isPresented: Binding(
-            get: { isThisButtonRecording && dictationService.errorMessage != nil },
-            set: { _ in dictationService.errorMessage = nil }
+            get: { dictationService.ownership.failed == buttonID && dictationService.errorMessage != nil },
+            set: { if !$0 { dictationService.clearError() } }
         )) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
@@ -96,27 +96,25 @@ public struct DictationButtonView: View {
     private func toggleRecording() {
         if isThisButtonRecording {
             dictationService.stopDictation()
-            isThisButtonRecording = false
             isPulsing = false
         } else {
             // Stop any other active dictation
             dictationService.stopDictation()
-            
+
             originalTextBeforeRecording = text
-            isThisButtonRecording = true
             isPulsing = true
-            
+
             let currentMode = self.mode
             let baseText = self.originalTextBeforeRecording
-            
+
             dictationService.startDictation(
+                owner: buttonID,
                 localeIdentifier: store.settings.dictationLanguage,
                 onPartial: { recognized in
                     applyRecognizedText(recognized, baseText: baseText, mode: currentMode)
                 },
                 onFinal: { finalResult in
                     applyRecognizedText(finalResult, baseText: baseText, mode: currentMode)
-                    isThisButtonRecording = false
                     isPulsing = false
                 }
             )

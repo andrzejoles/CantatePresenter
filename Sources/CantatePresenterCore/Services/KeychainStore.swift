@@ -2,10 +2,21 @@ import Foundation
 import Security
 import os
 
+// MARK: - Secret Store
+
+/// Miejsce na sekrety (Pęk kluczy; w testach zastępowane).
+public protocol SecretStore: Sendable {
+    /// `nil` tylko wtedy, gdy wpisu nie ma. Odmowa dostępu albo zablokowany pęk kluczy to błąd,
+    /// a nie „brak danych” (R3-04).
+    func data(for account: String) throws -> Data?
+    func set(_ data: Data, for account: String) throws
+    func delete(_ account: String) throws
+}
+
 // MARK: - Keychain Store
 
 /// Ogólne hasła w Pęku kluczy użytkownika dla jednej usługi.
-public struct KeychainStore: Sendable {
+public struct KeychainStore: SecretStore {
     public let service: String
 
     public init(service: String) {
@@ -20,13 +31,17 @@ public struct KeychainStore: Sendable {
         ]
     }
 
-    public func data(for account: String) -> Data? {
+    public func data(for account: String) throws -> Data? {
         var request = query(account)
         request[kSecReturnData as String] = true
         request[kSecMatchLimit as String] = kSecMatchLimitOne
         var result: AnyObject?
-        guard SecItemCopyMatching(request as CFDictionary, &result) == errSecSuccess else { return nil }
-        return result as? Data
+        let status = SecItemCopyMatching(request as CFDictionary, &result)
+        switch status {
+        case errSecSuccess: return result as? Data
+        case errSecItemNotFound: return nil
+        default: throw KeychainError(status: status, service: service)
+        }
     }
 
     public func set(_ data: Data, for account: String) throws {
@@ -36,22 +51,35 @@ public struct KeychainStore: Sendable {
             item[kSecValueData as String] = data
             item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
             let addStatus = SecItemAdd(item as CFDictionary, nil)
-            guard addStatus == errSecSuccess else { throw KeychainError(status: addStatus) }
+            guard addStatus == errSecSuccess else { throw KeychainError(status: addStatus, service: service) }
         } else if status != errSecSuccess {
-            throw KeychainError(status: status)
+            throw KeychainError(status: status, service: service)
         }
     }
 
-    public func delete(_ account: String) {
-        SecItemDelete(query(account) as CFDictionary)
+    public func delete(_ account: String) throws {
+        let status = SecItemDelete(query(account) as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw KeychainError(status: status, service: service)
+        }
     }
 }
 
 public struct KeychainError: LocalizedError {
     public let status: OSStatus
+    public var service: String = ""
+
+    /// Pęk kluczy nie dał dostępu: użytkownik odmówił, pęk jest zablokowany albo wpis należy do innego podpisu
+    /// aplikacji (podpis ad-hoc zmienia się z każdą wersją, docs/RELEASE.md).
+    public var isAccessDenied: Bool {
+        [errSecAuthFailed, errSecUserCanceled, errSecInteractionNotAllowed, errSecNoAccessForItem].contains(status)
+    }
 
     public var errorDescription: String? {
         let message = SecCopyErrorMessageString(status, nil) as String? ?? "kod \(status)"
+        if isAccessDenied {
+            return Lnow("Pęk kluczy nie udostępnił danych logowania ({0}). Pozwól na dostęp, gdy macOS o to zapyta, albo usuń wpis „{1}” w aplikacji Dostęp do pęku kluczy i połącz konto Google ponownie.", message, service)
+        }
         return Lnow("Błąd Pęku kluczy: {0}", message)
     }
 }
@@ -103,18 +131,29 @@ public struct GoogleCredentialStore: Sendable {
     private static let account = "credentials"
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "gdrive")
 
-    private let keychain: KeychainStore
+    private let keychain: any SecretStore
 
-    public init(keychain: KeychainStore) {
+    public init(keychain: any SecretStore) {
         self.keychain = keychain
     }
 
-    public func load() -> GoogleCredentials {
-        guard let data = keychain.data(for: Self.account),
-              let credentials = try? JSONDecoder().decode(GoogleCredentials.self, from: data) else {
+    /// Puste dane, gdy wpisu nie ma albo jest nieczytelny; błąd Pęku kluczy (np. odmowa dostępu) jest zgłaszany,
+    /// żeby nie udawać „niepołączonego konta” (R3-04).
+    public func load() throws -> GoogleCredentials {
+        let data: Data?
+        do {
+            data = try keychain.data(for: Self.account)
+        } catch {
+            Self.logger.error("Nie można odczytać danych Google z Pęku kluczy: \(String(describing: error), privacy: .public)")
+            throw error
+        }
+        guard let data else { return GoogleCredentials() }
+        do {
+            return try JSONDecoder().decode(GoogleCredentials.self, from: data)
+        } catch {
+            Self.logger.error("Nieczytelne dane Google w Pęku kluczy: \(String(describing: error), privacy: .public)")
             return GoogleCredentials()
         }
-        return credentials
     }
 
     public func save(_ credentials: GoogleCredentials) throws {
@@ -127,12 +166,17 @@ public struct GoogleCredentialStore: Sendable {
     }
 
     public func update(_ change: (inout GoogleCredentials) -> Void) throws {
-        var credentials = load()
+        var credentials = try load()
         change(&credentials)
         try save(credentials)
     }
 
-    public func clear() {
-        keychain.delete(Self.account)
+    public func clear() throws {
+        do {
+            try keychain.delete(Self.account)
+        } catch {
+            Self.logger.error("Nie można usunąć danych Google z Pęku kluczy: \(String(describing: error), privacy: .public)")
+            throw error
+        }
     }
 }

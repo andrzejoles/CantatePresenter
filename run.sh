@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
-if [ ! -d "$DIR/CantatePresenter.app" ]; then
-    echo "Pakiet CantatePresenter.app nie istnieje. Budowanie..."
-    ./build_app.sh
-fi
+# Zawsze budujemy (przyrostowo), żeby po zmianach w źródłach nie uruchomić starej wersji (R1-08).
+./build_app.sh
 
 echo "Uruchamianie CantatePresenter..."
 open "$DIR/CantatePresenter.app"

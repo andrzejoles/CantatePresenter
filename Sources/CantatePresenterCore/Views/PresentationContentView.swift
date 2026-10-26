@@ -103,6 +103,9 @@ public struct PresentationContentView: View {
                 }
             }
         }
+        // Pełny ekran także pod wycięciem kamery MacBooka: Auto-Fit liczy z tego samego rozmiaru co podglądy
+        // (`screen.frame`), więc podział wierszy na projektorze i w podglądzie jest ten sam (R4-16).
+        .ignoresSafeArea()
         .onAppear {
             if !isPreviewWindow && NSScreen.screens.count == 1 {
                 showEscHint = true

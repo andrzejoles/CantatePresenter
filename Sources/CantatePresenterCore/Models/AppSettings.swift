@@ -19,7 +19,7 @@ public struct ShortcutPresets {
         KeyChoice(126, Lnow("Strzałka w górę (↑)")),
         KeyChoice(36, "Enter / Return (↵)"),
         KeyChoice(53, "Escape (Esc)"),
-        KeyChoice(48, "Tabulator (Tab)"),
+        KeyChoice(48, "Tab (⇥)"),
         KeyChoice(51, "Backspace (⌫)"),
         KeyChoice(121, "Page Down (⇟)"),
         KeyChoice(116, "Page Up (⇞)"),

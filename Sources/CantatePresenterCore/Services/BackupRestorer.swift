@@ -10,6 +10,7 @@ import os
 /// 3. Nowy katalog danych powstaje obok obecnego (kopia obecnego + pliki z kopii zapasowej),
 ///    a potem zastępuje go jedną operacją. Błąd w trakcie nie zostawia mieszanki plików.
 /// 4. Poprzedni katalog zostaje obok jako „przed przywróceniem” (najwyżej `previousStatesLimit`).
+/// 5. Cofnięcie też niczego nie usuwa: obecny katalog zostaje obok jako „przed cofnięciem” (R2-01).
 public struct BackupRestorer {
     public struct Result {
         public let songsCount: Int
@@ -23,6 +24,8 @@ public struct BackupRestorer {
         case unzipFailed(Int32)
         case nothingToUndo
         case newerSchema(Int)
+        case unsafeItem(String)
+        case archiveTooLarge(Int64)
 
         public var errorDescription: String? {
             switch self {
@@ -36,14 +39,32 @@ public struct BackupRestorer {
                 return Lnow("Brak poprzedniego stanu do przywrócenia.")
             case .newerSchema(let version):
                 return Lnow("Kopię zapisała nowsza wersja CantatePresenter (format danych {0}, ta wersja obsługuje {1}). Zaktualizuj aplikację przed przywróceniem.", version, DataSchema.current)
+            case .unsafeItem(let name):
+                return Lnow("Kopia zapasowa zawiera niedozwolony element {0} (dowiązanie symboliczne lub plik specjalny).", name)
+            case .archiveTooLarge(let size):
+                return Lnow("Archiwum po rozpakowaniu zajęłoby {0}; to nie jest kopia CantatePresenter.", ByteCountFormatter.string(fromByteCount: size, countStyle: .file))
             }
         }
     }
 
+    /// `logos/` i `templates/` tylko ze starych kopii: aplikacja ich już nie tworzy ani nie czyta (R2-15).
     public static let allowedItems = [
         "songs.json", "plans.json", "settings.json", "custom_languages.json", "standby.html", "logos", "templates",
         "ccli_usage.json"
     ]
+
+    /// Katalog z danymi w rozpakowanym archiwum: korzeń albo jedyny (lub pierwszy pasujący) podfolder
+    /// z `manifest.json` lub `songs.json`, np. folder danych spakowany w Finderze (R2-14).
+    public static func contentRoot(in extracted: URL, fileManager: FileManager = .default) -> URL {
+        func hasData(_ directory: URL) -> Bool {
+            ["manifest.json", "songs.json"].contains { fileManager.fileExists(atPath: directory.appendingPathComponent($0).path) }
+        }
+        if hasData(extracted) { return extracted }
+        let subfolders = ((try? fileManager.contentsOfDirectory(at: extracted, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles)) ?? [])
+            .filter { $0.lastPathComponent != "__MACOSX" && (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true }
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+        return subfolders.first(where: hasData) ?? extracted
+    }
     public static let previousStatesLimit = 3
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "backup")
 
@@ -61,7 +82,11 @@ public struct BackupRestorer {
     // MARK: - Unzip
 
     /// Rozpakowuje archiwum przez `ditto` bez blokowania wątku głównego.
+    /// Archiwum, które po rozpakowaniu zajęłoby ponad `ZipArchive.maxUncompressedSize`, jest odrzucane (R2-14).
     public static func unzip(_ archive: URL, to directory: URL) async throws {
+        if let size = ZipArchive.declaredUncompressedSize(of: archive), size > ZipArchive.maxUncompressedSize {
+            throw RestoreError.archiveTooLarge(size)
+        }
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let status: Int32 = try await withCheckedThrowingContinuation { continuation in
             let process = Process()
@@ -115,7 +140,29 @@ public struct BackupRestorer {
         }
     }
 
+    /// Do danych trafiają tylko zwykłe pliki i katalogi: dowiązanie (np. `standby.html` → plik spoza kopii)
+    /// albo plik specjalny odrzuca całą kopię (R2-14).
+    private func rejectUnsafeItems(in contentRoot: URL) throws {
+        let keys: Set<URLResourceKey> = [.isSymbolicLinkKey, .isRegularFileKey, .isDirectoryKey]
+        func check(_ values: URLResourceValues, name: String) throws {
+            if values.isSymbolicLink == true || (values.isRegularFile != true && values.isDirectory != true) {
+                throw RestoreError.unsafeItem(name)
+            }
+        }
+        for item in Self.allowedItems {
+            // Wartości samego elementu (bez podążania za dowiązaniem); brak elementu = pomijamy.
+            guard let values = try? contentRoot.appendingPathComponent(item).resourceValues(forKeys: keys) else { continue }
+            try check(values, name: item)
+            guard values.isDirectory == true else { continue }
+            let enumerator = fileManager.enumerator(at: contentRoot.appendingPathComponent(item), includingPropertiesForKeys: Array(keys))
+            while let child = enumerator?.nextObject() as? URL {
+                try check(try child.resourceValues(forKeys: keys), name: item + "/" + child.lastPathComponent)
+            }
+        }
+    }
+
     private func validate(_ contentRoot: URL) throws -> (songs: Int, plans: Int) {
+        try rejectUnsafeItems(in: contentRoot)
         let decoder = JSONFileStore.makeDecoder()
         func decode<T: Decodable>(_ type: T.Type, _ name: String) throws -> T? {
             let url = contentRoot.appendingPathComponent(name)
@@ -142,35 +189,126 @@ public struct BackupRestorer {
 
     // MARK: - Undo
 
+    /// Zachowany katalog danych obok obecnego (R2-01).
+    public struct PreviousState: Equatable, Sendable {
+        public enum Kind: Sendable {
+            /// Stan sprzed przywrócenia kopii zapasowej.
+            case beforeRestore
+            /// Stan sprzed cofnięcia przywracania; ponowne „cofnięcie” wraca do niego.
+            case beforeUndo
+        }
+
+        public let url: URL
+        public let kind: Kind
+        /// Chwila, w której ten stan został zastąpiony (z nazwy folderu).
+        public let date: Date?
+    }
+
+    private var undoStatePrefix: String { "\(dataDirectory.lastPathComponent) przed cofnięciem " }
+
+    /// Poprzednie stany obu rodzajów, od najnowszego.
+    public func previousStateDetails() -> [PreviousState] {
+        let names = (try? fileManager.contentsOfDirectory(atPath: parentDirectory.path)) ?? []
+        let prefixes: [(String, PreviousState.Kind)] = [(previousStatePrefix, .beforeRestore), (undoStatePrefix, .beforeUndo)]
+        let states: [(stamp: String, state: PreviousState)] = names.compactMap { name in
+            guard let (prefix, kind) = prefixes.first(where: { name.hasPrefix($0.0) }) else { return nil }
+            let stamp = String(name.dropFirst(prefix.count))
+            let state = PreviousState(url: parentDirectory.appendingPathComponent(name), kind: kind, date: Self.date(fromTimestamp: stamp))
+            return (stamp, state)
+        }
+        // Znacznik czasu ma stały format, więc porządek napisów jest chronologiczny.
+        return states.sorted { $0.stamp > $1.stamp }.map(\.state)
+    }
+
     /// Poprzednie stany, od najnowszego.
     public func previousStates() -> [URL] {
-        let names = (try? fileManager.contentsOfDirectory(atPath: parentDirectory.path)) ?? []
-        return names
-            .filter { $0.hasPrefix(previousStatePrefix) }
-            .sorted(by: >)
-            .map { parentDirectory.appendingPathComponent($0) }
+        previousStateDetails().map(\.url)
     }
 
     public var canUndo: Bool { !previousStates().isEmpty }
 
-    /// Wraca do stanu sprzed ostatniego przywracania; przywrócone dane są usuwane.
-    public func undoLastRestore() throws {
+    /// Wraca do najnowszego zachowanego stanu. Obecne dane nie są usuwane: zostają obok jako
+    /// „przed cofnięciem” (R2-01), więc ponowne wywołanie wraca do nich.
+    /// - Returns: folder z danymi sprzed cofnięcia.
+    @discardableResult
+    public func undoLastRestore() throws -> URL {
         guard let previous = previousStates().first else { throw RestoreError.nothingToUndo }
-        _ = try fileManager.replaceItemAt(dataDirectory, withItemAt: previous)
-        Self.logger.notice("Cofnięto przywracanie do \(previous.lastPathComponent, privacy: .public)")
+        let keptName = undoStatePrefix + Self.timestamp()
+        let kept = parentDirectory.appendingPathComponent(keptName)
+        if fileManager.fileExists(atPath: dataDirectory.path) {
+            _ = try fileManager.replaceItemAt(
+                dataDirectory,
+                withItemAt: previous,
+                backupItemName: keptName,
+                options: .withoutDeletingBackupItem
+            )
+        } else {
+            try fileManager.moveItem(at: previous, to: dataDirectory)
+        }
+        pruneOldStates()
+        Self.logger.notice("Cofnięto przywracanie do \(previous.lastPathComponent, privacy: .public); obecne dane: \(keptName, privacy: .public)")
+        return kept
     }
 
     private func pruneOldStates() {
         for state in previousStates().dropFirst(Self.previousStatesLimit) {
-            try? fileManager.removeItem(at: state)
+            do {
+                try fileManager.removeItem(at: state)
+            } catch {
+                Self.logger.error("Nie można usunąć starego stanu \(state.lastPathComponent, privacy: .public): \(String(describing: error), privacy: .public)")
+            }
         }
+    }
+
+    private static let timestampFormat = "yyyy-MM-dd HH-mm-ss-SSS"
+
+    private static func date(fromTimestamp stamp: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.dateFormat = timestampFormat
+        return formatter.date(from: stamp)
     }
 
     private static func timestamp() -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
         // Milisekundy: kilka przywróceń w tej samej sekundzie nie może mieć tej samej nazwy.
-        formatter.dateFormat = "yyyy-MM-dd HH-mm-ss-SSS"
+        formatter.dateFormat = timestampFormat
         return formatter.string(from: Date())
+    }
+}
+
+// MARK: - Zip Archive
+
+/// Sprawdzenie archiwum ZIP przed rozpakowaniem (R2-14). Wywołania czekają na proces: nie na wątku głównym.
+enum ZipArchive {
+    /// Kopia danych to kilka MB; 2 GB to bezpieczny górny limit (bomba ZIP nie zapełni dysku).
+    static let maxUncompressedSize: Int64 = 2 * 1024 * 1024 * 1024
+
+    /// Suma rozmiarów po rozpakowaniu z katalogu archiwum (`zipinfo -t`); `nil`, gdy to nie ZIP albo nie da się odczytać.
+    static func declaredUncompressedSize(of archive: URL) -> Int64? {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/zipinfo")
+        process.arguments = ["-t", archive.path]
+        let output = Pipe()
+        process.standardOutput = output
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+        } catch {
+            return nil
+        }
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        guard process.terminationStatus == 0 else { return nil }
+        return parseTotals(String(decoding: data, as: UTF8.self))
+    }
+
+    /// „2 files, 1234 bytes uncompressed, 567 bytes compressed: 54.1%”
+    static func parseTotals(_ text: String) -> Int64? {
+        guard let match = text.firstMatch(of: /([0-9]+) bytes uncompressed/) else { return nil }
+        return Int64(match.1)
     }
 }

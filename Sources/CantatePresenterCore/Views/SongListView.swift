@@ -26,6 +26,8 @@ public struct SongListView: View {
     @State private var searchScope: Song.SearchScope = .all
     @State private var onlyWithChords = false
     @AppStorage("song_list_sort_order") private var sortOrder: SongSortOrder = .titleAsc
+    /// Pieśń czekająca na potwierdzenie usunięcia (R4-17).
+    @State private var songPendingDeletion: Song?
     @Binding var isShowingEditor: Bool
     @Binding var isShowingOnlineSearch: Bool
     @Binding var isShowingImportExport: Bool
@@ -58,36 +60,50 @@ public struct SongListView: View {
             baseList = store.searchIndex.filter(store.songs, query: query, scope: searchScope)
         }
         let list = onlyWithChords ? baseList.filter(\.hasChords) : baseList
-        
+        return Self.sorted(list, by: sortOrder)
+    }
+
+    /// Sortowanie biblioteki (R4-13): tytuły i autorzy przycinani raz na pieśń, nie przy każdym porównaniu.
+    /// `body` liczy listę raz (`let songs = filteredSongs`), a wcześniej sortował 900+ pieśni trzy razy.
+    nonisolated static func sorted(_ songs: [Song], by order: SongSortOrder) -> [Song] {
+        struct Keyed {
+            let song: Song
+            let title: String
+            let author: String
+        }
         let plLocale = Locale(identifier: "pl_PL")
-        return list.sorted { a, b in
-            let titleA = a.title.trimmingCharacters(in: .whitespacesAndNewlines)
-            let titleB = b.title.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            switch sortOrder {
+        let options: String.CompareOptions = [.caseInsensitive, .numeric]
+        let keyed = songs.map {
+            Keyed(
+                song: $0,
+                title: $0.title.trimmingCharacters(in: .whitespacesAndNewlines),
+                author: order == .authorAsc ? $0.author.trimmingCharacters(in: .whitespacesAndNewlines) : ""
+            )
+        }
+        return keyed.sorted { a, b in
+            switch order {
             case .titleAsc:
-                return titleA.compare(titleB, options: [.caseInsensitive, .numeric], locale: plLocale) == .orderedAscending
+                return a.title.compare(b.title, options: options, locale: plLocale) == .orderedAscending
             case .titleDesc:
-                return titleA.compare(titleB, options: [.caseInsensitive, .numeric], locale: plLocale) == .orderedDescending
+                return a.title.compare(b.title, options: options, locale: plLocale) == .orderedDescending
             case .authorAsc:
-                let authorA = a.author.trimmingCharacters(in: .whitespacesAndNewlines)
-                let authorB = b.author.trimmingCharacters(in: .whitespacesAndNewlines)
-                if authorA.isEmpty && !authorB.isEmpty { return false }
-                if !authorA.isEmpty && authorB.isEmpty { return true }
-                let comp = authorA.compare(authorB, options: [.caseInsensitive, .numeric], locale: plLocale)
+                if a.author.isEmpty && !b.author.isEmpty { return false }
+                if !a.author.isEmpty && b.author.isEmpty { return true }
+                let comp = a.author.compare(b.author, options: options, locale: plLocale)
                 if comp == .orderedSame {
-                    return titleA.compare(titleB, options: [.caseInsensitive, .numeric], locale: plLocale) == .orderedAscending
+                    return a.title.compare(b.title, options: options, locale: plLocale) == .orderedAscending
                 }
                 return comp == .orderedAscending
             case .newest:
-                return a.createdAt > b.createdAt
+                return a.song.createdAt > b.song.createdAt
             }
-        }
+        }.map(\.song)
     }
     
     public var body: some View {
         let scale = store.settings.uiScale
-        
+        let songs = filteredSongs
+
         VStack(spacing: 0) {
             // Search Header: pole w osobnej linii, pod nim dyktowanie i zakres wyszukiwania
             VStack(spacing: 6) {
@@ -111,7 +127,7 @@ public struct SongListView: View {
                         }
                         .onSubmit {
                             // Enter: zaznacz pierwszy wynik i wyjdź z pola, żeby klawisze znów sterowały slajdami.
-                            if let first = filteredSongs.first {
+                            if let first = songs.first {
                                 store.selectedSongId = first.id
                             }
                             NSApp.keyWindow?.makeFirstResponder(nil)
@@ -123,6 +139,8 @@ public struct SongListView: View {
                                 .foregroundColor(.secondary)
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .help(L("Wyczyść wyszukiwanie"))
+                        .accessibilityLabel(L("Wyczyść wyszukiwanie"))
                     }
                 }
                 .padding(.horizontal, 8)
@@ -170,11 +188,11 @@ public struct SongListView: View {
             // Sub-header: Count and Sort selector
             HStack {
                 if searchText.trimmingCharacters(in: .whitespaces).isEmpty && !onlyWithChords {
-                    Text(L("{0} pieśni", filteredSongs.count))
+                    Text(L("Pieśni: {0}", songs.count))
                         .font(.scaled(10.5, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
                 } else {
-                    Text(L("{0} z {1} pieśni", filteredSongs.count, store.songs.count))
+                    Text(L("{0} z {1} pieśni", songs.count, store.songs.count))
                         .font(.scaled(10.5, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
                 }
@@ -207,7 +225,7 @@ public struct SongListView: View {
             
             // Songs List
             List(selection: $store.selectedSongId) {
-                ForEach(filteredSongs) { song in
+                ForEach(songs) { song in
                     SongRowView(
                         song: song,
                         searchQuery: searchText,
@@ -250,18 +268,35 @@ public struct SongListView: View {
                         }
                         Divider()
                         Button(L("Usuń z bazy"), role: .destructive) {
-                            store.deleteSong(id: song.id)
+                            songPendingDeletion = song
                         }
                     }
                 }
             }
             .listStyle(InsetListStyle())
+            // Usunięcie zabiera pieśń także ze wszystkich planów, więc jedno kliknięcie w menu nie wystarcza (R4-17).
+            .confirmationDialog(
+                L("Usunąć pieśń „{0}”?", songPendingDeletion?.title ?? ""),
+                isPresented: Binding(
+                    get: { songPendingDeletion != nil },
+                    set: { if !$0 { songPendingDeletion = nil } }
+                ),
+                titleVisibility: .visible,
+                presenting: songPendingDeletion
+            ) { song in
+                Button(L("Usuń"), role: .destructive) {
+                    store.deleteSong(id: song.id)
+                }
+                Button(L("Anuluj"), role: .cancel) {}
+            } message: { _ in
+                Text(L("Pieśń zostanie usunięta z biblioteki i ze wszystkich planów."))
+            }
             
             Divider()
             
             // Footer status
             HStack {
-                Text("\(filteredSongs.count) \(L("pieśni w bibliotece"))")
+                Text(L("Pieśni w bibliotece: {0}", store.songs.count))
                     .font(.scaled(11, scale: scale))
                     .foregroundColor(.secondary)
                 Spacer()

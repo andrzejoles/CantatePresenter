@@ -75,4 +75,12 @@ public enum ScreenSelection {
         }
         return .hide
     }
+    
+    /// Czy okno projekcji ma po starcie przejąć klawiaturę (R4-02). Tylko gdy zasłania okno główne
+    /// (ten sam ekran). Na osobnym projektorze klawiatura zostaje w oknie głównym, więc pierwsze Esc
+    /// operatora gasi tekst zamiast zamykać okno projekcji przed zgromadzeniem.
+    public static func presentationWindowTakesKeyboard(projector: UInt32, operatorScreen: UInt32?) -> Bool {
+        guard let operatorScreen else { return true }
+        return operatorScreen == projector
+    }
 }

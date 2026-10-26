@@ -95,6 +95,32 @@ public struct ImportReviewSheet: View {
             
             Divider()
             
+            // Pliki uszkodzone lub wczytane częściowo (R2-04)
+            if !report.fileProblems.isEmpty {
+                VStack(alignment: .leading, spacing: 3) {
+                    Label(L("Nie wszystkie pliki udało się wczytać:"), systemImage: "exclamationmark.triangle.fill")
+                        .font(.scaled(12, weight: .semibold, scale: scale))
+                        .foregroundColor(.orange)
+                    ForEach(Array(report.fileProblems.prefix(5).enumerated()), id: \.offset) { _, problem in
+                        Text("\(problem.fileName): \(problem.message)")
+                            .font(.scaled(11, scale: scale))
+                            .foregroundColor(.secondary)
+                            .textSelection(.enabled)
+                    }
+                    if report.fileProblems.count > 5 {
+                        Text(L("… i {0} więcej", report.fileProblems.count - 5))
+                            .font(.scaled(11, scale: scale))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.orange.opacity(0.08))
+                
+                Divider()
+            }
+            
             // 4 Summary Metrics Badges
             HStack(spacing: 12) {
                 MetricCard(
@@ -118,7 +144,7 @@ public struct ImportReviewSheet: View {
                 MetricCard(
                     title: L("Autorzy i polskie litery"),
                     value: "\(report.enrichmentRecords.count)",
-                    subtitle: "wzbogacone",
+                    subtitle: L("wzbogacone"),
                     icon: "sparkles",
                     color: .purple,
                     scale: scale
@@ -409,7 +435,7 @@ private struct EnrichmentRowView: View {
                     Text(item.enrichedTitle)
                         .font(.scaled(12, weight: .bold, scale: scale))
                     if item.enrichedTitle != item.originalTitle {
-                        Text("(z: \"\(item.originalTitle)\")")
+                        Text(L("(z: „{0}”)", item.originalTitle))
                             .font(.scaled(10, scale: scale))
                             .foregroundColor(.secondary)
                     }
@@ -419,10 +445,10 @@ private struct EnrichmentRowView: View {
                     Text(L("Autor:"))
                         .font(.scaled(10, weight: .medium, scale: scale))
                         .foregroundColor(.secondary)
-                    Text(item.enrichedAuthor)
+                    Text(item.enrichedAuthor.isEmpty ? L("brak") : item.enrichedAuthor)
                         .font(.scaled(11, weight: .semibold, scale: scale))
                         .foregroundColor(.primary)
-                    if item.originalAuthor != "brak" && item.originalAuthor != item.enrichedAuthor {
+                    if !item.originalAuthor.isEmpty && item.originalAuthor != item.enrichedAuthor {
                         Text(L("(wcześniej: {0})", item.originalAuthor))
                             .font(.scaled(10, scale: scale))
                             .foregroundColor(.secondary)
@@ -471,7 +497,7 @@ private struct ChordsSummaryRowView: View {
                 Spacer()
                 
                 Button(action: onSearchChords) {
-                    Label(L("Zmień / Szukaj chwytów online"), systemImage: "arrow.triangle.2.circlepath")
+                    Label(L("Zmień / Szukaj chwytów"), systemImage: "arrow.triangle.2.circlepath")
                         .font(.scaled(10, scale: scale))
                 }
                 .buttonStyle(.bordered)

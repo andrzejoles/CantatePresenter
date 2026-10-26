@@ -54,3 +54,28 @@ struct QuickTextPlanTests {
         #expect(store.activeSong?.id == songs[0].id)
     }
 }
+
+// MARK: - R4-06: edycja szybkiego tekstu
+
+@MainActor
+@Suite("Edycja szybkiego tekstu (R4-06)")
+struct QuickTextEditTests {
+    @Test("Zapis w edytorze zmienia szybki tekst na ekranie, a biblioteka zostaje bez zmian")
+    func editingQuickTextUpdatesScreen() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let store = DataStore(dataDirectory: dir.url)
+        let librarySize = store.songs.count
+        store.presentQuickText(text: "Ogłoszenie")
+        var edited = try #require(store.selectedSong)
+        edited.rawLyrics = "Ogłoszenie poprawione\n\nDruga część"
+        edited.slides = Song.parseLyrics(edited.rawLyrics)
+
+        store.updateSong(edited)
+
+        #expect(store.selectedSong?.rawLyrics == edited.rawLyrics)
+        #expect(store.activeSong?.slides.count == 2)
+        #expect(store.currentLiveSlide?.text == "Ogłoszenie poprawione")
+        #expect(store.songs.count == librarySize)
+    }
+}

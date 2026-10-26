@@ -10,7 +10,8 @@ public struct SettingsSheet: View {
     @State private var availableFonts: [String] = []
     @State private var testDictationText: String = ""
     @State private var isShowingLogoGallery: Bool = false
-    @State private var translationNotice: String? = nil
+    /// Komunikat importu/eksportu tłumaczenia; błąd zapisany jawnie, nie zgadywany po słowie „Błąd” (R4-26).
+    @State private var translationNotice: (message: String, isError: Bool)? = nil
     @State private var ccliReportNotice: String? = nil
     @State private var isShowingGoogleDriveBackups: Bool = false
     @State private var isUploadingToDrive: Bool = false
@@ -33,7 +34,7 @@ public struct SettingsSheet: View {
                     .font(.scaled(16, weight: .bold, scale: scale))
                 Spacer()
                 Button(L("Gotowe")) {
-                    store.saveSettings()
+                    store.saveSettingsIfChanged()
                     isPresented = false
                 }
                 .buttonStyle(.borderedProminent)
@@ -89,15 +90,15 @@ public struct SettingsSheet: View {
                                 
                                 if let notice = translationNotice {
                                     HStack(spacing: 6) {
-                                        Image(systemName: notice.contains(L("Błąd")) ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
-                                            .foregroundColor(notice.contains(L("Błąd")) ? .red : .green)
-                                        Text(notice)
+                                        Image(systemName: notice.isError ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                                            .foregroundColor(notice.isError ? .red : .green)
+                                        Text(notice.message)
                                             .font(.scaled(11, weight: .medium, scale: scale))
-                                            .foregroundColor(notice.contains(L("Błąd")) ? .red : .green)
+                                            .foregroundColor(notice.isError ? .red : .green)
                                     }
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 4)
-                                    .background((notice.contains(L("Błąd")) ? Color.red : Color.green).opacity(0.12))
+                                    .background((notice.isError ? Color.red : Color.green).opacity(0.12))
                                     .cornerRadius(6)
                                 }
                             }
@@ -139,11 +140,11 @@ public struct SettingsSheet: View {
                             
                             // Prywatność dyktowania (N4)
                             VStack(alignment: .leading, spacing: 3) {
-                                Toggle(L("Rozpoznawaj mowę tylko na tym Macu"), isOn: $store.settings.dictationOnDeviceOnly)
+                                Toggle(L("Rozpoznawaj mowę na tym Macu, gdy to możliwe"), isOn: $store.settings.dictationOnDeviceOnly)
                                     .toggleStyle(CheckboxToggleStyle())
                                     .font(.scaled(11, scale: scale))
                                     .onChange(of: store.settings.dictationOnDeviceOnly) { _, _ in store.saveSettings() }
-                                Text(L("Nagrania nie są wysyłane do Apple i dyktowanie działa bez internetu. Jeśli macOS nie ma modelu mowy dla wybranego języka, rozpoznawanie odbywa się na serwerach Apple."))
+                                Text(L("Gdy macOS ma model mowy dla wybranego języka, nagrania nie są wysyłane do Apple i dyktowanie działa bez internetu. Bez takiego modelu, albo gdy rozpoznawanie na Macu się nie powiedzie, nagranie rozpoznają serwery Apple."))
                                     .font(.scaled(10, scale: scale))
                                     .foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -285,7 +286,7 @@ public struct SettingsSheet: View {
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(L("Kompletna ochrona danych aplikacji"))
                                         .font(.scaled(12, weight: .bold, scale: scale))
-                                    Text(L("Kopia zapasowa (.holyricsbackup) zawiera: całą bazę pieśni ({0}), plany nabożeństw ({1}), chwyty gitarowe, wszystkie ustawienia programu, stronę początkową Standby, języki tłumaczeń oraz oficjalne loga.", store.songs.count, store.plans.count))
+                                    Text(L("Kopia zapasowa (.cantatebackup) zawiera: całą bazę pieśni ({0}), plany nabożeństw ({1}), chwyty gitarowe, wszystkie ustawienia programu, własne języki tłumaczeń oraz raport użycia CCLI.", store.songs.count, store.plans.count))
                                         .font(.scaled(11, scale: scale))
                                         .foregroundColor(.secondary)
                                 }
@@ -297,7 +298,7 @@ public struct SettingsSheet: View {
                             // Local Backup Buttons
                             HStack(spacing: 10) {
                                 Button(action: createLocalBackupAction) {
-                                    Label(L("Utwórz pełną kopię zapasową (.holyricsbackup)..."), systemImage: "square.and.arrow.up.fill")
+                                    Label(L("Utwórz pełną kopię zapasową (.cantatebackup)..."), systemImage: "square.and.arrow.up.fill")
                                         .font(.scaled(11, weight: .semibold, scale: scale))
                                 }
                                 .buttonStyle(.borderedProminent)
@@ -803,25 +804,30 @@ public struct SettingsSheet: View {
             refreshDriveState()
             self.availableFonts = AutoFitEngine.availableSystemFonts()
         }
+        // Zamknięcie arkusza bez „Gotowe” (Esc) też zapisuje zmiany z pól (R4-05).
+        .onDisappear {
+            store.saveSettingsIfChanged()
+        }
     }
     
     // MARK: - Backup & Google Drive Actions
     
     private func createLocalBackupAction() {
         backupStatusMessage = nil
-        let success = BackupService.shared.exportBackupWithSavePanel()
-        if success {
-            isBackupSuccess = true
-            backupStatusMessage = L("Pomyślnie utworzono i zapisano pełną kopię zapasową (.holyricsbackup)!")
+        Task {
+            if await BackupService.shared.exportBackupWithSavePanel() {
+                isBackupSuccess = true
+                backupStatusMessage = L("Pomyślnie utworzono i wyeksportowano pełną kopię zapasową (.cantatebackup)!")
+            }
         }
     }
     
     private func restoreLocalBackupAction() {
         backupStatusMessage = nil
         Task {
-            let res = await BackupService.shared.restoreBackupWithOpenPanel()
-            isBackupSuccess = res.success
-            backupStatusMessage = res.message
+            let outcome = await BackupService.shared.restoreBackupWithOpenPanel()
+            isBackupSuccess = outcome.isSuccess
+            backupStatusMessage = outcome.message
         }
     }
     
@@ -831,9 +837,9 @@ public struct SettingsSheet: View {
         
         Task {
             do {
-                let (archiveURL, _) = try BackupService.shared.createBackupArchive(comment: L("Ręczny backup z Ustawień"))
+                let (archiveURL, _) = try await BackupService.shared.createBackupArchive(comment: L("Ręczny backup z Ustawień"))
+                defer { BackupService.removeTemporaryArchive(archiveURL) }
                 let item = try await GoogleDriveService.shared.uploadBackupToDrive(archiveURL: archiveURL)
-                try? FileManager.default.removeItem(at: archiveURL)
                 
                 await MainActor.run {
                     self.isUploadingToDrive = false
@@ -851,7 +857,14 @@ public struct SettingsSheet: View {
     }
     
     private func refreshDriveState() {
-        isDriveSignedIn = GoogleDriveService.shared.isSignedIn
+        do {
+            isDriveSignedIn = try GoogleDriveService.shared.signInState()
+        } catch {
+            // Wpis jest, ale Pęk kluczy go nie udostępnił (R3-04): to nie „Nie połączono”; zostaje „Rozłącz”.
+            isDriveSignedIn = true
+            isBackupSuccess = false
+            backupStatusMessage = error.localizedDescription
+        }
     }
     
     private func connectGoogleAccount() {
@@ -874,12 +887,23 @@ public struct SettingsSheet: View {
     }
     
     private func disconnectGoogleAccount() {
-        GoogleDriveService.shared.signOut()
-        store.settings.googleDrive.accountEmail = ""
-        store.saveSettings()
-        refreshDriveState()
-        isBackupSuccess = true
-        backupStatusMessage = L("Rozłączono konto Google. Tokeny usunięto z Pęku kluczy.")
+        backupStatusMessage = nil
+        Task {
+            do {
+                // Odwołanie dostępu w Google, potem usunięcie tokenów z Pęku kluczy (R3-12).
+                let revoked = try await GoogleDriveService.shared.signOut()
+                store.settings.googleDrive.accountEmail = ""
+                store.saveSettings()
+                isBackupSuccess = true
+                backupStatusMessage = revoked
+                    ? L("Rozłączono konto Google: dostęp odwołany w Google, tokeny usunięte z Pęku kluczy.")
+                    : L("Rozłączono konto Google i usunięto tokeny z Pęku kluczy, ale Google nie potwierdził odwołania dostępu (np. brak internetu). Dostęp możesz odebrać na stronie myaccount.google.com/permissions.")
+            } catch {
+                isBackupSuccess = false
+                backupStatusMessage = L("Nie udało się rozłączyć konta Google: {0}", error.localizedDescription)
+            }
+            refreshDriveState()
+        }
     }
     
     private func shortcutRow(title: String, selection: Binding<UInt16>, scale: Double) -> some View {
@@ -914,15 +938,9 @@ public struct SettingsSheet: View {
         }
     }
     
+    /// Otwiera plik, z którego naprawdę jest plansza; na świeżej instalacji szablon z pakietu (R4-37).
     private func openStandbyHtmlFile() {
-        let fileManager = FileManager.default
-        let path = store.settings.standbyHtmlPath
-        let url: URL
-        if !path.isEmpty && fileManager.fileExists(atPath: path) {
-            url = URL(fileURLWithPath: path)
-        } else {
-            url = AppPaths.shared.standbyFile
-        }
+        guard let url = StandbyTemplate.url(customPath: store.settings.standbyHtmlPath) else { return }
         NSWorkspace.shared.open(url)
     }
     
@@ -948,7 +966,7 @@ public struct SettingsSheet: View {
     // MARK: - Translation Export & Import
     private func exportTranslationTemplate() {
         guard let jsonString = LocalizationService.shared.exportTemplateJSON(sourceLanguage: store.settings.appLanguage) else {
-            translationNotice = L("Błąd: Nie udało się wygenerować szablonu JSON.")
+            translationNotice = (L("Błąd: Nie udało się wygenerować szablonu JSON."), true)
             return
         }
         
@@ -961,9 +979,9 @@ public struct SettingsSheet: View {
         if panel.runModal() == .OK, let url = panel.url {
             do {
                 try jsonString.write(to: url, atomically: true, encoding: .utf8)
-                translationNotice = L("Pomyślnie wyeksportowano szablon tłumaczenia do pliku: {0}", url.lastPathComponent)
+                translationNotice = (L("Pomyślnie wyeksportowano szablon tłumaczenia do pliku: {0}", url.lastPathComponent), false)
             } catch {
-                translationNotice = L("Błąd zapisu pliku: {0}", error.localizedDescription)
+                translationNotice = (L("Błąd zapisu pliku: {0}", error.localizedDescription), true)
             }
         }
     }
@@ -980,9 +998,9 @@ public struct SettingsSheet: View {
                 let res = try LocalizationService.shared.importTranslation(from: url)
                 store.settings.appLanguage = res.code
                 store.saveSettings()
-                translationNotice = L("Pomyślnie zaimportowano język: {0} ({1}) — {2} przetłumaczonych fraz!", res.name, res.code, res.count)
+                translationNotice = (L("Pomyślnie zaimportowano język: {0} ({1}) — {2} przetłumaczonych fraz!", res.name, res.code, res.count), false)
             } catch {
-                translationNotice = L("Błąd importu pliku: {0}", error.localizedDescription)
+                translationNotice = (L("Błąd importu pliku: {0}", error.localizedDescription), true)
             }
         }
     }

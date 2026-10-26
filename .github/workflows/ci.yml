@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Tylko odczyt repozytorium (R1-01); zadania niczego nie publikują.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -20,18 +24,21 @@ jobs:
         with:
           fetch-depth: 0 # build_app.sh liczy numer kompilacji z historii (N10)
 
-      - name: Select the newest Xcode
+      - name: Select the newest Xcode (no betas)
         run: |
-          XCODE="$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+          # Bety (Xcode_27_beta.app, Xcode-beta.app) pomijane, żeby CI nie przechodziło na nie po cichu (R1-04).
+          XCODE="$(ls -d /Applications/Xcode*.app | grep -v -i beta | sort -V | tail -1)"
           sudo xcode-select -s "$XCODE"
           xcodebuild -version
           swift --version
 
+      # Kod ma 0 ostrzeżeń; w CI ostrzeżenie przerywa budowanie (R1-14). Te same flagi w testach,
+      # żeby `swift test` nie kompilował wszystkiego od nowa.
       - name: Build
-        run: swift build
+        run: swift build --build-tests -Xswiftc -warnings-as-errors
 
       - name: Test
-        run: swift test
+        run: swift test -Xswiftc -warnings-as-errors
 
       - name: Remote control page check (headless Chrome)
         run: python3 -I scripts/remote_check.py

@@ -375,6 +375,7 @@ public struct ImportExportSheet: View {
             
             Task.detached(priority: .userInitiated) {
                 var rawSongs: [Song] = []
+                var problems: [ImportProblem] = []
                 let totalFiles = urls.count
                 
                 for (idx, url) in urls.enumerated() {
@@ -384,14 +385,19 @@ public struct ImportExportSheet: View {
                         self.importProgressTitle = L("Wczytywanie pliku {0} z {1}...", idx + 1, totalFiles)
                         self.importProgressDetail = url.lastPathComponent
                     }
-                    rawSongs.append(contentsOf: TextImporter.importFromURL(url))
+                    let outcome = TextImporter.importFile(url)
+                    rawSongs.append(contentsOf: outcome.songs)
+                    problems.append(contentsOf: outcome.problems)
                 }
                 
                 guard !rawSongs.isEmpty else {
+                    let details = problems.prefix(3).map { "\($0.fileName): \($0.message)" }.joined(separator: "\n")
                     await MainActor.run {
                         self.isProcessingImport = false
                         self.isSuccessStatus = false
-                        self.statusMessage = L("Nie znaleziono żadnych pieśni w wybranych plikach.")
+                        self.statusMessage = details.isEmpty
+                            ? L("Nie znaleziono żadnych pieśni w wybranych plikach.")
+                            : L("Nie znaleziono żadnych pieśni w wybranych plikach.") + "\n" + details
                     }
                     return
                 }
@@ -404,7 +410,8 @@ public struct ImportExportSheet: View {
                 }
                 
                 let existing = await MainActor.run { self.store.songs }
-                let report = SongDeduplicationService.shared.processAndDeduplicate(incoming: rawSongs, existingLibrary: existing)
+                var report = SongDeduplicationService.shared.processAndDeduplicate(incoming: rawSongs, existingLibrary: existing)
+                report.fileProblems = problems
                 
                 await MainActor.run {
                     self.importProgressValue = 1.0
@@ -419,19 +426,20 @@ public struct ImportExportSheet: View {
     
     private func createLocalBackupAction() {
         statusMessage = nil
-        let success = BackupService.shared.exportBackupWithSavePanel()
-        if success {
-            isSuccessStatus = true
-            statusMessage = L("Pomyślnie utworzono i wyeksportowano pełną kopię zapasową (.cantatebackup)!")
+        Task {
+            if await BackupService.shared.exportBackupWithSavePanel() {
+                isSuccessStatus = true
+                statusMessage = L("Pomyślnie utworzono i wyeksportowano pełną kopię zapasową (.cantatebackup)!")
+            }
         }
     }
     
     private func restoreLocalBackupAction() {
         statusMessage = nil
         Task {
-            let res = await BackupService.shared.restoreBackupWithOpenPanel()
-            isSuccessStatus = res.success
-            statusMessage = res.message
+            let outcome = await BackupService.shared.restoreBackupWithOpenPanel()
+            isSuccessStatus = outcome.isSuccess
+            statusMessage = outcome.message
         }
     }
     
@@ -441,9 +449,9 @@ public struct ImportExportSheet: View {
         
         Task {
             do {
-                let (archiveURL, _) = try BackupService.shared.createBackupArchive(comment: "Backup z okna Import/Eksport")
+                let (archiveURL, _) = try await BackupService.shared.createBackupArchive(comment: "Backup z okna Import/Eksport")
+                defer { BackupService.removeTemporaryArchive(archiveURL) }
                 let item = try await GoogleDriveService.shared.uploadBackupToDrive(archiveURL: archiveURL)
-                try? FileManager.default.removeItem(at: archiveURL)
                 
                 await MainActor.run {
                     self.isUploadingToDrive = false

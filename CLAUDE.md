@@ -7,8 +7,8 @@ Natywna aplikacja macOS (Apple Silicon, macOS 14+) do projekcji tekstów pieśni
 ```bash
 swift build                 # szybka kompilacja debug, sprawdzaj po każdej zmianie
 swift build -c release      # build release (używany przez build_app.sh)
-./build_app.sh              # składa CantatePresenter.app (Info.plist inline, podpis ad-hoc)
-./run.sh                    # buduje .app jeśli trzeba i uruchamia
+./build_app.sh              # składa CantatePresenter.app (Info.plist inline, podpis ad-hoc z Hardened Runtime)
+./run.sh                    # buduje .app (przyrostowo) i uruchamia
 open CantatePresenter.app   # uruchomienie już zbudowanej aplikacji
 ./build_installer.sh        # PKG + DMG do dist/
 scripts/version.sh          # wersja: (1 + PR/10).(PR mod 10).(commity od ostatniego scalonego PR)
@@ -36,14 +36,14 @@ Sources/CantatePresenterCore/        biblioteka z całym kodem aplikacji
 ```
 
 Kluczowe elementy:
-- `DataStore` (`@MainActor`, `ObservableObject`) trzyma **wszystko**: bibliotekę, plany, ustawienia i stan prezentacji na żywo. Zapis do JSON po każdej operacji.
+- `DataStore` (`@MainActor`, `@Observable`) trzyma **wszystko**: bibliotekę, plany, ustawienia i stan prezentacji na żywo. Zapis do JSON po każdej operacji; ustawienia z arkusza zapisuje `saveSettingsIfChanged()` przy zamknięciu arkusza i aplikacji.
 - `ScreenManager` tworzy okno projekcji (`PresentationWindow`, borderless, poziom `.screenSaver`) i okno testowe podglądu.
-- `AutoFitEngine` dobiera rozmiar czcionki wyszukiwaniem binarnym. Ten sam render jest skopiowany w `PresentationContentView` (projektor) i `PresentationSlidePreviewCanvas` (podglądy); muszą wyglądać identycznie.
+- `AutoFitEngine` dobiera rozmiar czcionki wyszukiwaniem binarnym. Tekst rysuje wspólny `SlideTextView` (projektor: `PresentationContentView`, podglądy: `PresentationSlidePreviewCanvas`) z tymi samymi parametrami `AutoFitEngine`; muszą wyglądać identycznie.
 - `Song.parseLyrics` dzieli tekst na slajdy (bloki rozdzielone pustą linią, nagłówki `[Zwrotka 1]`, `[Refren]`, `R:` itd.).
 - Import: `TextImporter` → `HolyricsImporter` → `HolyricsJavaDeserializer` (pliki `.mufl`/`.muf` to Java ObjectStream) → `SongDeduplicationService` → `ImportReviewSheet`.
 - Kopie: `BackupService` (ZIP przez `/usr/bin/ditto`), przywracanie przez `BackupRestorer` (walidacja, podmiana katalogu, cofnięcie), kopia przy zamykaniu przez `ExitBackupCoordinator`.
 - Dysk Google: `GoogleDriveService` (REST), logowanie `GoogleOAuth` (loopback `127.0.0.1` + PKCE, W3). Client Secret i tokeny tylko w Pęku kluczy (`GoogleCredentialStore`, usługa `com.cantate.presenter.gdrive`, W4); w `settings.json` jest tylko Client ID, folder i flagi. Nie dodawaj sekretów do `AppSettings`.
-- Klawiatura: jeden `KeyboardMonitor` (rejestrowany w `AppDelegate`) i czysta logika `KeyboardRouter` (K3, W5). Działa tylko w oknie głównym bez arkusza oraz w `PresentationWindow`. W jednowierszowym polu (wyszukiwanie) przepuszcza klawisze piszące, obsługuje tylko Page Up/Down, F1–F12 i Esc (wyjście z pola); w polu wielowierszowym nie obsługuje nic. Okno główne startuje bez fokusu w polu wyszukiwania. Skróty z ustawień mają pierwszeństwo przed stałymi klawiszami (strzałki, Page Up/Down, Esc, R, cyfry).
+- Klawiatura: jeden `KeyboardMonitor` (rejestrowany w `AppDelegate`) i czysta logika `KeyboardRouter` (K3, W5). Działa tylko w oknie głównym bez arkusza oraz w `PresentationWindow`. W jednowierszowym polu (wyszukiwanie) przepuszcza klawisze piszące, obsługuje tylko Page Up/Down, F1–F12 i Esc (wyjście z pola); w polu wielowierszowym nie obsługuje nic. Okno główne startuje bez fokusu w polu wyszukiwania. Skróty z ustawień mają pierwszeństwo przed stałymi klawiszami (strzałki, Page Up/Down, Esc, R, cyfry). Klawisze slajdów działają tylko w trakcie projekcji (`isLive`, R4-01). Okno projekcji na innym ekranie niż okno główne nie przejmuje klawiatury; Esc przy dwóch ekranach: z okna głównego gasi tekst, w oknie projekcji pierwsze Esc gasi tekst, drugie zamyka okno (`KeyboardRouter.stopClosesPresentationWindow`, R4-02). Znaczek klawisza na karcie slajdu liczy `Song.slideShortcutHints` (ten sam wybór co `jumpToVerse`).
 
 ### Dane
 
@@ -64,9 +64,9 @@ Pełny przegląd: `docs/code-review-2026-10-15.html` (kopia: https://claude.ai/a
 Kolejność, jeden PR na etap:
 1. **Dane i klawiatura**: K1 (bezpieczny odczyt JSON, kwarantanna, kopie rotacyjne), K2 (`AppPaths`), K3 + W5 (jeden `KeyboardRouter` działający tylko dla okna głównego bez arkusza i okna projekcji), W1 (menu Edycja), W8 (unikalne UUID przy imporcie). Najpierw cel testowy.
 2. **Kopie i importy**: W2 (backup w `applicationShouldTerminate` z `.terminateLater`), W3 + W4 (OAuth loopback + PKCE, tokeny w Pęku kluczy), W6 (zabezpieczenia deserializera), W7 + S7 (transpozycja, nagłówki sekcji), S3–S6.
-3. **Jakość**: S2 (`@Observable`, podział `DataStore`, cache wyszukiwania i Auto-Fit), N1 (wspólny `SlideRenderer`), S10 (String Catalog), CI, porządki (N9, N10, S11).
+3. **Jakość**: S2 (`@Observable`, podział `DataStore`, cache wyszukiwania i Auto-Fit), N1 (wspólny `SlideTextView`), S10 (String Catalog), CI, porządki (N9, N10, S11).
 
-Stan na 2026-10-15: etapy 1 i 2 scalone (PR #1, #2, #3); w etapie 3 zrobione S2, N1, S10 (gałąź `stage3-quality`, jeszcze bez PR).
+Etapy 1–3 scalone (PR #1–#4). Druga runda przeglądu (2026-10-26, ID R1–R4 w commitach): PR #33.
 
 ## Do zrobienia
 
@@ -74,10 +74,10 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] **S1** Projekcja po odłączeniu projektora: zapamiętywać ekran po `CGDirectDisplayID`, po zniknięciu ukryć okno projekcji zamiast przenosić je na ekran operatora, wrócić po ponownym podłączeniu.
 - [x] **S11** Twarde ścieżki `/Users/aoles/dev_gem/...` w kodzie i README; `INSTRUKCJA.md` i próbka jako zasoby pakietu.
 - [x] **N11** Po „szybkim tekście” następna pieśń to pierwsza z planu zamiast kolejnej.
-- [x] **N9** Higiena repozytorium. Decyzja właściciela: `2026-10-14_16-19-00.mufl`, `data/songs.json`, `data/plans.json` i `data/holyrics_samples/` zostają w repozytorium jako przykłady dla dewelopera (testy, migracja K2 przy uruchamianiu z repozytorium), ale nigdy w aplikacji ani instalatorze; `build_app.sh` przerywa budowanie, jeśli trafią do pakietu.
+- [x] **N9** Higiena repozytorium. Decyzja właściciela: `data/songs.json`, `data/plans.json` i `data/holyrics_samples/` zostają w repozytorium jako przykłady dla dewelopera (migracja K2 przy uruchamianiu z repozytorium; testy używają `shared/fixtures`), `2026-10-14_16-19-00.mufl` jest tylko lokalnie (`.gitignore`), ale nigdy w aplikacji ani instalatorze; `build_app.sh` przerywa budowanie, jeśli trafią do pakietu.
 - [x] **N10** Skrypty budowania ukrywają błędy podpisu; wersja w trzech miejscach.
 - [x] **S8** Logo wstawiane regexem i zapisywane do `standby.html` (dwie kopie logiki); przy okazji tłumaczenie tekstów planszy („Wersja”, „GOTOWY DO PROJEKCJI”).
-- [x] **S9** Wyszukiwanie „online”: decyzja właściciela: źródła z jasną licencją. Wikiźródła przez API MediaWiki (`OnlineSearchService`, `WikisourceParser`), źródło i licencja zapisywane w pieśni (`Song.source`, `copyright`, `ccliNumber`). DuckDuckGo, LRCLIB i wbudowany katalog usunięte. Giszowiec.org odrzucony (brak licencji i API).
+- [x] **S9** Wyszukiwanie „online”: decyzja właściciela: źródła z jasną licencją. Wikiźródła przez API MediaWiki (`OnlineSearchService`, `WikisourceParser`), źródło i licencja zapisywane w pieśni (`Song.source`, `copyright`, `ccliNumber`). DuckDuckGo, LRCLIB i wbudowany katalog usunięte; chwyty od 2026-10-26 tylko z wbudowanej bazy (R4-12). Giszowiec.org odrzucony (brak licencji i API).
 - [x] **CCLI SongSelect** (konto płatne parafii): API partnerskie zamknięte dla nowych aplikacji, więc import plików z SongSelect (`SongSelectImporter`: `.txt`, `.usr`, ChordPro), przycisk „Szukaj w SongSelect” (przeglądarka), numer licencji CCLI w Ustawieniach, linia © i numer CCLI na slajdzie (`CopyrightNotice`, rysowana w `SlideTextView`, poza Auto-Fit), pola © i CCLI w edytorze.
 - [x] **Raport użycia CCLI**: `DataStore.ccliUsage` (`ccli_usage.json`, raz na pieśń dziennie przy `present(song:)`), eksport CSV w Ustawieniach (`CCLIUsageReport`).
 - Decyzja właściciela (2026-10-15): bez klucza partnera API CCLI; nie prosić CCLI o dostęp i nie pobierać z SongSelect automatycznie.
@@ -88,20 +88,19 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] **N6** Przestarzałe API (ostrzeżenia kompilatora).
 - [x] **N7** Pozostałe ciche `try?` przy zapisie (np. własne języki).
 - [x] **N8** Indeks deduplikacji nieaktualizowany po zamianie pieśni głównej.
-- [x] **CI** `.github/workflows/ci.yml`: `swift build`, `swift test`, `build_app.sh` i `codesign --verify` na najnowszym Xcode runnera macOS (2026-10-15: Xcode 26.6). Starsze SwiftPM nie kompilują `Localizable.xcstrings` do `.lproj`; `Localization.rawCatalog` czyta wtedy katalog JSON.
+- [x] **CI** `.github/workflows/ci.yml`: `swift build --build-tests` i `swift test` z `-Xswiftc -warnings-as-errors`, strony pilota i muzyków (`scripts/remote_check.py`), `build_app.sh` i `codesign --verify` na najnowszym stabilnym Xcode runnera macOS (bez bet), `permissions: contents: read`. Starsze SwiftPM nie kompilują `Localizable.xcstrings` do `.lproj`; `Localization.rawCatalog` czyta wtedy katalog JSON.
 - [x] PR etapu 3 (#4).
-- [x] Nowe instalatory w `dist/` (2026-10-15, wersja 1.0.0, kompilacja 70; `dist/` jest w `.gitignore`).
 
 Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
-- [x] Przepisanie historii gita: zrobione 2026-10-17 (`scripts/rewrite_history.sh --push`, kopie w `dist/history-backup-*.bundle`). Plik `.mufl` jest tylko lokalnie (`.gitignore`). Stare commity zostają jeszcze w odnośnikach zamkniętych PR na GitHubie; usunąć je może tylko GitHub Support. Uwaga: `git reset --keep` po przepisaniu kasuje `.mufl` z dysku (był śledzony w starej historii); odtworzenie: `git show <stary commit>:2026-10-14_16-19-00.mufl > 2026-10-14_16-19-00.mufl` albo z kopii `.bundle`.
-- [x] Podpis Developer ID i notaryzacja: przygotowane (`CANTATE_SIGN_IDENTITY`, `CANTATE_INSTALLER_IDENTITY`, `CANTATE_NOTARY_PROFILE`, `scripts/notarize.sh`, `Resources/CantatePresenter.entitlements`, `docs/RELEASE.md`). Decyzja właściciela 2026-10-16: **na razie bez konta Apple Developer** (koszt); wydania podpisane ad-hoc, nienotaryzowane (skutki: `docs/RELEASE.md`, punkt 4). Nie proponuj zakupu konta, dopóki właściciel nie wróci do tematu.
-- [x] Automatyczne aktualizacje: Sparkle 2.10.1 (`UpdateService`, menu „Sprawdź uaktualnienia…”), kanał `releases/latest/download/appcast.xml`, klucz EdDSA w Pęku kluczy (konto `cantate-presenter`), wydanie `scripts/release.sh` (szkic na GitHubie). Sprawdzone lokalnie: kopia z podpisem ad-hoc zaktualizowała się sama.
+- [x] Przepisanie historii gita: zrobione 2026-10-17 (jednorazowym skryptem, usuniętym 2026-10-26, jest w historii gita; kopie w `dist/history-backup-*.bundle`). Plik `.mufl` jest tylko lokalnie (`.gitignore`). Stare commity zostają jeszcze w odnośnikach zamkniętych PR na GitHubie; usunąć je może tylko GitHub Support. Uwaga: `git reset --keep` po przepisaniu kasuje `.mufl` z dysku (był śledzony w starej historii); odtworzenie: `git show <stary commit>:2026-10-14_16-19-00.mufl > 2026-10-14_16-19-00.mufl` albo z kopii `.bundle`.
+- [x] Podpis Developer ID i notaryzacja: przygotowane (`CANTATE_SIGN_IDENTITY`, `CANTATE_INSTALLER_IDENTITY`, `CANTATE_NOTARY_PROFILE`, `scripts/notarize.sh`, `Resources/CantatePresenter.entitlements`, `docs/RELEASE.md`). Decyzja właściciela 2026-10-16: **na razie bez konta Apple Developer** (koszt); wydania podpisane ad-hoc, nienotaryzowane (skutki: `docs/RELEASE.md`, punkt 4). Nie proponuj zakupu konta, dopóki właściciel nie wróci do tematu. Hardened Runtime przy każdym podpisie, także ad-hoc (R3-01); przy ad-hoc `build_app.sh` dodaje tylko `com.apple.security.cs.disable-library-validation` (inaczej dyld odrzuca Sparkle.framework).
+- [x] Automatyczne aktualizacje: Sparkle 2.10.1 (`UpdateService`, menu „Sprawdź uaktualnienia…”), kanał `releases/latest/download/appcast.xml`, klucz EdDSA w Pęku kluczy (konto `cantate-presenter`), wydanie `scripts/release.sh` (szkic na GitHubie). Sprawdzone lokalnie: kopia z podpisem ad-hoc zaktualizowała się sama. Kanał podpisany (`SURequireSignedFeed`, `SUVerifyUpdateBeforeExtraction`, R3-09).
 - [ ] Weryfikacja aplikacji w Google (zniesienie limitu 100 testerów i ostrzeżenia przy logowaniu; wymaga m.in. polityki prywatności).
 - [x] Pole `schemaVersion` (decyzja 2026-10-16: tak): w `settings.json` i manifeście kopii, bez zmiany kształtu pozostałych plików; nowsze dane tylko do odczytu.
 
 Nowe funkcje:
 - [x] **Ekran dla muzyków** (z raportu, pomysły na rozwój; dodany 2026-10-15): bieżący i następny slajd z chwytami nad tekstem. Okno na Macu (`MusicianView`, `MusicianWindowManager`, przycisk „Muzycy”) i podgląd na tabletach przez serwer pilota (`/stage`, osobny token tylko do odczytu, `MusicianStagePage`). Wspólny model `MusicianStage`; dopasowanie arkusza do slajdu `ChordSheet` (po słowach, z pożyczaniem chwytów pierwszej zwrotki, chwyty w nawiasach), wzorzec w `shared/fixtures/chordsheet.json`.
-- [x] **Sterowanie ze smartfona** (pilot: następny/poprzedni slajd, czarny ekran, wybór pieśni z planu). Zrobione jako strona WWW serwowana przez Maca w LAN: `RemoteControlServer` (Network.framework, port 8765 albo wolny), `RemoteHTTP` (minimalny HTTP/1.1), `RemoteRouter` (token 128 bit z kodu QR, porównanie w stałym czasie), `RemoteControlBridge` (stan i polecenia na `DataStore`), `RemoteControlPage` (HTML/JS, teksty z `labels` w języku aplikacji), `RemoteControlSheet` (QR z CoreImage). Strona odpytuje stan co sekundę. HTML stron pilota i muzyków jest w `Resources/remote_page.html` i `stage_page.html` (`WebPageResource`). Wyszukiwanie pieśni (`/api/search`, ten sam `SongSearchIndex` co lista) i start/wznowienie projekcji (`start`, `song`); stronę sprawdza `scripts/remote_check.py` (Chrome, makieta serwera, w CI). Działa w przeglądarce na iOS i Androidzie, bez internetu.
+- [x] **Sterowanie ze smartfona** (pilot: następny/poprzedni slajd, czarny ekran, wybór pieśni z planu). Zrobione jako strona WWW serwowana przez Maca w LAN: `RemoteControlServer` (Network.framework, port 8765 albo wolny), `RemoteHTTP` (minimalny HTTP/1.1), `RemoteRouter` (token 128 bit z kodu QR, porównanie w stałym czasie), `RemoteControlBridge` (stan i polecenia na `DataStore`), `RemoteControlPage` (HTML/JS, teksty z `labels` w języku aplikacji), `RemoteControlSheet` (QR z CoreImage). Strona odpytuje stan co sekundę. HTML stron pilota i muzyków jest w `Resources/remote_page.html` i `stage_page.html` (`WebPageResource`). Wyszukiwanie pieśni (`/api/search`, ten sam `SongSearchIndex` co lista) i start/wznowienie projekcji (`start`, `song`); strony pilota i muzyków sprawdza `scripts/remote_check.py` (Chrome, makieta serwera, w CI). Działa w przeglądarce na iOS i Androidzie, bez internetu.
 
 - Wersje webowa i Windows: **porzucone** (decyzja właściciela 2026-10-26), usunięte z repozytorium razem z zadaniem Windows w CI i tekstami tylko dla nich w `Localizable.xcstrings`. Kod został w historii gita (ostatni commit z nimi: `4cbe6ad`). Nie proponuj ich odtwarzania.
 - [x] Pliki wzorcowe `shared/fixtures` (opis w `shared/README.md`): slajdy, wyszukiwanie, transpozycja, chwyty dla muzyków, duplikaty, skróty klawiszowe, Holyrics, Wikiźródła, kopia zapasowa, Auto-Fit (`autofit.json` ze stałym pomiarem z `scripts/make_autofit_fixture.py`; AppKit mierzy inaczej, więc dokładnie porównywane są tylko przypadki `anyMeasurer`).
@@ -127,13 +126,14 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 ## Konwencje
 
 - Swift tools 6.0 (tryb języka Swift 6, pełne sprawdzanie współbieżności), macOS 14. Wcięcia 4 spacje, sekcje `// MARK: -`, `public` na typach jak w istniejącym kodzie.
-- Typy wartości współdzielone między wątkami są `Sendable`; serwisy bez stanu albo z niezmiennym stanem (`let`) też. Globalnego stanu zmiennego nie ma.
+- Typy wartości współdzielone między wątkami są `Sendable`; serwisy bez stanu albo z niezmiennym stanem (`let`) też. Globalny stan zmienny tylko jako pamięć podręczna chroniona `NSLock` (`Localization`, `AutoFitEngine`).
 - Domknięcia, które system wywołuje poza wątkiem głównym (wątek audio, kolejki Speech/AVFoundation), nie mogą powstawać w kodzie `@MainActor`: w trybie Swift 6 takie wywołanie zatrzymuje aplikację. Twórz je w funkcji `nonisolated` albo oznacz jako `@Sendable` (przykład: `DictationService.installTap`, `recognize`).
 - Serwisy dotykające UI lub `DataStore` są `@MainActor`. Długie operacje (import, ZIP, sieć) poza wątkiem głównym.
-- Teksty UI (S10): kluczem jest polski tekst. W widokach `L("…")` (odświeża się po zmianie języka), poza widokami `Lnow("…")`. Wartości wstawiane jako `{0}`, `{1}`: `L("Slajd {0}/{1}", a, b)`, nigdy interpolacja w kluczu. Każdy nowy tekst dodaj do `Sources/CantatePresenterCore/Resources/Localizable.xcstrings` z tłumaczeniem en, de, es, uk (`python3 -I scripts/add_translation.py "Tekst" en de es uk`, zachowuje format pliku); test `LocalizationCatalogCompletenessTests` tego pilnuje.
+- Teksty UI (S10): kluczem jest polski tekst. W widokach `L("…")` (odświeża się po zmianie języka), poza widokami `Lnow("…")`. Wartości wstawiane jako `{0}`, `{1}`: `L("Slajd {0}/{1}", a, b)`, nigdy interpolacja w kluczu. Każdy nowy tekst dodaj do `Sources/CantatePresenterCore/Resources/Localizable.xcstrings` z tłumaczeniem en, de, es, uk (`python3 -I scripts/add_translation.py "Tekst" en de es uk`, usuwanie: `--remove "Tekst"`; zachowuje format pliku); test `LocalizationCatalogCompletenessTests` tego pilnuje.
 - Nie tłumacz danych i formatów: nagłówków eksportu `.txt` („Tytuł:”), znaczników sekcji wstawianych do tekstu („[Zwrotka]”), nazw plików i folderów (`CantatePresenter_Backups`, „przed przywróceniem”), wartości technicznych (HTTP, zapytania Dysku). Do JSON zapisuj stabilne kody, nie etykiety (np. `SlideType`).
 - Nowe pola modeli zapisywanych w JSON tylko z tolerancyjnym dekoderem (`decodeIfPresent` + wartość domyślna), jak w `AppSettings.init(from:)`. Inaczej stare pliki przestaną się wczytywać (K1).
 - Błędy zapisu nie mogą być połykane przez `try?` bez logowania (`os.Logger`) i informacji dla użytkownika.
+- Przyciski z samą ikoną: `.helpLabel(L("…"))` (podpowiedź + etykieta VoiceOver).
 - Commity: konwencjonalne prefiksy po angielsku (`feat(ui):`, `fix:`, `refactor:`, `test:`, `docs:`), w treści identyfikator z raportu, np. `fix(data): quarantine unreadable songs.json instead of overwriting (K1)`.
 
 ## Wymaga decyzji właściciela, nie rób samodzielnie
@@ -146,7 +146,7 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 
 - Menu Edycja (W1) jest potrzebne, żeby ⌘C/⌘V/⌘Z działały w polach tekstowych. Nie usuwaj go przy przebudowie menu.
 - Nie dodawaj nowych monitorów `NSEvent` ani `keyDown` dla skrótów prezentacji; wszystko idzie przez `KeyboardRouter`. Okno testowe podglądu i okno instrukcji celowo nie są obsługiwane.
-- Plansza startowa jest składana w pamięci (`StandbyRenderer`: logo w `<!--LOGO-->`, wersja, teksty, autor) i powiększana do szerokości ekranu (`StandbyZoom`); pliku `standby.html` nie zapisuj. Pliki `data/*.json` w repozytorium są śledzone przez git; po K2 aplikacja ich nie zmienia, ale nie commituj ich przypadkiem po ręcznych próbach.
+- Plansza startowa jest składana w pamięci (`StandbyRenderer`: logo w `<!--LOGO-->`, wersja, teksty, autor) i powiększana do szerokości ekranu (`StandbyZoom`); pliku `standby.html` nie zapisuj. Szablon wybiera `StandbyTemplate`: własny plik z Ustawień, `standby.html` w katalogu danych (stare instalacje), zasób pakietu. Pliki `data/*.json` w repozytorium są śledzone przez git; po K2 aplikacja ich nie zmienia, ale nie commituj ich przypadkiem po ręcznych próbach.
 - Stara wersja aplikacji (sprzed K1) wczytuje bibliotekę z błędem dat i nadpisuje ją przykładami. Nie uruchamiaj starych buildów na prawdziwych danych.
 - Logo END to plik `Sources/CantatePresenterCore/Resources/end_logo.png` (zasób pakietu), wczytywany przez `ENDLogoAsset`.
-- Zasoby biblioteki (`Sources/CantatePresenterCore/Resources`: tłumaczenia, strony pilota, logo END) deklaruje `Package.swift` (`.process`); `build_app.sh` kopiuje ich paczkę oraz ręcznie `Resources/AppIcon.icns`, `INSTRUKCJA.md` i `LICENSE`. `data/` nie trafia do aplikacji (N9).
+- Zasoby biblioteki (`Sources/CantatePresenterCore/Resources`: tłumaczenia, strony pilota, plansza `standby.html`, logo END) deklaruje `Package.swift` (`.process`); `build_app.sh` kopiuje ich paczkę oraz ręcznie `Resources/AppIcon.icns`, `INSTRUKCJA.md` i `LICENSE`. `data/` nie trafia do aplikacji (N9).

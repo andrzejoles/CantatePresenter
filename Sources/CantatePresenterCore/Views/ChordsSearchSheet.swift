@@ -9,7 +9,6 @@ public struct ChordsSearchSheet: View {
     @Binding var isPresented: Bool
     
     @State private var searchQuery: String = ""
-    @State private var isSearching: Bool = false
     @State private var results: [GuitarChordResult] = []
     @State private var selectedResult: GuitarChordResult?
     @State private var previewChords: String = ""
@@ -36,7 +35,7 @@ public struct ChordsSearchSheet: View {
                         Text(L("Wyszukiwarka chwytów gitarowych i tabulatur"))
                             .font(.scaled(16, weight: .bold, scale: scale))
                     }
-                    Text(L("Szukanie akordów dla: „{0}” w internetowych śpiewnikach i bazie nabożeństw", song.title))
+                    Text(L("Szukanie akordów dla: „{0}” we wbudowanej bazie chwytów", song.title))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                 }
@@ -77,18 +76,12 @@ public struct ChordsSearchSheet: View {
                 DictationButtonView(text: $searchQuery, mode: .replace, size: 13, customPrompt: L("Powiedz tytuł pieśni..."))
                 
                 Button(action: triggerSearch) {
-                    if isSearching {
-                        ProgressView()
-                            .controlSize(.small)
-                            .frame(width: 60)
-                    } else {
-                        Text(L("Szukaj"))
-                            .font(.scaled(12, weight: .semibold, scale: scale))
-                    }
+                    Text(L("Szukaj"))
+                        .font(.scaled(12, weight: .semibold, scale: scale))
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.orange)
-                .disabled(isSearching || searchQuery.trimmingCharacters(in: .whitespaces).isEmpty)
+                .disabled(searchQuery.trimmingCharacters(in: .whitespaces).isEmpty)
             }
             .padding(14)
             
@@ -110,12 +103,12 @@ public struct ChordsSearchSheet: View {
                     
                     Divider()
                     
-                    if results.isEmpty && !isSearching {
+                    if results.isEmpty {
                         VStack(spacing: 12) {
                             Image(systemName: "music.note.list")
                                 .font(.scaled(32, scale: scale))
                                 .foregroundColor(.secondary.opacity(0.5))
-                            Text(L("Wpisz tytuł i kliknij „Szukaj”, aby znaleźć chwyty gitarowe z internetowych śpiewników."))
+                            Text(L("Wpisz tytuł i kliknij „Szukaj”, aby znaleźć chwyty we wbudowanej bazie. Program nie pobiera chwytów z internetu."))
                                 .font(.scaled(11, scale: scale))
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -253,17 +246,11 @@ public struct ChordsSearchSheet: View {
     
     private func triggerSearch() {
         guard !searchQuery.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        isSearching = true
-        
-        Task {
-            let found = await GuitarChordsService.shared.searchChords(for: searchQuery, artist: song.author)
-            await MainActor.run {
-                self.results = found
-                self.isSearching = false
-                if let first = found.first {
-                    selectResult(first)
-                }
-            }
+        results = GuitarChordsService.shared.searchChords(for: searchQuery)
+        if let first = results.first {
+            selectResult(first)
+        } else {
+            selectedResult = nil
         }
     }
     

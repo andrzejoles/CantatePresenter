@@ -6,7 +6,6 @@ public struct LogoGallerySheet: View {
     @Bindable var store = DataStore.shared
     @Binding var isPresented: Bool
     
-    @State private var selectedLogoId: String = ""
     @State private var successNotice: String?
     
     public init(isPresented: Binding<Bool>) {
@@ -163,7 +162,19 @@ public struct SVGThumbnailView: NSViewRepresentable {
         return webView
     }
     
+    public func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+    
+    public final class Coordinator {
+        var loadedSVG: String?
+    }
+    
+    /// Przeładowanie tylko po zmianie logo; wcześniej każde odświeżenie rodzica (np. suwak w Ustawieniach)
+    /// wczytywało stronę od nowa i miniatura migała (R4-14).
     public func updateNSView(_ nsView: WKWebView, context: Context) {
+        guard context.coordinator.loadedSVG != svgString else { return }
+        context.coordinator.loadedSVG = svgString
         let html = """
         <!DOCTYPE html><html><head><meta charset="utf-8"><style>
         * { margin: 0; padding: 0; box-sizing: border-box; }

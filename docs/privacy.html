@@ -29,7 +29,8 @@ w folderze na Dysku Google tego konta i może je stamtąd przywrócić.</p>
   <li>Dane z kont Google trafiają tylko na komputer użytkownika i do jego Dysku Google. Nie są wysyłane do autora
   ani nikomu innemu, nie są sprzedawane i nie służą do reklam ani trenowania modeli.</li>
   <li>Tokeny dostępu i odświeżania są przechowywane w Pęku kluczy macOS na komputerze użytkownika.</li>
-  <li>Wylogowanie w Ustawieniach programu usuwa tokeny z komputera. Dostęp można też odebrać w
+  <li>Rozłączenie konta w Ustawieniach programu odwołuje dostęp w Google i usuwa tokeny z komputera (bez internetu
+  tokeny są tylko usuwane, a program o tym informuje). Dostęp można też odebrać w
   <a href="https://myaccount.google.com/permissions">ustawieniach konta Google</a>. Kopie zapasowe na Dysku zostają
   do czasu, aż użytkownik sam je usunie.</li>
 </ul>
@@ -43,9 +44,10 @@ w tym z wymaganiami dotyczącymi ograniczonego użytkowania (Limited Use).</p>
   <li><strong>Szukaj w SongSelect</strong>: otwiera stronę CCLI SongSelect w przeglądarce; program nie łączy się z CCLI sam.</li>
   <li><strong>Aktualizacje</strong>: raz dziennie program pobiera z GitHuba informację o najnowszej wersji. GitHub widzi
   adres IP i wersję programu, jak przy każdej wizycie na stronie; program nie wysyła innych danych.</li>
-  <li><strong>Dyktowanie</strong>: rozpoznawanie mowy macOS. Gdy na komputerze nie ma modelu mowy dla danego języka,
-  nagranie jest rozpoznawane przez serwery Apple (zgodnie z zasadami Apple). W Ustawieniach można wymusić
-  rozpoznawanie tylko na komputerze.</li>
+  <li><strong>Dyktowanie</strong>: rozpoznawanie mowy macOS. Opcja w Ustawieniach („Rozpoznawaj mowę na tym Macu,
+  gdy to możliwe”) sprawia, że nagranie zostaje na komputerze, jeśli macOS ma model mowy dla danego języka. Gdy
+  takiego modelu nie ma, opcja jest wyłączona albo rozpoznawanie na komputerze się nie powiedzie, nagranie jest
+  rozpoznawane przez serwery Apple (zgodnie z zasadami Apple). Program nie zapisuje nagrań.</li>
   <li><strong>Pilot i ekran dla muzyków</strong>: działają tylko w sieci lokalnej, przez jednorazowy klucz w kodzie QR;
   dane nie wychodzą poza tę sieć.</li>
 </ul>
@@ -74,7 +76,8 @@ a folder in that account's Google Drive and can restore them.</p>
   <li>Google user data stays on the user's computer and in their own Google Drive. It is never sent to the developer or
   anyone else, never sold, and never used for advertising or to train models.</li>
   <li>Access and refresh tokens are stored in the macOS Keychain on the user's computer.</li>
-  <li>Signing out in the app's Settings deletes the tokens. Access can also be revoked in the
+  <li>Disconnecting the account in the app's Settings revokes access at Google and deletes the tokens (without internet the
+  tokens are only deleted, and the app says so). Access can also be revoked in the
   <a href="https://myaccount.google.com/permissions">Google Account settings</a>. Backups in Drive remain until the user deletes them.</li>
 </ul>
 <p>CantatePresenter's use and transfer to any other app of information received from Google APIs will adhere to the
@@ -87,8 +90,10 @@ including the Limited Use requirements.</p>
   <li><strong>Search in SongSelect</strong>: opens the CCLI SongSelect website in the browser; the app does not contact CCLI itself.</li>
   <li><strong>Updates</strong>: once a day the app downloads information about the latest version from GitHub. GitHub sees the
   IP address and the app version, as with any website visit; no other data is sent.</li>
-  <li><strong>Dictation</strong>: macOS speech recognition. If no on-device speech model is available for the language, audio is
-  recognised by Apple's servers (under Apple's terms). On-device-only recognition can be enforced in Settings.</li>
+  <li><strong>Dictation</strong>: macOS speech recognition. The Settings option “Recognize speech on this Mac when possible”
+  keeps the audio on the computer when macOS has a speech model for the language. If there is no such model, the option is
+  off, or on-device recognition fails, the audio is recognised by Apple's servers (under Apple's terms). The app does not
+  store recordings.</li>
   <li><strong>Remote control and musicians' screen</strong>: local network only, protected by a one-time key in a QR code; data does not leave that network.</li>
 </ul>
 

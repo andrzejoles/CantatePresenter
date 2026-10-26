@@ -7,6 +7,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     public static private(set) var shared: AppDelegate?
     public var mainWindow: NSWindow?
     private var exitBackupCoordinator: ExitBackupCoordinator?
+    /// Zamknięcie w trakcie projekcji już potwierdzone (przy zamykaniu okna głównego), więc bez drugiego pytania.
+    private var quitWhileLiveConfirmed = false
     
     public override init() {
         super.init()
@@ -26,6 +28,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             MainActor.assumeIsolated {
                 self?.setupMainMenu()
                 self?.mainWindow?.title = Lnow("CantatePresenter — Prezenter Pieśni & Słowa")
+                self?.manualWindow?.title = Lnow("Instrukcja obsługi — CantatePresenter")
+                ScreenManager.shared.updateWindowTitles()
+                MusicianWindowManager.shared.updateTitle()
             }
         }
         
@@ -60,6 +65,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         window.title = Lnow("CantatePresenter — Prezenter Pieśni & Słowa")
         window.minSize = NSSize(width: 950, height: 600)
         window.contentViewController = hostingController
+        window.delegate = self
         window.center()
         window.makeKeyAndOrderFront(nil)
         // Okno projekcji też jest oknem, więc bez tego zamknięcie okna głównego zostawiało projekcję na ekranie.
@@ -212,6 +218,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let windowMenu = NSMenu(title: Lnow("Okno"))
         windowMenu.addItem(NSMenuItem(title: Lnow("Minimalizuj"), action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m"))
         windowMenu.addItem(NSMenuItem(title: Lnow("Powiększ"), action: #selector(NSWindow.performZoom(_:)), keyEquivalent: ""))
+        windowMenu.addItem(NSMenuItem.separator())
+        windowMenu.addItem(NSMenuItem(title: Lnow("Przenieś wszystko na wierzch"), action: #selector(NSApplication.arrangeInFront(_:)), keyEquivalent: ""))
         windowMenuItem.submenu = windowMenu
         mainMenu.addItem(windowMenuItem)
         
@@ -226,6 +234,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         mainMenu.addItem(helpMenuItem)
         
         NSApp.mainMenu = mainMenu
+        // Lista otwartych okien (muzycy, okno testowe, instrukcja) w menu Okno (R4-21).
+        NSApp.windowsMenu = windowMenu
         NSApp.helpMenu = helpMenu
     }
     
@@ -266,28 +276,36 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc private func createBackupAction() {
         Task { @MainActor in
-            _ = BackupService.shared.exportBackupWithSavePanel()
+            _ = await BackupService.shared.exportBackupWithSavePanel()
         }
     }
-    
+
     @objc private func restoreBackupAction() {
         Task { @MainActor in
-            let result = await BackupService.shared.restoreBackupWithOpenPanel()
-            guard result.message != "Anulowano wybór pliku." else { return }
-            showInfoAlert(title: result.success ? Lnow("Przywrócono kopię zapasową") : Lnow("Nie przywrócono kopii zapasowej"), message: result.message, isError: !result.success)
+            let outcome = await BackupService.shared.restoreBackupWithOpenPanel()
+            guard let message = outcome.message else { return }
+            showInfoAlert(title: outcome.isSuccess ? Lnow("Przywrócono kopię zapasową") : Lnow("Nie przywrócono kopii zapasowej"), message: message, isError: !outcome.isSuccess)
         }
     }
-    
+
+    /// Potwierdzenie z datą stanu, do którego wracają dane; obecne dane zostają zachowane obok (R2-01).
     @MainActor @objc fileprivate func undoRestoreAction() {
+        guard let state = BackupService.shared.latestPreviousState else { return }
+        let date = state.date.map { DateFormatter.localizedString(from: $0, dateStyle: .medium, timeStyle: .short) } ?? state.url.lastPathComponent
         let alert = NSAlert()
         alert.messageText = Lnow("Cofnąć ostatnie przywracanie?")
-        alert.informativeText = Lnow("Dane wrócą do stanu sprzed ostatniego przywrócenia kopii zapasowej. Dane z przywróconej kopii zostaną usunięte.")
+        switch state.kind {
+        case .beforeRestore:
+            alert.informativeText = Lnow("Dane wrócą do stanu sprzed przywrócenia kopii zapasowej ({0}). Obecne dane, razem ze wszystkimi zmianami wprowadzonymi od tego czasu, zostaną zachowane w osobnym folderze obok folderu danych; to samo polecenie przywróci je z powrotem.", date)
+        case .beforeUndo:
+            alert.informativeText = Lnow("Dane wrócą do stanu sprzed cofnięcia przywracania ({0}). Obecne dane zostaną zachowane w osobnym folderze obok folderu danych.", date)
+        }
         alert.addButton(withTitle: Lnow("Cofnij przywracanie"))
         alert.addButton(withTitle: Lnow("Anuluj"))
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         do {
-            try BackupService.shared.undoLastRestore()
-            showInfoAlert(title: Lnow("Cofnięto przywracanie"), message: Lnow("Przywrócono dane sprzed ostatniego przywrócenia kopii."), isError: false)
+            let kept = try BackupService.shared.undoLastRestore()
+            showInfoAlert(title: Lnow("Cofnięto przywracanie"), message: Lnow("Przywrócono dane ze stanu z {0}. Poprzednie dane zachowano w folderze „{1}”.", date, kept.path), isError: false)
         } catch {
             showInfoAlert(title: Lnow("Nie udało się cofnąć przywracania"), message: error.localizedDescription, isError: true)
         }
@@ -336,6 +354,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Kopia przy zamykaniu nie może czekać na wątku głównym (zakleszczenie z `@MainActor`),
     /// więc zamknięcie jest odkładane (`.terminateLater`) do zakończenia kopii, limitu czasu albo „Pomiń”.
     public func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        // ⌘Q przy otwartych Ustawieniach: zmiany z arkusza nie były jeszcze zapisane (R4-05, R2-22).
+        DataStore.shared.saveSettingsIfChanged()
+        if exitBackupCoordinator == nil, needsQuitConfirmation() {
+            guard confirmQuitWhileLive() else { return .terminateCancel }
+        }
         let googleDrive = DataStore.shared.settings.googleDrive
         guard googleDrive.isEnabled, googleDrive.autoBackupOnExit, exitBackupCoordinator == nil else {
             return .terminateNow
@@ -370,15 +393,67 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+// MARK: - Quit While Live (R4-18)
+extension AppDelegate: NSWindowDelegate {
+    /// ⌘W na oknie głównym zamyka program, więc w trakcie projekcji też pyta.
+    public func windowShouldClose(_ sender: NSWindow) -> Bool {
+        guard sender === mainWindow, needsQuitConfirmation() else { return true }
+        return confirmQuitWhileLive()
+    }
+    
+    private func needsQuitConfirmation() -> Bool {
+        Self.needsQuitConfirmation(
+            isLive: DataStore.shared.isLive,
+            isPresentationActive: ScreenManager.shared.isPresentationActive,
+            alreadyConfirmed: quitWhileLiveConfirmed
+        )
+    }
+    
+    /// ⌘Q albo ⌘W w trakcie projekcji: zgromadzenie straciłoby obraz bez ostrzeżenia.
+    static func needsQuitConfirmation(isLive: Bool, isPresentationActive: Bool, alreadyConfirmed: Bool) -> Bool {
+        (isLive || isPresentationActive) && !alreadyConfirmed
+    }
+    
+    private func confirmQuitWhileLive() -> Bool {
+        let alert = NSAlert()
+        alert.messageText = Lnow("Zakończyć program w trakcie projekcji?")
+        alert.informativeText = Lnow("Projektor przestanie wyświetlać tekst i planszę.")
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: Lnow("Zakończ"))
+        alert.addButton(withTitle: Lnow("Anuluj"))
+        let confirmed = alert.runModal() == .alertFirstButtonReturn
+        quitWhileLiveConfirmed = confirmed
+        return confirmed
+    }
+}
+
 // MARK: - Menu Validation
 extension AppDelegate: NSMenuItemValidation {
     public func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
-        if menuItem.action == #selector(undoRestoreAction) {
-            return BackupService.shared.canUndoRestore
+        Self.isMenuItemEnabled(
+            action: menuItem.action,
+            hasAttachedSheet: mainWindow?.attachedSheet != nil,
+            canUndoRestore: BackupService.shared.canUndoRestore
+        )
+    }
+
+    /// Pozycje, które otwierają arkusz albo okno nad oknem głównym, są wyłączone przy otwartym arkuszu
+    /// (np. Ustawieniach). SwiftUI pokazuje tylko jeden arkusz naraz, więc ⌘T albo ⌘I przy otwartych
+    /// Ustawieniach zostawiały flagę arkusza włączoną i przycisk przestawał działać (R4-04).
+    static func isMenuItemEnabled(action: Selector?, hasAttachedSheet: Bool, canUndoRestore: Bool) -> Bool {
+        let opensOverMainWindow: [Selector] = [
+            #selector(focusSongSearchAction),
+            #selector(quickTextAction),
+            #selector(importAction),
+            #selector(createBackupAction),
+            #selector(restoreBackupAction),
+            #selector(undoRestoreAction)
+        ]
+        if let action, opensOverMainWindow.contains(action), hasAttachedSheet {
+            return false
         }
-        if menuItem.action == #selector(focusSongSearchAction) {
-            // Nie przy otwartym arkuszu (np. Ustawieniach).
-            return mainWindow?.attachedSheet == nil
+        if action == #selector(undoRestoreAction) {
+            return canUndoRestore
         }
         return true
     }

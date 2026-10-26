@@ -54,6 +54,7 @@ Jeżeli chcesz ponownie przebudować aplikację po edycji kodu:
   - Obsługa pojedynczych plików oraz wsadowego importu wielu plików naraz.
   - Automatyczne wykrywanie kodowania (**UTF-8**, **Windows-1250**, **ISO-8859-2**, **MacOS Roman**).
   - Import plików tekstowych (`.txt`), plików kopii bazy (`.json`) oraz całych folderów z utworami.
+  - Bazy Holyrics (`.mufl`, `.muf`, `.hly`, eksport `.xml`) i pliki z CCLI SongSelect (`.txt`, `.usr`, ChordPro).
   - W folderze `przykladowe_piesni/` przygotowano gotowe pliki testowe.
 - **Eksport**:
   - **Eksport całej bazy do pliku JSON (.json)** — kompletna, przenośna kopia zapasowa do migracji na inny komputer.
@@ -82,18 +83,18 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 
 ### 8. 🖼️ Plansza startowa HTML (Ekran czuwania / Standby)
 - Gdy prezentacja pieśni nie jest aktywna (np. przed nabożeństwem, w trakcie kazania lub po naciśnięciu *Zatrzymaj prezentację*), na ekranie projektora **automatycznie wyświetla się plansza powitalna HTML**.
-- W zestawie przygotowano dopracowany plik [`data/standby.html`](data/standby.html):
-  - Autorskie, nowoczesne logo wektorowe (SVG: stylizowany krzyż, otwarta księga pieśni i fale uwielbienia w gradientach indygo/błękit).
-  - Nazwa aplikacji: **Holyrics Mac — Prezenter Pieśni**.
-  - Wersja: **Wersja 1.0.0 (Apple Silicon Native)**.
-  - Zegar czasu rzeczywistego (`HH:mm:ss`) i wskaźnik gotowości do projekcji.
+- Domyślna plansza to zasób aplikacji [`Sources/CantatePresenterCore/Resources/standby.html`](Sources/CantatePresenterCore/Resources/standby.html), składany w pamięci przy wyświetlaniu (`StandbyRenderer`):
+  - Logo wybrane w galerii (SVG wstawiany w znacznik `<!--LOGO-->`).
+  - Nazwa aplikacji **CantatePresenter** i bieżąca wersja (wstawiana przy wyświetlaniu).
+  - Zegar czasu rzeczywistego (`HH:mm:ss`) i napis gotowości do projekcji w języku interfejsu.
   - Całość w 100% offline, bez konieczności połączenia z internetem.
 - **Konfigurowalna ścieżka**: W ustawieniach można wskazać dowolny własny plik `.html`, a także powrócić do domyślnej planszy jednym kliknięciem.
 
-### 9. 🔍 Wyszukiwanie pieśni chrześcijańskich online i import 1-klikiem
+### 9. 🔍 Pieśni z Wikiźródeł i import 1-klikiem
 - Wbudowana funkcja **"Online"** w pasku narzędzi.
-- Przeszukiwanie serwisów internetowych oraz bazy pieśni chrześcijańskich (język polski i angielski).
+- Przeszukiwanie [Wikiźródeł](https://pl.wikisource.org) przez API MediaWiki: tradycyjne pieśni w domenie publicznej lub na wolnej licencji. Adres strony i licencja zapisują się w pieśni.
 - Podgląd znalezionych utworów wraz ze zwrotkami i przycisk **"Importuj do programu"**, który natychmiast dodaje pieśń do lokalnej bazy.
+- Przycisk **„Szukaj w SongSelect”** otwiera wyszukiwarkę CCLI w przeglądarce; pobrane pliki importujesz w oknie Import/Eksport.
 
 ### 10. 🎨 Konfigurowalny i skalowalny interfejs (UI Zoom)
 - **Przesuwane panele**: Elastyczny `HSplitView` umożliwiający dowolną zmianę szerokości kolumn (Biblioteka / Zwrotki / Panel na żywo).
@@ -106,7 +107,7 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 - Wbudowany moduł akordów gitarowych dla muzyków (`GuitarChordsService`).
 - Chwyty są widoczne dla muzyków w aplikacji i edytorze, a nie wyświetlają się zborowi na ekranie projekcji.
 - Transpozycja w czasie rzeczywistym (+1 / -1 półton).
-- Automatyczne wyszukiwanie i pobieranie chwytów pieśni z internetu.
+- Okno chwytów z wbudowaną bazą opracowań popularnych pieśni oraz import akordów z plików ChordPro.
 
 ### 12. ⚡ Natywny deserializator bazy Holyrics (.mufl) i deduplikacja
 - Błyskawiczny, natywny parser binarny strumienia Java ObjectStream (`AC ED 00 05`) deszyfrujący 900+ pieśni z pliku `.mufl` w 0.04 sekundy.
@@ -118,8 +119,8 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 - Dyktowanie wyszukiwania pieśni, tytułów, autorów i nowych zwrotek/refrenów.
 - Konfigurowalny język dyktowania w Ustawieniach.
 
-### 14. 🎨 22 Autorskie Propozycje Logo SVG
-- Interaktywna galeria 22 projektów logo zoptymalizowanych pod ekrany Retina i planszę Standby.
+### 14. 🎨 23 Autorskie Propozycje Logo SVG
+- Interaktywna galeria 23 projektów logo zoptymalizowanych pod ekrany Retina i planszę Standby.
 - Wyraziste motywy muzyczne: Złota Gitara Akustyczna, Klucz Wiolinowy ze Spektrum Audio, Symfonia i Pięciolinia, Lira Dawidowa, Fale Harmoniczne Wokalu.
 - Oficjalny emblemat Ruchu **Équipes Notre-Dame (END)**: Błękitna ryba Chrystusa (*esquif*) i splecione obrączki przymierza małżeńskiego.
 
@@ -137,6 +138,23 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 - Eksport słownika interfejsu do pliku JSON z precyzyjnymi opisami kontekstu każdego elementu dla agentów AI i tłumaczy (`data/templates/holyrics_translations_template_pl.json`).
 - Import przetłumaczonego pliku JSON i natychmiastowa aktywacja nowego języka w interfejsie.
 
+### 18. 🎵 Ekran dla muzyków
+- Bieżący i następny slajd z chwytami nad tekstem, z własną transpozycją (np. pod capo) i wielkością czcionki.
+- Okno na osobny monitor (przycisk **Muzycy**) albo podgląd na tabletach i telefonach przez kod QR z okna **Pilot** (tylko do odczytu).
+
+### 19. 📱 Pilot ze smartfona
+- Strona WWW serwowana przez Maca w sieci lokalnej, otwierana kodem QR na iPhonie lub Androidzie, bez instalowania aplikacji i bez internetu.
+- Następny/poprzedni slajd, czarny ekran, ukrycie tekstu, wybór slajdu i pieśni z planu, wyszukiwanie pieśni, zakończenie i wznowienie projekcji.
+
+### 20. ©️ Licencja CCLI
+- Numer licencji parafii w Ustawieniach, linia z prawami autorskimi i numerem CCLI na wybranym slajdzie.
+- Rejestr wyświetleń pieśni z numerem CCLI i eksport raportu CSV.
+
+### 21. 💾 Kopie zapasowe, Dysk Google i aktualizacje
+- Pełna kopia `.cantatebackup` (pieśni, plany, ustawienia, plansza, języki, loga) z przywracaniem i cofnięciem przywracania.
+- Kopie na Dysku Google (logowanie OAuth z PKCE, tokeny w Pęku kluczy), także automatycznie przy zamykaniu programu.
+- Automatyczne aktualizacje przez Sparkle (menu **Sprawdź uaktualnienia…**).
+
 ---
 
 ## 📁 Struktura projektu
@@ -145,24 +163,27 @@ Struktura repozytorium (dane użytkownika aplikacja trzyma w `~/Library/Applicat
 
 ```
 CantatePresenter/
-├── CantatePresenter.app/  # Gotowy pakiet aplikacji macOS (arm64)
 ├── Package.swift          # Konfiguracja Swift Package Manager
-├── build_app.sh           # Skrypt budujący aplikację .app
+├── build_app.sh           # Skrypt budujący CantatePresenter.app (pakiet nie jest w repozytorium)
+├── build_installer.sh     # Instalator PKG i obraz DMG do dist/
 ├── run.sh                 # Skrypt uruchamiający
-├── data/                  # Lokalne pliki danych (JSON)
-│   ├── songs.json         # Baza pieśni
-│   ├── plans.json         # Zapisane plany nabożeństw
-│   ├── settings.json      # Zapisane preferencje i ustawienia
-│   ├── standby.html       # Szablon planszy czuwania z aktywnym logo SVG
-│   └── templates/         # Wzorcowe szablony tłumaczeń JSON dla AI
+├── data/                  # Stara lokalizacja danych: przykłady dla dewelopera i źródło migracji (nie trafia do aplikacji)
+│   ├── songs.json         # Przykładowa baza pieśni
+│   ├── plans.json         # Przykładowe plany nabożeństw
+│   ├── holyrics_samples/  # Próbki baz Holyrics do testów
+│   ├── logos/             # Grafiki logo END
+│   └── templates/         # Wzorcowy szablon tłumaczeń JSON dla AI
 ├── przykladowe_piesni/    # Przykładowe pliki .txt do importu
+├── shared/fixtures/       # Pliki wzorcowe testów (opis w shared/README.md)
+├── scripts/               # Wersja, wydania, Sparkle, narzędzia do wzorców testowych
 ├── Sources/CantatePresenter/ # main.swift (start aplikacji)
 ├── Sources/CantatePresenterCore/ # Kod źródłowy w Swift
 │   ├── App/               # Cykl życia aplikacji i menu systemowe
 │   ├── Models/            # Modele danych (Song, SongSlide, ServicePlan, LogoPreset)
 │   ├── Services/          # Silnik Auto-Fit, Importer Holyrics, Akordy, Tłumaczenia
 │   ├── Views/             # Widoki SwiftUI (Main, List, Slides, Live, Editor, Sheets)
-│   └── Helpers/           # Skalowanie UI i obsługa kolorów
+│   ├── Helpers/           # Skalowanie UI i obsługa kolorów
+│   └── Resources/         # Tłumaczenia (Localizable.xcstrings), plansza standby.html, strony pilota, logo END
 └── Tests/CantatePresenterCoreTests/ # Testy (swift test)
 ```
 

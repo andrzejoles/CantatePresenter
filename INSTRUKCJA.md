@@ -9,7 +9,7 @@ Kompletny podręcznik użytkownika natywnej aplikacji **CantatePresenter** dla s
 2. [Prezentacja na Żywo i Obsługa Ekranów](#2-prezentacja-na-żywo-i-obsługa-ekranów)
 3. [Plansza Czuwania (Standby) i Wybór Logo](#3-plansza-czuwania-standby-i-wybór-logo)
 4. [Baza Pieśni i Zaawansowany Edytor](#4-baza-pieśni-i-zaawansowany-edytor)
-5. [Chwyty Gitarowe i Wzbogacanie z Internetu](#5-chwyty-gitarowe-i-wzbogacanie-z-internetu)
+5. [Chwyty Gitarowe, Wikiźródła i Autorzy](#5-chwyty-gitarowe-wikiźródła-i-autorzy)
 6. [Dyktowanie Głosowe](#6-dyktowanie-głosowe)
 7. [Plany Nabożeństw i Spotkań](#7-plany-nabożeństw-i-spotkań)
 8. [Import z Holyrics, OpenLyrics, JSON i TXT](#8-import-z-holyrics-openlyrics-json-i-txt)
@@ -39,16 +39,22 @@ Okno główne programu podzielone jest na 3 intuicyjne strefy:
 3. Wybierz dowolną pieśń z biblioteki lub planu i kliknij na slajd, aby natychmiast rozpocząć wyświetlanie.
 
 ### Prezentacja na pojedynczym ekranie (Single-Screen Mode)
-* Gdy do komputera nie jest podłączony żaden zewnętrzny ekran, program automatycznie uruchamia prezentację na pełnym ekranie Twojego Maca.
-* **Wyjście z prezentacji**: Wystarczy w dowolnym momencie nacisnąć klawisz **`ESC`**, aby natychmiast zamknąć pełny ekran i wrócić do edytora.
-* W trakcie projekcji na pojedynczym ekranie na starcie wyświetla się dyskretna podpowiedź informująca o klawiszu `ESC`.
+* Bez zewnętrznego ekranu przycisk **Prezentuj na pełnym ekranie** zakrywa ekran Twojego Maca. Program nie uruchamia pełnego ekranu sam.
+* **Wyjście z prezentacji**: klawisz **`ESC`** zamyka pełny ekran, kończy projekcję i wraca do okna głównego.
+* Na starcie pełnego ekranu wyświetla się na chwilę podpowiedź o klawiszu `ESC`.
+
+### Esc przy dwóch ekranach
+* Okno główne zostaje aktywne, a klawisze działają w nim jak zwykle. **`Esc`** gasi tekst: projektor pokazuje planszę czuwania, okno projekcji zostaje otwarte.
+* Jeśli klikniesz okno na projektorze, pierwsze **`Esc`** w nim gasi tekst, a dopiero drugie zamyka okno projekcji.
+* Okno projekcji zamyka też przycisk **Zatrzymaj pełny ekran** w prawym panelu.
 
 ### Kontrola w trakcie projekcji
-* **Następny slajd**: Klawisz `Spacja`, `Strzałka w prawo`, `Strzałka w dół`, `Page Down` lub `Enter`.
+* **Następny slajd**: `Spacja`, `Strzałka w prawo`, `Strzałka w dół` lub `Page Down`. `Enter` przełącza slajd tylko w oknie projekcji; w oknie głównym uruchamia projekcję zaznaczonej pieśni od pierwszego slajdu.
 * **Poprzedni slajd**: `Strzałka w lewo`, `Strzałka w górę` lub `Page Up`.
+* **Refren i zwrotki**: `R` przechodzi do pierwszego refrenu, cyfry `1`–`9` do zwrotki o tym numerze. Znaczek w nawiasie na karcie slajdu (np. `[2]`, `[R]`) pokazuje, który klawisz do niej prowadzi.
 * **Czarny ekran (Black Screen)**: Klawisz **`B`** — natychmiast wygasza rzutnik do czerni (np. na czas modlitwy w ciszy lub kazania).
 * **Ukrycie tekstu (Clear Text)**: Klawisz **`C`** — zachowuje tło/planszę, ukrywając sam tekst pieśni.
-* **Powrót do planszy czuwania**: Przycisk **Stop** (`■`).
+* **Powrót do planszy czuwania**: przycisk **Stop** (`■`) albo `Esc`. Po zatrzymaniu strzałki, `Spacja`, `R` i cyfry nie zmieniają slajdów; projekcję wznawia `Enter` albo kliknięcie slajdu.
 
 ### Ekran dla muzyków (chwyty)
 Muzycy widzą bieżący slajd z chwytami nad tekstem i następny slajd:
@@ -65,16 +71,16 @@ Slajdy można przełączać telefonem (iPhone lub Android), bez instalowania apl
 4. **Szukaj pieśni**: wpisz tytuł, autora albo fragment tekstu (polskie znaki można pominąć) i dotknij wyniku, żeby od razu go wyświetlić.
 5. Po **Zakończ projekcję** duży przycisk zmienia się na **Wznów projekcję**: projekcja wraca do tej samej pieśni i slajdu. Dotknięcie slajdu na liście też ją wznawia, od tego slajdu.
 
-Telefon musi być w tej samej sieci Wi-Fi co Mac. Kod zawiera jednorazowy klucz dostępu: przycisk **Nowy kod** odłącza wszystkie telefony. Pilot działa, dopóki aplikacja jest otwarta.
+Telefon musi być w tej samej sieci Wi-Fi co Mac. Kod zawiera jednorazowy klucz dostępu: przycisk **Nowy kod (rozłącza telefony)** odłącza wszystkie telefony. Pilot działa, dopóki aplikacja jest otwarta.
 
 ---
 
 ## 3. Plansza Czuwania (Standby) i Wybór Logo
 
-Gdy żadna pieśń nie jest prezentowana na żywo, projektor wyświetla elegancką planszę czuwania z subtelną animacją ambientową i zegarem.
+Gdy żadna pieśń nie jest prezentowana na żywo, projektor wyświetla planszę czuwania: wybrane logo, nazwę programu, wersję, zegar i napis „Gotowy do projekcji”. W **Ustawieniach → Plansza startowa i Logo aplikacji** możesz wskazać własny plik HTML; przycisk **Otwórz plik planszy w edytorze / przeglądarce** otwiera plik, który jest aktualnie używany. Podgląd w prawym panelu okna głównego pokazuje tę samą planszę w pomniejszeniu.
 
 ### Wybór oficjalnego logo:
-1. Otwórz **Ustawienia** i kliknij **Wybierz inne logo z galerii...**.
+1. Otwórz **Ustawienia** i kliknij **Wybierz inne logo (23 propozycje)...**.
 2. W galerii dostępnych jest **23 profesjonalnych propozycji**, w tym:
    * **Oficjalne logo Equipes Notre-Dame (END)** (oryginalne pobrane ze strony end.org.pl: ryba i obrączki przymierza),
    * Złota gitara akustyczna z rozetą i strunami,
@@ -108,23 +114,25 @@ Edytor automatycznie rozpoznaje i formatuje oznaczenia sekcji:
 
 ---
 
-## 5. Chwyty Gitarowe i Wzbogacanie z Internetu
+## 5. Chwyty Gitarowe, Wikiźródła i Autorzy
 
 ### Wyświetlanie i transpozycja akordów
-* Przy każdej pieśni widoczne jest pole na chwyty gitarowe (np. `D A h G`).
-* Za pomocą przycisków **+1 / -1** możesz jednym kliknięciem transponować całą tonację pieśni w górę lub w dół (np. dostosowując ją do możliwości wokalnych prowadzącego).
+* Chwyty wpisujesz w edytorze pieśni w widoku **Chwyty gitarowe / Taby** (np. `D A h G` nad tekstem). Zborowi na projektorze się nie wyświetlają; widzą je muzycy.
+* Przyciskami **Transpozycja ♭ -1 / ♯ +1** transponujesz chwyty o pół tonu w dół lub w górę (np. dostosowując je do możliwości wokalnych prowadzącego).
 
 ### Teksty z Wikiźródeł
 Przycisk **Online** przeszukuje [Wikiźródła](https://pl.wikisource.org): tradycyjne pieśni w domenie publicznej lub na wolnej licencji. Przy imporcie w pieśni zapisuje się adres strony źródłowej i licencja. Współczesnych pieśni objętych prawem autorskim tam nie ma; służy do nich CCLI SongSelect (rozdział 8).
 
-### Automatyczne pobieranie chwytów z internetu
-1. W edytorze lub w panelu środkowym kliknij **Szukaj chwytów online...**.
-2. Program przeszuka popularne bazy akordów (np. *tekstowo.pl*, *kompasje.pl* i serwisy tabulaturowe).
-3. Wybierz najlepszą wersję chwytów i kliknij **Wstaw chwyty do pieśni**.
+### Okno chwytów
+1. Kliknij **Chwyty** w panelu środkowym albo **Wyszukaj chwyty...** w edytorze.
+2. Program pokazuje pasujące opracowania z wbudowanej bazy chwytów popularnych pieśni.
+3. Wybierz opracowanie, w razie potrzeby transponuj i kliknij **Zastosuj chwyty do pieśni**.
+
+Chwyty możesz też zaimportować z pliku ChordPro (np. z CCLI SongSelect, rozdział 8).
 
 ### Weryfikacja autora i tytułu
-* Funkcja **Zweryfikuj tytuł i autora** przeszukuje sieć i dopasowuje rzeczywistych autorów słów i muzyki.
-* Okno podglądu pozwala odznaczyć niepewnych autorów (zapisywanych wówczas jako *"Nieznany"*).
+* Przycisk **Tytuł/Autor** na górnym pasku (albo **Wyszukaj tytuł i autora online...** w menu pieśni pod prawym przyciskiem myszy) wyszukuje autora i tytuł dla zaznaczonej pieśni lub dla całej biblioteki.
+* Okno podglądu pozwala odznaczyć niepewne propozycje przed zapisaniem.
 
 ---
 
@@ -139,18 +147,18 @@ CantatePresenter posiada zintegrowany moduł rozpoznawania mowy:
 
 ## 7. Plany Nabożeństw i Spotkań
 
-1. Przełącz lewy panel na zakładkę **Plan**.
-2. Kliknij **Nowy plan**, aby utworzyć listę na nabożeństwo, mszę lub spotkanie modlitewne.
-3. Przeciągaj pieśni z biblioteki lub kliknij **Dodaj do planu** pod prawym przyciskiem myszy.
-4. Kolejność utworów możesz wygodnie zmieniać przeciągając wiersze.
-5. Po dojściu do ostatniego slajdu pieśni, kolejne naciśnięcie `Spacji` płynnie przełącza na pierwszą zwrotkę następnej pieśni z planu!
+1. Przełącz lewy panel na zakładkę **Plan nabożeństwa**.
+2. Kliknij **+** (*Utwórz nowy plan*), aby utworzyć listę na nabożeństwo, mszę lub spotkanie modlitewne.
+3. Dodawaj pieśni przyciskiem **+ Do planu** w panelu środkowym albo poleceniem **Dodaj do aktywnego planu** w menu pieśni pod prawym przyciskiem myszy.
+4. Kolejność zmieniasz strzałkami **▲ / ▼** (*Przesuń wyżej*, *Przesuń niżej*) przy pieśni w planie.
+5. W trakcie projekcji, na ostatnim slajdzie pieśni, kolejne naciśnięcie `Spacji` przełącza na pierwszy slajd następnej pieśni z planu.
 
 ---
 
 ## 8. Import z Holyrics, OpenLyrics, JSON i TXT
 
 W oknie **Import/Eksport** (`⌘I`) możesz zasilić bazę z dowolnych istniejących zbiorów:
-* **Bazy Holyrics (`.mufl`, `.muf`, `.hly`)**: Natywny deserializator odczytuje kompletne archiwa programu Holyrics wraz z metadanymi i kodowaniem.
+* **Bazy Holyrics (`.mufl`, `.muf`, `.hly`, eksport `.xml`)**: Natywny deserializator odczytuje kompletne archiwa programu Holyrics wraz z metadanymi i kodowaniem.
 * **Pliki i foldery tekstowe (`.txt`)**: Możesz wskazać pojedynczy plik lub **cały folder** zawierający setki plików tekstowych — program automatycznie rozpozna kodowanie znaków (UTF-8, Windows-1250, ISO-8859-2) i naprawi polskie litery (ą, ę, ś, ć, ż, ź, ł, ó, ń).
 * **Format JSON (`.json`)**: Importuje zarówno kopie zapasowe, jak i tablice obiektów z innych systemów.
 
@@ -172,10 +180,10 @@ Program dba o pełne bezpieczeństwo Twojej bazy:
 * Przywrócenie kopii na nowym komputerze trwa kilka sekund.
 
 ### Kopia w chmurze Google Drive
-1. W **Ustawieniach** w sekcji *Kopia zapasowa i Dysk Google* podaj swój `Client ID` z Google Cloud Console i kliknij **Autoryzuj w przeglądarce**.
-2. Aplikacja automatycznie utworzy dedykowany folder `CantatePresenter_Backups` na Twoim Dysku Google.
-3. Możesz w dowolnym momencie wysłać kopię jednym kliknięciem lub przeglądać i przywracać wcześniejsze wersje bazy bezpośrednio z chmury.
-4. Opcja **Automatyczny backup przy zamykaniu** zabezpiecza bazę przed przypadkową utratą danych po każdej próbie lub nabożeństwie.
+1. W **Ustawieniach** w sekcji *Kopia zapasowa i Dysk Google* kliknij **Połącz z kontem Google...** i dokończ logowanie w przeglądarce. Tokeny trafiają do Pęku kluczy macOS.
+2. Kopie trafiają do folderu `CantatePresenter_Backups` na Twoim Dysku Google (nazwę folderu zmienisz w Ustawieniach).
+3. Kopię wysyłasz przyciskiem **Wyślij bieżący backup na Dysk Google**, a wcześniejsze wersje przeglądasz i przywracasz przyciskiem **Przeglądaj i przywróć kopie z Dysku Google...**.
+4. Opcja **Twórz i wysyłaj kopię na Dysk Google automatycznie przy zamykaniu aplikacji** wysyła kopię przy każdym zamknięciu programu. Bez niej kopie wysyłasz ręcznie.
 
 ---
 
@@ -183,7 +191,7 @@ Program dba o pełne bezpieczeństwo Twojej bazy:
 
 Aplikacja jest w pełni przystosowana do pracy międzynarodowej:
 * **Wbudowane języki**: Polski (`pl`), Angielski (`en`), Niemiecki (`de`), Hiszpański (`es`), Ukraiński (`uk`).
-* **Eksport do tłumaczenia**: W Ustawieniach w sekcji *Języki i Tłumaczenia* możesz wyeksportować bieżący plik JSON zawierający szczegółowe opisy kontekstowe (`description`) dla modeli AI (np. ChatGPT, Gemini, Claude).
+* **Eksport do tłumaczenia**: W Ustawieniach w sekcji *Języki i dyktowanie głosowe* przycisk **Eksportuj słownik do tłumaczenia (JSON dla AI)...** zapisuje plik JSON z opisami kontekstowymi (`context`) dla modeli AI (np. ChatGPT, Gemini, Claude).
 * **Import tłumaczenia**: Wgranie przetłumaczonego pliku natychmiast dodaje nowy język do listy wyboru.
 
 ---
@@ -197,11 +205,11 @@ Skróty prezentacji działają, gdy pole wyszukiwania jest nieaktywne (po urucho
 | Skrót | Działanie |
 |---|---|
 | **Spacja** | Następny slajd / następna pieśń w planie |
-| **Enter** | Uruchomienie projekcji zaznaczonej pieśni |
+| **Enter** | Uruchomienie projekcji zaznaczonej pieśni od pierwszego slajdu (w oknie projekcji: następny slajd) |
 | **[** / **]** | Poprzednia / następna pieśń z planu |
 | **B** | Przełączenie czarnego ekranu (Black Screen) |
 | **C** | Ukrycie tekstu (Clear Text) |
-| **Esc** | Zakończenie projekcji |
+| **Esc** | Zakończenie projekcji (przy dwóch ekranach gasi tekst, patrz rozdział 2) |
 
 **Klawisze stałe**
 
@@ -212,8 +220,8 @@ Skróty prezentacji działają, gdy pole wyszukiwania jest nieaktywne (po urucho
 | **Page Up** / **Page Down** | Poprzedni / następny slajd (pilot), także w polu wyszukiwania |
 | **Enter** w oknie projekcji | Następny slajd |
 | **Esc** w polu wyszukiwania | Wyjście z pola |
-| **R** | Refren |
-| **1 – 9** | Zwrotka o tym numerze |
+| **R** | Refren (pierwszy w pieśni) |
+| **1 – 9** | Zwrotka o tym numerze (znaczek na karcie slajdu) |
 | **⌘ F** | Szukaj pieśni (**Enter**: wybór pierwszego wyniku) |
 | **⌘ T** | Szybki tekst na żywo |
 | **⌘ E** | Edytuj zaznaczoną pieśń |

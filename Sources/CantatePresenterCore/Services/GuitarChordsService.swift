@@ -50,8 +50,9 @@ public final class GuitarChordsService: Sendable {
         return nil
     }
     
-    /// Searches chords for a song: checks curated database first, then queries online sources
-    public func searchChords(for songTitle: String, artist: String? = nil, queryHint: String? = nil) async -> [GuitarChordResult] {
+    /// Chwyty z wbudowanej bazy: dokładny tytuł, potem tytuły zawierające zapytanie (albo w nim zawarte).
+    /// Bez wyszukiwania w internecie: decyzja właściciela S9 (tylko źródła z jasną licencją), R4-12.
+    public func searchChords(for songTitle: String) -> [GuitarChordResult] {
         var results: [GuitarChordResult] = []
         let cleanTitle = songTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let folded = Song.foldString(cleanTitle)
@@ -70,20 +71,30 @@ public final class GuitarChordsService: Sendable {
             }
         }
         
-        // 3. Query online guitar chord repositories
-        let webResults = await searchOnlineChords(title: cleanTitle, artist: artist ?? "")
-        for wr in webResults {
-            if !results.contains(where: { $0.title.lowercased() == wr.title.lowercased() }) {
-                results.append(wr)
-            }
-        }
-        
         return results
     }
     
     // Kompilowane raz (N3). Inline chords in parens like (CG) or (a e), and in brackets like [C] or [G].
     private static let inlineParensChordRegex = try! NSRegularExpression(pattern: #"\(([A-Ha-h0-9#b\s/]{1,8})\)"#)
     private static let inlineBracketsChordRegex = try! NSRegularExpression(pattern: #"\[([A-Ha-h0-9#b/]{1,6})\]"#)
+    
+    /// Usuwa z linii dopasowania, które są chwytami: każdy wyraz to akord albo znak neutralny, co najmniej
+    /// jeden akord. `[1]`, `(3)` czy `(ach)` zostają w tekście (R2-20). `nil`, gdy w linii nie ma chwytów.
+    private static func removingChordMatches(of regex: NSRegularExpression, in line: String) -> String? {
+        let ns = line as NSString
+        let matches = regex.matches(in: line, range: NSRange(location: 0, length: ns.length)).filter { match in
+            let content = ns.substring(with: match.range(at: 1))
+            let tokens = content.split(whereSeparator: { $0.isWhitespace }).map(String.init)
+            return tokens.contains { ChordTransposer.parse($0) != nil }
+                && tokens.allSatisfy { ChordTransposer.parse($0) != nil || $0 == "/" }
+        }
+        guard !matches.isEmpty else { return nil }
+        let result = NSMutableString(string: line)
+        for match in matches.reversed() {
+            result.replaceCharacters(in: match.range, with: "")
+        }
+        return result as String
+    }
     
     /// Extracts chords from raw lyrics text, returning both cleaned lyrics (for projection) and extracted chords sheet (for musicians)
     public func extractChordsAndCleanLyrics(_ raw: String) -> (cleanLyrics: String, extractedChords: String?) {
@@ -108,17 +119,17 @@ public final class GuitarChordsService: Sendable {
             var cleanedLine = line
             
             // Check for inline chords in brackets [C]
-            if let bRegex = inlineBracketsChordRegex, bRegex.firstMatch(in: cleanedLine, options: [], range: NSRange(location: 0, length: (cleanedLine as NSString).length)) != nil {
+            if let bRegex = inlineBracketsChordRegex, let stripped = Self.removingChordMatches(of: bRegex, in: cleanedLine) {
                 foundAnyChords = true
                 chordSheetLines.append(cleanedLine)
                 // Remove bracketed chords for audience projection
-                cleanedLine = bRegex.stringByReplacingMatches(in: cleanedLine, options: [], range: NSRange(location: 0, length: (cleanedLine as NSString).length), withTemplate: "")
+                cleanedLine = stripped
             }
             // Check for inline chords in parens at end of line like "Pan kiedyś stanął nad brzegiem (D A)"
-            else if let pRegex = inlineParensChordRegex, pRegex.firstMatch(in: cleanedLine, options: [], range: NSRange(location: 0, length: (cleanedLine as NSString).length)) != nil {
+            else if let pRegex = inlineParensChordRegex, let stripped = Self.removingChordMatches(of: pRegex, in: cleanedLine) {
                 foundAnyChords = true
                 chordSheetLines.append(cleanedLine)
-                cleanedLine = pRegex.stringByReplacingMatches(in: cleanedLine, options: [], range: NSRange(location: 0, length: (cleanedLine as NSString).length), withTemplate: "")
+                cleanedLine = stripped
             } else {
                 chordSheetLines.append(cleanedLine)
             }
@@ -134,64 +145,6 @@ public final class GuitarChordsService: Sendable {
     /// Transposes chords in a chord sheet by given number of semitones (W7: see `ChordTransposer`)
     public func transpose(chordsSheet: String, semitones: Int) -> String {
         ChordTransposer.transpose(chordsSheet, semitones: semitones)
-    }
-    
-    // MARK: - Online Chords Scraper
-    private func searchOnlineChords(title: String, artist: String) async -> [GuitarChordResult] {
-        let query = "\(title) \(artist) chwyty gitarowe akordy"
-        guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "https://html.duckduckgo.com/html/?q=\(encoded)") else {
-            return []
-        }
-        
-        var request = URLRequest(url: url)
-        request.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36", forHTTPHeaderField: "User-Agent")
-        request.timeoutInterval = 7.0
-        
-        do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            guard let html = String(data: data, encoding: .utf8) else { return [] }
-            
-            let snippetPattern = "<a class=\"result__snippet\"[^>]*>(.*?)</a>"
-            let titlePattern = "<a class=\"result__url\"[^>]*>(.*?)</a>"
-            
-            guard let sRegex = try? NSRegularExpression(pattern: snippetPattern, options: [.dotMatchesLineSeparators]),
-                  let tRegex = try? NSRegularExpression(pattern: titlePattern, options: [.dotMatchesLineSeparators]) else { return [] }
-            
-            let ns = html as NSString
-            let sMatches = sRegex.matches(in: html, options: [], range: NSRange(location: 0, length: ns.length))
-            let tMatches = tRegex.matches(in: html, options: [], range: NSRange(location: 0, length: ns.length))
-            
-            var list: [GuitarChordResult] = []
-            let count = min(sMatches.count, tMatches.count, 4)
-            
-            for i in 0..<count {
-                let rawSnippet = ns.substring(with: sMatches[i].range(at: 1))
-                let rawSource = ns.substring(with: tMatches[i].range(at: 1))
-                
-                let cleanSnippet = rawSnippet.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
-                    .replacingOccurrences(of: "&quot;", with: "\"")
-                    .replacingOccurrences(of: "&#x27;", with: "'")
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                
-                let cleanSource = rawSource.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                
-                // Check if snippet contains chord symbols
-                if cleanSnippet.contains("C") || cleanSnippet.contains("G") || cleanSnippet.contains("D") || cleanSnippet.contains("a") || cleanSnippet.contains("e") {
-                    list.append(GuitarChordResult(
-                        title: title,
-                        artist: artist.isEmpty ? "Pieśń religijna" : artist,
-                        key: "Oryginalna",
-                        chordsSheet: cleanSnippet,
-                        source: cleanSource.isEmpty ? "Internetowy śpiewnik chwytów" : cleanSource
-                    ))
-                }
-            }
-            return list
-        } catch {
-            return []
-        }
     }
     
     // MARK: - Populate Curated Chords for Top Polish Hymns

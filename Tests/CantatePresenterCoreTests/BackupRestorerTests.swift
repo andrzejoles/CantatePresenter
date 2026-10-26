@@ -92,7 +92,34 @@ struct BackupRestorerTests {
         try restorer.undoLastRestore()
 
         #expect(try titles(in: data) == ["Obecna"])
-        #expect(!restorer.canUndo)
+        // Przywrócone dane nie znikają: ponowne „cofnij” wraca do nich (R2-01).
+        let latest = try #require(restorer.previousStateDetails().first)
+        #expect(latest.kind == .beforeUndo)
+        #expect(try titles(in: latest.url) == ["Z kopii 1", "Z kopii 2"])
+    }
+
+    @Test("Cofnięcie po późniejszych zmianach zachowuje obecne dane i można do nich wrócić (R2-01)")
+    func undoKeepsLaterWork() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let (data, backup) = try makeFixture(in: dir)
+        let restorer = BackupRestorer(dataDirectory: data)
+        _ = try restorer.restore(fromExtracted: backup)
+        // Miesiące pracy po przywróceniu.
+        try songsJSON(["Z kopii 1", "Dodana później"]).write(to: data.appendingPathComponent("songs.json"))
+
+        let before = try #require(restorer.previousStateDetails().first)
+        #expect(before.kind == .beforeRestore)
+        #expect(before.date != nil)
+        let kept = try restorer.undoLastRestore()
+
+        #expect(try titles(in: data) == ["Obecna"])
+        #expect(try titles(in: kept) == ["Z kopii 1", "Dodana później"])
+        #expect(restorer.previousStates().first?.path == kept.path)
+
+        // Drugie „cofnij” wraca do pracy sprzed cofnięcia, a nie do jeszcze starszego przywrócenia.
+        try restorer.undoLastRestore()
+        #expect(try titles(in: data) == ["Z kopii 1", "Dodana później"])
     }
 
     @Test("Zostają najwyżej 3 poprzednie stany")
