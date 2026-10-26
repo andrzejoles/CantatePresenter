@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
@@ -18,11 +18,11 @@ rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR"
 mkdir -p "$RESOURCES_DIR"
 
-cp "$DIR/.build/release/CantatePresenter" "$MACOS_DIR/CantatePresenter"
+BIN_PATH="$(swift build -c release --show-bin-path)"
+cp "$BIN_PATH/CantatePresenter" "$MACOS_DIR/CantatePresenter"
 chmod +x "$MACOS_DIR/CantatePresenter"
 
 # Tłumaczenia interfejsu (String Catalog, S10): paczka zasobów pakietu obok ikony w Contents/Resources.
-BIN_PATH="$(swift build -c release --show-bin-path)"
 RESOURCE_BUNDLE="$BIN_PATH/CantatePresenter_CantatePresenterCore.bundle"
 if [ ! -d "$RESOURCE_BUNDLE" ]; then
     echo "BŁĄD: brak $RESOURCE_BUNDLE (tłumaczenia interfejsu)" >&2
@@ -144,14 +144,14 @@ if [ -n "$SIGN_IDENTITY" ]; then
     # Podpis ad-hoc ("-") z Hardened Runtime służy do sprawdzenia tej ścieżki bez certyfikatu: bez znacznika czasu.
     if [ "$SIGN_IDENTITY" = "-" ]; then SIGN_ARGS=(--force --options runtime --sign -); fi
     if [ -d "$CONTENTS_DIR/Frameworks" ]; then
-        find "$CONTENTS_DIR/Frameworks" -depth \( -name "*.xpc" -o -name "*.app" -o -name "Autoupdate" -o -name "*.framework" \) -print0 |
+        find "$CONTENTS_DIR/Frameworks" -depth ! -type l \( -name "*.xpc" -o -name "*.app" -o -name "Autoupdate" -o -name "*.framework" \) -print0 |
             while IFS= read -r -d '' nested; do codesign "${SIGN_ARGS[@]}" "$nested"; done
     fi
     codesign "${SIGN_ARGS[@]}" --entitlements "$DIR/Resources/CantatePresenter.entitlements" "$APP_DIR"
 else
     echo "=== Podpisywanie aplikacji (ad-hoc codesign) ==="
     if [ -d "$CONTENTS_DIR/Frameworks" ]; then
-        find "$CONTENTS_DIR/Frameworks" -depth \( -name "*.xpc" -o -name "*.app" -o -name "Autoupdate" -o -name "*.framework" \) -print0 |
+        find "$CONTENTS_DIR/Frameworks" -depth ! -type l \( -name "*.xpc" -o -name "*.app" -o -name "Autoupdate" -o -name "*.framework" \) -print0 |
             while IFS= read -r -d '' nested; do codesign --force --sign - "$nested"; done
     fi
     codesign --force --sign - "$APP_DIR"
