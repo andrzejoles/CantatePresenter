@@ -11649,6 +11649,34 @@
         }
       }
     },
+    "Plik własnych języków (custom_languages.json) jest uszkodzony i nie zostanie nadpisany. Kopia: {0}. Usuń lub napraw plik albo przywróć kopię zapasową, a potem zaimportuj język ponownie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The custom languages file (custom_languages.json) is damaged and will not be overwritten. Copy: {0}. Delete or repair the file, or restore a backup, and then import the language again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Datei mit eigenen Sprachen (custom_languages.json) ist beschädigt und wird nicht überschrieben. Kopie: {0}. Löschen oder reparieren Sie die Datei oder stellen Sie eine Sicherung wieder her und importieren Sie die Sprache danach erneut."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El archivo de idiomas propios (custom_languages.json) está dañado y no se sobrescribirá. Copia: {0}. Elimine o repare el archivo, o restaure una copia de seguridad, y luego vuelva a importar el idioma."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл власних мов (custom_languages.json) пошкоджений і не буде перезаписаний. Копія: {0}. Видаліть або виправте файл чи відновіть резервну копію, а потім імпортуйте мову знову."
+          }
+        }
+      }
+    },
     "Plik {0} w kopii zapasowej jest uszkodzony: {1}": {
       "localizations": {
         "en": {

@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import SwiftUI
+import os
 
 public struct CustomLanguage: Codable, Identifiable, Equatable {
     public var id: String { code }
@@ -15,6 +16,22 @@ public struct CustomLanguage: Codable, Identifiable, Equatable {
         self.flag = flag.isEmpty ? "🌐" : flag
         self.strings = strings
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case code, name, flag, strings
+    }
+
+    /// Tolerancyjny dekoder (R2-23): brak flagi, nazwy czy tekstów nie odrzuca całego pliku języków.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let code = try container.decode(String.self, forKey: .code)
+        self.init(
+            code: code,
+            name: try container.decodeIfPresent(String.self, forKey: .name) ?? code,
+            flag: try container.decodeIfPresent(String.self, forKey: .flag) ?? "🌐",
+            strings: (try? container.decodeIfPresent([String: String].self, forKey: .strings)) ?? [:]
+        )
+    }
 }
 
 public struct TranslationTemplateItem: Codable {
@@ -28,6 +45,22 @@ public struct TranslationTemplateItem: Codable {
         self.sourceText = sourceText
         self.translation = translation
         self.context = context
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case key, sourceText, translation, context
+    }
+
+    /// Tylko `key` jest wymagany: AI tłumaczące szablon często gubi `context` albo `sourceText` (R2-17).
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let key = try container.decode(String.self, forKey: .key)
+        self.init(
+            key: key,
+            sourceText: try container.decodeIfPresent(String.self, forKey: .sourceText) ?? key,
+            translation: try container.decodeIfPresent(String.self, forKey: .translation) ?? "",
+            context: try container.decodeIfPresent(String.self, forKey: .context) ?? ""
+        )
     }
 }
 
@@ -56,6 +89,33 @@ public struct TranslationPackage: Codable {
         self.targetLanguageFlag = targetLanguageFlag
         self.instructionsForAI = instructionsForAI
         self.translations = translations
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case schema, sourceLanguage, targetLanguageCode, targetLanguageName, targetLanguageFlag, instructionsForAI, translations
+    }
+
+    /// Wymagana jest tylko lista `translations`; reszta szablonu może zniknąć po tłumaczeniu przez AI (R2-17).
+    /// Elementy bez `key` są pomijane.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let items = try container.decode([LenientItem].self, forKey: .translations).compactMap(\.item)
+        self.init(
+            schema: try container.decodeIfPresent(String.self, forKey: .schema) ?? "",
+            sourceLanguage: try container.decodeIfPresent(String.self, forKey: .sourceLanguage) ?? Localization.sourceLanguage,
+            targetLanguageCode: try container.decodeIfPresent(String.self, forKey: .targetLanguageCode) ?? "",
+            targetLanguageName: try container.decodeIfPresent(String.self, forKey: .targetLanguageName) ?? "",
+            targetLanguageFlag: try container.decodeIfPresent(String.self, forKey: .targetLanguageFlag) ?? "",
+            instructionsForAI: try container.decodeIfPresent(String.self, forKey: .instructionsForAI) ?? "",
+            translations: items
+        )
+    }
+
+    private struct LenientItem: Decodable {
+        let item: TranslationTemplateItem?
+        init(from decoder: Decoder) throws {
+            item = try? TranslationTemplateItem(from: decoder)
+        }
     }
 }
 
@@ -111,6 +171,9 @@ public final class LocalizationService: ObservableObject {
     ]
     
     private let customLanguagesURL: URL
+    /// Plik języków jest nieczytelny (kopia w kwarantannie): do udanego wczytania import go nie nadpisuje (K1, R2-17).
+    @Published public private(set) var loadIssue: String?
+    private static let logger = Logger(subsystem: "com.cantate.presenter", category: "localization")
     
     public convenience init() {
         self.init(customLanguagesURL: AppPaths.shared.customLanguagesFile)
@@ -215,6 +278,14 @@ public final class LocalizationService: ObservableObject {
             // Flexible format (flat key-value or wrapped)
             if let stringsObj = rawDict["translations"] as? [String: String] {
                 parsedStrings = stringsObj
+            } else if let items = rawDict["translations"] as? [[String: Any]] {
+                // Szablon z listą elementów, którego nie dało się odczytać jako pakietu (R2-17).
+                for item in items {
+                    if let key = item["key"] as? String,
+                       let translation = (item["translation"] as? String)?.trimmingCharacters(in: .whitespaces), !translation.isEmpty {
+                        parsedStrings[key] = translation
+                    }
+                }
             } else if let stringsObj = rawDict["strings"] as? [String: String] {
                 parsedStrings = stringsObj
             } else {
@@ -242,28 +313,41 @@ public final class LocalizationService: ObservableObject {
             targetFlag = "🌐"
         }
         
+        if let loadIssue {
+            throw NSError(domain: "LocalizationService", code: 409, userInfo: [NSLocalizedDescriptionKey: loadIssue])
+        }
+
         let customLang = CustomLanguage(code: targetCode, name: targetName, flag: targetFlag, strings: parsedStrings)
-        
-        // Remove existing with same code if updating
-        customLanguages.removeAll(where: { $0.code == targetCode })
-        customLanguages.append(customLang)
-        
-        try saveCustomLanguages()
-        
+
+        // Remove existing with same code if updating. Pamięć zmienia się dopiero po udanym zapisie (R2-17).
+        var updated = customLanguages
+        updated.removeAll(where: { $0.code == targetCode })
+        updated.append(customLang)
+        try saveCustomLanguages(updated)
+        customLanguages = updated
+
         return (code: targetCode, name: targetName, count: parsedStrings.count)
     }
-    
+
     /// Zapis przez `JSONFileStore` (kopie przed zapisem); błąd trafia do wywołującego, nie jest połykany (N7).
-    private func saveCustomLanguages() throws {
+    private func saveCustomLanguages(_ languages: [CustomLanguage]) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted]
-        try JSONFileStore().save(customLanguages, to: customLanguagesURL, encoder: encoder)
+        try JSONFileStore().save(languages, to: customLanguagesURL, encoder: encoder)
     }
-    
-    /// Nieczytelny plik jest kopiowany do kwarantanny, zanim kolejny import go nadpisze.
+
+    /// Nieczytelny plik jest kopiowany do kwarantanny i blokowany do udanego wczytania (np. po przywróceniu kopii).
     public func loadCustomLanguages() {
-        if case .loaded(let loaded) = JSONFileStore().load([CustomLanguage].self, from: customLanguagesURL) {
-            self.customLanguages = loaded
+        switch JSONFileStore().load([CustomLanguage].self, from: customLanguagesURL) {
+        case .loaded(let loaded):
+            loadIssue = nil
+            customLanguages = loaded
+        case .missing:
+            loadIssue = nil
+            customLanguages = []
+        case .unreadable(let error, let copy):
+            Self.logger.error("Nieczytelny plik własnych języków: \(String(describing: error), privacy: .public)")
+            loadIssue = Lnow("Plik własnych języków (custom_languages.json) jest uszkodzony i nie zostanie nadpisany. Kopia: {0}. Usuń lub napraw plik albo przywróć kopię zapasową, a potem zaimportuj język ponownie.", copy?.lastPathComponent ?? "-")
         }
     }
 }
