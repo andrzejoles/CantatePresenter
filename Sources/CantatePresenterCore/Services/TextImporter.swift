@@ -79,20 +79,23 @@ public struct TextImporter {
         // 2. JSON (własny eksport, songs.json, Holyrics i inne programy)
         if ext == "json" {
             do {
-                return ImportOutcome(songs: decodeSongsFromJSON(data: try Data(contentsOf: url)))
+                return jsonOutcome(data: try Data(contentsOf: url), fileName: url.lastPathComponent)
             } catch {
                 return ImportOutcome(problems: [ImportProblem(fileName: url.lastPathComponent, message: error.localizedDescription)])
             }
         }
-        
-        guard let text = readTextWithBestEncoding(from: url) else {
+
+        guard let text = readTextWithBestEncoding(from: url), !looksBinary(text) else {
             return ImportOutcome(problems: [ImportProblem(fileName: url.lastPathComponent, message: Lnow("Nie można odczytać pliku."))])
         }
         let fallbackTitle = url.deletingPathExtension().lastPathComponent
-        
+
         // 3. Pliki z CCLI SongSelect (.usr, ChordPro, tekst ze stopką „CCLI Song #”)
         if ext == "usr" {
-            return ImportOutcome(songs: SongSelectImporter.parseUSR(text).map { [$0] } ?? [])
+            guard let song = SongSelectImporter.parseUSR(text) else {
+                return ImportOutcome(problems: [ImportProblem(fileName: url.lastPathComponent, message: Lnow("Nie można odczytać pliku."))])
+            }
+            return ImportOutcome(songs: [song])
         }
         if SongSelectImporter.chordProExtensions.contains(ext) {
             return ImportOutcome(songs: [SongSelectImporter.parseChordPro(text, fallbackTitle: fallbackTitle)])
@@ -282,10 +285,46 @@ public struct TextImporter {
         guard let json = try? JSONSerialization.jsonObject(with: data, options: []) else { return [] }
         return songs(fromJSONValue: json)
     }
-    
+
+    /// Jak `decodeSongsFromJSON`, ale nieczytelny JSON i JSON bez pieśni są problemami importu (R6-05).
+    static func jsonOutcome(data: Data, fileName: String) -> ImportOutcome {
+        guard let json = try? JSONSerialization.jsonObject(with: data, options: []) else {
+            return ImportOutcome(problems: [ImportProblem(fileName: fileName, message: Lnow("Nie można odczytać pliku."))])
+        }
+        let songs = songs(fromJSONValue: json)
+        guard !songs.isEmpty else {
+            return ImportOutcome(problems: [ImportProblem(fileName: fileName, message: Lnow("Nie znaleziono pieśni"))])
+        }
+        return ImportOutcome(songs: songs)
+    }
+
+    /// Tekst, który jest poprawnym JSON-em (obiekt albo tablica), jako wynik importu JSON; `nil`, gdy to nie JSON (R6-06).
+    static func jsonOutcomeIfJSON(_ text: String, fileName: String) -> ImportOutcome? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("{") || trimmed.hasPrefix("[") else { return nil }
+        let data = Data(trimmed.utf8)
+        guard (try? JSONSerialization.jsonObject(with: data, options: [])) != nil else { return nil }
+        return jsonOutcome(data: data, fileName: fileName)
+    }
+
+    /// Znaki sterujące poza końcami linii i tabulatorami: w tekście pieśni ich nie ma, w danych binarnych
+    /// (np. ucięte archiwum odczytane jako Windows-1250) jest ich dużo (R6-02).
+    static func looksBinary(_ text: String) -> Bool {
+        let allowed = "\n\r\t\u{0B}\u{0C}".unicodeScalars
+        var total = 0
+        var controls = 0
+        for scalar in text.unicodeScalars {
+            total += 1
+            if scalar.properties.generalCategory == .control, !allowed.contains(scalar) {
+                controls += 1
+            }
+        }
+        return controls > max(2, total / 50)
+    }
+
     private static let wrapperKeys = ["songs", "items", "piesni", "library", "musics"]
-    
-    private static func songs(fromJSONValue value: Any) -> [Song] {
+
+    static func songs(fromJSONValue value: Any) -> [Song] {
         if let array = value as? [Any] {
             return array.compactMap { ($0 as? [String: Any]).flatMap(song(fromJSONObject:)) }
         }

@@ -77,12 +77,10 @@ public struct HolyricsImporter {
         let ext = url.pathExtension.lowercased()
         let fileName = url.lastPathComponent
         
-        // 1. ZIP package (.hly/.holyrics bywają też zwykłym plikiem, więc dla nich jest dalszy ciąg)
-        if TextImporter.archiveExtensions.contains(ext) {
-            let archive = importFromArchive(at: url)
-            if ext == "zip" || !archive.songs.isEmpty {
-                return archive
-            }
+        // 1. ZIP package. .hly/.holyrics bywają też zwykłym plikiem tekstowym; jako tekst idą tylko bez
+        // sygnatury ZIP, bo uszkodzone archiwum dawało jedną „pieśń” z bajtów ZIP bez ostrzeżenia (R6-02).
+        if TextImporter.archiveExtensions.contains(ext), ext == "zip" || ZipArchive.hasSignature(url) {
+            return importFromArchive(at: url)
         }
         
         let fileData: Data
@@ -106,9 +104,13 @@ public struct HolyricsImporter {
             return ImportOutcome(songs: songs, problems: [ImportProblem(fileName: fileName, message: message)])
         }
         
-        // 3. Text parsing (JSON, XML, or tagged TXT)
-        guard let content = TextImporter.decodeText(fileData) else {
+        // 3. Text parsing (JSON, XML, or tagged TXT). Dane binarne nie są słowami pieśni (R6-02).
+        guard let content = TextImporter.decodeText(fileData), !TextImporter.looksBinary(content) else {
             return ImportOutcome(problems: [ImportProblem(fileName: fileName, message: Lnow("Nie można odczytać pliku."))])
+        }
+        // JSON idzie tą samą drogą co plik .json (własny format bez strat, plan to nie pieśń, R6-06).
+        if let json = TextImporter.jsonOutcomeIfJSON(content, fileName: fileName) {
+            return json
         }
         return ImportOutcome(songs: parseHolyricsContent(content, fallbackTitle: url.deletingPathExtension().lastPathComponent))
     }
@@ -133,13 +135,11 @@ public struct HolyricsImporter {
         let trimmed = rawContent.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return [] }
         
-        // A. Try JSON (Holyrics API export / JSON format)
-        if (trimmed.hasPrefix("{") || trimmed.hasPrefix("[")) {
-            if let data = trimmed.data(using: .utf8) {
-                if let songs = parseHolyricsJSON(data) {
-                    return songs
-                }
-            }
+        // A. JSON (Holyrics API export, własny eksport): ta sama tolerancyjna droga co pliki .json (R6-06).
+        // Poprawny JSON bez pieśni (np. plan) nie staje się pieśnią z tekstem JSON.
+        if trimmed.hasPrefix("{") || trimmed.hasPrefix("["),
+           let json = try? JSONSerialization.jsonObject(with: Data(trimmed.utf8), options: []) {
+            return TextImporter.songs(fromJSONValue: json)
         }
         
         // B. Try XML (OpenSong / OpenLyrics / Holyrics XML format)
@@ -262,58 +262,6 @@ public struct HolyricsImporter {
         return [text]
     }
     
-    // MARK: - JSON Parser (Holyrics JSON export)
-    private static func parseHolyricsJSON(_ data: Data) -> [Song]? {
-        guard let jsonObject = try? JSONSerialization.jsonObject(with: data, options: []) else {
-            return nil
-        }
-        
-        var songDicts: [[String: Any]] = []
-        if let array = jsonObject as? [[String: Any]] {
-            songDicts = array
-        } else if let dict = jsonObject as? [String: Any] {
-            if let list = dict["songs"] as? [[String: Any]] {
-                songDicts = list
-            } else if let list = dict["musics"] as? [[String: Any]] {
-                songDicts = list
-            } else if let list = dict["items"] as? [[String: Any]] {
-                songDicts = list
-            } else {
-                songDicts = [dict]
-            }
-        }
-        
-        guard !songDicts.isEmpty else { return nil }
-        
-        var results: [Song] = []
-        for dict in songDicts {
-            let title = (dict["title"] as? String) ?? (dict["name"] as? String) ?? (dict["nome"] as? String) ?? (dict["titulo"] as? String) ?? ""
-            let author = (dict["author"] as? String) ?? (dict["artist"] as? String) ?? (dict["artista"] as? String) ?? (dict["autor"] as? String) ?? ""
-            let key = (dict["key"] as? String) ?? (dict["tone"] as? String) ?? (dict["tom"] as? String) ?? ""
-            
-            var lyrics = (dict["lyrics"] as? String) ?? (dict["letra"] as? String) ?? (dict["text"] as? String) ?? ""
-            if lyrics.isEmpty, let slidesArray = dict["slides"] as? [String] {
-                lyrics = slidesArray.joined(separator: "\n\n")
-            } else if lyrics.isEmpty, let paragraphs = dict["paragraphs"] as? [[String: Any]] {
-                let texts = paragraphs.compactMap { $0["text"] as? String }
-                lyrics = texts.joined(separator: "\n\n")
-            }
-            
-            if !title.isEmpty || !lyrics.isEmpty {
-                let cleaned = translateHolyricsVerseMarkers(lyrics)
-                results.append(Song(
-                    title: title.isEmpty ? "Bez tytułu" : title,
-                    author: author,
-                    key: key,
-                    tags: ["Import Holyrics JSON"],
-                    rawLyrics: cleaned
-                ))
-            }
-        }
-        
-        return results.isEmpty ? nil : results
-    }
-    
     // MARK: - XML Parser (OpenSong / OpenLyrics / Holyrics XML format)
     /// Prawdziwy parser XML zamiast wyrażeń regularnych: encje (`&amp;`) i CDATA są dekodowane (N5).
     private static func parseHolyricsXML(_ xmlString: String, fallbackTitle: String) -> [Song] {
@@ -364,6 +312,8 @@ public struct HolyricsImporter {
         // Kod 1 = ostrzeżenia unzip (część plików rozpakowana); wyższy = błąd (R2-14).
         if process.terminationStatus != 0 {
             outcome.problems.insert(ImportProblem(fileName: fileName, message: Lnow("Archiwum rozpakowane z błędami (kod unzip: {0}); część pieśni mogła zostać pominięta.", process.terminationStatus)), at: 0)
+        } else if outcome.songs.isEmpty && outcome.problems.isEmpty {
+            outcome.problems.append(ImportProblem(fileName: fileName, message: Lnow("Nie znaleziono pieśni")))
         }
         return outcome
     }
