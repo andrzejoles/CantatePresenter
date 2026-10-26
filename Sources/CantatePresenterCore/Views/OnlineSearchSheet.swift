@@ -325,9 +325,10 @@ public struct OnlineSearchSheet: View {
         let finalAuthor: String
         if importAuthor {
             let trimmed = editedAuthor.trimmingCharacters(in: .whitespaces)
-            finalAuthor = trimmed.isEmpty ? L("Nieznany") : trimmed
+            finalAuthor = trimmed.isEmpty ? SongEnrichmentService.unknownAuthorPlaceholder : trimmed
         } else {
-            finalAuthor = L("Nieznany")
+            // Stała w danych, nie tłumaczenie (R2-11).
+            finalAuthor = SongEnrichmentService.unknownAuthorPlaceholder
         }
         
         var newSong = Song(

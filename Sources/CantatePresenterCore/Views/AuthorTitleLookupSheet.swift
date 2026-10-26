@@ -34,6 +34,8 @@ public struct AuthorTitleLookupSheet: View {
     @State private var batchStatusText: String = ""
     @State private var batchProposals: [SongMatchProposal] = []
     @State private var batchSuccessMessage: String?
+    /// Wyszukiwanie zbiorcze; przerywane po zamknięciu okna (R4-07).
+    @State private var batchTask: Task<Void, Never>?
     
     public init(isPresented: Binding<Bool>, initialSong: Song? = nil) {
         self._isPresented = isPresented
@@ -106,6 +108,10 @@ public struct AuthorTitleLookupSheet: View {
             }
         }
         .frame(minWidth: 760, minHeight: 560)
+        .onDisappear {
+            batchTask?.cancel()
+            batchTask = nil
+        }
         .onAppear {
             if let song = targetSingleSong {
                 selectedSongId = song.id
@@ -552,7 +558,8 @@ public struct AuthorTitleLookupSheet: View {
             updatedTitle = candidate.title
         }
         if setUnknownAuthor {
-            updatedAuthor = L("Nieznany")
+            // Stała w danych, nie tłumaczenie (R2-11).
+            updatedAuthor = SongEnrichmentService.unknownAuthorPlaceholder
         } else if !candidate.artist.isEmpty {
             updatedAuthor = candidate.artist
         }
@@ -561,7 +568,7 @@ public struct AuthorTitleLookupSheet: View {
         song.author = updatedAuthor
         store.updateSong(song)
         
-        singleSuccessMessage = L("Zaktualizowano dane utworu: {0} (Autor: {1})", updatedTitle, updatedAuthor)
+        singleSuccessMessage = L("Zaktualizowano dane utworu: {0} (Autor: {1})", updatedTitle, setUnknownAuthor ? L("Nieznany") : updatedAuthor)
     }
     
     private func startBatchLookup() {
@@ -582,11 +589,13 @@ public struct AuthorTitleLookupSheet: View {
         batchProposals = []
         batchSuccessMessage = nil
         
-        Task {
+        batchTask?.cancel()
+        batchTask = Task {
             var proposals: [SongMatchProposal] = []
             let total = candidateSongs.count
             
             for (index, song) in candidateSongs.enumerated() {
+                if Task.isCancelled { return }
                 await MainActor.run {
                     self.batchProgress = Double(index) / Double(total)
                     self.batchStatusText = L("Przeszukiwanie {0} z {1}: {2}...", index + 1, total, song.title)
@@ -607,15 +616,15 @@ public struct AuthorTitleLookupSheet: View {
         }
     }
     
+    /// Wszystkie wybrane propozycje jednym zapisem biblioteki (R2-10): wcześniej każda pieśń zapisywała
+    /// całą bibliotekę osobno, a `history/` traciła stan sprzed zmiany zbiorczej.
     private func applyBatchProposals() {
-        var appliedCount = 0
+        var changedSongs: [Song] = []
         for i in 0..<batchProposals.count {
             guard batchProposals[i].isSelected && !batchProposals[i].isApplied else { continue }
             let prop = batchProposals[i]
             
-            if let idx = store.songs.firstIndex(where: { $0.id == prop.songId }) {
-                var song = store.songs[idx]
-                
+            if var song = store.songs.first(where: { $0.id == prop.songId }) {
                 // Update author
                 if prop.acceptAuthor {
                     if !prop.proposedAuthor.isEmpty {
@@ -624,7 +633,8 @@ public struct AuthorTitleLookupSheet: View {
                         }
                     }
                 } else {
-                    song.author = L("Nieznany")
+                    // Stała w danych, nie tłumaczenie (R2-11).
+                    song.author = SongEnrichmentService.unknownAuthorPlaceholder
                 }
                 
                 // Update title if enabled
@@ -632,12 +642,12 @@ public struct AuthorTitleLookupSheet: View {
                     song.title = prop.proposedTitle
                 }
                 
-                store.updateSong(song)
+                changedSongs.append(song)
                 batchProposals[i].isApplied = true
-                appliedCount += 1
             }
         }
+        store.updateSongs(changedSongs)
         
-        batchSuccessMessage = L("Pomyślnie zaktualizowano dane dla {0} pieśni!", appliedCount)
+        batchSuccessMessage = L("Pomyślnie zaktualizowano dane dla {0} pieśni!", changedSongs.count)
     }
 }

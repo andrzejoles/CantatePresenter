@@ -17,16 +17,11 @@ public final class PolishEncodingService: Sendable {
         ("Ä…", "ą"), ("Ä„", "Ą"),
         ("Ä‡", "ć"), ("Ä†", "Ć"),
         ("Å„", "ń"), ("Åƒ", "Ń"),
-        // Windows-1250 specific single-byte mismatches
-        ("\u{00B9}", "ą"), ("\u{00A5}", "Ą"),
-        ("\u{00E6}", "ć"), ("\u{00C6}", "Ć"),
-        ("\u{00EA}", "ę"), ("\u{00CA}", "Ę"),
-        ("\u{00B3}", "ł"), ("\u{00A3}", "Ł"),
-        ("\u{00F1}", "ń"), ("\u{00D1}", "Ń"),
-        ("\u{00F3}", "ó"), ("\u{00D3}", "Ó"),
+        // Bajty Windows-1250 odczytane jako ISO-8859-1 dają znaki sterujące C1, których nie ma w prawdziwym
+        // tekście. Drukowalne odpowiedniki (ñ, ¿, ê, æ, £, ¹, ³ …) to zwykłe litery innych języków
+        // i nie są zamieniane (R2-02): „Señor” zostaje „Señor”.
         ("\u{009C}", "ś"), ("\u{008C}", "Ś"),
         ("\u{009F}", "ź"), ("\u{008F}", "Ź"),
-        ("\u{00BF}", "ż"), ("\u{00AF}", "Ż"),
         // Curly quotes and typographic dashes from Windows CP1250
         ("\u{0096}", "–"), ("\u{0097}", "—"),
         ("\u{0091}", "‘"), ("\u{0092}", "’"),
@@ -80,11 +75,10 @@ public final class PolishEncodingService: Sendable {
         "twoja": "Twoja",
         "twoje": "Twoje",
         "zlobie": "żłobie",
-        "zlobka": "żłóbka",
-        "zlobku": "żłóbku",
+        "zlobka": "żłobka",
+        "zlobku": "żłobku",
         "wsrod": "wśród",
         "coz": "Cóż",
-        "droga": "drogą",
         "chocby": "choćby",
         "duszo": "duszo",
         "dusza": "dusza",
@@ -162,15 +156,19 @@ public final class PolishEncodingService: Sendable {
         let lyricsRepaired = repairMojibake(lyrics)
         let lyricsHasDiacritics = hasPolishDiacritics(lyricsRepaired)
         
-        // Build a dictionary of words from lyrics that have diacritics
+        // Słowa z tekstu z polskimi literami. Słowo, które w tekście ma kilka postaci („droga” i „drogą”),
+        // nie jest zmieniane, bo nie wiadomo, o którą chodzi (R2-05).
+        let lyricsWords = lyricsRepaired.components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .filter { $0.count >= 2 }
+        var lyricsForms: [String: Set<String>] = [:]
+        for lw in lyricsWords {
+            lyricsForms[Song.foldString(lw), default: []].insert(lw.lowercased())
+        }
         var lyricsWordMap: [String: String] = [:]
         if lyricsHasDiacritics {
-            let lyricsWords = lyricsRepaired.components(separatedBy: CharacterSet.alphanumerics.inverted)
-                .filter { $0.count >= 2 }
-            for lw in lyricsWords {
-                let folded = Song.foldString(lw)
-                if hasPolishDiacritics(lw) {
-                    lyricsWordMap[folded] = lw
+            for (folded, forms) in lyricsForms where forms.count == 1 {
+                if let form = forms.first, hasPolishDiacritics(form) {
+                    lyricsWordMap[folded] = form
                 }
             }
         }
@@ -186,7 +184,9 @@ public final class PolishEncodingService: Sendable {
             guard !letters.isEmpty else { continue }
             
             let folded = Song.foldString(letters)
-            
+            // Tekst ma też dokładnie tę postać bez polskich liter: zostawiamy tytuł.
+            if lyricsForms[folded]?.contains(letters.lowercased()) == true { continue }
+
             var replacementWord: String? = nil
             // 1. Try lyrics match
             if let matchedFromLyrics = lyricsWordMap[folded] {

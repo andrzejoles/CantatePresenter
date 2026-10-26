@@ -49,6 +49,16 @@ struct ModelDecodingTests {
         #expect(slide.text == "Y")
     }
 
+    @Test("Pozycja planu bez songId nie psuje pozostałych planów (R2-23)")
+    func planItemWithoutSongIdIsDropped() throws {
+        let plans = try decode([ServicePlan].self, #"""
+        [{"name":"A","items":[{"songId":"7B1E7C4C-8E43-4E8B-9C1B-2D4A0F1E2A11"},{"note":"bez pieśni"},{"songId":"zły"}]},
+         {"name":"B","items":[{"songId":"7B1E7C4C-8E43-4E8B-9C1B-2D4A0F1E2A12"}]}]
+        """#)
+        #expect(plans.map(\.name) == ["A", "B"])
+        #expect(plans.map(\.items.count) == [1, 1])
+    }
+
     @Test("Pozycja planu bez notatki się wczytuje")
     func planItemWithoutNote() throws {
         let item = try decode(PlanItem.self, #"{"songId":"7B1E7C4C-8E43-4E8B-9C1B-2D4A0F1E2A11"}"#)

@@ -85,7 +85,7 @@ public final class ExitBackupCoordinator {
         }
         do {
             try await operations.upload(archive)
-            try? FileManager.default.removeItem(at: archive)
+            BackupService.removeTemporaryArchive(archive)
             return .uploaded
         } catch {
             logger.error("Wysyłka kopii nie powiodła się: \(String(describing: error), privacy: .public)")
@@ -99,7 +99,8 @@ public final class ExitBackupCoordinator {
 
     // MARK: - Local Copies
 
-    /// Przenosi archiwum do `directory` i zostawia `limit` najnowszych (nazwy archiwów zawierają datę).
+    /// Przenosi archiwum do `directory` i zostawia `limit` najnowszych.
+    /// Kolejność według daty utworzenia, a przy równej według nazwy (nazwy mogły powstać w innym formacie, R2-19).
     public static func keepLocally(_ archive: URL, in directory: URL, limit: Int = 5) throws -> URL {
         let fileManager = FileManager.default
         try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -108,12 +109,18 @@ public final class ExitBackupCoordinator {
             try fileManager.removeItem(at: destination)
         }
         try fileManager.moveItem(at: archive, to: destination)
+        BackupService.removeTemporaryArchive(archive)
 
-        let existing = try fileManager.contentsOfDirectory(atPath: directory.path)
-            .filter { !$0.hasPrefix(".") }
-            .sorted()
-        for name in existing.dropLast(limit) {
-            try? fileManager.removeItem(at: directory.appendingPathComponent(name))
+        let existing = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.creationDateKey])
+            .filter { !$0.lastPathComponent.hasPrefix(".") }
+            .map { (url: $0, created: (try? $0.resourceValues(forKeys: [.creationDateKey]).creationDate) ?? .distantPast) }
+            .sorted { ($0.created, $0.url.lastPathComponent) < ($1.created, $1.url.lastPathComponent) }
+        for entry in existing.dropLast(limit) {
+            do {
+                try fileManager.removeItem(at: entry.url)
+            } catch {
+                logger.error("Nie można usunąć starej kopii \(entry.url.lastPathComponent, privacy: .public): \(String(describing: error), privacy: .public)")
+            }
         }
         return destination
     }
@@ -123,7 +130,7 @@ public final class ExitBackupCoordinator {
     public static func liveOperations(dataDirectory: URL = AppPaths.shared.dataDirectory) -> Operations {
         Operations(
             createArchive: {
-                try BackupService.shared.createBackupArchive(comment: "Automatyczny backup przy zamykaniu CantatePresenter").archiveURL
+                try await BackupService.shared.createBackupArchive(comment: "Automatyczny backup przy zamykaniu CantatePresenter").archiveURL
             },
             upload: { archive in
                 _ = try await GoogleDriveService.shared.uploadBackupToDrive(archiveURL: archive)

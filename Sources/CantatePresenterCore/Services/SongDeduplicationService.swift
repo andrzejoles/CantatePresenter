@@ -13,6 +13,7 @@ public struct EnrichmentRecord: Identifiable {
     public let id = UUID()
     public let originalTitle: String
     public let enrichedTitle: String
+    /// Pusty, gdy pieśń nie miała autora (wcześniej polskie „brak” trafiało do widoku w każdym języku).
     public let originalAuthor: String
     public let enrichedAuthor: String
     public let details: String
@@ -24,6 +25,8 @@ public struct ImportProcessingResult {
     public var duplicateRecords: [DuplicateRecord]
     public var enrichmentRecords: [EnrichmentRecord]
     public var existingCollisions: [DuplicateRecord]
+    /// Pliki, których nie udało się (w całości) wczytać, np. uszkodzony .mufl (R2-04).
+    public var fileProblems: [ImportProblem] = []
     
     /// Pieśni do dodania po przeglądzie importu. Brak decyzji w mapach oznacza wartość domyślną
     /// `shouldSkipDuplicate` z rekordu.
@@ -76,7 +79,7 @@ public final class SongDeduplicationService: Sendable {
                 enrichments.append(EnrichmentRecord(
                     originalTitle: s.title,
                     enrichedTitle: enriched.title,
-                    originalAuthor: s.author.isEmpty ? "brak" : s.author,
+                    originalAuthor: s.author,
                     enrichedAuthor: enriched.author,
                     details: details
                 ))

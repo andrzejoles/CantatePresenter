@@ -266,28 +266,36 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc private func createBackupAction() {
         Task { @MainActor in
-            _ = BackupService.shared.exportBackupWithSavePanel()
+            _ = await BackupService.shared.exportBackupWithSavePanel()
         }
     }
-    
+
     @objc private func restoreBackupAction() {
         Task { @MainActor in
-            let result = await BackupService.shared.restoreBackupWithOpenPanel()
-            guard result.message != "Anulowano wybór pliku." else { return }
-            showInfoAlert(title: result.success ? Lnow("Przywrócono kopię zapasową") : Lnow("Nie przywrócono kopii zapasowej"), message: result.message, isError: !result.success)
+            let outcome = await BackupService.shared.restoreBackupWithOpenPanel()
+            guard let message = outcome.message else { return }
+            showInfoAlert(title: outcome.isSuccess ? Lnow("Przywrócono kopię zapasową") : Lnow("Nie przywrócono kopii zapasowej"), message: message, isError: !outcome.isSuccess)
         }
     }
-    
+
+    /// Potwierdzenie z datą stanu, do którego wracają dane; obecne dane zostają zachowane obok (R2-01).
     @MainActor @objc fileprivate func undoRestoreAction() {
+        guard let state = BackupService.shared.latestPreviousState else { return }
+        let date = state.date.map { DateFormatter.localizedString(from: $0, dateStyle: .medium, timeStyle: .short) } ?? state.url.lastPathComponent
         let alert = NSAlert()
         alert.messageText = Lnow("Cofnąć ostatnie przywracanie?")
-        alert.informativeText = Lnow("Dane wrócą do stanu sprzed ostatniego przywrócenia kopii zapasowej. Dane z przywróconej kopii zostaną usunięte.")
+        switch state.kind {
+        case .beforeRestore:
+            alert.informativeText = Lnow("Dane wrócą do stanu sprzed przywrócenia kopii zapasowej ({0}). Obecne dane, razem ze wszystkimi zmianami wprowadzonymi od tego czasu, zostaną zachowane w osobnym folderze obok folderu danych; to samo polecenie przywróci je z powrotem.", date)
+        case .beforeUndo:
+            alert.informativeText = Lnow("Dane wrócą do stanu sprzed cofnięcia przywracania ({0}). Obecne dane zostaną zachowane w osobnym folderze obok folderu danych.", date)
+        }
         alert.addButton(withTitle: Lnow("Cofnij przywracanie"))
         alert.addButton(withTitle: Lnow("Anuluj"))
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         do {
-            try BackupService.shared.undoLastRestore()
-            showInfoAlert(title: Lnow("Cofnięto przywracanie"), message: Lnow("Przywrócono dane sprzed ostatniego przywrócenia kopii."), isError: false)
+            let kept = try BackupService.shared.undoLastRestore()
+            showInfoAlert(title: Lnow("Cofnięto przywracanie"), message: Lnow("Przywrócono dane ze stanu z {0}. Poprzednie dane zachowano w folderze „{1}”.", date, kept.path), isError: false)
         } catch {
             showInfoAlert(title: Lnow("Nie udało się cofnąć przywracania"), message: error.localizedDescription, isError: true)
         }

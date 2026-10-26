@@ -285,7 +285,7 @@ public struct SettingsSheet: View {
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(L("Kompletna ochrona danych aplikacji"))
                                         .font(.scaled(12, weight: .bold, scale: scale))
-                                    Text(L("Kopia zapasowa (.holyricsbackup) zawiera: całą bazę pieśni ({0}), plany nabożeństw ({1}), chwyty gitarowe, wszystkie ustawienia programu, stronę początkową Standby, języki tłumaczeń oraz oficjalne loga.", store.songs.count, store.plans.count))
+                                    Text(L("Kopia zapasowa (.cantatebackup) zawiera: całą bazę pieśni ({0}), plany nabożeństw ({1}), chwyty gitarowe, wszystkie ustawienia programu, własne języki tłumaczeń oraz raport użycia CCLI.", store.songs.count, store.plans.count))
                                         .font(.scaled(11, scale: scale))
                                         .foregroundColor(.secondary)
                                 }
@@ -297,7 +297,7 @@ public struct SettingsSheet: View {
                             // Local Backup Buttons
                             HStack(spacing: 10) {
                                 Button(action: createLocalBackupAction) {
-                                    Label(L("Utwórz pełną kopię zapasową (.holyricsbackup)..."), systemImage: "square.and.arrow.up.fill")
+                                    Label(L("Utwórz pełną kopię zapasową (.cantatebackup)..."), systemImage: "square.and.arrow.up.fill")
                                         .font(.scaled(11, weight: .semibold, scale: scale))
                                 }
                                 .buttonStyle(.borderedProminent)
@@ -809,19 +809,20 @@ public struct SettingsSheet: View {
     
     private func createLocalBackupAction() {
         backupStatusMessage = nil
-        let success = BackupService.shared.exportBackupWithSavePanel()
-        if success {
-            isBackupSuccess = true
-            backupStatusMessage = L("Pomyślnie utworzono i zapisano pełną kopię zapasową (.holyricsbackup)!")
+        Task {
+            if await BackupService.shared.exportBackupWithSavePanel() {
+                isBackupSuccess = true
+                backupStatusMessage = L("Pomyślnie utworzono i wyeksportowano pełną kopię zapasową (.cantatebackup)!")
+            }
         }
     }
     
     private func restoreLocalBackupAction() {
         backupStatusMessage = nil
         Task {
-            let res = await BackupService.shared.restoreBackupWithOpenPanel()
-            isBackupSuccess = res.success
-            backupStatusMessage = res.message
+            let outcome = await BackupService.shared.restoreBackupWithOpenPanel()
+            isBackupSuccess = outcome.isSuccess
+            backupStatusMessage = outcome.message
         }
     }
     
@@ -831,9 +832,9 @@ public struct SettingsSheet: View {
         
         Task {
             do {
-                let (archiveURL, _) = try BackupService.shared.createBackupArchive(comment: L("Ręczny backup z Ustawień"))
+                let (archiveURL, _) = try await BackupService.shared.createBackupArchive(comment: L("Ręczny backup z Ustawień"))
+                defer { BackupService.removeTemporaryArchive(archiveURL) }
                 let item = try await GoogleDriveService.shared.uploadBackupToDrive(archiveURL: archiveURL)
-                try? FileManager.default.removeItem(at: archiveURL)
                 
                 await MainActor.run {
                     self.isUploadingToDrive = false

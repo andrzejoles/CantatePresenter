@@ -186,7 +186,14 @@ public final class DataStore {
             saveSongs()
         case .loaded(let decoded):
             unlock(songsFileURL)
-            self.songs = decoded
+            // Biblioteki sprzed W8 mogą mieć powtórzone id (import własnego eksportu); usunięcie jednej
+            // pieśni usuwało wtedy wszystkie kopie. Kopie dostają nowe id, plany wskazują pierwszą (R2-06).
+            let unique = Song.assigningUniqueIdentifiers(decoded, existing: [])
+            self.songs = unique
+            if unique.map(\.id) != decoded.map(\.id) {
+                Self.logger.notice("Nadano nowe id \(zip(unique, decoded).filter { $0.0.id != $0.1.id }.count) pieśniom z powtórzonym id")
+                saveSongs()
+            }
         case .unreadable(let error, let copy):
             lock(songsFileURL, error: error, quarantinedCopy: copy)
             self.songs = []
@@ -273,6 +280,11 @@ public final class DataStore {
         case .unreadable(let error, let copy):
             lock(settingsFileURL, error: error, quarantinedCopy: copy)
             self.settings = AppSettings()
+            // Ustawienia z nowszej wersji mogą się nie dekodować (zmieniony typ pola); numer formatu i tak
+            // decyduje o trybie tylko do odczytu, inaczej songs.json i plans.json straciłyby nowe pola (R2-08).
+            if let version = DataSchema.version(ofSettingsAt: settingsFileURL), version > DataSchema.current {
+                applySchemaVersion(version)
+            }
         }
     }
     
@@ -409,6 +421,30 @@ public final class DataStore {
         }
         saveSongs()
         savePlans()
+    }
+    
+    /// Zmienia wiele pieśni naraz jednym zapisem (R2-10). Zmiana w pętli przez `updateSong` zapisywała całą
+    /// bibliotekę dla każdej pieśni na wątku głównym, a po pięciu zapisach w `history/` nie było już stanu
+    /// sprzed zmiany zbiorczej. Pieśni, których nie ma w bibliotece, są pomijane.
+    public func updateSongs(_ changed: [Song]) {
+        guard !changed.isEmpty else { return }
+        var pending = Dictionary(changed.map { ($0.id, $0) }, uniquingKeysWith: { _, last in last })
+        let now = Date()
+        var updatedLibrary = songs
+        for index in updatedLibrary.indices {
+            guard var song = pending.removeValue(forKey: updatedLibrary[index].id) else { continue }
+            song.updatedAt = now
+            updatedLibrary[index] = song
+            if activeSong?.id == song.id {
+                activeSong = song
+                if activeSlideIndex >= song.slides.count {
+                    activeSlideIndex = max(0, song.slides.count - 1)
+                }
+            }
+        }
+        guard updatedLibrary != songs else { return }
+        songs = updatedLibrary
+        saveSongs()
     }
     
     // MARK: - Plan Operations
