@@ -55,7 +55,7 @@ public struct PlanListView: View {
                 }
                 
                 HStack {
-                    Text(L("{0} pieśni w planie", activePlanItems.count))
+                    Text(L("Pieśni w planie: {0}", activePlanItems.count))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                     

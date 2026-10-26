@@ -273,7 +273,7 @@ public struct LiveOutputView: View {
                                 .font(.scaled(11, weight: .medium, scale: scale))
                                 .foregroundColor(.secondary)
                             Spacer()
-                            Text(L("{0} linie", next.lines.count))
+                            Text(L("Linie: {0}", next.lines.count))
                                 .font(.scaled(10, scale: scale))
                                 .foregroundColor(.secondary)
                         }
