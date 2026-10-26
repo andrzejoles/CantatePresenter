@@ -201,6 +201,7 @@ public struct ImportReviewSheet: View {
                                 .foregroundColor(.secondary)
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .helpLabel(L("Wyczyść wyszukiwanie"))
                     }
                 }
                 .padding(.horizontal, 8)

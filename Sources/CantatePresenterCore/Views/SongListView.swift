@@ -100,6 +100,17 @@ public struct SongListView: View {
         }.map(\.song)
     }
     
+    /// Cały tekst podpowiedzi tłumaczony osobno dla każdego zakresu; wstawiana nazwa zakresu pisana
+    /// małą literą psuła m.in. niemieckie rzeczowniki („nur titel”, R8-07).
+    private var searchPlaceholder: String {
+        switch searchScope {
+        case .all: return L("Szukaj w tytule, autorze i tekście...")
+        case .titleAndAuthor: return L("Szukaj w tytule i autorze...")
+        case .titleOnly: return L("Szukaj tylko w tytule...")
+        case .authorOnly: return L("Szukaj tylko autora...")
+        }
+    }
+    
     public var body: some View {
         let scale = store.settings.uiScale
         let songs = filteredSongs
@@ -111,7 +122,7 @@ public struct SongListView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(isSearchFocused ? .green : .secondary)
                     
-                    TextField(searchScope == .all ? L("Szukaj w tytule, autorze i tekście...") : L("Szukaj ({0})...", L(searchScope.rawValue).lowercased()), text: $searchText)
+                    TextField(searchPlaceholder, text: $searchText)
                         .textFieldStyle(PlainTextFieldStyle())
                         .font(.scaled(12, scale: scale))
                         .focused($isSearchFocused)
@@ -357,7 +368,7 @@ private struct SongRowView: View {
             }
             
             if !song.author.isEmpty {
-                Text(song.author)
+                Text(song.displayAuthor)
                     .font(.scaled(11, scale: scale))
                     .foregroundColor(.secondary)
                     .lineLimit(1)

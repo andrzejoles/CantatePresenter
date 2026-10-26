@@ -23,8 +23,10 @@ final class PresentationWKWebView: WKWebView {
 public enum StandbyZoom {
     public static let designWidth: CGFloat = 960
     
+    /// Dolna granica 0.1, a nie 0.3: podgląd w wąskim prawym panelu (poniżej ok. 290 px) ucinał planszę,
+    /// bo strona przestawała się mieścić (R8-11).
     public static func factor(forWidth width: CGFloat) -> CGFloat {
-        min(4.0, max(0.3, width / designWidth))
+        min(4.0, max(0.1, width / designWidth))
     }
 }
 
