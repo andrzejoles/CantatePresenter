@@ -151,3 +151,26 @@ struct BackupArchiveTests {
         #expect(kept == names.dropFirst().sorted())
     }
 }
+
+// MARK: - R6-03: kopia z arkusza Ustawień zawiera zmiany z tego arkusza
+
+@Suite("Kopia zapasowa z niezapisanymi ustawieniami")
+@MainActor
+struct BackupUnsavedSettingsTests {
+    @Test("Archiwum zawiera ustawienia zmienione w pamięci, a nie tylko te zapisane na dysku (R6-03)")
+    func archiveContainsInMemorySettings() async throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let data = dir.url.appendingPathComponent("dane")
+        let store = DataStore(dataDirectory: data)
+        store.settings.fontFamily = "R6-03 Font"
+
+        let archive = try await BackupService.createBackupArchive(of: store, in: data, comment: nil, temporaryDirectory: dir.url).archiveURL
+        defer { BackupService.removeTemporaryArchive(archive) }
+        let extracted = dir.url.appendingPathComponent("rozpakowane")
+        try await BackupRestorer.unzip(archive, to: extracted)
+        let settingsData = try Data(contentsOf: BackupRestorer.contentRoot(in: extracted).appendingPathComponent("settings.json"))
+        let settings = try JSONFileStore.makeDecoder().decode(AppSettings.self, from: settingsData)
+        #expect(settings.fontFamily == "R6-03 Font")
+    }
+}
