@@ -208,11 +208,12 @@ public struct TextImporter {
     
     /// Kodowania jednobajtowe próbowane, gdy plik nie jest poprawnym UTF-8. Kolejność rozstrzyga remisy.
     /// Windows-1252 (zachodnioeuropejskie) jest po środkowoeuropejskich: wygrywa tylko przy wyraźnych
-    /// oznakach tekstu hiszpańskiego itp., np. „ñ” przed samogłoską (R2-18).
+    /// oznakach tekstu hiszpańskiego itp., np. „ñ” przed samogłoską (R2-18). Windows-1251 (cyrylica, np. starsze
+    /// pliki ukraińskie) jest ostatnie: wygrywa tylko tekst z samych słów cyrylicą (R6-12).
     private static let singleByteCandidates: [String.Encoding] = [
         CFStringEncodings.windowsLatin2, .isoLatin2, .macCentralEurRoman
     ].map { String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding($0.rawValue))) }
-        + [.windowsCP1252, .macOSRoman]
+        + [.windowsCP1252, .macOSRoman, .windowsCP1251]
     
     private static let polishLetters = Set("ąćęłńóśźżĄĆĘŁŃÓŚŹŻ")
     /// Znaki typowe dla złego kodowania polskiego tekstu, np. ISO-8859-2 czytane jako Windows-1250 („ą” → „±”, „ś” → „¶”)
@@ -238,11 +239,15 @@ public struct TextImporter {
             return PolishEncodingService.shared.repairMojibake(utf8)
         }
         
+        func isCyrillic(_ character: Character) -> Bool {
+            character.unicodeScalars.first.map { (0x0400...0x04FF).contains($0.value) } ?? false
+        }
+        
         func score(_ text: String) -> Int {
             var result = 0
             var previous: Character?
             for character in text {
-                if polishLetters.contains(character) {
+                if polishLetters.contains(character) || isCyrillic(character) {
                     result += 2
                 } else if suspiciousCharacters.contains(character) {
                     result -= 3
@@ -257,6 +262,10 @@ public struct TextImporter {
                     if "ńŃ".contains(previous) && vowels.contains(character) {
                         result -= 6
                     } else if "żŻ".contains(previous) && character.isUppercase {
+                        result -= 6
+                    } else if previous.isLetter && character.isLetter && isCyrillic(previous) != isCyrillic(character) {
+                        // Litery łacińskie i cyrylica w jednym słowie: polski tekst odczytany jako Windows-1251
+                        // („Zażółć” → „Zaїулж”) albo odwrotnie (R6-12).
                         result -= 6
                     }
                 }
