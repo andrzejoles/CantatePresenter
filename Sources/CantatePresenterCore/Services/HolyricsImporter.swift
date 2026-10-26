@@ -319,8 +319,11 @@ public struct HolyricsImporter {
         process.waitUntilExit()
         
         var importedSongs: [Song] = []
-        if let enumerator = FileManager.default.enumerator(at: tempDir, includingPropertiesForKeys: [.isRegularFileKey]) {
+        if let enumerator = FileManager.default.enumerator(at: tempDir, includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey]) {
             for case let fileURL as URL in enumerator {
+                // Tylko zwykłe pliki: dowiązanie z archiwum mogłoby wskazać plik spoza niego (R3-08).
+                let kind = try? fileURL.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+                guard kind?.isRegularFile == true, kind?.isSymbolicLink != true else { continue }
                 let ext = fileURL.pathExtension.lowercased()
                 if ext == "muf" || ext == "mufl" || ext == "txt" || ext == "json" || ext == "xml" {
                     importedSongs.append(contentsOf: importFromURL(fileURL))
