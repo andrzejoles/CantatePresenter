@@ -62,6 +62,7 @@ public struct OnlineSearchSheet: View {
                                 .foregroundColor(.secondary)
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .helpLabel(L("Wyczyść wyszukiwanie"))
                     }
                     
                     DictationButtonView(text: $query, mode: .replace, size: 13)
