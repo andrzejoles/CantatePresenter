@@ -47,7 +47,7 @@ Kluczowe elementy:
 
 ### Dane
 
-Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `ccli_usage.json`, `standby.html`, `logos/`, `templates/`, `history/` (5 ostatnich wersji przed zapisem, K1).
+Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `ccli_usage.json`, `standby.html`, `history/` (5 ostatnich wersji przed zapisem, K1). `logos/` i `templates/` mogą zostać ze starszych wersji (migracja i przywracanie starych kopii je przenoszą), ale aplikacja ich nie czyta (R2-15).
 
 Przy pierwszym uruchomieniu, gdy w Application Support nie ma `songs.json`/`plans.json`/`settings.json`, dane są **kopiowane** ze starej lokalizacji (`data/` obok pakietu .app, a przy `swift run` z bieżącego katalogu). Stary katalog zostaje. Jeśli kopiowanie się nie uda, aplikacja w tej sesji używa starego katalogu i pokazuje alert.
 
@@ -112,7 +112,7 @@ Weryfikacja przez właściciela:
 
 Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTests/`) testuje bibliotekę `CantatePresenterCore` przez `@testable import`, więc typy nie muszą być `public`. Używaj Swift Testing (`import Testing`, `@Suite`, `@Test`, `#expect`); przed indeksowaniem wyników używaj `try #require(...)`, bo przekroczenie zakresu wywraca cały proces testowy. Wymaga pełnego Xcode, nie samych Command Line Tools.
 
-- Priorytet testów: `Song.parseLyrics`, `GuitarChordsService.transpose`, `HolyricsJavaDeserializer` (pliki z `data/holyrics_samples/` oraz ich obcięte/uszkodzone kopie), `TextImporter.readTextWithBestEncoding`, deduplikacja, zgodność wstecz dekoderów modeli (stary JSON musi się wczytać).
+- Priorytet testów: `Song.parseLyrics`, `GuitarChordsService.transpose`, `HolyricsJavaDeserializer` (wzorce `shared/fixtures/holyrics-*` oraz ich obcięte/uszkodzone kopie), `TextImporter.readTextWithBestEncoding`, deduplikacja, zgodność wstecz dekoderów modeli (stary JSON musi się wczytać).
 - Testy nigdy nie mogą czytać ani zapisywać prawdziwego katalogu danych. Ścieżki wstrzykuj, używaj katalogów tymczasowych. Kod pod testem nie może sięgać do `DataStore.shared` ani `L()` (czyta `DataStore.shared`): język i `DataStore` podawaj jako parametr (R5-01). Zabezpieczenia: `AppPaths.shared` w procesie testów (`AppPaths.isRunningTests`) bez `CANTATE_DATA_DIR` wskazuje katalog tymczasowy, a CI uruchamia testy z `CANTATE_DATA_DIR` na nieistniejący katalog i przerywa, jeśli powstanie.
 - Każdy błąd naprawiany z raportu: najpierw test, który go odtwarza, potem poprawka.
 

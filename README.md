@@ -135,7 +135,7 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 
 ### 17. 🌐 Wielojęzyczność i tłumaczenie dla Agenta AI
 - Wbudowane języki interfejsu (Polski, English, Deutsch, Español, Українська).
-- Eksport słownika interfejsu do pliku JSON z precyzyjnymi opisami kontekstu każdego elementu dla agentów AI i tłumaczy (`data/templates/holyrics_translations_template_pl.json`).
+- Eksport słownika interfejsu do pliku JSON z precyzyjnymi opisami kontekstu każdego elementu dla agentów AI i tłumaczy (Ustawienia, generowany z aktualnego katalogu tekstów).
 - Import przetłumaczonego pliku JSON i natychmiastowa aktywacja nowego języka w interfejsie.
 
 ### 18. 🎵 Ekran dla muzyków
@@ -170,9 +170,7 @@ CantatePresenter/
 ├── data/                  # Stara lokalizacja danych: przykłady dla dewelopera i źródło migracji (nie trafia do aplikacji)
 │   ├── songs.json         # Przykładowa baza pieśni
 │   ├── plans.json         # Przykładowe plany nabożeństw
-│   ├── holyrics_samples/  # Próbki baz Holyrics do testów
-│   ├── logos/             # Grafiki logo END
-│   └── templates/         # Wzorcowy szablon tłumaczeń JSON dla AI
+│   └── holyrics_samples/  # Próbki baz Holyrics dla dewelopera (testy używają shared/fixtures)
 ├── przykladowe_piesni/    # Przykładowe pliki .txt do importu
 ├── shared/fixtures/       # Pliki wzorcowe testów (opis w shared/README.md)
 ├── scripts/               # Wersja, wydania, Sparkle, narzędzia do wzorców testowych
