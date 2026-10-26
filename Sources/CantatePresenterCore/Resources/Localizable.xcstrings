@@ -841,34 +841,6 @@
         }
       }
     },
-    "Anulowano wybór pliku.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "File selection cancelled."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dateiauswahl abgebrochen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Selección de archivo cancelada."
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Вибір файлу скасовано."
-          }
-        }
-      }
-    },
     "Anuluj": {
       "localizations": {
         "en": {
@@ -3637,34 +3609,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Дані повернуться до стану перед скасуванням відновлення ({0}). Поточні дані буде збережено в окремій папці поруч із папкою даних."
-          }
-        }
-      }
-    },
-    "Dane wrócą do stanu sprzed ostatniego przywrócenia kopii zapasowej. Dane z przywróconej kopii zostaną usunięte.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your data will return to the state before the last backup restore. Data from the restored backup will be removed."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Daten kehren zum Stand vor der letzten Wiederherstellung zurück. Die Daten aus der wiederhergestellten Sicherung werden entfernt."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Los datos volverán al estado anterior a la última restauración. Los datos de la copia restaurada se eliminarán."
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Дані повернуться до стану перед останнім відновленням резервної копії. Дані з відновленої копії буде видалено."
           }
         }
       }
@@ -7417,34 +7361,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Резервна копія (.cantatebackup) містить: усю бібліотеку пісень ({0}), плани богослужінь ({1}), гітарні акорди, усі налаштування програми, власні мови перекладу та звіт про використання CCLI."
-          }
-        }
-      }
-    },
-    "Kopia zapasowa (.holyricsbackup) zawiera: całą bazę pieśni ({0}), plany nabożeństw ({1}), chwyty gitarowe, wszystkie ustawienia programu, stronę początkową Standby, języki tłumaczeń oraz oficjalne loga.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The backup (.holyricsbackup) contains: the entire song library ({0}), service plans ({1}), guitar chords, all app settings, the Standby start page, translation languages and the official logos."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Sicherung (.holyricsbackup) enthält: die gesamte Liederbibliothek ({0}), Gottesdienstpläne ({1}), Gitarrenakkorde, alle Einstellungen der App, die Standby-Startseite, Übersetzungssprachen und die offiziellen Logos."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La copia (.holyricsbackup) contiene: toda la biblioteca de canciones ({0}), planes de celebración ({1}), acordes de guitarra, todos los ajustes de la aplicación, la página de inicio Standby, los idiomas de traducción y los logotipos oficiales."
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Резервна копія (.holyricsbackup) містить: усю бібліотеку пісень ({0}), плани богослужінь ({1}), гітарні акорди, усі налаштування програми, початкову сторінку Standby, мови перекладу та офіційні логотипи."
           }
         }
       }
@@ -12125,34 +12041,6 @@
         }
       }
     },
-    "Pomyślnie utworzono i zapisano pełną kopię zapasową (.holyricsbackup)!": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Full backup (.holyricsbackup) created and saved!"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vollsicherung (.holyricsbackup) erstellt und gespeichert!"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¡Copia completa (.holyricsbackup) creada y guardada!"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Повну резервну копію (.holyricsbackup) створено й збережено!"
-          }
-        }
-      }
-    },
     "Pomyślnie wyeksportowano całą bazę ({0} pieśni) do pliku JSON.": {
       "localizations": {
         "en": {
@@ -13997,34 +13885,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Підготовка до аналізу..."
-          }
-        }
-      }
-    },
-    "Przywrócono dane sprzed ostatniego przywrócenia kopii.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Data from before the last backup restore has been restored."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Daten vor der letzten Wiederherstellung wurden zurückgeholt."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se recuperaron los datos anteriores a la última restauración."
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Відновлено дані до останнього відновлення копії."
           }
         }
       }
@@ -17581,34 +17441,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Створити повну резервну копію (.cantatebackup)..."
-          }
-        }
-      }
-    },
-    "Utwórz pełną kopię zapasową (.holyricsbackup)...": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Create a full backup (.holyricsbackup)..."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vollsicherung erstellen (.holyricsbackup)..."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Crear una copia de seguridad completa (.holyricsbackup)..."
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Створити повну резервну копію (.holyricsbackup)..."
           }
         }
       }
