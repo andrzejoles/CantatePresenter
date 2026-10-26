@@ -7,6 +7,11 @@ cd "$ROOT"
 
 [ "$(git rev-parse --abbrev-ref HEAD)" = "main" ] || { echo "Wydanie tylko z gałęzi main" >&2; exit 1; }
 [ -z "$(git status --porcelain --untracked-files=no)" ] || { echo "Najpierw zatwierdź zmiany" >&2; exit 1; }
+# Nieśledzone pliki w źródłach i skryptach weszłyby do wydania, choć CI ich nie sprawdzało (R3-10).
+# Pliki z .gitignore (np. google-oauth-client.json) nie są tu wypisywane.
+UNTRACKED="$(git status --porcelain --untracked-files=all -- Sources Tests Package.swift Package.resolved Resources \
+    build_app.sh build_installer.sh scripts INSTRUKCJA.md LICENSE)"
+[ -z "$UNTRACKED" ] || { printf 'Nieśledzone pliki, które trafiłyby do wydania:\n%s\n' "$UNTRACKED" >&2; exit 1; }
 
 VERSION="$(scripts/version.sh)"
 TAG="v$VERSION"
@@ -31,19 +36,41 @@ gh run watch "$RUN_ID" --exit-status >/dev/null || { echo "CI dla $SHA nie przes
 ./build_installer.sh
 ditto -c -k --sequesterRsrc --keepParent CantatePresenter.app "$RELEASE_DIR/CantatePresenter-$VERSION.zip"
 
+# Lista zmian: tytuły scalonych PR od poprzedniego wydania (pierwszy niepusty wiersz opisu commita scalającego,
+# a bez opisu temat ostatniego commita gałęzi PR), najwyżej 40.
+PREVIOUS="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+changelog() {
+    local count=0 sha number title
+    for sha in $(git log --first-parent --merges --grep='^Merge pull request #' --format=%H ${PREVIOUS:+"$PREVIOUS..HEAD"}); do
+        [ "$count" -lt 40 ] || break
+        number="$(git log -1 --format=%s "$sha" | awk '{print $4}')"
+        title="$(git log -1 --format=%b "$sha" | awk 'NF{print; exit}')"
+        [ -n "$title" ] || title="$(git log -1 --format=%s "$sha^2")"
+        echo "- $title ($number)"
+        count=$((count + 1))
+    done
+}
+CHANGES="$(changelog)"
+
+# Opis zmian w oknie aktualizacji Sparkle (R1-03): plik o nazwie archiwum, wbudowany w appcast.xml.
+{
+    echo "## CantatePresenter $VERSION"
+    echo
+    echo "$CHANGES"
+} > "$RELEASE_DIR/CantatePresenter-$VERSION.md"
+
 # appcast.xml z tym wydaniem; aplikacja czyta go z releases/latest/download/appcast.xml.
+# Aplikacja wymaga podpisanego kanału (SURequireSignedFeed, R3-09), więc generate_appcast podpisuje też appcast.xml.
 scripts/sparkle_tools.sh generate_appcast \
     --download-url-prefix "https://github.com/andrzejoles/CantatePresenter/releases/download/$TAG/" \
     --link "https://github.com/andrzejoles/CantatePresenter/releases/tag/$TAG" \
+    --embed-release-notes \
     "$RELEASE_DIR"
 
-PREVIOUS="$(git describe --tags --abbrev=0 2>/dev/null || true)"
 {
     echo "CantatePresenter $VERSION"
     echo
-    # Zmiany wchodzą na main przez scalenia PR: tytuł PR jest w treści commita scalającego.
-    git log --first-parent --format='%s%n%b' ${PREVIOUS:+"$PREVIOUS..HEAD"} \
-        | awk '/^Merge pull request #[0-9]+ from /{n=$4; next} n!="" && NF{print "- " $0 " (" n ")"; n=""}' | head -40 || true
+    echo "$CHANGES"
     cat <<NOTES
 
 ## macOS (14+, Apple Silicon)
@@ -61,7 +88,13 @@ NOTES
 
 git tag "$TAG"
 git push origin "$TAG"
-gh release create "$TAG" --draft --title "CantatePresenter $VERSION" --notes-file "$RELEASE_DIR/notes.md" \
+# Nieudane utworzenie wydania nie może zostawić znacznika, bo ponowne uruchomienie zatrzymałoby się na nim (R1-08).
+if ! gh release create "$TAG" --draft --title "CantatePresenter $VERSION" --notes-file "$RELEASE_DIR/notes.md" \
     "$RELEASE_DIR/CantatePresenter-$VERSION.zip" "$RELEASE_DIR/appcast.xml" "$ROOT/LICENSE" \
-    "dist/CantatePresenter-$VERSION.dmg" "dist/CantatePresenter-$VERSION.pkg"
+    "dist/CantatePresenter-$VERSION.dmg" "dist/CantatePresenter-$VERSION.pkg"; then
+    echo "Nie udało się utworzyć wydania $TAG; usuwam znacznik" >&2
+    git push --delete origin "$TAG" || echo "Usuń znacznik na GitHubie ręcznie: git push --delete origin $TAG" >&2
+    git tag -d "$TAG"
+    exit 1
+fi
 echo "Szkic wydania $TAG gotowy. Sprawdź go na GitHubie i opublikuj: gh release edit $TAG --draft=false"

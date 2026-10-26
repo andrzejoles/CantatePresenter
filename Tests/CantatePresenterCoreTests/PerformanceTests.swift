@@ -18,9 +18,12 @@ struct PerformanceTests {
         )
     }
 
-    private func measure(_ iterations: Int = 20, _ work: () -> Void) -> Duration {
+    /// Średni czas jednego wywołania; najkrótszy z kilku pomiarów, bo inne zestawy testów działają równolegle
+    /// i pojedynczy pomiar na zajętym komputerze CI może trafić na przerwę (R1-14). Najkrótszy pomiar takiej
+    /// przerwy nie zawiera, a przewaga indeksu i cache jest wielokrotnie większa niż wymagana.
+    private func measure(_ iterations: Int = 20, samples: Int = 5, _ work: () -> Void) -> Duration {
         let clock = ContinuousClock()
-        return clock.measure { for _ in 0..<iterations { work() } } / iterations
+        return (0..<samples).map { _ in clock.measure { for _ in 0..<iterations { work() } } / iterations }.min() ?? .zero
     }
 
     @Test("Indeks wyszukiwania daje te same wyniki co Song.matches", arguments: ["jezu", "LASKA", "zolc", "pastwiskach 12", "adwent 3", "", "brak-takiego"])
@@ -39,7 +42,7 @@ struct PerformanceTests {
         var index = SongSearchIndex()
         index.update(with: Self.library)
 
-        let legacy = measure(5) { _ = Self.library.filter { $0.matches(query: "alleluja", scope: .all) } }
+        let legacy = measure(5, samples: 3) { _ = Self.library.filter { $0.matches(query: "alleluja", scope: .all) } }
         let indexed = measure { _ = index.filter(Self.library, query: "alleluja", scope: .all) }
 
         print("S2 wyszukiwanie 900 pieśni: było \(legacy), jest \(indexed)")

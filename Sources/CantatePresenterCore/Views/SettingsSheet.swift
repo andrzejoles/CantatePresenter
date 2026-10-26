@@ -140,11 +140,11 @@ public struct SettingsSheet: View {
                             
                             // Prywatność dyktowania (N4)
                             VStack(alignment: .leading, spacing: 3) {
-                                Toggle(L("Rozpoznawaj mowę tylko na tym Macu"), isOn: $store.settings.dictationOnDeviceOnly)
+                                Toggle(L("Rozpoznawaj mowę na tym Macu, gdy to możliwe"), isOn: $store.settings.dictationOnDeviceOnly)
                                     .toggleStyle(CheckboxToggleStyle())
                                     .font(.scaled(11, scale: scale))
                                     .onChange(of: store.settings.dictationOnDeviceOnly) { _, _ in store.saveSettings() }
-                                Text(L("Nagrania nie są wysyłane do Apple i dyktowanie działa bez internetu. Jeśli macOS nie ma modelu mowy dla wybranego języka, rozpoznawanie odbywa się na serwerach Apple."))
+                                Text(L("Gdy macOS ma model mowy dla wybranego języka, nagrania nie są wysyłane do Apple i dyktowanie działa bez internetu. Bez takiego modelu, albo gdy rozpoznawanie na Macu się nie powiedzie, nagranie rozpoznają serwery Apple."))
                                     .font(.scaled(10, scale: scale))
                                     .foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -857,7 +857,14 @@ public struct SettingsSheet: View {
     }
     
     private func refreshDriveState() {
-        isDriveSignedIn = GoogleDriveService.shared.isSignedIn
+        do {
+            isDriveSignedIn = try GoogleDriveService.shared.signInState()
+        } catch {
+            // Wpis jest, ale Pęk kluczy go nie udostępnił (R3-04): to nie „Nie połączono”; zostaje „Rozłącz”.
+            isDriveSignedIn = true
+            isBackupSuccess = false
+            backupStatusMessage = error.localizedDescription
+        }
     }
     
     private func connectGoogleAccount() {
@@ -880,12 +887,23 @@ public struct SettingsSheet: View {
     }
     
     private func disconnectGoogleAccount() {
-        GoogleDriveService.shared.signOut()
-        store.settings.googleDrive.accountEmail = ""
-        store.saveSettings()
-        refreshDriveState()
-        isBackupSuccess = true
-        backupStatusMessage = L("Rozłączono konto Google. Tokeny usunięto z Pęku kluczy.")
+        backupStatusMessage = nil
+        Task {
+            do {
+                // Odwołanie dostępu w Google, potem usunięcie tokenów z Pęku kluczy (R3-12).
+                let revoked = try await GoogleDriveService.shared.signOut()
+                store.settings.googleDrive.accountEmail = ""
+                store.saveSettings()
+                isBackupSuccess = true
+                backupStatusMessage = revoked
+                    ? L("Rozłączono konto Google: dostęp odwołany w Google, tokeny usunięte z Pęku kluczy.")
+                    : L("Rozłączono konto Google i usunięto tokeny z Pęku kluczy, ale Google nie potwierdził odwołania dostępu (np. brak internetu). Dostęp możesz odebrać na stronie myaccount.google.com/permissions.")
+            } catch {
+                isBackupSuccess = false
+                backupStatusMessage = L("Nie udało się rozłączyć konta Google: {0}", error.localizedDescription)
+            }
+            refreshDriveState()
+        }
     }
     
     private func shortcutRow(title: String, selection: Binding<UInt16>, scale: Double) -> some View {

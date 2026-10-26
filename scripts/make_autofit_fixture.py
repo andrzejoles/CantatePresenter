@@ -43,6 +43,7 @@ cases = [
 ]
 for c in cases:
     c["expected"] = fit(c["text"], c["width"], c["height"], c.get("lineSpacingFactor", 1.15), c.get("marginPercent", 0.07))
-json.dump({"measure": "Szerokość tekstu = liczba znaków (UTF-16) × rozmiar × 0,6; przypadki z anyMeasurer nie zależą od pomiaru (także AppKit w macOS).", "cases": cases},
-          open(sys.argv[1], "w"), ensure_ascii=False, indent=1)
+with open(sys.argv[1], "w", encoding="utf-8") as output:
+    json.dump({"measure": "Szerokość tekstu = liczba znaków (UTF-16) × rozmiar × 0,6; przypadki z anyMeasurer nie zależą od pomiaru (także AppKit w macOS).", "cases": cases},
+              output, ensure_ascii=False, indent=1)
 print([c["expected"] for c in cases])

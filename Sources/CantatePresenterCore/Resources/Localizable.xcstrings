@@ -5433,6 +5433,34 @@
         }
       }
     },
+    "Gdy macOS ma model mowy dla wybranego języka, nagrania nie są wysyłane do Apple i dyktowanie działa bez internetu. Bez takiego modelu, albo gdy rozpoznawanie na Macu się nie powiedzie, nagranie rozpoznają serwery Apple.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When macOS has a speech model for the selected language, recordings are not sent to Apple and dictation works without internet. Without such a model, or if recognition on the Mac fails, Apple servers recognize the recording."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hat macOS ein Sprachmodell für die gewählte Sprache, werden Aufnahmen nicht an Apple gesendet und das Diktat funktioniert ohne Internet. Ohne ein solches Modell oder wenn die Erkennung auf dem Mac fehlschlägt, erkennen Apple-Server die Aufnahme."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si macOS tiene un modelo de voz para el idioma elegido, las grabaciones no se envían a Apple y el dictado funciona sin internet. Sin ese modelo, o si el reconocimiento en el Mac falla, los servidores de Apple reconocen la grabación."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Якщо в macOS є мовна модель для вибраної мови, записи не надсилаються до Apple, і диктування працює без інтернету. Без такої моделі або якщо розпізнавання на Mac не вдасться, запис розпізнають сервери Apple."
+          }
+        }
+      }
+    },
     "Gdy nie trwa prezentacja pieśni, na rzutniku widoczna jest elegancka plansza czuwania z nazwą programu 'CantatePresenter', wersją, zegarem i wybranym logo.": {
       "localizations": {
         "en": {
@@ -8289,34 +8317,6 @@
         }
       }
     },
-    "Nagrania nie są wysyłane do Apple i dyktowanie działa bez internetu. Jeśli macOS nie ma modelu mowy dla wybranego języka, rozpoznawanie odbywa się na serwerach Apple.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recordings are not sent to Apple and dictation works without internet. If macOS has no speech model for the selected language, recognition runs on Apple servers."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aufnahmen werden nicht an Apple gesendet und das Diktat funktioniert ohne Internet. Hat macOS kein Sprachmodell für die gewählte Sprache, erfolgt die Erkennung auf Apple-Servern."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Las grabaciones no se envían a Apple y el dictado funciona sin internet. Si macOS no tiene un modelo de voz para el idioma elegido, el reconocimiento se realiza en los servidores de Apple."
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Записи не надсилаються до Apple, і диктант працює без інтернету. Якщо в macOS немає мовної моделі для вибраної мови, розпізнавання відбувається на серверах Apple."
-          }
-        }
-      }
-    },
     "Najnowsze": {
       "localizations": {
         "en": {
@@ -8989,6 +8989,34 @@
         }
       }
     },
+    "Nie udało się odczytać folderu kopii zapasowych na Dysku Google": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not read the backup folder on Google Drive"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherungsordner in Google Drive konnte nicht gelesen werden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo leer la carpeta de copias en Google Drive"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося прочитати папку резервних копій на Google Диску"
+          }
+        }
+      }
+    },
     "Nie udało się odświeżyć tokenu Google: {0}": {
       "localizations": {
         "en": {
@@ -9069,6 +9097,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не вдалося перенести дані"
+          }
+        }
+      }
+    },
+    "Nie udało się rozłączyć konta Google: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not disconnect the Google account: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google-Konto konnte nicht getrennt werden: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo desconectar la cuenta de Google: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося від’єднати обліковий запис Google: {0}"
           }
         }
       }
@@ -14169,6 +14225,34 @@
         }
       }
     },
+    "Pęk kluczy nie udostępnił danych logowania ({0}). Pozwól na dostęp, gdy macOS o to zapyta, albo usuń wpis „{1}” w aplikacji Dostęp do pęku kluczy i połącz konto Google ponownie.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Keychain did not provide the sign-in data ({0}). Allow access when macOS asks, or delete the “{1}” item in Keychain Access and connect the Google account again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Schlüsselbund hat die Anmeldedaten nicht freigegeben ({0}). Erlaube den Zugriff, wenn macOS fragt, oder lösche den Eintrag „{1}“ in der Schlüsselbundverwaltung und verbinde das Google-Konto erneut."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El llavero no proporcionó los datos de inicio de sesión ({0}). Permite el acceso cuando macOS lo pida, o elimina el elemento «{1}» en Acceso a Llaveros y vuelve a conectar la cuenta de Google."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зв’язка ключів не надала дані входу ({0}). Дозвольте доступ, коли macOS запитає, або видаліть запис «{1}» у програмі «Доступ до ключів» і знову під’єднайте обліковий запис Google."
+          }
+        }
+      }
+    },
     "Raport użycia: zapisane wyświetlenia: {0}": {
       "localizations": {
         "en": {
@@ -14393,30 +14477,30 @@
         }
       }
     },
-    "Rozpoznawaj mowę tylko na tym Macu": {
+    "Rozpoznawaj mowę na tym Macu, gdy to możliwe": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recognize speech on this Mac only"
+            "value": "Recognize speech on this Mac when possible"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sprache nur auf diesem Mac erkennen"
+            "value": "Sprache nach Möglichkeit auf diesem Mac erkennen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconocer la voz solo en este Mac"
+            "value": "Reconocer la voz en este Mac cuando sea posible"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Розпізнавати мовлення лише на цьому Mac"
+            "value": "Розпізнавати мовлення на цьому Mac, коли це можливо"
           }
         }
       }
@@ -14505,30 +14589,58 @@
         }
       }
     },
-    "Rozłączono konto Google. Tokeny usunięto z Pęku kluczy.": {
+    "Rozłączono konto Google i usunięto tokeny z Pęku kluczy, ale Google nie potwierdził odwołania dostępu (np. brak internetu). Dostęp możesz odebrać na stronie myaccount.google.com/permissions.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Google account disconnected. Tokens were removed from the Keychain."
+            "value": "Google account disconnected and tokens removed from the Keychain, but Google did not confirm that access was revoked (e.g. no internet). You can remove access at myaccount.google.com/permissions."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Google-Konto getrennt. Die Tokens wurden aus dem Schlüsselbund entfernt."
+            "value": "Google-Konto getrennt und Tokens aus dem Schlüsselbund entfernt, aber Google hat den Widerruf des Zugriffs nicht bestätigt (z. B. kein Internet). Du kannst den Zugriff unter myaccount.google.com/permissions entfernen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cuenta de Google desconectada. Los tokens se eliminaron del llavero."
+            "value": "Cuenta de Google desconectada y tokens eliminados del llavero, pero Google no confirmó la revocación del acceso (p. ej., sin internet). Puedes retirar el acceso en myaccount.google.com/permissions."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Обліковий запис Google від’єднано. Токени видалено зі Зв’язки ключів."
+            "value": "Обліковий запис Google від’єднано, токени видалено зі Зв’язки ключів, але Google не підтвердив відкликання доступу (наприклад, немає інтернету). Доступ можна відкликати на сторінці myaccount.google.com/permissions."
+          }
+        }
+      }
+    },
+    "Rozłączono konto Google: dostęp odwołany w Google, tokeny usunięte z Pęku kluczy.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google account disconnected: access revoked at Google, tokens removed from the Keychain."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google-Konto getrennt: Zugriff bei Google widerrufen, Tokens aus dem Schlüsselbund entfernt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta de Google desconectada: acceso revocado en Google y tokens eliminados del llavero."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обліковий запис Google від’єднано: доступ відкликано в Google, токени видалено зі Зв’язки ключів."
           }
         }
       }
@@ -15513,30 +15625,30 @@
         }
       }
     },
-    "Szukanie akordów dla: „{0}” w internetowych śpiewnikach i bazie nabożeństw": {
+    "Szukanie akordów dla: „{0}” we wbudowanej bazie chwytów": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Searching chords for: “{0}” in online songbooks and the service database"
+            "value": "Searching chords for: “{0}” in the built-in chord library"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Akkorde werden gesucht für: „{0}“ in Online-Liederbüchern und der Gottesdienst-Datenbank"
+            "value": "Akkorde werden gesucht für: „{0}“ in der eingebauten Akkordbibliothek"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Buscando acordes de: «{0}» en cancioneros en línea y en la base de celebraciones"
+            "value": "Buscando acordes de: «{0}» en la biblioteca de acordes integrada"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Пошук акордів для: «{0}» в онлайн-співаниках і базі богослужінь"
+            "value": "Пошук акордів для: «{0}» у вбудованій базі акордів"
           }
         }
       }
@@ -18117,30 +18229,30 @@
         }
       }
     },
-    "Wpisz tytuł i kliknij „Szukaj”, aby znaleźć chwyty gitarowe z internetowych śpiewników.": {
+    "Wpisz tytuł i kliknij „Szukaj”, aby znaleźć chwyty we wbudowanej bazie. Program nie pobiera chwytów z internetu.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Type a title and click “Search” to find guitar chords in online songbooks."
+            "value": "Type a title and click “Search” to find chords in the built-in library. The app does not download chords from the internet."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Titel eingeben und auf „Suchen“ klicken, um Gitarrenakkorde in Online-Liederbüchern zu finden."
+            "value": "Titel eingeben und auf „Suchen“ klicken, um Akkorde in der eingebauten Bibliothek zu finden. Das Programm lädt keine Akkorde aus dem Internet."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escribe un título y haz clic en «Buscar» para encontrar acordes de guitarra en cancioneros en línea."
+            "value": "Escribe un título y haz clic en «Buscar» para encontrar acordes en la biblioteca integrada. El programa no descarga acordes de internet."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Введіть назву й натисніть «Шукати», щоб знайти гітарні акорди в онлайн-співаниках."
+            "value": "Введіть назву й натисніть «Шукати», щоб знайти акорди у вбудованій базі. Програма не завантажує акорди з інтернету."
           }
         }
       }

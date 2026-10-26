@@ -107,6 +107,21 @@ struct RemoteHTTPTests {
         #expect(try respond("GET /stage?t=wrong HTTP/1.1\r\n\r\n").status == 403)
     }
 
+    @Test("Licznik połączeń: limit łączny i na adres, zwolnienie miejsca (R3-05)")
+    func connectionCounter() {
+        var counter = RemoteConnectionCounter()
+        let admitted = ["a", "a", "a", "b", "c"].map { counter.admit(host: $0, maxTotal: 3, maxPerHost: 2) }
+        #expect(admitted == [true, true, false, true, false])
+        counter.release(host: "a")
+        #expect(counter.total == 2 && counter.perHost["a"] == 1)
+        let afterRelease = counter.admit(host: "c", maxTotal: 3, maxPerHost: 2)
+        #expect(afterRelease)
+        counter.release(host: "c")
+        counter.release(host: "b")
+        counter.release(host: "a")
+        #expect(counter.total == 0 && counter.perHost.isEmpty)
+    }
+
     @Test("Token: 128 bitów, bez znaków wymagających kodowania w adresie")
     func token() {
         let token = RemoteRouter.makeToken()
@@ -280,7 +295,7 @@ struct RemoteServerTests {
             try await Task.sleep(nanoseconds: 20_000_000)
         }
         let port = try #require(server.port)
-        let url = try #require(URL(string: "http://127.0.0.1:\(port)/"))
+        let url = try #require(URL(string: "http://127.0.0.1:\(port)/?t=\(server.token)"))
         let session = URLSession(configuration: .ephemeral)
         defer { session.invalidateAndCancel() }
 
@@ -294,6 +309,117 @@ struct RemoteServerTests {
         try await Task.sleep(nanoseconds: 300_000_000)
         let (data, _) = try await session.data(from: url)
         #expect(String(decoding: data, as: UTF8.self) == "ok")
+    }
+
+    @Test("Limit na adres: bezczynne połączenia z jednego adresu nie blokują innych (R3-05)")
+    func perHostLimit() async throws {
+        let server = RemoteControlServer(maxConnections: 8, maxConnectionsPerHost: 2, route: { _, _, _ in .text("ok", status: 200) })
+        server.start(port: 0)
+        defer { server.stop() }
+        try await Self.waitUntilRunning(server)
+        let port = try #require(server.port)
+        let session = URLSession(configuration: .ephemeral)
+        defer { session.invalidateAndCancel() }
+
+        // Dwa bezczynne połączenia z 127.0.0.1 wyczerpują limit tego adresu...
+        var idle: [NWConnection] = []
+        for _ in 0..<2 { idle.append(try await Self.openIdleConnection(port: port)) }
+        defer { idle.forEach { $0.cancel() } }
+        try await Task.sleep(nanoseconds: 200_000_000)
+        let sameHost = try #require(URL(string: "http://127.0.0.1:\(port)/?t=\(server.token)"))
+        await #expect(throws: (any Error).self) { _ = try await session.data(from: sameHost) }
+
+        // ...ale telefon z innego adresu (tu ::1) dalej dostaje odpowiedź.
+        let otherHost = try #require(URL(string: "http://[::1]:\(port)/?t=\(server.token)"))
+        let (data, _) = try await session.data(from: otherHost)
+        #expect(String(decoding: data, as: UTF8.self) == "ok")
+    }
+
+    @Test("Zły token: 403 bez przechodzenia przez wątek główny i DataStore (R3-05)")
+    func wrongTokenAnsweredOffMain() async throws {
+        let routed = OSAllocatedUnfairLock(initialState: 0)
+        let server = RemoteControlServer(route: { _, _, _ in
+            routed.withLock { $0 += 1 }
+            return .text("ok", status: 200)
+        })
+        server.start(port: 0)
+        defer { server.stop() }
+        try await Self.waitUntilRunning(server)
+        let port = try #require(server.port)
+        let session = URLSession(configuration: .ephemeral)
+        defer { session.invalidateAndCancel() }
+
+        for path in ["/api/state?t=zly", "/", "/stage?t=", "/api/command"] {
+            let (_, response) = try await session.data(from: try #require(URL(string: "http://127.0.0.1:\(port)\(path)")))
+            #expect((response as? HTTPURLResponse)?.statusCode == 403, "\(path)")
+        }
+        let routedBefore = routed.withLock { $0 }
+        #expect(routedBefore == 0)
+
+        let (_, ok) = try await session.data(from: try #require(URL(string: "http://127.0.0.1:\(port)/stage?t=\(server.stageToken)")))
+        #expect((ok as? HTTPURLResponse)?.statusCode == 200)
+        server.regenerateToken()
+        let (_, old) = try await session.data(from: try #require(URL(string: "http://127.0.0.1:\(port)/?t=\(server.token.dropLast())x")))
+        #expect((old as? HTTPURLResponse)?.statusCode == 403)
+        let routedAfter = routed.withLock { $0 }
+        #expect(routedAfter == 1)
+    }
+
+    @Test("Spóźnione zdarzenie starego odbiornika nie wyłącza działającego serwera (R3-06)")
+    func staleListenerEventIgnored() async throws {
+        let server = RemoteControlServer(route: { _, _, _ in .text("ok", status: 200) })
+        server.start(port: 0)
+        try await Self.waitUntilRunning(server)
+        let first = server.listenerGeneration
+        server.stop()
+        server.start(port: 0)
+        defer { server.stop() }
+        try await Self.waitUntilRunning(server)
+        #expect(server.listenerGeneration != first)
+
+        // `.cancelled` i `.failed` starego odbiornika docierają po `.ready` nowego.
+        server.listenerChanged(.cancelled, generation: first, requestedPort: 0)
+        server.listenerChanged(.failed(.posix(.EADDRINUSE)), generation: first, requestedPort: 0)
+        #expect(server.isRunning)
+        #expect(server.port != nil && server.errorMessage == nil)
+    }
+
+    @Test("Drugi odbiornik na tym samym porcie się nie uruchamia (R3-07: bez SO_REUSEPORT)")
+    func portIsNotShared() async throws {
+        let server = RemoteControlServer(route: { _, _, _ in .text("ok", status: 200) })
+        server.start(port: 0)
+        defer { server.stop() }
+        try await Self.waitUntilRunning(server)
+        let rawPort = try #require(server.port)
+        let port = try #require(NWEndpoint.Port(rawValue: rawPort))
+
+        let parameters = NWParameters.tcp
+        parameters.allowLocalEndpointReuse = true
+        let second = try NWListener(using: parameters, on: port)
+        second.newConnectionHandler = { $0.cancel() }
+        let failed = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Bool, Error>) in
+            let done = OSAllocatedUnfairLock(initialState: false)
+            second.stateUpdateHandler = { state in
+                let result: Bool?
+                switch state {
+                case .ready: result = false
+                case .failed, .cancelled: result = true
+                default: result = nil
+                }
+                guard let result, done.withLock({ finished in defer { finished = true }; return !finished }) else { return }
+                continuation.resume(returning: result)
+            }
+            second.start(queue: .global())
+        }
+        second.cancel()
+        #expect(failed)
+    }
+
+    private static func waitUntilRunning(_ server: RemoteControlServer) async throws {
+        for _ in 0..<100 where !server.isRunning {
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        #expect(server.isRunning)
     }
 
     private static func openIdleConnection(port: UInt16) async throws -> NWConnection {

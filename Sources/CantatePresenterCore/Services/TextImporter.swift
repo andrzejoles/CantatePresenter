@@ -47,11 +47,16 @@ public struct TextImporter {
         var isDir: ObjCBool = false
         if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
             var outcome = ImportOutcome()
-            if let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles]) {
+            if let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey], options: [.skipsHiddenFiles]) {
                 for case let fileURL as URL in enumerator {
                     if fileURL.lastPathComponent == "__MACOSX" {
                         enumerator.skipDescendants()
                         continue
+                    }
+                    // W archiwum tylko zwykłe pliki: dowiązanie mogłoby wskazać plik spoza archiwum (R3-08).
+                    if insideArchive {
+                        let kind = try? fileURL.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+                        guard kind?.isRegularFile == true, kind?.isSymbolicLink != true else { continue }
                     }
                     if supportedExtensions.contains(fileURL.pathExtension.lowercased()) {
                         outcome.append(importFile(fileURL, insideArchive: insideArchive))

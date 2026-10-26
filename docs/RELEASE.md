@@ -34,17 +34,32 @@ export CANTATE_NOTARY_PROFILE=cantate-notary
 ./build_installer.sh
 ```
 
-`build_app.sh` podpisuje wtedy aplikację z Hardened Runtime i uprawnieniem do mikrofonu
-(`Resources/CantatePresenter.entitlements`), najpierw zagnieżdżone części Sparkle. `build_installer.sh` podpisuje
-DMG i PKG, wysyła je do notaryzacji (`scripts/notarize.sh`) i przypina bilet. Ścieżkę Hardened Runtime można
-sprawdzić bez certyfikatu: `CANTATE_SIGN_IDENTITY=- ./build_app.sh`.
+`build_app.sh` podpisuje wtedy aplikację certyfikatem (ze znacznikiem czasu), najpierw zagnieżdżone części Sparkle.
+`build_installer.sh` podpisuje DMG i PKG, wysyła je do notaryzacji (`scripts/notarize.sh`) i przypina bilet.
+
+Hardened Runtime jest włączony przy każdym podpisie, także ad-hoc (R3-01): bez niego inny program uruchomiony
+na tym koncie mógłby wstrzyknąć kod przez `DYLD_INSERT_LIBRARIES` i przejąć tokeny Dysku Google z Pęku kluczy
+oraz zgodę na mikrofon. Uprawnienia: mikrofon (`Resources/CantatePresenter.entitlements`); przy podpisie ad-hoc
+`build_app.sh` dodaje `com.apple.security.cs.disable-library-validation`, bo bez identyfikatora zespołu kontrola
+bibliotek odrzuca Sparkle.framework z pakietu. Zmienne `DYLD_*` nadal są ignorowane. `build_app.sh` przerywa
+budowanie, jeśli podpis nie ma Hardened Runtime.
 
 ## 3. Automatyczne aktualizacje (Sparkle)
 
 Aplikacja sprawdza raz dziennie plik `appcast.xml` z ostatniego wydania na GitHubie
 (`https://github.com/andrzejoles/CantatePresenter/releases/latest/download/appcast.xml`); menu
 „Sprawdź uaktualnienia…” robi to od razu. Aktualizacja jest podpisana kluczem EdDSA, więc nikt poza
-właścicielem klucza nie podsunie aplikacji innego pliku.
+właścicielem klucza nie podsunie aplikacji innego pliku. Podpisany jest też sam `appcast.xml`
+(`SURequireSignedFeed`, `SUVerifyUpdateBeforeExtraction`, R3-09): zmieniony na GitHubie kanał (opis, odnośniki,
+wersje) jest odrzucany, a archiwum jest sprawdzane przed rozpakowaniem. `generate_appcast` podpisuje kanał sam,
+bo wymaga tego `Info.plist` aktualizacji; plik `appcast.xml` po wygenerowaniu nie może być już edytowany ręcznie.
+Opis zmian w oknie aktualizacji pochodzi z pliku `CantatePresenter-X.Y.Z.md` (tytuły scalonych PR), który
+`scripts/release.sh` zapisuje obok archiwum.
+
+Próba aktualizacji bez klucza właściciela: jednorazowy klucz Ed25519 (CryptoKit) w pliku, dwie kopie aplikacji
+z innym `CFBundleIdentifier` (osobne ustawienia) i tym kluczem w `SUPublicEDKey`, kanał z
+`generate_appcast --ed-key-file` na lokalnym serwerze i `CANTATE_UPDATE_FEED=http://127.0.0.1:PORT/appcast.xml`
+(oraz `CANTATE_DATA_DIR` z kopią danych).
 
 Klucz (jednorazowo, prywatna część zostaje w Pęku kluczy, publiczna jest w `build_app.sh` jako `SUPublicEDKey`):
 ```bash
@@ -67,8 +82,9 @@ gh release edit vX.Y.Z --draft=false   # publikacja po sprawdzeniu szkicu
   Ustawienia systemowe → Prywatność i ochrona → „Otwórz mimo to” (od macOS 15 kliknięcie z Ctrl już nie wystarcza).
   Alternatywa w Terminalu: `xattr -dr com.apple.quarantine /Applications/CantatePresenter.app`.
   Instalator PKG bez podpisu Developer ID jest blokowany tak samo; DMG jest prostszy.
-- **Aktualizacje Sparkle** działają (sprawdzone lokalnie 2026-10-16): pobrany plik jest weryfikowany kluczem EdDSA,
-  a aktualizacja instalowana przez Sparkle nie przechodzi ponownie przez kwarantannę.
+- **Aktualizacje Sparkle** działają (sprawdzone lokalnie 2026-10-16, z Hardened Runtime i podpisanym kanałem
+  2026-10-26): pobrany plik jest weryfikowany kluczem EdDSA, a aktualizacja instalowana przez Sparkle nie przechodzi
+  ponownie przez kwarantannę.
 - **Uprawnienia po aktualizacji:** podpis ad-hoc zmienia się z każdą wersją, więc macOS może ponownie zapytać
   o mikrofon (dyktowanie) i o dostęp do Pęku kluczy (tokeny Dysku Google, przycisk „Zawsze pozwalaj”).
 - Na tym Macu (aplikacja budowana lokalnie, bez kwarantanny) nic się nie zmienia.
