@@ -152,6 +152,27 @@ struct BackupArchiveTests {
     }
 }
 
+// MARK: - R6-13: data kopii bez manifest.json (folder danych spakowany w Finderze)
+
+@Suite("Data kopii bez manifestu")
+struct BackupFallbackDateTests {
+    @Test("Data to najnowsza data zmiany plików danych, a nie chwila przywracania (R6-13)")
+    func newestDataFileDate() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let older = Date(timeIntervalSince1970: 1_700_000_000)
+        let newer = Date(timeIntervalSince1970: 1_750_000_000)
+        try dir.write("[]", to: "songs.json")
+        try dir.write("{}", to: "settings.json")
+        try dir.write("x", to: "inny.txt")
+        try FileManager.default.setAttributes([.modificationDate: older], ofItemAtPath: dir.file("songs.json").path)
+        try FileManager.default.setAttributes([.modificationDate: newer], ofItemAtPath: dir.file("settings.json").path)
+
+        #expect(BackupService.dataDate(in: dir.url) == newer)
+        #expect(BackupService.dataDate(in: dir.url.appendingPathComponent("brak")) == nil)
+    }
+}
+
 // MARK: - R6-03: kopia z arkusza Ustawień zawiera zmiany z tego arkusza
 
 @Suite("Kopia zapasowa z niezapisanymi ustawieniami")

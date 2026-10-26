@@ -235,16 +235,26 @@ public final class BackupService {
             manifest = try? decoder.decode(BackupManifest.self, from: data)
         }
 
+        // Folder danych spakowany w Finderze nie ma manifestu: datą kopii jest stan plików, nie chwila przywracania (R6-13).
+        let fallbackDate = Self.dataDate(in: contentRoot) ?? Date()
         let result = try BackupRestorer(dataDirectory: dataDirectory).restore(fromExtracted: contentRoot)
         reloadStores()
 
         return manifest ?? BackupManifest(
+            createdAt: fallbackDate,
             songsCount: result.songsCount,
             plansCount: result.plansCount,
             activeLogoId: "unknown",
             appLanguage: "pl",
             includedFiles: BackupRestorer.allowedItems
         )
+    }
+
+    /// Najnowsza data zmiany plików danych w katalogu (`unzip` i `ditto` zachowują daty z archiwum); `nil` bez plików.
+    nonisolated static func dataDate(in directory: URL) -> Date? {
+        archivedFiles
+            .compactMap { try? directory.appendingPathComponent($0).resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate }
+            .max()
     }
 
     public var canUndoRestore: Bool {
