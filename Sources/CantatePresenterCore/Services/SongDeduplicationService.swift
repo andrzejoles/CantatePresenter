@@ -25,10 +25,6 @@ public struct ImportProcessingResult {
     public var enrichmentRecords: [EnrichmentRecord]
     public var existingCollisions: [DuplicateRecord]
     
-    public var netUniqueCount: Int {
-        return uniqueSongs.count
-    }
-    
     /// Pieśni do dodania po przeglądzie importu. Brak decyzji w mapach oznacza wartość domyślną
     /// `shouldSkipDuplicate` z rekordu.
     public func songsToCommit(workingSongs: [Song], duplicateSkips: [UUID: Bool], collisionSkips: [UUID: Bool]) -> [Song] {

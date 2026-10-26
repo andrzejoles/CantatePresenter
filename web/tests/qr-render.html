@@ -1,7 +1,0 @@
-<!doctype html><html><body style="margin:0;background:#fff"><div id="out" style="display:flex;flex-wrap:wrap;gap:40px;padding:40px"></div>
-<script type="module">
-import { qrSVG } from "../src/core/qr.js";
-const texts = JSON.parse(new URLSearchParams(location.search).get("t"));
-for (const text of texts) document.getElementById("out").append(qrSVG(text, 360));
-document.body.dataset.ready = "1";
-</script></body></html>

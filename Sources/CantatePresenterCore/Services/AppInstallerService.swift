@@ -11,10 +11,6 @@ public final class AppInstallerService {
         return bundlePath.hasPrefix("/Applications/") || bundlePath.contains("/Applications/CantatePresenter.app")
     }
     
-    public var isRunningFromDiskImage: Bool {
-        return Bundle.main.bundlePath.hasPrefix("/Volumes/")
-    }
-    
     public func promptToInstallIfNecessary() {
         // Only prompt if not already in /Applications
         guard !isInstalledInApplications else { return }

@@ -169,7 +169,7 @@ CantatePresenter/
 
 ## Bezpieczeństwo
 
-Podatności zgłaszaj prywatnie przez zakładkę **Security** → **Report a vulnerability** na GitHubie, nie w publicznych zgłoszeniach. Wspierane wersje i opis zabezpieczeń (dane, Dysk Google, aktualizacje, pilot, wersja webowa): [SECURITY.md](SECURITY.md).
+Podatności zgłaszaj prywatnie przez zakładkę **Security** → **Report a vulnerability** na GitHubie, nie w publicznych zgłoszeniach. Wspierane wersje i opis zabezpieczeń (dane, Dysk Google, aktualizacje, pilot): [SECURITY.md](SECURITY.md).
 
 ## Licencja
 

@@ -7,8 +7,4 @@ public enum AppVersion {
     public static var current: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev"
     }
-    
-    public static var build: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
-    }
 }

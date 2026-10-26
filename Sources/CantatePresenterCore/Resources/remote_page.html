@@ -154,8 +154,7 @@ async function send(command, index, id) {
   try {
     const response = await fetch(withToken("/api/command"), {
       method: "POST",
-      // X-Cantate-Request: zabezpieczenie CSRF serwera wersji webowej (macOS i Windows go nie potrzebują).
-      headers: { "Content-Type": "application/json", "X-Cantate-Request": "1" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(id !== undefined ? { command, id } : index === undefined ? { command } : { command, index })
     });
     if (!response.ok) throw new Error(response.status);

@@ -2,7 +2,7 @@
 """Buduje shared/fixtures/holyrics-music-list.mufl: strumień Java ObjectStream jak eksport Holyrics
 (ArrayList z obiektami com.limagiran.holyrics.model.Music), z wymyślonymi tekstami.
 
-Plik sprawdzają testy Swift (SharedFixturesTests) i JS (web/tests); oczekiwany wynik jest w holyrics.json.
+Plik sprawdzają testy Swift (SharedFixturesTests); oczekiwany wynik jest w holyrics.json.
 Uruchomienie: python3 -I scripts/make_holyrics_fixture.py
 """
 import os

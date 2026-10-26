@@ -83,7 +83,7 @@ struct ExitBackupTests {
         let coordinator = ExitBackupCoordinator()
 
         Task { @MainActor in
-            try await Task.sleep(for: .milliseconds(100))
+            try? await Task.sleep(for: .milliseconds(100))
             coordinator.skip()
         }
         let outcome = await coordinator.run(

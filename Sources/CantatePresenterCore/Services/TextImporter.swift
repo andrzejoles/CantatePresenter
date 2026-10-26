@@ -3,15 +3,6 @@ import AppKit
 
 public struct TextImporter {
     
-    /// Imports songs from multiple file URLs (.txt or .json) with auto encoding detection
-    public static func importFiles(from urls: [URL]) -> [Song] {
-        var importedSongs: [Song] = []
-        for url in urls {
-            importedSongs.append(contentsOf: importFromURL(url))
-        }
-        return importedSongs
-    }
-    
     /// Rozszerzenia plików rozpoznawane przy imporcie (także w oknie wyboru plików).
     public static let supportedExtensions: [String] = ["txt", "json", "muf", "mufl", "hly", "holyrics", "xml", "zip", "usr"]
         + SongSelectImporter.chordProExtensions.sorted()

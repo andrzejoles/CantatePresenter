@@ -235,18 +235,6 @@ public final class DictationService: ObservableObject {
             finalDelivery.deliver(currentRecognizedText) { finalHandler?($0) }
         }
     }
-    
-    public func toggleDictation(
-        localeIdentifier: String,
-        onPartial: @escaping (String) -> Void,
-        onFinal: @escaping (String) -> Void
-    ) {
-        if isRecording {
-            stopDictation()
-        } else {
-            startDictation(localeIdentifier: localeIdentifier, onPartial: onPartial, onFinal: onFinal)
-        }
-    }
 }
 
 // MARK: - Final Delivery

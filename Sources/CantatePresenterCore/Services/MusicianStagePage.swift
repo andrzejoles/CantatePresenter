@@ -9,6 +9,6 @@ enum MusicianStagePage {
         template.replacingOccurrences(of: "{{LANG}}", with: language.filter { $0.isLetter || $0 == "-" })
     }
 
-    /// Szablon w zasobach pakietu (`Resources/stage_page.html`); ten sam plik serwuje wersja Windows.
+    /// Szablon w zasobach pakietu (`Resources/stage_page.html`).
     private static let template = WebPageResource.load("stage_page")
 }
