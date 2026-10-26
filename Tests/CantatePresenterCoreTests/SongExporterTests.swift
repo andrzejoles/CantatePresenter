@@ -36,4 +36,23 @@ struct SongExporterTests {
             try SongExporter.exportSongs([Song(title: "A", rawLyrics: "x")], to: missing)
         }
     }
+
+    @Test("Błąd w połowie eksportu podaje liczbę zapisanych plików (PartialExportError)")
+    func partialExportReportsCounts() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        // Katalog o nazwie drugiego pliku uniemożliwia jego zapis.
+        try FileManager.default.createDirectory(at: dir.file("B.txt"), withIntermediateDirectories: true)
+        let songs = ["A", "B", "C"].map { Song(title: $0, rawLyrics: "x") }
+
+        do {
+            _ = try SongExporter.exportSongs(songs, to: dir.url)
+            Issue.record("Eksport powinien zgłosić błąd")
+        } catch let error as SongExporter.PartialExportError {
+            #expect(error.written == 1)
+            #expect(error.total == 3)
+        }
+        #expect(FileManager.default.fileExists(atPath: dir.file("A.txt").path))
+        #expect(!FileManager.default.fileExists(atPath: dir.file("C.txt").path))
+    }
 }

@@ -93,14 +93,26 @@ public final class BackupService {
     /// Kopiowanie i kompresja `ditto` idą poza wątkiem głównym (R2-13). Archiwum leży we własnym
     /// katalogu tymczasowym; po użyciu usuń je przez `removeTemporaryArchive(_:)`.
     public func createBackupArchive(comment: String? = nil) async throws -> (archiveURL: URL, manifest: BackupManifest) {
-        let store = DataStore.shared
-        return try await Self.makeArchive(
+        try await Self.createBackupArchive(of: DataStore.shared, in: dataDirectory, comment: comment)
+    }
+
+    /// Ustawienia z arkusza są tylko w pamięci, dopóki arkusz jest otwarty; przyciski kopii leżą w tym samym
+    /// arkuszu, więc przed kopiowaniem plików zmienione ustawienia są zapisywane (R6-03).
+    static func createBackupArchive(
+        of store: DataStore,
+        in dataDirectory: URL,
+        comment: String?,
+        temporaryDirectory: URL = FileManager.default.temporaryDirectory
+    ) async throws -> (archiveURL: URL, manifest: BackupManifest) {
+        store.saveSettingsIfChanged()
+        return try await makeArchive(
             of: dataDirectory,
             songsCount: store.songs.count,
             plansCount: store.plans.count,
             activeLogoId: store.settings.activeLogoId,
             appLanguage: store.settings.appLanguage,
-            comment: comment
+            comment: comment,
+            temporaryDirectory: temporaryDirectory
         )
     }
 
@@ -223,16 +235,26 @@ public final class BackupService {
             manifest = try? decoder.decode(BackupManifest.self, from: data)
         }
 
+        // Folder danych spakowany w Finderze nie ma manifestu: datą kopii jest stan plików, nie chwila przywracania (R6-13).
+        let fallbackDate = Self.dataDate(in: contentRoot) ?? Date()
         let result = try BackupRestorer(dataDirectory: dataDirectory).restore(fromExtracted: contentRoot)
         reloadStores()
 
         return manifest ?? BackupManifest(
+            createdAt: fallbackDate,
             songsCount: result.songsCount,
             plansCount: result.plansCount,
             activeLogoId: "unknown",
             appLanguage: "pl",
             includedFiles: BackupRestorer.allowedItems
         )
+    }
+
+    /// Najnowsza data zmiany plików danych w katalogu (`unzip` i `ditto` zachowują daty z archiwum); `nil` bez plików.
+    nonisolated static func dataDate(in directory: URL) -> Date? {
+        archivedFiles
+            .compactMap { try? directory.appendingPathComponent($0).resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate }
+            .max()
     }
 
     public var canUndoRestore: Bool {
@@ -255,10 +277,7 @@ public final class BackupService {
 
     private func reloadStores() {
         let store = DataStore.shared
-        store.loadSettings()
-        store.loadSongs()
-        store.loadPlans()
-        store.loadCCLIUsage()
+        store.reloadAll()
         store.updateActiveLogo(id: store.settings.activeLogoId)
         LocalizationService.shared.loadCustomLanguages()
     }

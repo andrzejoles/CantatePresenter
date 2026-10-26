@@ -178,10 +178,14 @@ public final class PolishEncodingService: Sendable {
         var titleWords = fixedTitle.components(separatedBy: " ")
         for i in 0..<titleWords.count {
             let rawWord = titleWords[i]
-            // Extract core letters and trailing punctuation (e.g. "Ciebie," -> core "Ciebie", punct ",")
-            let letters = rawWord.filter { $0.isLetter }
-            let trailingPunct = rawWord.filter { !$0.isLetter }
-            guard !letters.isEmpty else { continue }
+            // Znaki przed słowem, litery i znaki po słowie („(Bog” → „(” + „Bog”, „Ciebie,” → „Ciebie” + „,”).
+            // Wcześniej wszystkie nie-litery trafiały na koniec: „(Bog” → „Bóg(” (R6-04).
+            let leadingPunct = String(rawWord.prefix { !$0.isLetter })
+            let rest = rawWord.dropFirst(leadingPunct.count)
+            let trailingPunct = String(rest.reversed().prefix { !$0.isLetter }.reversed())
+            let letters = String(rest.dropLast(trailingPunct.count))
+            // Pusty albo z innymi znakami w środku („Bog-Czlowiek”, „R6a”): bez zmian.
+            guard !letters.isEmpty, letters.allSatisfy(\.isLetter) else { continue }
             
             let folded = Song.foldString(letters)
             // Tekst ma też dokładnie tę postać bez polskich liter: zostawiamy tytuł.
@@ -208,7 +212,7 @@ public final class PolishEncodingService: Sendable {
                     styledRepl = repl.lowercased()
                 }
                 
-                let finalWord = styledRepl + trailingPunct
+                let finalWord = leadingPunct + styledRepl + trailingPunct
                 if finalWord != rawWord {
                     titleWords[i] = finalWord
                     changed = true

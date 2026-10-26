@@ -99,9 +99,9 @@ public final class ExitBackupCoordinator {
 
     // MARK: - Local Copies
 
-    /// Przenosi archiwum do `directory` i zostawia `limit` najnowszych.
+    /// Przenosi archiwum do `directory` i zostawia `limit` najnowszych (bez `prune` nie usuwa żadnej).
     /// Kolejność według daty utworzenia, a przy równej według nazwy (nazwy mogły powstać w innym formacie, R2-19).
-    public static func keepLocally(_ archive: URL, in directory: URL, limit: Int = 5) throws -> URL {
+    public static func keepLocally(_ archive: URL, in directory: URL, limit: Int = 5, prune: Bool = true) throws -> URL {
         let fileManager = FileManager.default
         try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
         let destination = directory.appendingPathComponent(archive.lastPathComponent)
@@ -110,6 +110,10 @@ public final class ExitBackupCoordinator {
         }
         try fileManager.moveItem(at: archive, to: destination)
         BackupService.removeTemporaryArchive(archive)
+        guard prune else {
+            logger.notice("Kopia przy zamykaniu z nieczytelnych danych: starsze kopie lokalne zostają")
+            return destination
+        }
 
         let existing = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.creationDateKey])
             .filter { !$0.lastPathComponent.hasPrefix(".") }
@@ -125,6 +129,12 @@ public final class ExitBackupCoordinator {
         return destination
     }
 
+    /// Przy nieczytelnym pliku danych albo danych z nowszej wersji kopia przy zamykaniu nie pokazuje
+    /// prawdziwej biblioteki; kolejne zamknięcia nie mogą wtedy wyprzeć dobrych kopii lokalnych (R6-10).
+    static func shouldPruneLocalCopies(issues: [PersistenceIssue]) -> Bool {
+        !issues.contains { $0.kind == .unreadable || $0.kind == .newerSchema }
+    }
+
     // MARK: - Live Operations
 
     public static func liveOperations(dataDirectory: URL = AppPaths.shared.dataDirectory) -> Operations {
@@ -136,7 +146,8 @@ public final class ExitBackupCoordinator {
                 _ = try await GoogleDriveService.shared.uploadBackupToDrive(archiveURL: archive)
             },
             keepLocally: { archive in
-                try keepLocally(archive, in: dataDirectory.appendingPathComponent(localBackupsDirectoryName))
+                try keepLocally(archive, in: dataDirectory.appendingPathComponent(localBackupsDirectoryName),
+                                prune: shouldPruneLocalCopies(issues: DataStore.shared.persistenceIssues))
             }
         )
     }

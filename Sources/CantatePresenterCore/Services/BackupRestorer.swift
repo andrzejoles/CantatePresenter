@@ -306,6 +306,17 @@ enum ZipArchive {
         return parseTotals(String(decoding: data, as: UTF8.self))
     }
 
+    /// Czy plik zaczyna się sygnaturą ZIP (`PK\u{3}\u{4}`, pusty ZIP `PK\u{5}\u{6}`, `PK\u{7}\u{8}`).
+    /// Ucięte archiwum też ją ma, więc `.hly` z sygnaturą nie jest czytany jako tekst (R6-02).
+    static func hasSignature(_ url: URL) -> Bool {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return false }
+        defer { try? handle.close() }
+        guard let head = try? handle.read(upToCount: 4), head.count == 4 else { return false }
+        let bytes = [UInt8](head)
+        guard bytes[0] == 0x50, bytes[1] == 0x4B else { return false }
+        return [(3, 4), (5, 6), (7, 8)].contains { bytes[2] == $0.0 && bytes[3] == $0.1 }
+    }
+
     /// „2 files, 1234 bytes uncompressed, 567 bytes compressed: 54.1%”
     static func parseTotals(_ text: String) -> Int64? {
         guard let match = text.firstMatch(of: /([0-9]+) bytes uncompressed/) else { return nil }

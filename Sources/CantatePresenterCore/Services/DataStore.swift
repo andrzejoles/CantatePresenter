@@ -248,7 +248,40 @@ public final class DataStore {
             ccliUsage = []
         }
     }
-    
+
+    /// Wczytuje wszystkie pliki od nowa (przywrócenie kopii, cofnięcie przywracania) i dopasowuje do nich
+    /// stan w pamięci: zaznaczenie, aktywny plan i pieśń na ekranie nie mogą wskazywać danych sprzed
+    /// przywrócenia (R6-07).
+    public func reloadAll() {
+        loadSettings()
+        loadSongs()
+        loadPlans()
+        loadCCLIUsage()
+
+        let songIds = Set(songs.map(\.id))
+        let quickTextId = temporarySong?.id
+        if let id = selectedSongId, !songIds.contains(id), id != quickTextId {
+            selectedSongId = songs.first?.id
+        }
+        if let id = activePlanId, !plans.contains(where: { $0.id == id }) {
+            activePlanId = plans.first?.id
+        }
+        if let id = lastPlanSongId, !songIds.contains(id) {
+            lastPlanSongId = nil
+        }
+        // Szybki tekst nie jest w bibliotece: zostaje na ekranie.
+        if let active = activeSong, active.id != quickTextId {
+            if let current = songs.first(where: { $0.id == active.id }) {
+                activeSong = current
+                activeSlideIndex = min(activeSlideIndex, max(0, current.slides.count - 1))
+            } else {
+                stopLive()
+                activeSong = nil
+                activeSlideIndex = 0
+            }
+        }
+    }
+
     /// Zapisuje wyświetlenie pieśni z numerem CCLI (raz na pieśń dziennie).
     func recordCCLIUsage(for song: Song, at date: Date = Date()) {
         guard let entry = CCLIUsageReport.entry(for: song, at: date, existing: ccliUsage) else { return }

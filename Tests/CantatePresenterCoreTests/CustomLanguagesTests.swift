@@ -95,4 +95,27 @@ struct CustomLanguagesTests {
         #expect(languages.last?.name == "it")
         #expect(languages.first?.flag == "🌐")
     }
+
+    @Test("Jedna wartość, która nie jest tekstem, nie kasuje pozostałych tłumaczeń języka (R6-09)")
+    func nonStringValueKeepsOtherStrings() throws {
+        let data = Data(#"[{"code":"fr","name":"Français","strings":{"Zapisz":"Enregistrer","Rozmiar":12}}]"#.utf8)
+        let languages = try JSONFileStore.makeDecoder().decode([CustomLanguage].self, from: data)
+        #expect(languages.first?.strings == ["Zapisz": "Enregistrer"])
+    }
+
+    @Test("Dane z nowszej wersji (tylko odczyt): import języka nie zmienia pliku języków (R6-08)")
+    func newerSchemaBlocksImport() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove(); Localization.setOverlay([:], for: "fr") }
+        try dir.write(#"{"schemaVersion": 99}"#, to: "settings.json")
+        let original = #"[{"code":"de","name":"Deutsch","strings":{"Zapisz":"Speichern"},"newField":true}]"#
+        try dir.write(original, to: "custom_languages.json")
+        let service = LocalizationService(customLanguagesURL: dir.file("custom_languages.json"))
+
+        #expect(throws: (any Error).self) {
+            try service.importTranslation(data: translation, fallbackFilename: "fr")
+        }
+        #expect(try String(contentsOf: dir.file("custom_languages.json"), encoding: .utf8) == original)
+        #expect(service.customLanguages.map(\.code) == ["de"])
+    }
 }
