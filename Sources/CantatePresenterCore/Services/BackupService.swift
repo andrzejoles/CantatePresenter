@@ -267,10 +267,7 @@ public final class BackupService {
 
     private func reloadStores() {
         let store = DataStore.shared
-        store.loadSettings()
-        store.loadSongs()
-        store.loadPlans()
-        store.loadCCLIUsage()
+        store.reloadAll()
         store.updateActiveLogo(id: store.settings.activeLogoId)
         LocalizationService.shared.loadCustomLanguages()
     }
