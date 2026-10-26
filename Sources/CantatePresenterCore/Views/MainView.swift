@@ -286,13 +286,20 @@ public struct MainView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .openImportFlow)) { _ in
-            guard !isShowingImportExport else { return }
+            guard !isShowingAnySheet else { return }
             importExportStartsImport = true
             isShowingImportExport = true
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenQuickTextSheet"))) { _ in
+            guard !isShowingAnySheet else { return }
             isShowingQuickText = true
         }
+    }
+
+    /// SwiftUI pokazuje jeden arkusz naraz; flaga drugiego zostałaby włączona bez arkusza (R4-04).
+    private var isShowingAnySheet: Bool {
+        isShowingEditor || isShowingRemoteControl || isShowingOnlineSearch || isShowingAuthorTitleLookup
+            || isShowingImportExport || isShowingSettings || isShowingQuickText
     }
 
     @ViewBuilder

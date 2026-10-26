@@ -373,12 +373,30 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 // MARK: - Menu Validation
 extension AppDelegate: NSMenuItemValidation {
     public func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
-        if menuItem.action == #selector(undoRestoreAction) {
-            return BackupService.shared.canUndoRestore
+        Self.isMenuItemEnabled(
+            action: menuItem.action,
+            hasAttachedSheet: mainWindow?.attachedSheet != nil,
+            canUndoRestore: BackupService.shared.canUndoRestore
+        )
+    }
+
+    /// Pozycje, które otwierają arkusz albo okno nad oknem głównym, są wyłączone przy otwartym arkuszu
+    /// (np. Ustawieniach). SwiftUI pokazuje tylko jeden arkusz naraz, więc ⌘T albo ⌘I przy otwartych
+    /// Ustawieniach zostawiały flagę arkusza włączoną i przycisk przestawał działać (R4-04).
+    static func isMenuItemEnabled(action: Selector?, hasAttachedSheet: Bool, canUndoRestore: Bool) -> Bool {
+        let opensOverMainWindow: [Selector] = [
+            #selector(focusSongSearchAction),
+            #selector(quickTextAction),
+            #selector(importAction),
+            #selector(createBackupAction),
+            #selector(restoreBackupAction),
+            #selector(undoRestoreAction)
+        ]
+        if let action, opensOverMainWindow.contains(action), hasAttachedSheet {
+            return false
         }
-        if menuItem.action == #selector(focusSongSearchAction) {
-            // Nie przy otwartym arkuszu (np. Ustawieniach).
-            return mainWindow?.attachedSheet == nil
+        if action == #selector(undoRestoreAction) {
+            return canUndoRestore
         }
         return true
     }
