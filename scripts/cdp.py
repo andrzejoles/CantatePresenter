@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Sterowanie Chrome bez okna przez protokół DevTools (tylko biblioteka standardowa).
 
-Do testów interfejsu wersji webowej: otwarcie strony, czekanie na element, wykonanie JS,
-kliknięcie, klawisze, zrzut ekranu. Przykład w web/tools/ui_check.py.
+Otwarcie strony, czekanie na element, wykonanie JS, kliknięcie, klawisze, zrzut ekranu.
+Używa go scripts/remote_check.py.
 """
 import base64
 import json

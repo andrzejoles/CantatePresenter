@@ -1,5 +1,0 @@
-html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-body.no-cursor { cursor: none; }
-#screen { position: fixed; inset: 0; }
-#hint { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: rgba(30, 30, 30, 0.85); color: #fff; padding: 10px 16px; border-radius: 10px; font: 14px -apple-system, "Segoe UI", sans-serif; transition: opacity 0.4s; }
-#hint.hidden { opacity: 0; pointer-events: none; }

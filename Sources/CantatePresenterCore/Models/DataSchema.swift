@@ -5,7 +5,7 @@ import Foundation
 /// Wersja formatu katalogu danych: pole `schemaVersion` w `settings.json` (i w `manifest.json` kopii zapasowej).
 ///
 /// `songs.json`, `plans.json` i pozostałe pliki zostają w dotychczasowym kształcie (tablice JSON), więc są zgodne
-/// z wersją webową, kopiami i starszymi wersjami aplikacji. Wersja opisuje cały katalog naraz:
+/// z kopiami i starszymi wersjami aplikacji. Wersja opisuje cały katalog naraz:
 /// - brak pola (pliki sprzed jego wprowadzenia) to wersja 0, ten sam format co 1;
 /// - starsza wersja: `migrate` przeprowadza kolejne kroki, a zapis ustawień podbija numer;
 /// - nowsza niż `current`: dane z nowszej aplikacji; ta wersja tylko je czyta i niczego nie zapisuje,

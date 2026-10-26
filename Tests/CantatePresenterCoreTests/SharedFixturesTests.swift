@@ -2,10 +2,10 @@ import Foundation
 import Testing
 @testable import CantatePresenterCore
 
-// MARK: - Wspólne pliki testowe (macOS, web, Windows)
+// MARK: - Pliki wzorcowe (shared/fixtures)
 
-/// `shared/fixtures/*.json` opisują wejście i oczekiwany wynik logiki, która musi działać tak samo we wszystkich
-/// wersjach aplikacji (podział na slajdy, wyszukiwanie, transpozycja, Auto-Fit). Wersja webowa sprawdza te same pliki.
+/// `shared/fixtures/*.json` opisują wejście i oczekiwany wynik kluczowej logiki (podział na slajdy, wyszukiwanie,
+/// transpozycja, Auto-Fit, skróty, kopie, importy) niezależnie od kodu, który ją implementuje.
 @Suite("Wspólne pliki testowe")
 struct SharedFixturesTests {
     static let directory = URL(fileURLWithPath: #filePath)
@@ -42,7 +42,7 @@ struct SharedFixturesTests {
         }
     }
 
-    @Test("Duplikaty przy imporcie (ten sam wynik w wersji webowej)")
+    @Test("Duplikaty przy imporcie")
     func deduplication() throws {
         func songs(_ value: Any?) throws -> [Song] {
             try (try #require(value as? [[String: String]])).map { item in
@@ -88,7 +88,7 @@ struct SharedFixturesTests {
         }
     }
 
-    /// Wynik zależy od pomiaru tekstu (tu AppKit, w web i Windows stały pomiar z pliku), więc dokładnie
+    /// Wynik zależy od pomiaru tekstu (tu AppKit, we wzorcu stały pomiar z scripts/make_autofit_fixture.py), więc dokładnie
     /// porównujemy tylko przypadki `anyMeasurer`; pozostałe muszą mieścić się w zakresie rozmiarów.
     @Test("Auto-Fit: przypadki niezależne od czcionki")
     func autoFit() throws {

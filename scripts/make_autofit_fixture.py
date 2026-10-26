@@ -1,4 +1,4 @@
-"""Wzorzec shared/fixtures/autofit.json (python3 -I web/tools/make_autofit_fixture.py shared/fixtures/autofit.json): Auto-Fit ze stałym pomiarem (szerokość = liczba znaków × rozmiar × 0,6)."""
+"""Wzorzec shared/fixtures/autofit.json (python3 -I scripts/make_autofit_fixture.py shared/fixtures/autofit.json): Auto-Fit ze stałym pomiarem (szerokość = liczba znaków × rozmiar × 0,6)."""
 import json, math, re, sys
 
 def width(text, size): return len(text) * size * 0.6

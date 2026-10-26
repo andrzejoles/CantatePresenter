@@ -113,7 +113,7 @@ struct RemoteHTTPTests {
         #expect(RemoteRouter.makeToken() != token)
     }
 
-    @Test("Strony pilota i muzyków z zasobów pakietu (wspólne z wersją Windows)")
+    @Test("Strony pilota i muzyków z zasobów pakietu")
     func pagesComeFromResources() {
         let remote = RemoteControlPage.html(language: "en")
         #expect(remote.hasPrefix("<!doctype html>\n<html lang=\"en\">"))

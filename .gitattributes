@@ -1,2 +1,0 @@
-# Strony pilota i muzyków serwowane bajt w bajt tak samo z macOS i Windows (checkout na Windows nie zamienia na CRLF).
-Sources/CantatePresenterCore/Resources/*.html text eol=lf

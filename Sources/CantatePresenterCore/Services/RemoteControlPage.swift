@@ -9,7 +9,7 @@ enum RemoteControlPage {
         template.replacingOccurrences(of: "{{LANG}}", with: language.filter { $0.isLetter || $0 == "-" })
     }
     
-    /// Szablon w zasobach pakietu (`Resources/remote_page.html`); ten sam plik serwuje wersja Windows.
+    /// Szablon w zasobach pakietu (`Resources/remote_page.html`).
     private static let template = WebPageResource.load("remote_page")
 }
 

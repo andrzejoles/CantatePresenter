@@ -9,7 +9,7 @@ Aplikacja prosi tylko o zakresy **niewrażliwe** (`drive.file`, `userinfo.email`
 - Strona domowa: `docs/index.html` → `https://andrzejoles.github.io/CantatePresenter/`
 - Polityka prywatności (PL i EN, z zapisem o Limited Use): `docs/privacy.html`
   → `https://andrzejoles.github.io/CantatePresenter/privacy.html`
-- Ikona 120×120 px lub większa: `web/icons/icon-512.png`
+- Ikona 120×120 px lub większa: `docs/icon.png` (192×192 px)
 
 GitHub Pages publikuje katalog `docs/` z gałęzi `main` (włączone w ustawieniach repozytorium: Settings → Pages).
 
@@ -19,7 +19,7 @@ GitHub Pages publikuje katalog `docs/` z gałęzi `main` (włączone w ustawieni
    „Prefiks URL” → `https://andrzejoles.github.io/CantatePresenter/` → metoda „Plik HTML”. Pobrany plik
    `googleXXXX.html` wrzuć do `docs/` (commit na `main`), poczekaj na publikację strony i kliknij „Zweryfikuj”.
 2. **Google Cloud Console** → projekt `CantatePresenter` → *Google Auth Platform* (dawniej „Ekran zgody OAuth”):
-   - *Branding*: nazwa „CantatePresenter”, logo (`icon-512.png`), e-mail pomocy, strona domowa i polityka prywatności
+   - *Branding*: nazwa „CantatePresenter”, logo (`docs/icon.png`), e-mail pomocy, strona domowa i polityka prywatności
      z adresów wyżej, domena autoryzowana `andrzejoles.github.io`, e-mail kontaktowy dewelopera.
    - *Data Access*: tylko `.../auth/drive.file` i `.../auth/userinfo.email` (oraz `openid`, jeśli jest dodany).
    - *Audience*: „Opublikuj aplikację” (z trybu testowego do produkcji).
