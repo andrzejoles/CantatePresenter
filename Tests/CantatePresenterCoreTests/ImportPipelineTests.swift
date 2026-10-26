@@ -293,6 +293,16 @@ struct ImportEnrichmentTests {
         #expect(encoding.restoreTitleDiacritics(title: "Do zlobka", lyrics: "").title == "Do żłobka")
     }
 
+    @Test("Znaki przed słowem zostają przed nim: nawias i cudzysłów nie przechodzą na koniec (R6-04)")
+    func leadingPunctuationStays() {
+        let encoding = PolishEncodingService.shared
+        #expect(encoding.restoreTitleDiacritics(title: "Koleda (Bog sie rodzi)", lyrics: "abc").title == "Koleda (Bóg sie rodzi)")
+        #expect(encoding.restoreTitleDiacritics(title: "\"Swiety\" Pan", lyrics: "abc").title == "\"Święty\" Pan")
+        #expect(encoding.restoreTitleDiacritics(title: "Do zlobka, chodzmy", lyrics: "").title.hasPrefix("Do żłobka,"))
+        let enriched = SongEnrichmentService.shared.enrich(song: Song(title: "Koleda (Bog sie rodzi)", rawLyrics: "La la la"))
+        #expect(enriched.enrichedSong.title == "Koleda (Bóg sie rodzi)")
+    }
+
     @Test("Zastępczy autor to stała, a jego tłumaczenia ze starszych wersji też znaczą „brak autora” (R2-11)")
     func unknownAuthorPlaceholder() {
         #expect(SongEnrichmentService.unknownAuthorPlaceholder == "Nieznany")
