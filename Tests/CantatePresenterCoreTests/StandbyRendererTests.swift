@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import WebKit
 @testable import CantatePresenterCore
 
 // MARK: - S8: logo i teksty planszy wstawiane w pamięci
@@ -112,5 +113,63 @@ struct StandbyZoomTests {
         #expect(StandbyZoom.factor(forWidth: 960) == 1.0)
         #expect(StandbyZoom.factor(forWidth: 3840) == 4.0)
         #expect(StandbyZoom.factor(forWidth: 120) == 0.3)
+    }
+}
+
+// MARK: - R7-02: plansza bez dostępu do plików i bez połączeń
+
+@Suite("Plansza: izolacja skryptów (R7-02)")
+struct StandbyIsolationTests {
+    private let texts = StandbyRenderer.Texts(version: "Wersja 1", ready: "R", credits: "C")
+
+    @Test("CSP na samym początku dokumentu (po doctype), bez połączeń i ramek")
+    func contentSecurityPolicyFirst() throws {
+        let html = "<!DOCTYPE html>\n<html><head><script>fetch('https://x')</script></head><body><!--LOGO--></body></html>"
+        let result = StandbyRenderer.render(html: html, logoSVG: "<svg/>", texts: texts)
+        #expect(result.hasPrefix("<!DOCTYPE html>\n<meta http-equiv=\"Content-Security-Policy\""))
+        let csp = StandbyRenderer.contentSecurityPolicy
+        #expect(csp.contains("default-src 'none'"))
+        #expect(!csp.contains("connect-src"))
+        #expect(!csp.contains("http"))
+        #expect(csp.contains("form-action 'none'") && csp.contains("base-uri 'none'"))
+        // Skrypt z szablonu stoi za CSP, więc ona go obejmuje.
+        let meta = try #require(result.range(of: "Content-Security-Policy"))
+        let script = try #require(result.range(of: "<script>"))
+        #expect(meta.lowerBound < script.lowerBound)
+    }
+
+    @Test("Szablon bez doctype albo ze skryptem przed <html>: CSP i tak pierwsza")
+    func contentSecurityPolicyWithoutDoctype() {
+        let result = StandbyRenderer.render(html: "  <script>x()</script><html><body></body></html>", logoSVG: "", texts: texts)
+        #expect(result.hasPrefix("<meta http-equiv=\"Content-Security-Policy\""))
+    }
+
+    @MainActor
+    @Test("WKWebView planszy bez allowFileAccessFromFileURLs")
+    func noFileAccessFromFileURLs() {
+        let config = StandbyWebView.makeConfiguration()
+        #expect((config.preferences.value(forKey: "allowFileAccessFromFileURLs") as? Bool) == false)
+        #expect((config.preferences.value(forKey: "allowUniversalAccessFromFileURLs") as? Bool) != true)
+    }
+
+    @Test("Nawigacja: tylko wczytanie zlecone przez aplikację, potem żadnej")
+    func navigationPolicy() {
+        var policy = StandbyNavigationPolicy()
+        let base = URL(fileURLWithPath: "/tmp/plansza/", isDirectory: true)
+        let blank = URL(string: "about:blank")
+        var decisions: [Bool] = []
+        decisions.append(policy.allow(url: base, isMainFrame: true))
+
+        policy.expectLoad(baseURL: base)
+        decisions.append(policy.allow(url: URL(string: "https://example.com/?d=1"), isMainFrame: true))
+        decisions.append(policy.allow(url: base, isMainFrame: true))
+        decisions.append(policy.allow(url: base, isMainFrame: true))
+
+        policy.expectLoad(baseURL: nil)
+        decisions.append(policy.allow(url: blank, isMainFrame: false))
+        decisions.append(policy.allow(url: blank, isMainFrame: true))
+        decisions.append(policy.allow(url: blank, isMainFrame: true))
+
+        #expect(decisions == [false, false, true, false, false, true, false])
     }
 }
