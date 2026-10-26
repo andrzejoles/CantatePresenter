@@ -174,6 +174,7 @@ public struct SongSlidesView: View {
                     // Slide cards list
                     ScrollView {
                         LazyVStack(spacing: 12) {
+                            let hints = song.slideShortcutHints
                             ForEach(Array(song.slides.enumerated()), id: \.element.id) { index, slide in
                                 let isCurrentLive = (store.activeSong?.id == song.id) &&
                                                     (store.activeSlideIndex == index) &&
@@ -181,7 +182,7 @@ public struct SongSlidesView: View {
                                 
                                 SlideCardView(
                                     slide: slide,
-                                    index: index,
+                                    shortcutHint: hints[index],
                                     isLive: isCurrentLive,
                                     scale: scale,
                                     onSelect: {
@@ -228,7 +229,8 @@ public struct SongSlidesView: View {
 // MARK: - Slide Card
 private struct SlideCardView: View {
     let slide: SongSlide
-    let index: Int
+    /// Klawisz, który przechodzi do tego slajdu (R4-03); `nil`: brak znaczka.
+    let shortcutHint: String?
     let isLive: Bool
     let scale: Double
     let onSelect: () -> Void
@@ -257,10 +259,12 @@ private struct SlideCardView: View {
                 Spacer()
                 
                 // Shortcut badge
-                let hint = shortcutHint(index: index, type: slide.type)
-                Text("[\(hint)]")
-                    .font(.scaled(10, scale: scale, isMonospaced: true))
-                    .foregroundColor(.secondary)
+                if let shortcutHint {
+                    Text("[\(shortcutHint)]")
+                        .font(.scaled(10, scale: scale, isMonospaced: true))
+                        .foregroundColor(.secondary)
+                        .help(L("Kliknij lub naciśnij {0}", shortcutHint))
+                }
                 
                 if isLive {
                     HStack(spacing: 4) {
@@ -314,10 +318,5 @@ private struct SlideCardView: View {
         case .tag: return .yellow
         default: return .indigo
         }
-    }
-    
-    private func shortcutHint(index: Int, type: SlideType) -> String {
-        if type == .chorus { return "R" }
-        return "\(index + 1)"
     }
 }

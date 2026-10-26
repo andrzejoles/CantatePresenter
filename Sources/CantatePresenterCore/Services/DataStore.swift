@@ -521,21 +521,15 @@ public final class DataStore {
         }
     }
     
+    /// Klawisz cyfry; ten sam slajd pokazuje znaczek na karcie (`Song.slideShortcutHints`, R4-03).
     public func jumpToVerse(number: Int) {
-        guard isLive, let song = activeSong else { return }
-        // Po numerze zwrotki, nie po polskiej etykiecie (S10).
-        if let idx = song.slides.firstIndex(where: { $0.type == .verse && $0.number == number }) {
-            jumpToSlide(index: idx)
-        } else if number - 1 < song.slides.count {
-            jumpToSlide(index: number - 1)
-        }
+        guard isLive, let index = activeSong?.slideIndex(forVerse: number) else { return }
+        jumpToSlide(index: index)
     }
     
     public func jumpToChorus() {
-        guard isLive, let song = activeSong else { return }
-        if let idx = song.slides.firstIndex(where: { $0.type == .chorus }) {
-            jumpToSlide(index: idx)
-        }
+        guard isLive, let index = activeSong?.chorusSlideIndex else { return }
+        jumpToSlide(index: index)
     }
     
     public func toggleBlackScreen() {

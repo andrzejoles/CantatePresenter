@@ -182,6 +182,41 @@ extension KeyboardRouter {
     }
 }
 
+// MARK: - Slide Keys
+
+extension Song {
+    /// Slajd wybierany cyfrą: zwrotka o tym numerze (po numerze, nie po polskiej etykiecie, S10).
+    /// Tylko w pieśni bez numerowanych zwrotek cyfra wybiera slajd na tej pozycji; wcześniej np. 4 w pieśni
+    /// z trzema zwrotkami przechodziło do czwartego slajdu, czyli do refrenu albo Cody (R4-03).
+    public func slideIndex(forVerse number: Int) -> Int? {
+        if let index = slides.firstIndex(where: { $0.type == .verse && $0.number == number }) {
+            return index
+        }
+        guard !slides.contains(where: { $0.type == .verse && $0.number != nil }) else { return nil }
+        return slides.indices.contains(number - 1) ? number - 1 : nil
+    }
+
+    /// Slajd wybierany klawiszem R: pierwszy refren.
+    public var chorusSlideIndex: Int? {
+        slides.firstIndex(where: { $0.type == .chorus })
+    }
+
+    /// Klawisz pokazywany na karcie slajdu: dokładnie ten, który do niej przechodzi (R4-03).
+    /// Karty, do których nie prowadzi ani R, ani cyfra 1–9, nie mają znaczka.
+    public var slideShortcutHints: [Int: String] {
+        var hints: [Int: String] = [:]
+        if let chorus = chorusSlideIndex {
+            hints[chorus] = "R"
+        }
+        for number in 1...9 {
+            if let index = slideIndex(forVerse: number), hints[index] == nil {
+                hints[index] = String(number)
+            }
+        }
+        return hints
+    }
+}
+
 // MARK: - Fixed Keys Help
 
 extension KeyboardRouter {
