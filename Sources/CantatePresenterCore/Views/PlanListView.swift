@@ -5,6 +5,7 @@ public struct PlanListView: View {
     @Bindable var store = DataStore.shared
     @State private var isCreatingPlan: Bool = false
     @State private var newPlanName: String = ""
+    @State private var isConfirmingPlanDeletion = false
     
     public init() {}
     
@@ -40,15 +41,30 @@ public struct PlanListView: View {
                     .controlSize(.small)
                     .helpLabel(L("Utwórz nowy plan"))
                     
-                    if store.plans.count > 1, let activeId = store.activePlanId {
+                    if store.plans.count > 1, store.activePlanId != nil {
                         Button(action: {
-                            store.deletePlan(id: activeId)
+                            isConfirmingPlanDeletion = true
                         }) {
                             Image(systemName: "trash")
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
                         .helpLabel(L("Usuń ten plan"))
+                        // Bez cofania, więc z potwierdzeniem (R4-17).
+                        .confirmationDialog(
+                            L("Usunąć plan „{0}”?", store.activePlan?.name ?? ""),
+                            isPresented: $isConfirmingPlanDeletion,
+                            titleVisibility: .visible
+                        ) {
+                            Button(L("Usuń"), role: .destructive) {
+                                if let activeId = store.activePlanId {
+                                    store.deletePlan(id: activeId)
+                                }
+                            }
+                            Button(L("Anuluj"), role: .cancel) {}
+                        } message: {
+                            Text(L("Pieśni zostaną w bibliotece."))
+                        }
                     }
                 }
                 

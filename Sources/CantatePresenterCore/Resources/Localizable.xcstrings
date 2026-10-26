@@ -10277,6 +10277,34 @@
         }
       }
     },
+    "Pieśni zostaną w bibliotece.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The songs stay in the library."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Lieder bleiben in der Bibliothek."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las canciones permanecen en la biblioteca."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пісні залишаться в бібліотеці."
+          }
+        }
+      }
+    },
     "Pieśni: {0}": {
       "localizations": {
         "en": {
@@ -10385,6 +10413,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Пісня з акордами"
+          }
+        }
+      }
+    },
+    "Pieśń zostanie usunięta z biblioteki i ze wszystkich planów.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The song will be removed from the library and from all plans."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Lied wird aus der Bibliothek und aus allen Plänen entfernt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La canción se eliminará de la biblioteca y de todos los planes."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пісню буде видалено з бібліотеки та з усіх планів."
           }
         }
       }
@@ -12597,6 +12653,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Проєктор від’єднано – проєкція відновиться після під’єднання"
+          }
+        }
+      }
+    },
+    "Projektor przestanie wyświetlać tekst i planszę.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The projector will stop showing the text and the standby screen."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Projektor zeigt dann weder Text noch Wartebildschirm."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El proyector dejará de mostrar el texto y la pantalla de espera."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проєктор перестане показувати текст і заставку."
           }
         }
       }
@@ -16269,6 +16353,62 @@
         }
       }
     },
+    "Usunąć pieśń „{0}”?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete the song “{0}”?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lied „{0}“ löschen?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Eliminar la canción «{0}»?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити пісню «{0}»?"
+          }
+        }
+      }
+    },
+    "Usunąć plan „{0}”?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete the plan “{0}”?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan „{0}“ löschen?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Eliminar el plan «{0}»?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити план «{0}»?"
+          }
+        }
+      }
+    },
     "Usuń": {
       "localizations": {
         "en": {
@@ -19237,6 +19377,34 @@
         }
       }
     },
+    "Zakończ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salir"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завершити"
+          }
+        }
+      }
+    },
     "Zakończ CantatePresenter": {
       "localizations": {
         "en": {
@@ -19373,6 +19541,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Завершення проєкції; у полі пошуку: вихід з поля"
+          }
+        }
+      }
+    },
+    "Zakończyć program w trakcie projekcji?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit during a projection?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Während der Projektion beenden?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Salir durante la proyección?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завершити програму під час проєкції?"
           }
         }
       }

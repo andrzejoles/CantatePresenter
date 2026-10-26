@@ -7,6 +7,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     public static private(set) var shared: AppDelegate?
     public var mainWindow: NSWindow?
     private var exitBackupCoordinator: ExitBackupCoordinator?
+    /// Zamknięcie w trakcie projekcji już potwierdzone (przy zamykaniu okna głównego), więc bez drugiego pytania.
+    private var quitWhileLiveConfirmed = false
     
     public override init() {
         super.init()
@@ -63,6 +65,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         window.title = Lnow("CantatePresenter — Prezenter Pieśni & Słowa")
         window.minSize = NSSize(width: 950, height: 600)
         window.contentViewController = hostingController
+        window.delegate = self
         window.center()
         window.makeKeyAndOrderFront(nil)
         // Okno projekcji też jest oknem, więc bez tego zamknięcie okna głównego zostawiało projekcję na ekranie.
@@ -345,6 +348,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     public func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         // ⌘Q przy otwartych Ustawieniach: zmiany z arkusza nie były jeszcze zapisane (R4-05, R2-22).
         DataStore.shared.saveSettingsIfChanged()
+        if exitBackupCoordinator == nil, needsQuitConfirmation() {
+            guard confirmQuitWhileLive() else { return .terminateCancel }
+        }
         let googleDrive = DataStore.shared.settings.googleDrive
         guard googleDrive.isEnabled, googleDrive.autoBackupOnExit, exitBackupCoordinator == nil else {
             return .terminateNow
@@ -376,6 +382,40 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.level = .modalPanel
         panel.contentView = NSHostingView(rootView: ExitBackupProgressView(onSkip: onSkip))
         return panel
+    }
+}
+
+// MARK: - Quit While Live (R4-18)
+extension AppDelegate: NSWindowDelegate {
+    /// ⌘W na oknie głównym zamyka program, więc w trakcie projekcji też pyta.
+    public func windowShouldClose(_ sender: NSWindow) -> Bool {
+        guard sender === mainWindow, needsQuitConfirmation() else { return true }
+        return confirmQuitWhileLive()
+    }
+    
+    private func needsQuitConfirmation() -> Bool {
+        Self.needsQuitConfirmation(
+            isLive: DataStore.shared.isLive,
+            isPresentationActive: ScreenManager.shared.isPresentationActive,
+            alreadyConfirmed: quitWhileLiveConfirmed
+        )
+    }
+    
+    /// ⌘Q albo ⌘W w trakcie projekcji: zgromadzenie straciłoby obraz bez ostrzeżenia.
+    static func needsQuitConfirmation(isLive: Bool, isPresentationActive: Bool, alreadyConfirmed: Bool) -> Bool {
+        (isLive || isPresentationActive) && !alreadyConfirmed
+    }
+    
+    private func confirmQuitWhileLive() -> Bool {
+        let alert = NSAlert()
+        alert.messageText = Lnow("Zakończyć program w trakcie projekcji?")
+        alert.informativeText = Lnow("Projektor przestanie wyświetlać tekst i planszę.")
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: Lnow("Zakończ"))
+        alert.addButton(withTitle: Lnow("Anuluj"))
+        let confirmed = alert.runModal() == .alertFirstButtonReturn
+        quitWhileLiveConfirmed = confirmed
+        return confirmed
     }
 }
 
