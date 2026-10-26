@@ -244,7 +244,7 @@ private struct SlideCardView: View {
             HStack {
                 // Type Badge
                 HStack(spacing: 4) {
-                    Text(slide.type.shortBadge)
+                    Text(L(slide.type.shortBadge))
                         .font(.scaled(10, weight: .bold, scale: scale))
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)

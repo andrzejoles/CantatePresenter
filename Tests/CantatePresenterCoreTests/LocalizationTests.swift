@@ -85,6 +85,23 @@ struct LocalizationCatalogCompletenessTests {
     }
 }
 
+// MARK: - R8-07: znaczki typów slajdów
+
+@Suite("Znaczki typów slajdów (R8-07)")
+struct SlideBadgeTranslationTests {
+    @Test("Każdy literowy znaczek typu slajdu ma tłumaczenie", arguments: ["en", "de", "es", "uk"])
+    func badgesTranslated(language: String) {
+        let catalog = Localization.catalogKeys(referenceLanguage: language)
+        let badges = SlideType.allCases.map(\.shortBadge).filter { $0.contains(where: \.isLetter) }
+        #expect(badges.allSatisfy { catalog[$0] != nil }, "\(badges.filter { catalog[$0] == nil })")
+    }
+
+    @Test("Zwrotka nie ma po angielsku polskiego „Z”")
+    func englishVerseBadge() {
+        #expect(Localization.string(SlideType.verse.shortBadge, language: "en") == "V")
+    }
+}
+
 // MARK: - R8-06: zastępczy autor w języku interfejsu
 
 @Suite("Zastępczy autor „Nieznany” (R8-06)")

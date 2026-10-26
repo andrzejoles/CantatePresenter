@@ -1457,6 +1457,34 @@
         }
       }
     },
+    "B": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "B"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "B"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "P"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Б"
+          }
+        }
+      }
+    },
     "Bez tytułu": {
       "localizations": {
         "en": {
@@ -2685,6 +2713,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Помилка: не вдалося створити шаблон JSON."
+          }
+        }
+      }
+    },
+    "CODA": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CODA"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CODA"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CODA"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "КОДА"
           }
         }
       }
@@ -5709,6 +5765,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Іспанська / Español"
+          }
+        }
+      }
+    },
+    "IN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IN"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IN"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IN"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ВСТ"
           }
         }
       }
@@ -9801,34 +9885,6 @@
         }
       }
     },
-    "Nowy plan": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "New plan"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Neuer Ablauf"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nuevo plan"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Новий план"
-          }
-        }
-      }
-    },
     "Numer CCLI": {
       "localizations": {
         "en": {
@@ -9993,6 +10049,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "ВІКНО ПОПЕРЕДНЬОГО ПЕРЕГЛЯДУ ПРОЄКЦІЇ"
+          }
+        }
+      }
+    },
+    "OUT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OUT"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OUT"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OUT"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "АУТ"
           }
         }
       }
@@ -10613,6 +10697,34 @@
         }
       }
     },
+    "PC": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PC"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PC"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ПП"
+          }
+        }
+      }
+    },
     "PROJEKTOR: Trwa projekcja '{0}' (slajd {1}/{2})": {
       "localizations": {
         "en": {
@@ -10637,6 +10749,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "ПРОЄКТОР: Триває проєкція '{0}' (слайд {1}/{2})"
+          }
+        }
+      }
+    },
+    "PRZ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "INT"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ZW"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "INT"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ПРГ"
           }
         }
       }
@@ -14253,6 +14393,34 @@
         }
       }
     },
+    "R": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "C"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "R"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "C"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "П"
+          }
+        }
+      }
+    },
     "Raport użycia: zapisane wyświetlenia: {0}": {
       "localizations": {
         "en": {
@@ -15429,34 +15597,6 @@
         }
       }
     },
-    "Szukaj ({0})...": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search ({0})..."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Suchen ({0})..."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buscar ({0})..."
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Шукати ({0})..."
-          }
-        }
-      }
-    },
     "Szukaj pieśni": {
       "localizations": {
         "en": {
@@ -15513,6 +15653,62 @@
         }
       }
     },
+    "Szukaj tylko autora...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search author only..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur nach Autor suchen..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar solo por autor..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шукати лише за автором..."
+          }
+        }
+      }
+    },
+    "Szukaj tylko w tytule...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search title only..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur im Titel suchen..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar solo en el título..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шукати лише в назві..."
+          }
+        }
+      }
+    },
     "Szukaj w SongSelect": {
       "localizations": {
         "en": {
@@ -15565,6 +15761,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Шукати в посібнику..."
+          }
+        }
+      }
+    },
+    "Szukaj w tytule i autorze...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search title and author..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Titel und Autor suchen..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar en título y autor..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шукати в назві та авторі..."
           }
         }
       }
@@ -15733,6 +15957,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Швидке керування презентацією"
+          }
+        }
+      }
+    },
+    "TAG": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TAG"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TAG"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ETQ"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ТЕГ"
           }
         }
       }
@@ -20049,6 +20301,34 @@
         }
       }
     },
+    "Z": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "V"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "S"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "К"
+          }
+        }
+      }
+    },
     "Z chwytami": {
       "localizations": {
         "en": {
@@ -20073,6 +20353,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "З акордами"
+          }
+        }
+      }
+    },
+    "ZAK": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "END"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SCHL"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FIN"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ЗАВ"
           }
         }
       }
@@ -21986,7 +22294,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "{0} sl."
+            "value": "{0} slides"
           }
         },
         "de": {

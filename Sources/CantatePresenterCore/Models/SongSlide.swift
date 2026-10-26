@@ -47,6 +47,7 @@ public enum SlideType: String, Codable, CaseIterable, Sendable {
         }
     }
     
+    /// Znaczek typu na kartach slajdów: polski skrót, a zarazem klucz katalogu tłumaczeń (widoki: `L(type.shortBadge)`, R8-07).
     public var shortBadge: String {
         switch self {
         case .verse: return "Z"

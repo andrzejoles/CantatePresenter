@@ -206,7 +206,7 @@ public struct SongEditorView: View {
                                 ForEach(Array(parsedSlides.enumerated()), id: \.element.id) { index, slide in
                                     VStack(alignment: .leading, spacing: 4) {
                                         HStack(spacing: 5) {
-                                            Text(slide.type.shortBadge)
+                                            Text(L(slide.type.shortBadge))
                                                 .font(.scaled(9, weight: .bold, scale: scale))
                                                 .padding(.horizontal, 4)
                                                 .padding(.vertical, 1)
