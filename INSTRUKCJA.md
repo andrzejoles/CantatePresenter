@@ -77,7 +77,7 @@ Telefon musi być w tej samej sieci Wi-Fi co Mac. Kod zawiera jednorazowy klucz 
 
 ## 3. Plansza Czuwania (Standby) i Wybór Logo
 
-Gdy żadna pieśń nie jest prezentowana na żywo, projektor wyświetla planszę czuwania: wybrane logo, nazwę programu, wersję, zegar i napis „Gotowy do projekcji”. W **Ustawieniach → Plansza startowa i Logo aplikacji** możesz wskazać własny plik HTML; przycisk **Otwórz plik planszy w edytorze / przeglądarce** otwiera plik, który jest aktualnie używany. Podgląd w prawym panelu okna głównego jest uproszczony (logo, nazwa i wersja).
+Gdy żadna pieśń nie jest prezentowana na żywo, projektor wyświetla planszę czuwania: wybrane logo, nazwę programu, wersję, zegar i napis „Gotowy do projekcji”. W **Ustawieniach → Plansza startowa i Logo aplikacji** możesz wskazać własny plik HTML; przycisk **Otwórz plik planszy w edytorze / przeglądarce** otwiera plik, który jest aktualnie używany. Podgląd w prawym panelu okna głównego pokazuje tę samą planszę w pomniejszeniu.
 
 ### Wybór oficjalnego logo:
 1. Otwórz **Ustawienia** i kliknij **Wybierz inne logo (23 propozycje)...**.

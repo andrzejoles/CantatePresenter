@@ -83,26 +83,9 @@ public struct LiveOutputView: View {
                                 .font(.scaled(11, weight: .bold, scale: scale))
                                 .foregroundColor(.white.opacity(0.5))
                         } else if !store.isLive {
-                            GeometryReader { geo in
-                                let size = geo.size
-                                let logoDim = min(80.0, max(44.0, size.height * 0.38))
-                                Color(hex: "#0b0f19")
-                                VStack(spacing: max(2.0, size.height * 0.025)) {
-                                    let activeLogo = LogoCatalog.getById(store.settings.activeLogoId)
-                                    SVGThumbnailView(svgString: activeLogo.svgContent)
-                                        .frame(width: logoDim, height: logoDim)
-                                        .cornerRadius(6)
-                                    
-                                    Text("CantatePresenter")
-                                        .font(.scaled(max(11.0, size.height * 0.085), weight: .bold, scale: scale))
-                                        .foregroundColor(.white)
-                                    
-                                    Text(L("Wersja {0}", AppVersion.current))
-                                        .font(.scaled(max(8.5, size.height * 0.06), weight: .medium, scale: scale))
-                                        .foregroundColor(.white.opacity(0.75))
-                                }
-                                .frame(width: size.width, height: size.height)
-                            }
+                            // Ta sama plansza co na projektorze (własny plik, zegar, napis gotowości), pomniejszona (R4-15).
+                            StandbyWebView(htmlPath: store.settings.standbyHtmlPath, activeLogoId: store.settings.activeLogoId)
+                                .allowsHitTesting(false)
                         } else if store.isClearText {
                             bgColor
                             Text(L("TEKST UKRYTY"))
