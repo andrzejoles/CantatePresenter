@@ -28,6 +28,14 @@ public final class HolyricsJavaDeserializer {
     /// Ramka `readContent` w buildzie debug jest duża: na wątku z 512 KB stosu (testy, `Task`)
     /// 64 poziomy już przepełniały stos, 48 jeszcze nie. 32 zostawia zapas.
     private static let MAX_DEPTH = 32
+    /// Limity przeciw wzmocnieniu przez referencje (R7-03): mały plik nie może dać miliona pieśni
+    /// ani gigabajtów tekstu. Prawdziwe biblioteki mają kilka tysięcy pieśni, a tekst zajmuje
+    /// mniej bajtów niż plik.
+    static let maxRecords = 50_000
+    static let textAllowance = 1_000_000
+    static let textBytesPerFileByte = 8
+    /// Typy pól z opisu klasy w specyfikacji Java Object Serialization.
+    private static let fieldTypeCodes: Set<Character> = ["B", "C", "D", "F", "I", "J", "S", "Z", "[", "L"]
     
     public struct RawMusicRecord {
         public var title: String = ""
@@ -38,6 +46,8 @@ public final class HolyricsJavaDeserializer {
         public var note: String = ""
         public var formatting: String = ""
         public var language: String = ""
+        /// Numer obiektu w strumieniu: ta sama pieśń osiągnięta drugi raz (referencją) nie jest dublowana.
+        var objectID = 0
     }
     
     /// Bajty indeksowane od zera (wycinek `Data` może mieć niezerowy `startIndex`).
@@ -47,6 +57,8 @@ public final class HolyricsJavaDeserializer {
     private var handles: [Any?] = []
     /// Kompletne obiekty `Music` w kolejności odczytu, do częściowego wyniku przy uszkodzonym pliku (R2-04).
     private var completedRecords: [RawMusicRecord] = []
+    private var textBytes = 0
+    private var textLimit: Int { HolyricsJavaDeserializer.textBytesPerFileByte * bytes.count + HolyricsJavaDeserializer.textAllowance }
     
     public init(data: Data) {
         self.bytes = Array(data)
@@ -68,6 +80,12 @@ public final class HolyricsJavaDeserializer {
         }
         
         var musicRecords: [RawMusicRecord] = []
+        var seen = Set<Int>()
+        func add(_ records: [RawMusicRecord]) {
+            for record in records where seen.insert(record.objectID).inserted {
+                musicRecords.append(record)
+            }
+        }
         
         while pos < bytes.count {
             guard let obj = try readContent() else {
@@ -75,14 +93,16 @@ public final class HolyricsJavaDeserializer {
             }
             
             if let list = obj as? [RawMusicRecord] {
-                musicRecords.append(contentsOf: list)
+                add(list)
             } else if let rec = obj as? RawMusicRecord {
-                musicRecords.append(rec)
+                add([rec])
             } else if let dict = obj as? [String: Any] {
                 if let elems = dict["_elements"] as? [RawMusicRecord] {
-                    musicRecords.append(contentsOf: elems)
-                } else if let rec = extractMusicFromDict(dict) {
-                    musicRecords.append(rec)
+                    add(elems)
+                } else if var rec = extractMusicFromDict(dict) {
+                    // Słownik bez numeru obiektu: kolejny numer, żeby nie zlał się z innymi.
+                    rec.objectID = -1 - musicRecords.count
+                    add([rec])
                 }
             }
         }
@@ -259,6 +279,10 @@ public final class HolyricsJavaDeserializer {
             guard handleIndex < handles.count else {
                 throw DeserializationError.invalidReference(ref)
             }
+            // Pieśń już odczytana: referencja nie tworzy kopii (R7-03, lista miliona referencji).
+            if handles[handleIndex] is RawMusicRecord {
+                return nil
+            }
             return handles[handleIndex]
             
         case HolyricsJavaDeserializer.TC_STRING:
@@ -288,7 +312,12 @@ public final class HolyricsJavaDeserializer {
             fields.reserveCapacity(numFields)
             
             for _ in 0..<numFields {
-                let ftype = Character(UnicodeScalar(try readUInt8()))
+                let code = try readUInt8()
+                let ftype = Character(UnicodeScalar(code))
+                // Nieznany typ nie zajmuje danych, a pętla po polach kosztowałaby czas przy każdym obiekcie (R7-03).
+                guard HolyricsJavaDeserializer.fieldTypeCodes.contains(ftype) else {
+                    throw DeserializationError.unexpectedToken(code, pos - 1)
+                }
                 let fname = try readUTF()
                 var fclass: String? = nil
                 if ftype == "[" || ftype == "L" {
@@ -414,7 +443,16 @@ public final class HolyricsJavaDeserializer {
                 }
             }
             
-            if let rec = musicRecord {
+            if var rec = musicRecord {
+                guard completedRecords.count < HolyricsJavaDeserializer.maxRecords else {
+                    throw DeserializationError.invalidLength(Int64(completedRecords.count + 1), pos)
+                }
+                textBytes += rec.title.utf8.count + rec.lyrics.utf8.count + rec.author.utf8.count + rec.artist.utf8.count
+                    + rec.note.utf8.count + rec.formatting.utf8.count
+                guard textBytes <= textLimit else {
+                    throw DeserializationError.invalidLength(Int64(textBytes), pos)
+                }
+                rec.objectID = completedRecords.count
                 setHandle(h, rec)
                 completedRecords.append(rec)
                 return rec
