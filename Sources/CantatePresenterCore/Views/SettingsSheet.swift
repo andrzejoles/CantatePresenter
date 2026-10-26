@@ -33,7 +33,7 @@ public struct SettingsSheet: View {
                     .font(.scaled(16, weight: .bold, scale: scale))
                 Spacer()
                 Button(L("Gotowe")) {
-                    store.saveSettings()
+                    store.saveSettingsIfChanged()
                     isPresented = false
                 }
                 .buttonStyle(.borderedProminent)
@@ -802,6 +802,10 @@ public struct SettingsSheet: View {
         .onAppear {
             refreshDriveState()
             self.availableFonts = AutoFitEngine.availableSystemFonts()
+        }
+        // Zamknięcie arkusza bez „Gotowe” (Esc) też zapisuje zmiany z pól (R4-05).
+        .onDisappear {
+            store.saveSettingsIfChanged()
         }
     }
     

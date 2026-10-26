@@ -336,6 +336,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Kopia przy zamykaniu nie może czekać na wątku głównym (zakleszczenie z `@MainActor`),
     /// więc zamknięcie jest odkładane (`.terminateLater`) do zakończenia kopii, limitu czasu albo „Pomiń”.
     public func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        // ⌘Q przy otwartych Ustawieniach: zmiany z arkusza nie były jeszcze zapisane (R4-05, R2-22).
+        DataStore.shared.saveSettingsIfChanged()
         let googleDrive = DataStore.shared.settings.googleDrive
         guard googleDrive.isEnabled, googleDrive.autoBackupOnExit, exitBackupCoordinator == nil else {
             return .terminateNow

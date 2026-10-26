@@ -88,6 +88,8 @@ public final class DataStore {
     @ObservationIgnored private var lockedFileNames: Set<String> = []
     /// Dane z nowszej wersji formatu (`DataSchema`): wszystkie zapisy pominięte.
     @ObservationIgnored public private(set) var isReadOnlyNewerSchema = false
+    /// Ustawienia w stanie z ostatniego zapisu lub wczytania (`saveSettingsIfChanged`).
+    @ObservationIgnored private var lastSavedSettings: AppSettings?
     /// Ostatnia pieśń z aktywnego planu; po „szybkim tekście” poprzednia/następna pieśń liczy się od niej (N11).
     @ObservationIgnored private var lastPlanSongId: UUID?
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "persistence")
@@ -266,6 +268,7 @@ public final class DataStore {
         case .loaded(let decoded):
             unlock(settingsFileURL)
             self.settings = decoded
+            lastSavedSettings = decoded
             applySchemaVersion(decoded.schemaVersion)
             if settings.googleDrive.hasLegacySecrets {
                 migrateGoogleSecrets()
@@ -311,6 +314,15 @@ public final class DataStore {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         persist(settings, to: settingsFileURL, encoder: encoder)
+        lastSavedSettings = settings
+    }
+
+    /// Zapisuje ustawienia tylko wtedy, gdy zmieniły się od ostatniego zapisu lub wczytania.
+    /// Wywoływane przy zamknięciu arkusza Ustawień (także Esc) i przy zamykaniu aplikacji: pola arkusza
+    /// zmieniają `settings` bezpośrednio, a wcześniej zapisywał je tylko przycisk „Gotowe” (R4-05, R2-22).
+    public func saveSettingsIfChanged() {
+        guard settings != lastSavedSettings else { return }
+        saveSettings()
     }
     
     public func dismissPersistenceIssue(_ issue: PersistenceIssue) {
