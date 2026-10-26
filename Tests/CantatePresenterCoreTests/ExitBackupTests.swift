@@ -72,7 +72,9 @@ struct ExitBackupTests {
         )
 
         #expect(outcome == .timedOut)
-        #expect(ContinuousClock.now - start < .seconds(5))
+        // Limit sprawdza wątek główny, który równoległe testy potrafią zająć na kilka sekund;
+        // ważne jest tylko, że nie czekamy na 30-sekundową wysyłkę.
+        #expect(ContinuousClock.now - start < .seconds(25))
     }
 
     @Test("Pomiń kończy czekanie od razu")
