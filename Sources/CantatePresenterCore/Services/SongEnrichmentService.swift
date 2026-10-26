@@ -47,8 +47,11 @@ public final class SongEnrichmentService: Sendable {
                clean == "nn" ||
                clean == "various" ||
                clean == "-" ||
-               ["unknown", "unbekannt", "desconocido", "невідомий", "unknown author"].contains(clean)
+               translatedUnknownAuthors.contains(clean)
     }
+    
+    /// Tłumaczenia „Nieznany” z katalogu (en, de, es, uk) po `foldString`.
+    private static let translatedUnknownAuthors: Set<String> = Set(["Unknown", "Unbekannt", "Desconocido", "Невідомий"].map(Song.foldString))
 
     /// Normalizes title with diacritics and clean casing
     public func canonicalizeTitle(_ title: String) -> String {

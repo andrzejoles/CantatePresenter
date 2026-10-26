@@ -293,6 +293,15 @@ struct ImportEnrichmentTests {
         #expect(encoding.restoreTitleDiacritics(title: "Do zlobka", lyrics: "").title == "Do żłobka")
     }
 
+    @Test("Zastępczy autor to stała, a jego tłumaczenia ze starszych wersji też znaczą „brak autora” (R2-11)")
+    func unknownAuthorPlaceholder() {
+        #expect(SongEnrichmentService.unknownAuthorPlaceholder == "Nieznany")
+        for author in ["Nieznany", "Unknown", "Unbekannt", "Desconocido", "Невідомий", ""] {
+            #expect(SongEnrichmentService.isUnknownAuthor(author), "\(author)")
+        }
+        #expect(!SongEnrichmentService.isUnknownAuthor("Jan Kowalski"))
+    }
+
     @Test("Słowo z tekstem w dwóch wersjach (z ogonkiem i bez) nie jest zmieniane")
     func ambiguousLyricsWord() {
         let result = PolishEncodingService.shared.restoreTitleDiacritics(title: "Swieta noc", lyrics: "Święta noc, święta, swieta")
