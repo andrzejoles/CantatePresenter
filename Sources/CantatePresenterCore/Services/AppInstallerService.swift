@@ -65,7 +65,7 @@ public final class AppInstallerService {
 
         do {
             try Self.install(from: URL(fileURLWithPath: currentAppPath), to: destination)
-            Self.relaunch(at: destination)
+            relaunch(at: destination)
         } catch {
             Self.logger.error("Instalacja w /Applications: \(String(describing: error), privacy: .public)")
             let errorAlert = NSAlert()
@@ -134,20 +134,56 @@ public final class AppInstallerService {
 
     // MARK: - Relaunch
 
+    /// Pomocnik czekający na zamknięcie tej instancji; `nil`, gdy żaden nie działa.
+    private var pendingRelaunch: RelaunchHelper?
+
     /// Uruchamia kopię z `destination` dopiero po zamknięciu tej instancji. `NSWorkspace.openApplication` przy działającym
     /// programie o tym samym identyfikatorze tylko by go aktywował, a dwie instancje naraz zapisywałyby te same dane.
-    private static func relaunch(at destination: URL) {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/sh")
-        process.arguments = [
-            "-c", "while /bin/kill -0 \"$1\" 2>/dev/null; do /bin/sleep 0.2; done; /usr/bin/open \"$2\"",
-            "relaunch", String(ProcessInfo.processInfo.processIdentifier), destination.path
-        ]
+    private func relaunch(at destination: URL) {
+        let helper = RelaunchHelper(waitingFor: ProcessInfo.processInfo.processIdentifier, open: destination.path)
         do {
-            try process.run()
+            try helper.start()
+            pendingRelaunch = helper
         } catch {
-            logger.error("Ponowne uruchomienie: \(String(describing: error), privacy: .public)")
+            Self.logger.error("Ponowne uruchomienie: \(String(describing: error), privacy: .public)")
         }
         NSApp.terminate(nil)
+    }
+
+    /// Zamknięcie zostało anulowane (np. „Anuluj” w trakcie projekcji, R7-04): kopia z /Applications nie może
+    /// wystartować sama później, przy zamknięciu albo awarii tej instancji.
+    public func cancelPendingRelaunch() {
+        guard let helper = pendingRelaunch else { return }
+        helper.cancel()
+        pendingRelaunch = nil
+        Self.logger.notice("Zamknięcie anulowane; kopia z /Applications nie zostanie uruchomiona")
+    }
+}
+
+// MARK: - Relaunch Helper
+
+/// `/bin/sh` czekający, aż proces `pid` się zakończy, a potem otwierający `path`.
+final class RelaunchHelper {
+    private let process = Process()
+
+    init(waitingFor pid: Int32, open path: String, opener: String = "/usr/bin/open") {
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        // PID i ścieżka jako argumenty pozycyjne, nie wklejane w skrypt.
+        process.arguments = [
+            "-c", "while /bin/kill -0 \"$1\" 2>/dev/null; do /bin/sleep 0.2; done; \"$3\" \"$2\"",
+            "relaunch", String(pid), path, opener
+        ]
+    }
+
+    var isRunning: Bool { process.isRunning }
+
+    func start() throws {
+        try process.run()
+    }
+
+    func cancel() {
+        guard process.isRunning else { return }
+        process.terminate()
+        process.waitUntilExit()
     }
 }

@@ -357,7 +357,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // ⌘Q przy otwartych Ustawieniach: zmiany z arkusza nie były jeszcze zapisane (R4-05, R2-22).
         DataStore.shared.saveSettingsIfChanged()
         if exitBackupCoordinator == nil, needsQuitConfirmation() {
-            guard confirmQuitWhileLive() else { return .terminateCancel }
+            guard confirmQuitWhileLive() else {
+                // Instalacja w Programach czeka na to zamknięcie; po „Anuluj” kopia nie może wystartować później (R7-04).
+                AppInstallerService.shared.cancelPendingRelaunch()
+                return .terminateCancel
+            }
         }
         let googleDrive = DataStore.shared.settings.googleDrive
         guard googleDrive.isEnabled, googleDrive.autoBackupOnExit, exitBackupCoordinator == nil else {
