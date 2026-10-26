@@ -139,11 +139,11 @@ public struct SettingsSheet: View {
                             
                             // Prywatność dyktowania (N4)
                             VStack(alignment: .leading, spacing: 3) {
-                                Toggle(L("Rozpoznawaj mowę tylko na tym Macu"), isOn: $store.settings.dictationOnDeviceOnly)
+                                Toggle(L("Rozpoznawaj mowę na tym Macu, gdy to możliwe"), isOn: $store.settings.dictationOnDeviceOnly)
                                     .toggleStyle(CheckboxToggleStyle())
                                     .font(.scaled(11, scale: scale))
                                     .onChange(of: store.settings.dictationOnDeviceOnly) { _, _ in store.saveSettings() }
-                                Text(L("Nagrania nie są wysyłane do Apple i dyktowanie działa bez internetu. Jeśli macOS nie ma modelu mowy dla wybranego języka, rozpoznawanie odbywa się na serwerach Apple."))
+                                Text(L("Gdy macOS ma model mowy dla wybranego języka, nagrania nie są wysyłane do Apple i dyktowanie działa bez internetu. Bez takiego modelu, albo gdy rozpoznawanie na Macu się nie powiedzie, nagranie rozpoznają serwery Apple."))
                                     .font(.scaled(10, scale: scale))
                                     .foregroundColor(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
