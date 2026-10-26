@@ -1,6 +1,6 @@
 import Foundation
 
-public struct LogoPreset: Identifiable, Equatable {
+public struct LogoPreset: Identifiable, Equatable, Sendable {
     public let id: String
     public let name: String
     public let subtitle: String

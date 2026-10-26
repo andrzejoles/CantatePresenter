@@ -1,7 +1,7 @@
 import Foundation
 
 /// Typ slajdu. W JSON zapisywany jako stały kod (S10); nazwa do wyświetlenia jest tłumaczona osobno.
-public enum SlideType: String, Codable, CaseIterable {
+public enum SlideType: String, Codable, CaseIterable, Sendable {
     case verse
     case chorus
     case bridge
@@ -65,7 +65,7 @@ public enum SlideType: String, Codable, CaseIterable {
     }
 }
 
-public struct SongSlide: Identifiable, Codable, Equatable, Hashable {
+public struct SongSlide: Identifiable, Codable, Equatable, Hashable, Sendable {
     public var id: UUID
     public var type: SlideType
     public var label: String

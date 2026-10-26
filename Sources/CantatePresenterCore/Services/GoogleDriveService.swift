@@ -22,7 +22,7 @@ public struct RemoteBackupItem: Identifiable, Codable {
     }
 }
 
-public final class GoogleDriveService {
+public final class GoogleDriveService: Sendable {
     public static let shared = GoogleDriveService()
     
     private let driveFilesEndpoint = "https://www.googleapis.com/drive/v3/files"

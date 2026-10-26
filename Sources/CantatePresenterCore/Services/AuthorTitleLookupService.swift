@@ -44,7 +44,7 @@ public struct SongMatchProposal: Identifiable, Equatable {
     }
 }
 
-public final class AuthorTitleLookupService {
+public final class AuthorTitleLookupService: Sendable {
     public static let shared = AuthorTitleLookupService()
     
     /// Extracts the best search query candidate for a song (lyrics first line or clean title)

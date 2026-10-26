@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Song: Identifiable, Codable, Equatable, Hashable {
+public struct Song: Identifiable, Codable, Equatable, Hashable, Sendable {
     public var id: UUID
     public var title: String
     public var author: String

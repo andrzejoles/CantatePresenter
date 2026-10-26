@@ -1,6 +1,6 @@
 import Foundation
 
-public final class PolishEncodingService {
+public final class PolishEncodingService: Sendable {
     public static let shared = PolishEncodingService()
     
     // Polish diacritic characters

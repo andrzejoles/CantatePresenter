@@ -166,10 +166,10 @@ struct HolyricsJavaDeserializerTests {
 
     @Test(
         "Prawdziwy eksport Holyrics z repozytorium",
-        .enabled(if: FileManager.default.fileExists(atPath: Self.realExport.path))
+        .enabled(if: FileManager.default.fileExists(atPath: Self.realExportURL.path))
     )
     func realExport() throws {
-        let data = try Data(contentsOf: Self.realExport)
+        let data = try Data(contentsOf: Self.realExportURL)
         let records = try parse(data)
         #expect(!records.isEmpty)
 
@@ -179,7 +179,7 @@ struct HolyricsJavaDeserializerTests {
         }
     }
 
-    static let realExport = URL(fileURLWithPath: #filePath)
+    static let realExportURL = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         .appendingPathComponent("2026-10-14_16-19-00.mufl")
 }

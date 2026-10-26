@@ -28,9 +28,13 @@ public final class RemoteControlServer {
     
     @ObservationIgnored private var listener: NWListener?
     @ObservationIgnored private let queue = DispatchQueue(label: "com.cantate.presenter.remote")
+    /// Otwarte połączenia; ponad limit nowe są od razu zamykane (telefony i tablety pytają co sekundę i rozłączają się).
+    @ObservationIgnored nonisolated private let openConnections = OSAllocatedUnfairLock(initialState: 0)
+    nonisolated private let maxConnections: Int
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "remote")
     
-    init(route: (@MainActor (RemoteHTTPRequest, String, String) -> RemoteHTTPResponse)? = nil) {
+    init(maxConnections: Int = 32, route: (@MainActor (RemoteHTTPRequest, String, String) -> RemoteHTTPResponse)? = nil) {
+        self.maxConnections = maxConnections
         self.route = route ?? { request, token, stageToken in
             RemoteControlBridge.response(for: request, token: token, stageToken: stageToken, store: DataStore.shared)
         }
@@ -123,6 +127,25 @@ public final class RemoteControlServer {
     // MARK: - Connections
     
     nonisolated private func accept(_ connection: NWConnection) {
+        let accepted = openConnections.withLock { count in
+            guard count < maxConnections else { return false }
+            count += 1
+            return true
+        }
+        guard accepted else {
+            connection.cancel()
+            return
+        }
+        connection.stateUpdateHandler = { [weak self] state in
+            switch state {
+            case .failed:
+                connection.cancel()
+            case .cancelled:
+                self?.openConnections.withLock { $0 -= 1 }
+            default:
+                break
+            }
+        }
         connection.start(queue: queue)
         // Połączenie, które nie przyśle żądania w 10 s, jest zamykane.
         queue.asyncAfter(deadline: .now() + 10) { connection.cancel() }
@@ -173,7 +196,7 @@ public final class RemoteControlServer {
                   (interface.ifa_flags & UInt32(IFF_UP)) != 0, (interface.ifa_flags & UInt32(IFF_LOOPBACK)) == 0 else { continue }
             var hostBuffer = [CChar](repeating: 0, count: Int(NI_MAXHOST))
             guard getnameinfo(address, socklen_t(address.pointee.sa_len), &hostBuffer, socklen_t(hostBuffer.count), nil, 0, NI_NUMERICHOST) == 0 else { continue }
-            let host = String(cString: hostBuffer)
+            let host = String(decoding: hostBuffer.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
             guard !host.hasPrefix("169.254.") else { continue }
             addresses.append((String(cString: interface.ifa_name), host))
         }

@@ -41,7 +41,7 @@ public struct ImportProcessingResult {
     }
 }
 
-public final class SongDeduplicationService {
+public final class SongDeduplicationService: Sendable {
     public static let shared = SongDeduplicationService()
     
     /// Normalizes lyrics to word tokens

@@ -9,8 +9,8 @@ import os
 /// nowej wersji dane ze starej lokalizacji (`data/` obok pakietu .app albo w bieżącym katalogu
 /// przy `swift run`) są tam kopiowane; stary katalog zostaje nietknięty jako kopia.
 /// Zmienna środowiskowa `CANTATE_DATA_DIR` wskazuje inny katalog (testy, praca na kopii danych).
-public struct AppPaths: Equatable {
-    public enum Migration: Equatable {
+public struct AppPaths: Equatable, Sendable {
+    public enum Migration: Equatable, Sendable {
         case notNeeded
         case migrated(from: URL)
         /// Kopiowanie się nie udało; `dataDirectory` wskazuje wtedy stary katalog.

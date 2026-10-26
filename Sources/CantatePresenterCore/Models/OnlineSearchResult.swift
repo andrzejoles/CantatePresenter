@@ -1,6 +1,6 @@
 import Foundation
 
-public struct OnlineSearchResult: Identifiable, Codable, Equatable, Hashable {
+public struct OnlineSearchResult: Identifiable, Codable, Equatable, Hashable, Sendable {
     public var id: UUID
     public var title: String
     public var artist: String

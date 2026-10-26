@@ -10,7 +10,7 @@ import os
 /// zakończona praca, limit czasu albo „Pomiń”.
 @MainActor
 public final class ExitBackupCoordinator {
-    public enum Outcome: Equatable {
+    public enum Outcome: Equatable, Sendable {
         case uploaded
         /// Wysyłka się nie udała; archiwum zostało zachowane w tym miejscu.
         case keptLocally(URL)

@@ -5,7 +5,7 @@ import os
 // MARK: - Keychain Store
 
 /// Ogólne hasła w Pęku kluczy użytkownika dla jednej usługi.
-public struct KeychainStore {
+public struct KeychainStore: Sendable {
     public let service: String
 
     public init(service: String) {
@@ -59,7 +59,7 @@ public struct KeychainError: LocalizedError {
 // MARK: - Google Credentials
 
 /// Tokeny Google Drive użytkownika. Trzymane wyłącznie w Pęku kluczy, nigdy w `settings.json` ani w kopiach zapasowych (W4).
-public struct GoogleCredentials: Codable, Equatable {
+public struct GoogleCredentials: Codable, Equatable, Sendable {
     public var accessToken: String
     public var refreshToken: String
     public var expiresAt: Date?
@@ -98,7 +98,7 @@ public struct GoogleCredentials: Codable, Equatable {
 
 // MARK: - Google Credential Store
 
-public struct GoogleCredentialStore {
+public struct GoogleCredentialStore: Sendable {
     public static let shared = GoogleCredentialStore(keychain: KeychainStore(service: "com.cantate.presenter.gdrive"))
     private static let account = "credentials"
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "gdrive")

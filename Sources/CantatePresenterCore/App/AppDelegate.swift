@@ -2,6 +2,7 @@ import Foundation
 import AppKit
 import SwiftUI
 
+@MainActor
 public final class AppDelegate: NSObject, NSApplicationDelegate {
     public static private(set) var shared: AppDelegate?
     public var mainWindow: NSWindow?
