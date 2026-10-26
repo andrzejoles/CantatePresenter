@@ -7,6 +7,7 @@ Używa go scripts/remote_check.py.
 import base64
 import json
 import os
+import shutil
 import socket
 import struct
 import subprocess
@@ -78,25 +79,40 @@ class WebSocket:
 class Browser:
     def __init__(self, width=1440, height=900, extra_args=()):
         self.profile = tempfile.mkdtemp(prefix="cantate-cdp-")
+        self.ws = None
         self.process = subprocess.Popen(
             [CHROME, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
              "--remote-debugging-port=0", f"--user-data-dir={self.profile}", f"--window-size={width},{height}",
              "--hide-scrollbars", *extra_args, "about:blank"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Błąd przy starcie (np. Chrome nie zapisał portu) nie może zostawić procesu ani profilu (R1-05).
+        try:
+            port = self._devtools_port()
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/json") as response:
+                targets = json.load(response)
+            page = next(t for t in targets if t["type"] == "page")
+            self.ws = WebSocket(page["webSocketDebuggerUrl"])
+            self.next_id = 0
+            self.events = []
+            self.call("Page.enable")
+            self.call("Runtime.enable")
+            self.call("Emulation.setDeviceMetricsOverride", width=width, height=height, deviceScaleFactor=1, mobile=False)
+        except BaseException:
+            self.close()
+            raise
+
+    def _devtools_port(self):
         port_file = os.path.join(self.profile, "DevToolsActivePort")
         for _ in range(200):
-            if os.path.exists(port_file) and open(port_file).read().strip():
-                break
+            try:
+                with open(port_file, encoding="utf-8") as f:
+                    content = f.read().split()
+                if content:
+                    return content[0]
+            except FileNotFoundError:
+                pass
             time.sleep(0.05)
-        port = open(port_file).read().split()[0]
-        targets = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/json"))
-        page = next(t for t in targets if t["type"] == "page")
-        self.ws = WebSocket(page["webSocketDebuggerUrl"])
-        self.next_id = 0
-        self.events = []
-        self.call("Page.enable")
-        self.call("Runtime.enable")
-        self.call("Emulation.setDeviceMetricsOverride", width=width, height=height, deviceScaleFactor=1, mobile=False)
+        raise TimeoutError("Chrome nie podał portu DevTools")
 
     def call(self, method, **params):
         self.next_id += 1
@@ -163,8 +179,17 @@ class Browser:
             output.write(base64.b64decode(data))
 
     def close(self):
+        if self.ws is not None:
+            try:
+                self.ws.sock.close()
+            except OSError:
+                pass
+            self.ws = None
         try:
             self.process.terminate()
             self.process.wait(timeout=5)
         except Exception:
             self.process.kill()
+            self.process.wait()
+        # Profil Chrome w $TMPDIR (dziesiątki MB na uruchomienie).
+        shutil.rmtree(self.profile, ignore_errors=True)
