@@ -42,6 +42,25 @@ public struct SongMatchProposal: Identifiable, Equatable {
         self.acceptAuthor = acceptAuthor
         self.customAuthor = customAuthor
     }
+
+    /// Pieśń po zastosowaniu propozycji z wyszukiwania dla wielu pieśni. Przy „Uzupełniaj tylko puste pola”
+    /// odrzucony autor nie zastępuje istniejącego znacznikiem „Nieznany” (R6-11), tak jak przyjęty.
+    func applied(to song: Song, onlyFillEmptyFields: Bool, updateTitle: Bool) -> Song {
+        var song = song
+        let authorIsEmpty = song.author.trimmingCharacters(in: .whitespaces).isEmpty
+        if !onlyFillEmptyFields || authorIsEmpty {
+            if acceptAuthor {
+                if !proposedAuthor.isEmpty { song.author = proposedAuthor }
+            } else {
+                // Stała w danych, nie tłumaczenie (R2-11).
+                song.author = SongEnrichmentService.unknownAuthorPlaceholder
+            }
+        }
+        if updateTitle && !proposedTitle.isEmpty {
+            song.title = proposedTitle
+        }
+        return song
+    }
 }
 
 public final class AuthorTitleLookupService: Sendable {
