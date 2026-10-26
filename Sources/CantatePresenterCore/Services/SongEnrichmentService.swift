@@ -32,7 +32,7 @@ public final class SongEnrichmentService: Sendable {
         titleIndex = index
     }
 
-    /// Zastępczy autor zapisywany w danych: stała, nie tłumaczony tekst (R2-11). Wyświetlany przez `L("Nieznany")`.
+    /// Zastępczy autor zapisywany w danych: stała, nie tłumaczony tekst (R2-11). Wyświetlany przez `Song.displayAuthor`.
     public static let unknownAuthorPlaceholder = "Nieznany"
 
     /// Checks if an author string is essentially placeholder or empty.
@@ -52,6 +52,14 @@ public final class SongEnrichmentService: Sendable {
     
     /// Tłumaczenia „Nieznany” z katalogu (en, de, es, uk) po `foldString`.
     private static let translatedUnknownAuthors: Set<String> = Set(["Unknown", "Unbekannt", "Desconocido", "Невідомий"].map(Song.foldString))
+
+    /// Autor do wyświetlenia: zastępczy „Nieznany” (także zapisany przez starsze wersje w innym języku)
+    /// w języku interfejsu. Inne wpisy, np. „Tradycyjna”, to dane i zostają bez zmian (R8-06).
+    public static func displayAuthor(_ author: String, language: String) -> String {
+        let clean = Song.foldString(author)
+        guard clean == Song.foldString(unknownAuthorPlaceholder) || translatedUnknownAuthors.contains(clean) else { return author }
+        return Localization.string("Nieznany", language: language)
+    }
 
     /// Normalizes title with diacritics and clean casing
     public func canonicalizeTitle(_ title: String) -> String {

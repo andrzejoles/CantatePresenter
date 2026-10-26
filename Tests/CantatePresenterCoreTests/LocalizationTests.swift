@@ -84,3 +84,27 @@ struct LocalizationCatalogCompletenessTests {
         #expect(text == "Slide 3/5")
     }
 }
+
+// MARK: - R8-06: zastępczy autor w języku interfejsu
+
+@Suite("Zastępczy autor „Nieznany” (R8-06)")
+struct DisplayAuthorTests {
+    @Test("Zapisany „Nieznany” jest wyświetlany w języku interfejsu")
+    func placeholderTranslated() {
+        #expect(SongEnrichmentService.displayAuthor("Nieznany", language: "en") == "Unknown")
+        #expect(SongEnrichmentService.displayAuthor("Nieznany", language: "de") == "Unbekannt")
+        #expect(SongEnrichmentService.displayAuthor("Nieznany", language: "pl") == "Nieznany")
+    }
+
+    @Test("Tłumaczenie zapisane przez starszą wersję też jest wyświetlane w bieżącym języku")
+    func legacyTranslatedPlaceholder() {
+        #expect(SongEnrichmentService.displayAuthor("Unknown", language: "pl") == "Nieznany")
+    }
+
+    @Test("Prawdziwi autorzy i wpisy typu „Tradycyjna” bez zmian")
+    func realAuthorsUnchanged() {
+        #expect(SongEnrichmentService.displayAuthor("Jan Kowalski", language: "en") == "Jan Kowalski")
+        #expect(SongEnrichmentService.displayAuthor("Tradycyjna", language: "en") == "Tradycyjna")
+        #expect(SongEnrichmentService.displayAuthor("", language: "en") == "")
+    }
+}

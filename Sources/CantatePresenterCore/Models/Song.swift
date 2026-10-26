@@ -335,3 +335,13 @@ public struct Song: Identifiable, Codable, Equatable, Hashable, Sendable {
         return slides.isEmpty ? [SongSlide(type: .verse, label: "Zwrotka 1", text: raw)] : slides
     }
 }
+
+// MARK: - Display
+
+extension Song {
+    /// Autor w języku interfejsu (zastępczy „Nieznany” tłumaczony, R8-06). Jak `L()`: w widoku odświeża się po zmianie języka.
+    @MainActor
+    public var displayAuthor: String {
+        SongEnrichmentService.displayAuthor(author, language: DataStore.shared.settings.appLanguage)
+    }
+}

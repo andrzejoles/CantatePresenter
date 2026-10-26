@@ -6,7 +6,9 @@ public struct SongSlidesView: View {
     @Binding var isShowingEditor: Bool
     @Binding var songToEdit: Song?
     
-    @State private var isShowingChordsModal: Bool = false
+    /// Pieśń, dla której otwarto okno chwytów. Zapamiętana przy otwarciu: zaznaczenie może się zmienić
+    /// w trakcie (pilot, przejście do następnej pieśni), a chwyty nie mogą trafić do innej pieśni (R8-05).
+    @State private var chordsTarget: Song?
     
     public init(isShowingEditor: Binding<Bool>, songToEdit: Binding<Song?>) {
         self._isShowingEditor = isShowingEditor
@@ -39,7 +41,7 @@ public struct SongSlidesView: View {
             }
             
             if !song.author.isEmpty {
-                Text(song.author)
+                Text(song.displayAuthor)
                     .font(.scaled(12, scale: scale))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
@@ -69,7 +71,7 @@ public struct SongSlidesView: View {
             .help(L("+ Do planu"))
             
             Button(action: {
-                isShowingChordsModal = true
+                chordsTarget = song
             }) {
                 headerLabel(song.chords != nil ? L("Chwyty (✓)") : L("Chwyty"), icon: "guitars", compact: compact)
                     .font(.scaled(12, scale: scale))
@@ -207,21 +209,20 @@ public struct SongSlidesView: View {
                 }
             }
         }
-        .sheet(isPresented: $isShowingChordsModal) {
-            if let song = selectedSong {
-                ChordsSearchSheet(
-                    song: song,
-                    isPresented: $isShowingChordsModal,
-                    onApply: { newChords, newKey in
-                        var updated = song
-                        updated.chords = newChords
-                        if !newKey.isEmpty && updated.key.isEmpty {
-                            updated.key = newKey
-                        }
-                        store.updateSong(updated)
+        .sheet(item: $chordsTarget) { song in
+            ChordsSearchSheet(
+                song: song,
+                isPresented: Binding(get: { chordsTarget != nil }, set: { if !$0 { chordsTarget = nil } }),
+                onApply: { newChords, newKey in
+                    // Bieżąca wersja tej samej pieśni, żeby nie cofnąć zmian zapisanych w międzyczasie.
+                    var updated = store.songs.first(where: { $0.id == song.id }) ?? song
+                    updated.chords = newChords
+                    if !newKey.isEmpty && updated.key.isEmpty {
+                        updated.key = newKey
                     }
-                )
-            }
+                    store.updateSong(updated)
+                }
+            )
         }
     }
 }

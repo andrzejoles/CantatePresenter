@@ -357,7 +357,7 @@ private struct SongRowView: View {
             }
             
             if !song.author.isEmpty {
-                Text(song.author)
+                Text(song.displayAuthor)
                     .font(.scaled(11, scale: scale))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
