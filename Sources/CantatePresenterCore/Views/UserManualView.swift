@@ -9,8 +9,7 @@ public struct UserManualSection: Identifiable {
     public let content: [ManualParagraph]
 }
 
-public struct ManualParagraph: Identifiable {
-    public let id = UUID()
+public struct ManualParagraph {
     public let heading: String
     public let body: String
     public let tip: String?
@@ -26,7 +25,8 @@ public struct ManualParagraph: Identifiable {
 
 public struct UserManualView: View {
     @Bindable var store = DataStore.shared
-    @Environment(\.dismiss) private var dismiss
+    /// Okno instrukcji to okno AppKit, nie arkusz SwiftUI, więc `dismiss` nic nie robił (R8-04).
+    private let onClose: () -> Void
     @State private var selectedSectionId: String = "intro"
     @State private var searchText: String = ""
     
@@ -211,7 +211,9 @@ public struct UserManualView: View {
         )
     ] }
     
-    public init() {}
+    public init(onClose: @escaping () -> Void = {}) {
+        self.onClose = onClose
+    }
     
     private var filteredSections: [UserManualSection] {
         if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
@@ -276,10 +278,10 @@ public struct UserManualView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 
+                // Bez `.defaultAction`: Enter w polu wyszukiwania zamykał okno (R8-04).
                 Button(L("Zamknij")) {
-                    dismiss()
+                    onClose()
                 }
-                .keyboardShortcut(.defaultAction)
                 .controlSize(.small)
             }
             .padding(14)
@@ -336,7 +338,9 @@ public struct UserManualView: View {
                         
                         Divider()
                         
-                        ForEach(activeSection.content) { para in
+                        // Stałe identyfikatory: nowe `UUID()` przy każdym odświeżeniu przebudowywały
+                        // wszystkie akapity i gubiły zaznaczenie tekstu (R8-10).
+                        ForEach(Array(activeSection.content.enumerated()), id: \.offset) { _, para in
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(para.heading)
                                     .font(.scaled(15, weight: .bold, scale: scale))

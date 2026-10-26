@@ -99,7 +99,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 return
             }
             
-            let manualView = UserManualView()
+            // AppDelegate żyje przez cały czas działania programu.
+            let manualView = UserManualView(onClose: { self.manualWindow?.performClose(nil) })
             let hostingController = NSHostingController(rootView: manualView)
             
             let screenRect = NSScreen.main?.visibleFrame ?? NSRect(x: 100, y: 100, width: 1000, height: 750)
