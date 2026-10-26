@@ -9,12 +9,12 @@ public struct RemoteBackupItem: Identifiable, Codable {
     public let modifiedTime: Date?
     
     public var formattedSize: String {
-        guard let size = size else { return "Nieznany" }
+        guard let size = size else { return Lnow("Nieznany") }
         return ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
     }
     
     public var formattedDate: String {
-        guard let date = createdTime ?? modifiedTime else { return "Nieznana data" }
+        guard let date = createdTime ?? modifiedTime else { return Lnow("Nieznana data") }
         let f = DateFormatter()
         f.dateStyle = .medium
         f.timeStyle = .short

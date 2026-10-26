@@ -9157,6 +9157,34 @@
         }
       }
     },
+    "Nieznana data": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown date"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekanntes Datum"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha desconocida"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Невідома дата"
+          }
+        }
+      }
+    },
     "Nieznana pieśń": {
       "localizations": {
         "en": {
@@ -13633,6 +13661,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Розмір UI"
+          }
+        }
+      }
+    },
+    "Rozmiar UI:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UI size:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UI-Größe:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tamaño de la interfaz:"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Розмір UI:"
           }
         }
       }

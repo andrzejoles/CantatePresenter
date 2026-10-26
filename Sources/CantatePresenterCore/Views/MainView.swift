@@ -110,7 +110,7 @@ public struct MainView: View {
                 
                 // UI Scale Controls (Essential requirement)
                 HStack(spacing: 4) {
-                    Text("\(L("Rozmiar UI")):")
+                    Text(L("Rozmiar UI:"))
                         .font(.scaled(11, scale: scale))
                         .foregroundColor(.secondary)
                     

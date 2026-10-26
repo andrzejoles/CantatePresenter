@@ -496,7 +496,8 @@ public final class DataStore {
         let quickSong = Song(
             id: UUID(),
             title: songTitle,
-            author: "Tymczasowy",
+            // Bez autora: wcześniej nieprzetłumaczone „Tymczasowy” w nagłówku środkowego panelu (R4-30).
+            author: "",
             key: "",
             tags: [Lnow("Szybki tekst")],
             rawLyrics: trimmed
