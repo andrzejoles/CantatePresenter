@@ -49,7 +49,7 @@ struct StandbyRendererTests {
     func defaultTemplateHasMarker() throws {
         let url = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent("data/standby.html")
+            .appendingPathComponent("Sources/CantatePresenterCore/Resources/standby.html")
         #expect(try String(contentsOf: url, encoding: .utf8).contains("<!--LOGO-->"))
     }
 
@@ -66,6 +66,41 @@ struct StandbyRendererTests {
 
         #expect(try dir.contents(of: "standby.html") == before)
         #expect(store.settings.activeLogoId == "equipes_notre_dame")
+    }
+}
+
+// MARK: - R4-37: plansza z zegarem także na świeżej instalacji
+
+@Suite("Szablon planszy (R4-37)")
+struct StandbyTemplateTests {
+    @Test("Szablon z zegarem i tekstem gotowości jest zasobem pakietu")
+    func bundledTemplateHasClock() throws {
+        let url = try #require(StandbyTemplate.bundledURL)
+        let html = try String(contentsOf: url, encoding: .utf8)
+        #expect(html.contains(StandbyRenderer.logoMarker))
+        #expect(html.contains("id=\"clock\""))
+        #expect(html.contains(StandbyRenderer.defaultReadyText))
+    }
+
+    @Test("Świeża instalacja (brak standby.html w danych): szablon z pakietu, nie zastępczy")
+    func freshInstallUsesBundledTemplate() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let url = StandbyTemplate.url(customPath: "", dataFile: dir.file("standby.html"))
+        #expect(url == StandbyTemplate.bundledURL)
+    }
+
+    @Test("Kolejność: własny plik, plik w katalogu danych, szablon z pakietu")
+    func resolutionOrder() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        try dir.write("<html>dane</html>", to: "standby.html")
+        try dir.write("<html>własny</html>", to: "custom.html")
+        let dataFile = dir.file("standby.html")
+
+        #expect(StandbyTemplate.url(customPath: "", dataFile: dataFile) == dataFile)
+        #expect(StandbyTemplate.url(customPath: dir.file("custom.html").path, dataFile: dataFile) == dir.file("custom.html"))
+        #expect(StandbyTemplate.url(customPath: dir.file("brak.html").path, dataFile: dataFile) == dataFile)
     }
 }
 

@@ -103,6 +103,28 @@ public enum StandbyRenderer {
     }
 }
 
+// MARK: - Standby Template
+
+/// Skąd brana jest plansza startowa (R4-37): własny plik z Ustawień, `standby.html` w katalogu danych
+/// (przeniesiony ze starszych wersji), a na świeżej instalacji szablon z pakietu aplikacji
+/// (`Resources/standby.html`: logo, wersja, zegar, tekst gotowości).
+public enum StandbyTemplate {
+    public static var bundledURL: URL? {
+        Localization.resourceBundle?.url(forResource: "standby", withExtension: "html")
+    }
+
+    public static func url(customPath: String, dataFile: URL = AppPaths.shared.standbyFile) -> URL? {
+        let fileManager = FileManager.default
+        if !customPath.isEmpty && fileManager.fileExists(atPath: customPath) {
+            return URL(fileURLWithPath: customPath)
+        }
+        if fileManager.fileExists(atPath: dataFile.path) {
+            return dataFile
+        }
+        return bundledURL
+    }
+}
+
 public struct StandbyWebView: NSViewRepresentable {
     public let htmlPath: String
     public let activeLogoId: String
@@ -153,19 +175,13 @@ public struct StandbyWebView: NSViewRepresentable {
         let resolvedLogoId = !activeLogoId.isEmpty ? activeLogoId : DataStore.shared.settings.activeLogoId
         let logoSVG = LogoCatalog.getById(resolvedLogoId).svgContent
         
-        let targetURL: URL
-        if !htmlPath.isEmpty && fileManager.fileExists(atPath: htmlPath) {
-            targetURL = URL(fileURLWithPath: htmlPath)
-        } else {
-            targetURL = AppPaths.shared.standbyFile
-        }
-        
-        let template = (try? String(contentsOf: targetURL, encoding: .utf8)) ?? Self.fallbackTemplate
-        let baseURL = fileManager.fileExists(atPath: targetURL.path) ? targetURL.deletingLastPathComponent() : nil
+        let targetURL = StandbyTemplate.url(customPath: htmlPath)
+        let template = targetURL.flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? Self.fallbackTemplate
+        let baseURL = targetURL.flatMap { fileManager.fileExists(atPath: $0.path) ? $0.deletingLastPathComponent() : nil }
         webView.loadHTMLString(StandbyRenderer.render(html: template, logoSVG: logoSVG, texts: .current), baseURL: baseURL)
     }
-    
-    /// Plansza, gdy w katalogu danych nie ma `standby.html` (np. świeża instalacja).
+
+    /// Plansza awaryjna, gdy nie da się odczytać żadnego szablonu (np. brak paczki zasobów).
     static let fallbackTemplate = """
     <!DOCTYPE html><html><head><meta charset="utf-8"></head>\
     <body style="background:#0a0e1a;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;font-family:-apple-system,sans-serif;">

@@ -918,15 +918,9 @@ public struct SettingsSheet: View {
         }
     }
     
+    /// Otwiera plik, z którego naprawdę jest plansza; na świeżej instalacji szablon z pakietu (R4-37).
     private func openStandbyHtmlFile() {
-        let fileManager = FileManager.default
-        let path = store.settings.standbyHtmlPath
-        let url: URL
-        if !path.isEmpty && fileManager.fileExists(atPath: path) {
-            url = URL(fileURLWithPath: path)
-        } else {
-            url = AppPaths.shared.standbyFile
-        }
+        guard let url = StandbyTemplate.url(customPath: store.settings.standbyHtmlPath) else { return }
         NSWorkspace.shared.open(url)
     }
     
