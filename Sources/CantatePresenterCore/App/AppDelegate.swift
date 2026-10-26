@@ -262,13 +262,13 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.post(name: .openImportFlow, object: nil)
     }
     
-    @objc private func exportJSONAction() {
+    @objc fileprivate func exportJSONAction() {
         Task { @MainActor in
             _ = SongExporter.exportSongsAsJSONFile(DataStore.shared.songs)
         }
     }
     
-    @objc private func exportFolderAction() {
+    @objc fileprivate func exportFolderAction() {
         Task { @MainActor in
             _ = SongExporter.exportSongsToFolder(DataStore.shared.songs)
         }
@@ -326,7 +326,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     /// Okno „O programie” z autorem i informacją o współpracy z Claude.
-    @objc private func showAboutPanelAction() {
+    @objc fileprivate func showAboutPanelAction() {
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .center
         let credits = NSAttributedString(
@@ -345,7 +345,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.post(name: NSNotification.Name("OpenQuickTextSheet"), object: nil)
     }
     
-    @objc private func installToApplicationsAction() {
+    @objc fileprivate func installToApplicationsAction() {
         AppInstallerService.shared.installToApplications()
     }
     
@@ -363,6 +363,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         guard googleDrive.isEnabled, googleDrive.autoBackupOnExit, exitBackupCoordinator == nil else {
             return .terminateNow
         }
+        // Zamknięcie potwierdzone; panel kopii nie może zostać pod oknem projekcji (R8-02).
+        ScreenManager.shared.stopPresentation(restoringMainWindow: false)
         
         let coordinator = ExitBackupCoordinator()
         exitBackupCoordinator = coordinator
@@ -421,7 +423,8 @@ extension AppDelegate: NSWindowDelegate {
         alert.alertStyle = .warning
         alert.addButton(withTitle: Lnow("Zakończ"))
         alert.addButton(withTitle: Lnow("Anuluj"))
-        let confirmed = alert.runModal() == .alertFirstButtonReturn
+        // Przy projekcji na ekranie operatora pytanie byłoby pod oknem projekcji, a Enter zamykałby program (R8-02).
+        let confirmed = ScreenManager.shared.withPresentationLowered { alert.runModal() } == .alertFirstButtonReturn
         quitWhileLiveConfirmed = confirmed
         return confirmed
     }
@@ -433,14 +436,19 @@ extension AppDelegate: NSMenuItemValidation {
         Self.isMenuItemEnabled(
             action: menuItem.action,
             hasAttachedSheet: mainWindow?.attachedSheet != nil,
-            canUndoRestore: BackupService.shared.canUndoRestore
+            canUndoRestore: BackupService.shared.canUndoRestore,
+            presentationCoversMainWindow: ScreenManager.shared.presentationCoversMainWindow
         )
     }
 
     /// Pozycje, które otwierają arkusz albo okno nad oknem głównym, są wyłączone przy otwartym arkuszu
     /// (np. Ustawieniach). SwiftUI pokazuje tylko jeden arkusz naraz, więc ⌘T albo ⌘I przy otwartych
     /// Ustawieniach zostawiały flagę arkusza włączoną i przycisk przestawał działać (R4-04).
-    static func isMenuItemEnabled(action: Selector?, hasAttachedSheet: Bool, canUndoRestore: Bool) -> Bool {
+    ///
+    /// Przy projekcji na ekranie operatora (jeden ekran, obraz lustrzany) wyłączone są też wszystkie
+    /// pozycje otwierające arkusz, panel, komunikat albo okno: okno projekcji (`.screenSaver`) by je
+    /// zasłoniło, a klawisze trafiałyby do niewidocznego okna (R8-02).
+    static func isMenuItemEnabled(action: Selector?, hasAttachedSheet: Bool, canUndoRestore: Bool, presentationCoversMainWindow: Bool = false) -> Bool {
         let opensOverMainWindow: [Selector] = [
             #selector(focusSongSearchAction),
             #selector(quickTextAction),
@@ -449,7 +457,17 @@ extension AppDelegate: NSMenuItemValidation {
             #selector(restoreBackupAction),
             #selector(undoRestoreAction)
         ]
+        let opensWindow: [Selector] = opensOverMainWindow + [
+            #selector(exportJSONAction),
+            #selector(exportFolderAction),
+            #selector(openUserManualAction),
+            #selector(showAboutPanelAction),
+            #selector(installToApplicationsAction)
+        ]
         if let action, opensOverMainWindow.contains(action), hasAttachedSheet {
+            return false
+        }
+        if let action, opensWindow.contains(action), presentationCoversMainWindow {
             return false
         }
         if action == #selector(undoRestoreAction) {

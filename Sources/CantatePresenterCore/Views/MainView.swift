@@ -286,6 +286,8 @@ public struct MainView: View {
             Text(issue.message)
         }
         .onReceive(NotificationCenter.default.publisher(for: .focusSongSearch)) { _ in
+            // Pole pod oknem projekcji przejęłoby klawisze slajdów (R8-02).
+            guard !screenManager.presentationCoversMainWindow else { return }
             selectedLeftTab = 0
             // Lista pieśni może dopiero się pojawić po przełączeniu zakładki.
             DispatchQueue.main.async {
@@ -293,12 +295,13 @@ public struct MainView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .openImportFlow)) { _ in
-            guard !isShowingAnySheet else { return }
+            guard !isShowingAnySheet, !screenManager.presentationCoversMainWindow else { return }
             importExportStartsImport = true
             isShowingImportExport = true
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OpenQuickTextSheet"))) { _ in
-            guard !isShowingAnySheet else { return }
+            // Arkusz otwarty pod oknem projekcji (jeden ekran) byłby niewidoczny, a pisanie trafiałoby do niego (R8-02).
+            guard !isShowingAnySheet, !screenManager.presentationCoversMainWindow else { return }
             isShowingQuickText = true
         }
     }
