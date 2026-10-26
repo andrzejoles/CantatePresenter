@@ -981,6 +981,34 @@
         }
       }
     },
+    "Archiwum po rozpakowaniu zajęłoby {0}; to nie jest kopia CantatePresenter.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once unpacked, the archive would take up {0}; this is not a CantatePresenter backup."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entpackt würde das Archiv {0} belegen; das ist keine CantatePresenter-Sicherung."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una vez descomprimido, el archivo ocuparía {0}; no es una copia de CantatePresenter."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Після розпакування архів займав би {0}; це не резервна копія CantatePresenter."
+          }
+        }
+      }
+    },
     "Autor (A-Z)": {
       "localizations": {
         "en": {
@@ -3473,6 +3501,34 @@
         }
       }
     },
+    "Dane wrócą do stanu sprzed cofnięcia przywracania ({0}). Obecne dane zostaną zachowane w osobnym folderze obok folderu danych.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your data will go back to the state before the restore was undone ({0}). The current data will be kept in a separate folder next to the data folder."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Daten kehren zum Stand vor dem Rückgängigmachen der Wiederherstellung zurück ({0}). Die aktuellen Daten werden in einem eigenen Ordner neben dem Datenordner aufbewahrt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los datos volverán al estado anterior a deshacer la restauración ({0}). Los datos actuales se guardarán en una carpeta aparte junto a la carpeta de datos."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дані повернуться до стану перед скасуванням відновлення ({0}). Поточні дані буде збережено в окремій папці поруч із папкою даних."
+          }
+        }
+      }
+    },
     "Dane wrócą do stanu sprzed ostatniego przywrócenia kopii zapasowej. Dane z przywróconej kopii zostaną usunięte.": {
       "localizations": {
         "en": {
@@ -3497,6 +3553,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Дані повернуться до стану перед останнім відновленням резервної копії. Дані з відновленої копії буде видалено."
+          }
+        }
+      }
+    },
+    "Dane wrócą do stanu sprzed przywrócenia kopii zapasowej ({0}). Obecne dane, razem ze wszystkimi zmianami wprowadzonymi od tego czasu, zostaną zachowane w osobnym folderze obok folderu danych; to samo polecenie przywróci je z powrotem.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your data will go back to the state before the backup was restored ({0}). The current data, including all changes made since then, will be kept in a separate folder next to the data folder; the same command brings it back."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Daten kehren zum Stand vor der Wiederherstellung der Sicherung zurück ({0}). Die aktuellen Daten, einschließlich aller seitdem vorgenommenen Änderungen, werden in einem eigenen Ordner neben dem Datenordner aufbewahrt; derselbe Befehl stellt sie wieder her."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los datos volverán al estado anterior a la restauración de la copia ({0}). Los datos actuales, con todos los cambios hechos desde entonces, se guardarán en una carpeta aparte junto a la carpeta de datos; el mismo comando los recupera."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дані повернуться до стану перед відновленням резервної копії ({0}). Поточні дані разом з усіма змінами, внесеними відтоді, буде збережено в окремій папці поруч із папкою даних; та сама команда поверне їх назад."
           }
         }
       }
@@ -7365,6 +7449,34 @@
         }
       }
     },
+    "Kopia zapasowa (.cantatebackup) zawiera: całą bazę pieśni ({0}), plany nabożeństw ({1}), chwyty gitarowe, wszystkie ustawienia programu, własne języki tłumaczeń oraz raport użycia CCLI.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The backup (.cantatebackup) contains: the entire song library ({0}), service plans ({1}), guitar chords, all app settings, custom translation languages and the CCLI usage report."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Sicherung (.cantatebackup) enthält: die gesamte Liederbibliothek ({0}), Gottesdienstpläne ({1}), Gitarrenakkorde, alle Einstellungen der App, eigene Übersetzungssprachen und den CCLI-Nutzungsbericht."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copia (.cantatebackup) contiene: toda la biblioteca de canciones ({0}), planes de celebración ({1}), acordes de guitarra, todos los ajustes de la aplicación, los idiomas de traducción propios y el informe de uso CCLI."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резервна копія (.cantatebackup) містить: усю бібліотеку пісень ({0}), плани богослужінь ({1}), гітарні акорди, усі налаштування програми, власні мови перекладу та звіт про використання CCLI."
+          }
+        }
+      }
+    },
     "Kopia zapasowa (.holyricsbackup) zawiera: całą bazę pieśni ({0}), plany nabożeństw ({1}), chwyty gitarowe, wszystkie ustawienia programu, stronę początkową Standby, języki tłumaczeń oraz oficjalne loga.": {
       "localizations": {
         "en": {
@@ -7501,6 +7613,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Резервна копія захищає всю бібліотеку пісень, акорди, плани, налаштування, екран очікування, мови й логотипи."
+          }
+        }
+      }
+    },
+    "Kopia zapasowa zawiera niedozwolony element {0} (dowiązanie symboliczne lub plik specjalny).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The backup contains a disallowed item {0} (a symbolic link or special file)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Sicherung enthält ein unzulässiges Element {0} (symbolischer Link oder Spezialdatei)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La copia contiene un elemento no permitido {0} (un enlace simbólico o un archivo especial)."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резервна копія містить недозволений елемент {0} (символьне посилання або спеціальний файл)."
           }
         }
       }
@@ -13325,6 +13465,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Відновлено дані до останнього відновлення копії."
+          }
+        }
+      }
+    },
+    "Przywrócono dane ze stanu z {0}. Poprzednie dane zachowano w folderze „{1}”.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data from {0} has been restored. The previous data was kept in the folder “{1}”."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Daten vom {0} wurden wiederhergestellt. Die vorherigen Daten wurden im Ordner „{1}“ aufbewahrt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se han restaurado los datos del {0}. Los datos anteriores se guardaron en la carpeta «{1}»."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відновлено дані станом на {0}. Попередні дані збережено в папці «{1}»."
           }
         }
       }

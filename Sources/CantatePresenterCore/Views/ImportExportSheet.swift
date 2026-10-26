@@ -419,19 +419,20 @@ public struct ImportExportSheet: View {
     
     private func createLocalBackupAction() {
         statusMessage = nil
-        let success = BackupService.shared.exportBackupWithSavePanel()
-        if success {
-            isSuccessStatus = true
-            statusMessage = L("Pomyślnie utworzono i wyeksportowano pełną kopię zapasową (.cantatebackup)!")
+        Task {
+            if await BackupService.shared.exportBackupWithSavePanel() {
+                isSuccessStatus = true
+                statusMessage = L("Pomyślnie utworzono i wyeksportowano pełną kopię zapasową (.cantatebackup)!")
+            }
         }
     }
     
     private func restoreLocalBackupAction() {
         statusMessage = nil
         Task {
-            let res = await BackupService.shared.restoreBackupWithOpenPanel()
-            isSuccessStatus = res.success
-            statusMessage = res.message
+            let outcome = await BackupService.shared.restoreBackupWithOpenPanel()
+            isSuccessStatus = outcome.isSuccess
+            statusMessage = outcome.message
         }
     }
     
@@ -441,9 +442,9 @@ public struct ImportExportSheet: View {
         
         Task {
             do {
-                let (archiveURL, _) = try BackupService.shared.createBackupArchive(comment: "Backup z okna Import/Eksport")
+                let (archiveURL, _) = try await BackupService.shared.createBackupArchive(comment: "Backup z okna Import/Eksport")
+                defer { BackupService.removeTemporaryArchive(archiveURL) }
                 let item = try await GoogleDriveService.shared.uploadBackupToDrive(archiveURL: archiveURL)
-                try? FileManager.default.removeItem(at: archiveURL)
                 
                 await MainActor.run {
                     self.isUploadingToDrive = false
