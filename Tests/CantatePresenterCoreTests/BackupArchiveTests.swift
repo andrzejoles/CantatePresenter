@@ -194,4 +194,37 @@ struct BackupUnsavedSettingsTests {
         let settings = try JSONFileStore.makeDecoder().decode(AppSettings.self, from: settingsData)
         #expect(settings.fontFamily == "R6-03 Font")
     }
+
+    private func savedSettings(in directory: URL) throws -> AppSettings {
+        let data = try Data(contentsOf: directory.appendingPathComponent("settings.json"))
+        return try JSONFileStore.makeDecoder().decode(AppSettings.self, from: data)
+    }
+
+    @Test("Przywracanie i cofnięcie z arkusza Ustawień zachowują ustawienia zmienione w pamięci (R10-03)")
+    func restoreKeepsInMemorySettings() async throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let source = dir.url.appendingPathComponent("kopia")
+        let sourceStore = DataStore(dataDirectory: source)
+        sourceStore.settings.ccliLicenseNumber = "z kopii"
+        sourceStore.saveSettings()
+        let archive = try await BackupService.createBackupArchive(of: sourceStore, in: source, comment: nil, temporaryDirectory: dir.url).archiveURL
+        defer { BackupService.removeTemporaryArchive(archive) }
+
+        let data = dir.url.appendingPathComponent("dane")
+        let store = DataStore(dataDirectory: data)
+        store.settings.ccliLicenseNumber = "przed przywróceniem"
+
+        _ = try await BackupService.restoreBackup(from: archive, into: store, dataDirectory: data)
+
+        #expect(store.settings.ccliLicenseNumber == "z kopii")
+        let previous = try #require(BackupRestorer(dataDirectory: data).previousStateDetails().first)
+        #expect(try savedSettings(in: previous.url).ccliLicenseNumber == "przed przywróceniem")
+
+        store.settings.ccliLicenseNumber = "przed cofnięciem"
+        let kept = try BackupService.undoLastRestore(of: store, dataDirectory: data)
+
+        #expect(store.settings.ccliLicenseNumber == "przed przywróceniem")
+        #expect(try savedSettings(in: kept).ccliLicenseNumber == "przed cofnięciem")
+    }
 }
