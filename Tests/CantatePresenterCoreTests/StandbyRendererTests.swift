@@ -208,4 +208,26 @@ struct StandbyIsolationTests {
 
         #expect(decisions == [false, false, true, false, false, true, false])
     }
+
+    @MainActor
+    @Test("Blokada sieci: reguły dla http(s) i ws(s), kompilują się w WebKit (R11-01)")
+    func networkBlockRules() async throws {
+        let object = try JSONSerialization.jsonObject(with: Data(StandbyNetworkBlock.encodedRules.utf8))
+        let rules = try #require(object as? [[String: [String: String]]])
+        #expect(rules.map { $0["trigger"]?["url-filter"] } == ["^https?://", "^wss?://"])
+        #expect(rules.allSatisfy { $0["action"]?["type"] == "block" })
+
+        // Magazyn w katalogu tymczasowym, nie domyślny w ~/Library/WebKit.
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let store = WKContentRuleListStore(url: dir.url)
+        let compiled: Bool = await withCheckedContinuation { continuation in
+            StandbyNetworkBlock.compile(in: store) { continuation.resume(returning: $0 != nil) }
+        }
+        #expect(compiled)
+        let missingStore: Bool = await withCheckedContinuation { continuation in
+            StandbyNetworkBlock.compile(in: nil) { continuation.resume(returning: $0 == nil) }
+        }
+        #expect(missingStore)
+    }
 }
