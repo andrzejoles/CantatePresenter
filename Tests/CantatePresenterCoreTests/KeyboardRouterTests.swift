@@ -169,6 +169,12 @@ struct KeyboardRouterTests {
         #expect(KeyboardRouter.stopClosesPresentationWindow(screenCount: 1, context: mainWindow, isLive: true))
     }
 
+    @Test("Dwa ekrany, projekcja na ekranie okna głównego: Esc zamyka okno projekcji jak przy jednym ekranie (R12-07)")
+    func escapeWhenProjectionCoversMainWindow() {
+        #expect(KeyboardRouter.stopClosesPresentationWindow(screenCount: 2, coversMainWindow: true, context: .presentationWindow, isLive: true))
+        #expect(KeyboardRouter.stopClosesPresentationWindow(screenCount: 2, coversMainWindow: true, context: mainWindow, isLive: true))
+    }
+
     // MARK: Konflikty w ustawieniach
 
     @Test("Wykrywanie konfliktów skrótów")

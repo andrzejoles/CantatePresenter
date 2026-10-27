@@ -58,7 +58,7 @@ public struct MusicianStage: Codable, Equatable, Sendable {
             isBlackScreen: store.isBlackScreen,
             isClearText: store.isClearText,
             songTitle: song?.title ?? "",
-            author: song?.author ?? "",
+            author: song.map { SongEnrichmentService.displayAuthor($0.author, language: store.settings.appLanguage) } ?? "",
             key: key,
             semitones: shift,
             position: position,

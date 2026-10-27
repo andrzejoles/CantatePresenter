@@ -61,6 +61,7 @@ public struct UserManualView: View {
                 ManualParagraph(
                     heading: L("Jeden ekran, dwa ekrany i klawisz Esc"),
                     body: L("Przy jednym ekranie przycisk 'Prezentuj na pełnym ekranie' zakrywa ekran Maca, a Esc zamyka pełny ekran i kończy projekcję. Polecenia menu otwierające okna (np. Szybki tekst, Import) są wtedy nieaktywne: najpierw zakończ projekcję klawiszem Esc. Przy dwóch ekranach Esc w oknie głównym gasi tekst (projektor pokazuje planszę); w oknie projekcji pierwsze Esc gasi tekst, a drugie zamyka okno projekcji. Po zatrzymaniu strzałki i Spacja nie zmieniają slajdów: Enter w oknie głównym pokazuje zaznaczoną pieśń od pierwszego slajdu, a kliknięcie slajdu pokazuje ten slajd."),
+                    tip: L("Pieśń uruchom przed włączeniem pełnego ekranu (kliknięcie slajdu albo Enter). Gdy pełny ekran zakrywa okno główne i wyświetlana jest tylko plansza, strzałki i Enter nic nie robią: pieśń z planu pokażą [ i ], a Esc zamyka pełny ekran. Tak samo jest przy dwóch ekranach, gdy projekcja jest na ekranie z oknem głównym."),
                     shortcuts: [
                         ("Esc", L("Zakończenie projekcji (przy dwóch ekranach: zgaszenie tekstu)")),
                         (L("Spacja / → / ↓ / Page Down"), L("Przejście do następnego slajdu")),

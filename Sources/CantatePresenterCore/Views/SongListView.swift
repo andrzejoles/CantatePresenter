@@ -158,12 +158,11 @@ public struct SongListView: View {
                 .padding(.vertical, 6)
                 // Zielone: pole aktywne, można pisać. Czerwone: nieaktywne, klawisze sterują slajdami.
                 .background((isSearchFocused ? Color.green : Color.red).opacity(0.07))
-                .background(Color(NSColor.controlBackgroundColor))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke((isSearchFocused ? Color.green : Color.red).opacity(isSearchFocused ? 0.7 : 0.35), lineWidth: isSearchFocused ? 1.5 : 1)
+                .cardStyle(
+                    cornerRadius: 8,
+                    outline: (isSearchFocused ? Color.green : Color.red).opacity(isSearchFocused ? 0.7 : 0.35),
+                    lineWidth: isSearchFocused ? 1.5 : 1
                 )
-                .cornerRadius(8)
                 .contentShape(Rectangle())
                 .onTapGesture { isSearchFocused = true }
                 

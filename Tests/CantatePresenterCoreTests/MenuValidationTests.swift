@@ -35,7 +35,7 @@ struct MenuValidationTests {
     func projectionOnOperatorScreenDisablesWindows() {
         let opening = ["quickTextAction", "importAction", "createBackupAction", "restoreBackupAction", "focusSongSearchAction",
                        "undoRestoreAction", "exportJSONAction", "exportFolderAction", "openUserManualAction", "showAboutPanelAction",
-                       "installToApplicationsAction"]
+                       "installToApplicationsAction", "checkForUpdates:", "openInstructionMarkdownAction", "openGitHubProjectAction"]
         for action in opening {
             #expect(!AppDelegate.isMenuItemEnabled(action: NSSelectorFromString(action), hasAttachedSheet: false, canUndoRestore: true, presentationCoversMainWindow: true), "\(action)")
             #expect(AppDelegate.isMenuItemEnabled(action: NSSelectorFromString(action), hasAttachedSheet: false, canUndoRestore: true, presentationCoversMainWindow: false), "\(action)")
@@ -62,5 +62,20 @@ struct QuitWhileLiveTests {
     func noQuestion() {
         #expect(!AppDelegate.needsQuitConfirmation(isLive: false, isPresentationActive: false, alreadyConfirmed: false))
         #expect(!AppDelegate.needsQuitConfirmation(isLive: true, isPresentationActive: true, alreadyConfirmed: true))
+    }
+}
+
+// MARK: - R12-05: okno „O programie”
+
+@Suite("Okno „O programie” (R12-05)")
+struct AboutPanelTests {
+    @Test("Copyright w Info.plist bez tekstu po polsku; informacja o współpracy tylko w tłumaczonych podziękowaniach")
+    func copyrightIsLanguageNeutral() throws {
+        let script = try String(contentsOf: URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("build_app.sh"), encoding: .utf8)
+        let key = try #require(script.range(of: "<key>NSHumanReadableCopyright</key>"))
+        let line = script[key.upperBound...].split(separator: "\n").first.map(String.init) ?? ""
+        #expect(line.trimmingCharacters(in: .whitespaces) == "<string>© 2026 Andrzej Oles</string>")
     }
 }

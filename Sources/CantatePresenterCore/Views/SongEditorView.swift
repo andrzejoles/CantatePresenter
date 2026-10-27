@@ -210,8 +210,8 @@ public struct SongEditorView: View {
                                                 .font(.scaled(9, weight: .bold, scale: scale))
                                                 .padding(.horizontal, 4)
                                                 .padding(.vertical, 1)
-                                                .background(badgeColorForType(slide.type))
-                                                .foregroundColor(.white)
+                                                .background(slide.type.badgeColor)
+                                                .foregroundColor(slide.type.badgeTextColor)
                                                 .cornerRadius(3)
                                             
                                             Text(slide.displayLabel)
@@ -355,21 +355,6 @@ public struct SongEditorView: View {
             newSong.copyright = cleanCopyright.isEmpty ? nil : cleanCopyright
             newSong.ccliNumber = cleanCCLI.isEmpty ? nil : cleanCCLI
             store.addSong(newSong)
-        }
-    }
-    
-    private func badgeColorForType(_ type: SlideType) -> Color {
-        switch type {
-        case .chorus: return .orange
-        case .verse: return .blue
-        case .bridge: return .purple
-        case .preChorus: return .teal
-        case .coda: return .pink
-        case .interlude: return .mint
-        case .ending: return .brown
-        case .intro, .outro: return .gray
-        case .tag: return .yellow
-        default: return .indigo
         }
     }
 }

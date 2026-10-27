@@ -19,6 +19,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         
         Localization.currentLanguage = DataStore.shared.settings.appLanguage
+        // Ekrany nie usypiają w trakcie projekcji (R12-02); przed `UpdateService`, który z tego korzysta (R12-03).
+        ProjectionActivity.shared.start()
         UpdateService.shared.start()
         setupMainMenu()
         setupMainWindow()
@@ -37,6 +39,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate()
     }
     
+    public func applicationWillTerminate(_ notification: Notification) {
+        ProjectionActivity.shared.stop()
+    }
+
     public func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true
     }
@@ -467,7 +473,11 @@ extension AppDelegate: NSMenuItemValidation {
             #selector(exportFolderAction),
             #selector(openUserManualAction),
             #selector(showAboutPanelAction),
-            #selector(installToApplicationsAction)
+            #selector(installToApplicationsAction),
+            // Okno Sparkle, TextEdit i przeglądarka też byłyby pod oknem projekcji (R12-03).
+            #selector(UpdateService.checkForUpdates(_:)),
+            #selector(openInstructionMarkdownAction),
+            #selector(openGitHubProjectAction)
         ]
         if let action, opensOverMainWindow.contains(action), hasAttachedSheet {
             return false

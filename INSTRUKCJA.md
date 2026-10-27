@@ -40,11 +40,14 @@ Okno główne programu podzielone jest na 3 intuicyjne strefy:
 
 ### Prezentacja na pojedynczym ekranie (Single-Screen Mode)
 * Bez zewnętrznego ekranu przycisk **Prezentuj na pełnym ekranie** zakrywa ekran Twojego Maca. Program nie uruchamia pełnego ekranu sam.
+* Tak samo działa projekcja przy dwóch ekranach, gdy w **Ekrany i Projektor** wybierzesz ekran, na którym jest okno główne: pełny ekran je zakrywa, a `Esc` od razu go zamyka.
 * **Wyjście z prezentacji**: klawisz **`Esc`** zamyka pełny ekran, kończy projekcję i wraca do okna głównego.
 * Na starcie pełnego ekranu wyświetla się na chwilę podpowiedź o klawiszu `Esc`.
+* Pieśń uruchom **przed** włączeniem pełnego ekranu (kliknięcie slajdu albo `Enter` w oknie głównym). Gdy pełny ekran zakrywa okno główne, a wyświetlana jest tylko plansza, strzałki, `Spacja`, `Enter`, `R` i cyfry nic nie robią: pieśń z planu pokażą `[` / `]`, a `Esc` zamyka pełny ekran.
 * Dopóki pełny ekran zakrywa okno główne (także przy obrazie lustrzanym na projektorze), polecenia menu otwierające okna i arkusze (np. **Szybki tekst**, **Importuj pieśni...**, kopia zapasowa, **Szukaj pieśni**) są nieaktywne, bo okno zostałoby pod projekcją. Najpierw zakończ projekcję klawiszem `Esc`. Pytanie przy zamykaniu programu (`⌘Q`) jest widoczne nad projekcją.
 
 ### Esc przy dwóch ekranach
+* Dotyczy projekcji na innym ekranie niż okno główne.
 * Okno główne zostaje aktywne, a klawisze działają w nim jak zwykle. **`Esc`** gasi tekst: projektor pokazuje planszę czuwania, okno projekcji zostaje otwarte.
 * Jeśli klikniesz okno na projektorze, pierwsze **`Esc`** w nim gasi tekst, a dopiero drugie zamyka okno projekcji.
 * Okno projekcji zamyka też przycisk **Zatrzymaj pełny ekran** w prawym panelu.
@@ -177,7 +180,7 @@ W **Ustawieniach → Licencja CCLI i prawa autorskie** wpisz numer licencji para
 Program dba o pełne bezpieczeństwo Twojej bazy:
 
 ### Lokalna kopia zapasowa (`.cantatebackup`)
-* Wybierz z menu **Plik -> Utwórz pełną kopię zapasową...** (`⌘B`).
+* Wybierz z menu **Plik -> Utwórz pełną kopię zapasową (.cantatebackup)...** (`⌘B`).
 * Plik archiwum zawiera bazę pieśni z chwytami, plany nabożeństw, ustawienia, własne języki i raport CCLI (oraz plik `standby.html` z folderu danych, jeśli został po starszej wersji). Logo są wbudowane w program.
 * Własnego pliku planszy wybranego w **Ustawieniach** kopia nie zawiera: po przywróceniu na innym Macu wskaż go ponownie (do tego czasu wyświetla się plansza wbudowana).
 * Przywrócenie kopii na nowym komputerze trwa kilka sekund.
