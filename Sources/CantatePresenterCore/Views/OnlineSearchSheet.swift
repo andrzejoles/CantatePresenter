@@ -234,8 +234,7 @@ public struct OnlineSearchSheet: View {
                                 }
                             }
                             .padding(10)
-                            .background(Color(NSColor.controlBackgroundColor))
-                            .cornerRadius(8)
+                            .cardStyle(cornerRadius: 8)
                             
                             HStack(spacing: 8) {
                                 if let license = selected.license {
@@ -272,8 +271,7 @@ public struct OnlineSearchSheet: View {
                                         }
                                         .padding(8)
                                         .frame(maxWidth: .infinity, alignment: .leading)
-                                        .background(Color(NSColor.controlBackgroundColor))
-                                        .cornerRadius(6)
+                                        .cardStyle(cornerRadius: 6)
                                     }
                                 }
                             }

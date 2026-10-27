@@ -248,8 +248,8 @@ private struct SlideCardView: View {
                         .font(.scaled(10, weight: .bold, scale: scale))
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)
-                        .background(badgeColorForType(slide.type))
-                        .foregroundColor(.white)
+                        .background(slide.type.badgeColor)
+                        .foregroundColor(slide.type.badgeTextColor)
                         .cornerRadius(3)
                     
                     Text(slide.displayLabel)
@@ -291,34 +291,19 @@ private struct SlideCardView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(12)
-        .background(isLive ? Color.green.opacity(0.08) : (isHovered ? Color.secondary.opacity(0.08) : Color(NSColor.controlBackgroundColor)))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                // Obrys także w spoczynku: w wyglądzie macOS 26+ tło okna jest tak jasne jak karta.
-                .stroke(isLive ? Color.green : (isHovered ? Color.secondary.opacity(0.3) : Color(NSColor.separatorColor)), lineWidth: isLive ? 2.5 : 1)
+        // Obrys także w spoczynku: w wyglądzie macOS 26+ tło okna jest tak jasne jak karta (R5-02, R12-08).
+        .cardStyle(
+            fill: isLive ? Color.green.opacity(0.08) : (isHovered ? Color.secondary.opacity(0.08) : Color(NSColor.controlBackgroundColor)),
+            cornerRadius: 8,
+            outline: isLive ? Color.green : (isHovered ? Color.secondary.opacity(0.3) : Color(NSColor.separatorColor)),
+            lineWidth: isLive ? 2.5 : 1
         )
-        .cornerRadius(8)
         .contentShape(Rectangle())
         .onTapGesture {
             onSelect()
         }
         .onHover { hovering in
             isHovered = hovering
-        }
-    }
-    
-    private func badgeColorForType(_ type: SlideType) -> Color {
-        switch type {
-        case .chorus: return .orange
-        case .verse: return .blue
-        case .bridge: return .purple
-        case .preChorus: return .teal
-        case .coda: return .pink
-        case .interlude: return .mint
-        case .ending: return .brown
-        case .intro, .outro: return .gray
-        case .tag: return .yellow
-        default: return .indigo
         }
     }
 }

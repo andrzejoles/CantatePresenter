@@ -91,8 +91,7 @@ public struct LogoCardView: View {
             ZStack(alignment: .topTrailing) {
                 SVGThumbnailView(svgString: logo.svgContent)
                     .frame(height: 140)
-                    .background(Color(NSColor.controlBackgroundColor))
-                    .cornerRadius(10)
+                    .cardStyle(cornerRadius: 10)
                 
                 if isSelected {
                     HStack(spacing: 4) {

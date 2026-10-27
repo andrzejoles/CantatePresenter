@@ -465,8 +465,7 @@ private struct EnrichmentRowView: View {
             Spacer()
         }
         .padding(10)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(6)
+        .cardStyle(cornerRadius: 6)
     }
 }
 
