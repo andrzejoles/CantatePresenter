@@ -294,7 +294,8 @@ private struct SlideCardView: View {
         .background(isLive ? Color.green.opacity(0.08) : (isHovered ? Color.secondary.opacity(0.08) : Color(NSColor.controlBackgroundColor)))
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(isLive ? Color.green : (isHovered ? Color.secondary.opacity(0.3) : Color.clear), lineWidth: isLive ? 2.5 : 1)
+                // Obrys także w spoczynku: w wyglądzie macOS 26+ tło okna jest tak jasne jak karta.
+                .stroke(isLive ? Color.green : (isHovered ? Color.secondary.opacity(0.3) : Color(NSColor.separatorColor)), lineWidth: isLive ? 2.5 : 1)
         )
         .cornerRadius(8)
         .contentShape(Rectangle())
