@@ -201,7 +201,7 @@ public struct TextImporter {
     /// Kodowania jednobajtowe próbowane, gdy plik nie jest poprawnym UTF-8. Kolejność rozstrzyga remisy.
     /// Windows-1252 (zachodnioeuropejskie) jest po środkowoeuropejskich: wygrywa tylko przy wyraźnych
     /// oznakach tekstu hiszpańskiego itp., np. „ñ” przed samogłoską (R2-18). Windows-1251 (cyrylica, np. starsze
-    /// pliki ukraińskie) jest ostatnie: wygrywa tylko tekst z samych słów cyrylicą (R6-12).
+    /// pliki ukraińskie) jest ostatnie i brane pod uwagę tylko dla tekstu z przewagą cyrylicy (R6-12, R10-02).
     private static let singleByteCandidates: [String.Encoding] = [
         CFStringEncodings.windowsLatin2, .isoLatin2, .macCentralEurRoman
     ].map { String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding($0.rawValue))) }
@@ -210,7 +210,12 @@ public struct TextImporter {
     private static let polishLetters = Set("ąćęłńóśźżĄĆĘŁŃÓŚŹŻ")
     /// Znaki typowe dla złego kodowania polskiego tekstu, np. ISO-8859-2 czytane jako Windows-1250 („ą” → „±”, „ś” → „¶”)
     /// albo Windows-1250 czytane jako Windows-1252 („ł” → „³”, „ą” → „¹”, „ś” → „œ”).
-    private static let suspiciousCharacters = Set("±¶¼¦¬ˇ˘˝˙¤§¨®°µ·¸ŠšŤťŽľĽĹĺŕŔřŘůŮ∂∑∏√∞≈≠≤≥◊ﬁﬂ¹³œŒŸ¥")
+    /// Litery bałtyckie są tylko w Mac Central European (nie ma ich w Windows-1250 ani ISO-8859-2); tak wygląda
+    /// zachodni tekst odczytany jako MacCE, np. „ö” → „Ų”, „à” → „ŗ”, „ß” → „Ŗ” (R10-06).
+    private static let suspiciousCharacters = Set("±¶¼¦¬ˇ˘˝˙¤§¨®°µ·¸ŠšŤťŽľĽĹĺŕŔřŘůŮ∂∑∏√∞≈≠≤≥◊ﬁﬂ¹³œŒŸ¥"
+        + "ĀāĒēĖėĢģĪīĮįĶķĻļŅņŌōŖŗŪūŲų")
+    /// Żadne polskie słowo nie zaczyna się od „ą” ani „ę”; „„” z Windows-1250 czytane jako MacCE daje „Ą” (R10-06).
+    private static let nonInitialPolishCapitals = Set("ĄĘ")
     private static let vowels = Set("aeiouyóAEIOUYÓáéíú")
     
     /// Dekoduje tekst: BOM UTF-16, UTF-8, a jeśli to niemożliwe, to kodowanie jednobajtowe z najlepszym wynikiem
@@ -235,8 +240,28 @@ public struct TextImporter {
             character.unicodeScalars.first.map { (0x0400...0x04FF).contains($0.value) } ?? false
         }
         
+        func isLatinLetter(_ character: Character) -> Bool {
+            character.isLetter && (character.unicodeScalars.first.map { $0.value < 0x0250 } ?? false)
+        }
+        
+        /// Windows-1251 tylko dla tekstu pisanego cyrylicą: pojedyncze „é”, „à”, „ô” w zachodnim tekście
+        /// (bez sąsiedniej litery łacińskiej, więc bez kary za mieszane słowo) dawały „й”, „а”, „ф” (R10-02).
+        func isMostlyCyrillic(_ text: String) -> Bool {
+            var cyrillic = 0
+            var latin = 0
+            for character in text {
+                if isCyrillic(character) {
+                    cyrillic += 1
+                } else if isLatinLetter(character) {
+                    latin += 1
+                }
+            }
+            return cyrillic > latin
+        }
+        
         func score(_ text: String) -> Int {
             var result = 0
+            var beforePrevious: Character?
             var previous: Character?
             for character in text {
                 if polishLetters.contains(character) || isCyrillic(character) {
@@ -248,26 +273,46 @@ public struct TextImporter {
                           !"\n\r\t".unicodeScalars.contains(scalar) {
                     result -= 5
                 }
-                // Po polsku „ń” nie stoi przed samogłoską, a „ż” nie poprzedza wielkiej litery;
-                // tak wygląda hiszpańskie „ñ”/„¿” odczytane jako Windows-1250 („Seńor”, „żQuién”).
+                // Po polsku „ń” nie stoi przed samogłoską; tak wygląda hiszpańskie „ñ” odczytane jako Windows-1250 („Seńor”).
                 if let previous {
                     if "ńŃ".contains(previous) && vowels.contains(character) {
-                        result -= 6
-                    } else if "żŻ".contains(previous) && character.isUppercase {
                         result -= 6
                     } else if previous.isLetter && character.isLetter && isCyrillic(previous) != isCyrillic(character) {
                         // Litery łacińskie i cyrylica w jednym słowie: polski tekst odczytany jako Windows-1251
                         // („Zażółć” → „Zaїулж”) albo odwrotnie (R6-12).
                         result -= 6
+                    } else if previous.isLowercase && character.isUppercase {
+                        // Wielka litera po małej: „¿Quién” jako Windows-1250 to „żQuién” (R2-18), „für” jako MacCE
+                        // to „fŁr”, „Najwyższego” to „NajwyŅszego”. Wielkie „Ż” w „ŻYWYM” nie jest karane (R10-06).
+                        result -= 6
+                    } else if previous.isUppercase && character.isLowercase && beforePrevious?.isLetter == true
+                                && !previous.isASCII {
+                        // „Müde” jako MacCE to „MŁde” (R10-06).
+                        result -= 6
+                    } else if nonInitialPolishCapitals.contains(previous) && character.isLetter && character.isASCII
+                                && !(beforePrevious?.isLetter ?? false) {
+                        // „„Amen”” z Windows-1250 jako MacCE to „ĄAmen”, „¡Aleluya!” jako ISO-8859-2 to „ĄAleluya!” (R10-06).
+                        result -= 6
+                    } else if previous == "ă" && "oe".contains(character) {
+                        // Portugalskie „ão”, „ãe” odczytane jako Windows-1250 („Năo”, „coraçăo”).
+                        result -= 6
+                    } else if previous.isLetter && character == "„" {
+                        // Polski cudzysłów otwiera słowo; w środku słowa to „ã” odczytane jako MacCE („N„o”).
+                        result -= 6
                     }
                 }
+                beforePrevious = previous
                 previous = character
             }
             return result
         }
         
         let best = singleByteCandidates
-            .compactMap { String(data: data, encoding: $0) }
+            .compactMap { encoding in
+                String(data: data, encoding: encoding).flatMap { text in
+                    encoding == .windowsCP1251 && !isMostlyCyrillic(text) ? nil : text
+                }
+            }
             .enumerated()
             .max { lhs, rhs in
                 let (left, right) = (score(lhs.element), score(rhs.element))
