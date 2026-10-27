@@ -305,6 +305,21 @@ struct RemoteBridgeTests {
         RemoteControlBridge.perform(.song(inLyrics.id), on: store)
         #expect(store.isLive && store.activeSong?.id == inLyrics.id && store.selectedSongId == inLyrics.id)
     }
+
+    @Test("Zastępczy autor w wynikach pilota i na stronie muzyków jest w języku aplikacji (R12-04)")
+    func searchTranslatesUnknownAuthor() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let store = DataStore(dataDirectory: dir.url)
+        store.settings.appLanguage = "en"
+        defer { Localization.currentLanguage = Localization.sourceLanguage }
+        let song = Song(title: "Gloria", author: SongEnrichmentService.unknownAuthorPlaceholder, rawLyrics: "Gloria in excelsis")
+        store.songs = [song]
+
+        #expect(RemoteControlBridge.search("gloria", in: store).first?.author == "Unknown")
+        store.present(song: song)
+        #expect(MusicianStage.make(store: store, semitones: 0).author == "Unknown")
+    }
 }
 
 @MainActor

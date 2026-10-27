@@ -319,7 +319,7 @@ public struct ImportReviewSheet: View {
                                             .cornerRadius(3)
                                     }
                                 }
-                                Text(song.author.isEmpty ? L("Autor nieznany") : song.author)
+                                Text(song.author.isEmpty ? L("Autor nieznany") : song.displayAuthor)
                                     .font(.scaled(10, scale: scale))
                                     .foregroundColor(.secondary)
                             }
@@ -566,7 +566,7 @@ private struct DuplicateRowView: View {
                     }
                     Text(record.primarySong.title)
                         .font(.scaled(11, weight: .semibold, scale: scale))
-                    Text(record.primarySong.author.isEmpty ? L("Autor nieznany") : record.primarySong.author)
+                    Text(record.primarySong.author.isEmpty ? L("Autor nieznany") : record.primarySong.displayAuthor)
                         .font(.scaled(10, scale: scale))
                         .foregroundColor(.secondary)
                 }
@@ -587,7 +587,7 @@ private struct DuplicateRowView: View {
                     }
                     Text(record.duplicateSong.title)
                         .font(.scaled(11, weight: .semibold, scale: scale))
-                    Text(record.duplicateSong.author.isEmpty ? L("Autor nieznany") : record.duplicateSong.author)
+                    Text(record.duplicateSong.author.isEmpty ? L("Autor nieznany") : record.duplicateSong.displayAuthor)
                         .font(.scaled(10, scale: scale))
                         .foregroundColor(.secondary)
                 }

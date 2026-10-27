@@ -362,7 +362,8 @@ enum RemoteControlBridge {
             RemoteSearchResult(
                 id: song.id.uuidString,
                 title: song.title,
-                author: song.author,
+                // Zastępczy „Nieznany” w języku aplikacji, jak etykiety strony pilota (R12-04).
+                author: SongEnrichmentService.displayAuthor(song.author, language: store.settings.appLanguage),
                 firstLine: song.slides.first?.text.components(separatedBy: "\n").first ?? ""
             )
         }
