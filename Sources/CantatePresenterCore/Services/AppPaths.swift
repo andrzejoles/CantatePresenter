@@ -89,6 +89,13 @@ public struct AppPaths: Equatable, Sendable {
             .appendingPathComponent("CantatePresenter-tests-\(ProcessInfo.processInfo.processIdentifier)", isDirectory: true)
     }
 
+    /// Katalog testów procesu jest usuwany przy wyjściu, żeby nie zostawał w `$TMPDIR` (R9-05). Raz na proces.
+    private static let removeTestDataDirectoryAtExit: Void = {
+        atexit {
+            try? FileManager.default.removeItem(at: AppPaths.testDataDirectory(fileManager: .default))
+        }
+    }()
+
     // MARK: - Resolution
 
     static func resolve(
@@ -110,6 +117,7 @@ public struct AppPaths: Equatable, Sendable {
             let directory = testDataDirectory(fileManager: fileManager)
             logger.fault("Testy użyły AppPaths.shared; zamiast prawdziwych danych katalog \(directory.path, privacy: .public)")
             createDirectory(directory, fileManager: fileManager)
+            _ = removeTestDataDirectoryAtExit
             return AppPaths(dataDirectory: directory)
         }
 
