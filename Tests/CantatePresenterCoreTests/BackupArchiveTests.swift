@@ -151,3 +151,47 @@ struct BackupArchiveTests {
         #expect(kept == names.dropFirst().sorted())
     }
 }
+
+// MARK: - R6-13: data kopii bez manifest.json (folder danych spakowany w Finderze)
+
+@Suite("Data kopii bez manifestu")
+struct BackupFallbackDateTests {
+    @Test("Data to najnowsza data zmiany plików danych, a nie chwila przywracania (R6-13)")
+    func newestDataFileDate() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let older = Date(timeIntervalSince1970: 1_700_000_000)
+        let newer = Date(timeIntervalSince1970: 1_750_000_000)
+        try dir.write("[]", to: "songs.json")
+        try dir.write("{}", to: "settings.json")
+        try dir.write("x", to: "inny.txt")
+        try FileManager.default.setAttributes([.modificationDate: older], ofItemAtPath: dir.file("songs.json").path)
+        try FileManager.default.setAttributes([.modificationDate: newer], ofItemAtPath: dir.file("settings.json").path)
+
+        #expect(BackupService.dataDate(in: dir.url) == newer)
+        #expect(BackupService.dataDate(in: dir.url.appendingPathComponent("brak")) == nil)
+    }
+}
+
+// MARK: - R6-03: kopia z arkusza Ustawień zawiera zmiany z tego arkusza
+
+@Suite("Kopia zapasowa z niezapisanymi ustawieniami")
+@MainActor
+struct BackupUnsavedSettingsTests {
+    @Test("Archiwum zawiera ustawienia zmienione w pamięci, a nie tylko te zapisane na dysku (R6-03)")
+    func archiveContainsInMemorySettings() async throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let data = dir.url.appendingPathComponent("dane")
+        let store = DataStore(dataDirectory: data)
+        store.settings.fontFamily = "R6-03 Font"
+
+        let archive = try await BackupService.createBackupArchive(of: store, in: data, comment: nil, temporaryDirectory: dir.url).archiveURL
+        defer { BackupService.removeTemporaryArchive(archive) }
+        let extracted = dir.url.appendingPathComponent("rozpakowane")
+        try await BackupRestorer.unzip(archive, to: extracted)
+        let settingsData = try Data(contentsOf: BackupRestorer.contentRoot(in: extracted).appendingPathComponent("settings.json"))
+        let settings = try JSONFileStore.makeDecoder().decode(AppSettings.self, from: settingsData)
+        #expect(settings.fontFamily == "R6-03 Font")
+    }
+}

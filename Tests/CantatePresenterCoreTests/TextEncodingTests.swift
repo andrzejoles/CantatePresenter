@@ -42,4 +42,35 @@ struct TextEncodingTests {
     func plainASCII() {
         #expect(TextImporter.decodeText(Data("Amazing Grace".utf8)) == "Amazing Grace")
     }
+
+    @Test("Tekst ukraiński i rosyjski w Windows-1251 wraca cyrylicą (R6-12)", arguments: [
+        "Боже великий, єдиний, нам Україну храни",
+        "Боже великий",
+        "Слава Отцю, і Сину, і Святому Духові",
+        "Христос воскрес! Воистину воскрес!"
+    ])
+    func cyrillicWindows1251(text: String) throws {
+        let data = try #require(text.data(using: .windowsCP1251))
+        #expect(TextImporter.decodeText(data) == text)
+    }
+
+    @Test("Krótkie polskie teksty Windows-1250 i ISO-8859-2 nie są czytane jako cyrylica (R6-12)", arguments: [
+        "Bóg się rodzi", "Zażółć gęślą jaźń", "Ś", "żółw", "Łódź", "ąę", "Święty, Święty, Święty",
+        "Gdzie jest Twój dom, ś", "Kto się w opiekę"
+    ])
+    func shortPolishIsNotCyrillic(text: String) throws {
+        for encoding in [Self.encoding(.windowsLatin2), Self.encoding(.isoLatin2)] {
+            let data = try #require(text.data(using: encoding))
+            #expect(TextImporter.decodeText(data) == text, "\(text)")
+        }
+    }
+
+    @Test("Francuski i niemiecki tekst Windows-1252 nie staje się cyrylicą (R6-12)", arguments: [
+        "Être prêt pour la fête, même là où tu vas.\nÀ toi la gloire, ô Ressuscité",
+        "Großer Gott, wir loben dich. Herr, wir preisen deine Stärke."
+    ])
+    func westernEuropean(text: String) throws {
+        let data = try #require(text.data(using: .windowsCP1252))
+        #expect(TextImporter.decodeText(data) == text)
+    }
 }

@@ -72,7 +72,9 @@ struct ExitBackupTests {
         )
 
         #expect(outcome == .timedOut)
-        #expect(ContinuousClock.now - start < .seconds(5))
+        // Limit sprawdza wątek główny, który równoległe testy potrafią zająć na kilka sekund;
+        // ważne jest tylko, że nie czekamy na 30-sekundową wysyłkę.
+        #expect(ContinuousClock.now - start < .seconds(25))
     }
 
     @Test("Pomiń kończy czekanie od razu")
@@ -111,5 +113,29 @@ struct ExitBackupTests {
 
         let names = try FileManager.default.contentsOfDirectory(atPath: backups.path).sorted()
         #expect(names == (3...7).map { "exit-2026-10-0\($0).cantatebackup" })
+    }
+
+    @Test("Kopie z nieczytelnych danych nie wypierają starszych, dobrych kopii (R6-10)")
+    func unreliableDataDoesNotPrune() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let backups = dir.url.appendingPathComponent("backups")
+        for index in 1...5 {
+            let archive = try makeArchive(in: dir, name: "exit-2026-10-0\(index).cantatebackup")
+            _ = try ExitBackupCoordinator.keepLocally(archive, in: backups, limit: 5)
+        }
+
+        let issues = [PersistenceIssue(kind: .unreadable, fileName: "songs.json", quarantinedCopy: nil, errorDescription: "")]
+        let prune = ExitBackupCoordinator.shouldPruneLocalCopies(issues: issues)
+        for index in 6...7 {
+            let archive = try makeArchive(in: dir, name: "exit-2026-10-0\(index).cantatebackup")
+            _ = try ExitBackupCoordinator.keepLocally(archive, in: backups, limit: 5, prune: prune)
+        }
+
+        #expect(!prune)
+        #expect(try FileManager.default.contentsOfDirectory(atPath: backups.path).count == 7)
+        #expect(ExitBackupCoordinator.shouldPruneLocalCopies(issues: []))
+        #expect(!ExitBackupCoordinator.shouldPruneLocalCopies(issues: [PersistenceIssue(kind: .newerSchema, fileName: "2", quarantinedCopy: nil, errorDescription: "")]))
+        #expect(ExitBackupCoordinator.shouldPruneLocalCopies(issues: [PersistenceIssue(kind: .saveFailed, fileName: "songs.json", quarantinedCopy: nil, errorDescription: "")]))
     }
 }

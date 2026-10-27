@@ -7,21 +7,84 @@ import os
 
 /// Otwarte połączenia pilota: łącznie i na adres telefonu (R3-05). Jedno urządzenie w sieci nie może zająć
 /// wszystkich miejsc bezczynnymi połączeniami.
+///
+/// Kilka adresów (IPv4 i IPv6 tego samego komputera, dodatkowe adresy w Wi-Fi) omijało limit na adres (R7-05),
+/// więc adresy, które nie pokazały jeszcze tokenu, mają wspólną pulę mniejszą niż całość. Adres, z którego
+/// przyszło żądanie z poprawnym tokenem (telefon, tablet muzyków), jest zaufany i korzysta z reszty miejsc.
+/// Adresy IPv6 są liczone po prefiksie /64.
 struct RemoteConnectionCounter: Sendable {
+    enum Pool: Sendable, Equatable {
+        case anonymous
+        case trusted
+    }
+
+    /// Jak długo adres pozostaje zaufany po ostatnim żądaniu z tokenem (telefon pyta co sekundę).
+    static let trustDuration: TimeInterval = 600
+    private static let maxTrustedHosts = 64
+
     private(set) var total = 0
+    private(set) var anonymous = 0
     private(set) var perHost: [String: Int] = [:]
-    
-    mutating func admit(host: String, maxTotal: Int, maxPerHost: Int) -> Bool {
-        guard total < maxTotal, perHost[host, default: 0] < maxPerHost else { return false }
+    private(set) var trustedUntil: [String: Date] = [:]
+
+    /// - Returns: pula, z której przyznano miejsce, albo `nil`, gdy połączenie trzeba zamknąć.
+    mutating func admit(host: String, maxTotal: Int, maxAnonymous: Int, maxPerHost: Int, now: Date = Date()) -> Pool? {
+        guard total < maxTotal, perHost[host, default: 0] < maxPerHost else { return nil }
+        let pool: Pool
+        if let until = trustedUntil[host], until > now {
+            pool = .trusted
+        } else {
+            guard anonymous < maxAnonymous else { return nil }
+            pool = .anonymous
+            anonymous += 1
+        }
         total += 1
         perHost[host, default: 0] += 1
-        return true
+        return pool
     }
-    
-    mutating func release(host: String) {
+
+    mutating func release(host: String, pool: Pool) {
         total = max(0, total - 1)
+        if pool == .anonymous {
+            anonymous = max(0, anonymous - 1)
+        }
         let remaining = perHost[host, default: 0] - 1
         perHost[host] = remaining > 0 ? remaining : nil
+    }
+
+    /// Żądanie z poprawnym tokenem: adres dostaje miejsca poza pulą anonimową.
+    mutating func markAuthorized(host: String, now: Date = Date()) {
+        if trustedUntil.count >= Self.maxTrustedHosts {
+            trustedUntil = trustedUntil.filter { $0.value > now }
+        }
+        guard trustedUntil.count < Self.maxTrustedHosts || trustedUntil[host] != nil else { return }
+        trustedUntil[host] = now.addingTimeInterval(Self.trustDuration)
+    }
+
+    /// Nowy token: dotychczasowe telefony nie są już zaufane.
+    mutating func revokeTrust() {
+        trustedUntil = [:]
+    }
+
+    /// Klucz limitu dla adresu: IPv4 bez zmian (także zapisany jako IPv6 `::ffff:a.b.c.d`), IPv6 jako prefiks /64
+    /// bez strefy (`%en0`), bo jedno urządzenie może mieć wiele adresów w swojej sieci.
+    static func bucket(forHost host: String) -> String {
+        var address = host
+        if let zone = address.firstIndex(of: "%") {
+            address = String(address[..<zone])
+        }
+        var ipv4 = in_addr()
+        if inet_pton(AF_INET, address, &ipv4) == 1 {
+            return address
+        }
+        var ipv6 = in6_addr()
+        guard inet_pton(AF_INET6, address, &ipv6) == 1 else { return host }
+        let bytes = withUnsafeBytes(of: ipv6) { Array($0) }
+        if bytes[0..<10].allSatisfy({ $0 == 0 }) && bytes[10] == 0xFF && bytes[11] == 0xFF {
+            return bytes[12...].map(String.init).joined(separator: ".")
+        }
+        let prefix = stride(from: 0, to: 8, by: 2).map { String(UInt16(bytes[$0]) << 8 | UInt16(bytes[$0 + 1]), radix: 16) }
+        return prefix.joined(separator: ":") + "::/64"
     }
 }
 
@@ -57,12 +120,14 @@ public final class RemoteControlServer {
     /// Kopia tokenów dla kolejki sieci: zły token dostaje 403 bez przechodzenia na wątek główny (R3-05).
     @ObservationIgnored nonisolated private let acceptedTokens: OSAllocatedUnfairLock<(control: String, stage: String)>
     nonisolated private let maxConnections: Int
+    /// Miejsca dla adresów bez tokenu (R7-05); reszta zostaje dla telefonów i tabletów z tokenem.
+    nonisolated private let maxAnonymousConnections: Int
     nonisolated private let maxConnectionsPerHost: Int
     /// Telefon wysyła żądanie (ok. 300 B) zaraz po połączeniu; dłużej czekające połączenie jest zamykane.
     nonisolated static let requestDeadline: TimeInterval = 3
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "remote")
     
-    init(maxConnections: Int = 32, maxConnectionsPerHost: Int = 8,
+    init(maxConnections: Int = 32, maxAnonymousConnections: Int = 16, maxConnectionsPerHost: Int = 8,
          route: (@MainActor (RemoteHTTPRequest, String, String) -> RemoteHTTPResponse)? = nil) {
         let control = RemoteRouter.makeToken()
         let stage = RemoteRouter.makeToken()
@@ -70,6 +135,7 @@ public final class RemoteControlServer {
         self.stageToken = stage
         self.acceptedTokens = OSAllocatedUnfairLock(initialState: (control: control, stage: stage))
         self.maxConnections = maxConnections
+        self.maxAnonymousConnections = min(maxAnonymousConnections, maxConnections)
         self.maxConnectionsPerHost = maxConnectionsPerHost
         self.route = route ?? { request, token, stageToken in
             RemoteControlBridge.response(for: request, token: token, stageToken: stageToken, store: DataStore.shared)
@@ -118,6 +184,7 @@ public final class RemoteControlServer {
         stageToken = RemoteRouter.makeToken()
         let tokens = (control: token, stage: stageToken)
         acceptedTokens.withLock { $0 = tokens }
+        openConnections.withLock { $0.revokeTrust() }
         lastSeen = [:]
     }
     
@@ -172,11 +239,11 @@ public final class RemoteControlServer {
     // MARK: - Connections
     
     nonisolated private func accept(_ connection: NWConnection) {
-        let host = Self.host(of: connection.endpoint)
-        let accepted = openConnections.withLock {
-            $0.admit(host: host, maxTotal: maxConnections, maxPerHost: maxConnectionsPerHost)
+        let bucket = RemoteConnectionCounter.bucket(forHost: Self.host(of: connection.endpoint))
+        let pool = openConnections.withLock {
+            $0.admit(host: bucket, maxTotal: maxConnections, maxAnonymous: maxAnonymousConnections, maxPerHost: maxConnectionsPerHost)
         }
-        guard accepted else {
+        guard let pool else {
             connection.cancel()
             return
         }
@@ -185,7 +252,7 @@ public final class RemoteControlServer {
             case .failed:
                 connection.cancel()
             case .cancelled:
-                self?.openConnections.withLock { $0.release(host: host) }
+                self?.openConnections.withLock { $0.release(host: bucket, pool: pool) }
             default:
                 break
             }
@@ -210,6 +277,7 @@ public final class RemoteControlServer {
                     return
                 }
                 let host = Self.host(of: connection.endpoint)
+                self.openConnections.withLock { $0.markAuthorized(host: RemoteConnectionCounter.bucket(forHost: host)) }
                 Task { @MainActor [weak self] in
                     guard let self else { connection.cancel(); return }
                     let response = self.route(request, self.token, self.stageToken)
@@ -277,7 +345,7 @@ enum RemoteControlBridge {
             perform: { perform($0, on: store) },
             stagePage: { MusicianStagePage.html(language: store.settings.appLanguage) },
             stageState: { semitones in
-                let payload = StagePayload(stage: MusicianStage.make(store: store, semitones: semitones), labels: stageLabels())
+                let payload = StagePayload(stage: MusicianStage.make(store: store, semitones: semitones), labels: stageLabels(language: store.settings.appLanguage))
                 return (try? JSONEncoder().encode(payload)) ?? Data("{}".utf8)
             },
             search: { query in (try? JSONEncoder().encode(search(query, in: store))) ?? Data("[]".utf8) }
@@ -315,9 +383,11 @@ enum RemoteControlBridge {
         let labels: [String: String]
     }
 
-    /// Teksty strony dla muzyków w języku interfejsu aplikacji.
-    static func stageLabels() -> [String: String] {
-        [
+    /// Teksty strony dla muzyków w języku interfejsu aplikacji. Język podaje wywołujący (z `store`),
+    /// bez `L()`, które czyta `DataStore.shared` (R5-01: testy nie mogą dotykać prawdziwych danych).
+    static func stageLabels(language: String) -> [String: String] {
+        func L(_ key: String) -> String { Localization.string(key, language: language) }
+        return [
             "title": L("Ekran dla muzyków"),
             "key": L("Tonacja: {0}"),
             "next": L("Następny slajd"),
@@ -336,6 +406,7 @@ enum RemoteControlBridge {
     static func state(of store: DataStore) -> RemoteState {
         let song = store.activeSong
         let plan = store.activePlan
+        let language = store.settings.appLanguage
         let titles = Dictionary(store.songs.map { ($0.id, $0.title) }, uniquingKeysWith: { first, _ in first })
         return RemoteState(
             isLive: store.isLive,
@@ -345,13 +416,13 @@ enum RemoteControlBridge {
             slideIndex: store.activeSlideIndex,
             slideText: store.currentLiveSlide?.text ?? "",
             slides: (song?.slides ?? []).map { slide in
-                RemoteState.SlideInfo(label: slide.displayLabel, preview: slide.text.components(separatedBy: "\n").first ?? "")
+                RemoteState.SlideInfo(label: slide.displayLabel(language: language), preview: slide.text.components(separatedBy: "\n").first ?? "")
             },
             planName: plan?.name ?? "",
             plan: (plan?.items ?? []).map { item in
                 RemoteState.PlanEntry(title: titles[item.songId] ?? "?", isCurrent: item.songId == song?.id)
             },
-            labels: labels(),
+            labels: labels(language: language),
             canStart: !store.isLive && startCandidate(in: store) != nil,
             startTitle: store.isLive ? "" : (startCandidate(in: store)?.title ?? "")
         )
@@ -389,9 +460,10 @@ enum RemoteControlBridge {
         }
     }
     
-    /// Teksty strony telefonu w języku interfejsu aplikacji.
-    static func labels() -> [String: String] {
-        [
+    /// Teksty strony telefonu w języku interfejsu aplikacji (język z `store`, R5-01).
+    static func labels(language: String) -> [String: String] {
+        func L(_ key: String) -> String { Localization.string(key, language: language) }
+        return [
             "next": L("Dalej"),
             "previous": L("Wstecz"),
             "nextSong": L("Następna pieśń"),

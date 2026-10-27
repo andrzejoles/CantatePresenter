@@ -293,6 +293,16 @@ struct ImportEnrichmentTests {
         #expect(encoding.restoreTitleDiacritics(title: "Do zlobka", lyrics: "").title == "Do żłobka")
     }
 
+    @Test("Znaki przed słowem zostają przed nim: nawias i cudzysłów nie przechodzą na koniec (R6-04)")
+    func leadingPunctuationStays() {
+        let encoding = PolishEncodingService.shared
+        #expect(encoding.restoreTitleDiacritics(title: "Koleda (Bog sie rodzi)", lyrics: "abc").title == "Koleda (Bóg sie rodzi)")
+        #expect(encoding.restoreTitleDiacritics(title: "\"Swiety\" Pan", lyrics: "abc").title == "\"Święty\" Pan")
+        #expect(encoding.restoreTitleDiacritics(title: "Do zlobka, chodzmy", lyrics: "").title.hasPrefix("Do żłobka,"))
+        let enriched = SongEnrichmentService.shared.enrich(song: Song(title: "Koleda (Bog sie rodzi)", rawLyrics: "La la la"))
+        #expect(enriched.enrichedSong.title == "Koleda (Bóg sie rodzi)")
+    }
+
     @Test("Zastępczy autor to stała, a jego tłumaczenia ze starszych wersji też znaczą „brak autora” (R2-11)")
     func unknownAuthorPlaceholder() {
         #expect(SongEnrichmentService.unknownAuthorPlaceholder == "Nieznany")
@@ -306,5 +316,70 @@ struct ImportEnrichmentTests {
     func ambiguousLyricsWord() {
         let result = PolishEncodingService.shared.restoreTitleDiacritics(title: "Swieta noc", lyrics: "Święta noc, święta, swieta")
         #expect(result.title == "Swieta noc")
+    }
+}
+
+@Suite("Import: nieczytelne pliki i JSON w plikach Holyrics (R6-05, R6-06)")
+struct ImportFileProblemTests {
+    @Test("Ucięty plik JSON jest zgłaszany jako problem (R6-05)")
+    func truncatedJSON() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        try dir.write(#"[{"title":"A","rawLyrics":"x""#, to: "broken.json")
+        let outcome = TextImporter.importFile(dir.file("broken.json"))
+        #expect(outcome.songs.isEmpty)
+        #expect(outcome.problems.count == 1)
+        #expect(outcome.problems.first?.fileName == "broken.json")
+    }
+
+    @Test("Poprawny JSON bez pieśni (plan) jest zgłaszany jako problem (R6-05)")
+    func jsonWithoutSongs() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        try dir.write(#"{"name":"Plan","items":[]}"#, to: "plan.json")
+        let outcome = TextImporter.importFile(dir.file("plan.json"))
+        #expect(outcome.songs.isEmpty)
+        #expect(outcome.problems.count == 1)
+    }
+
+    @Test("Nieczytelny plik .usr jest zgłaszany jako problem (R6-05)")
+    func unreadableUSR() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        try dir.write("[File]\nType=SongSelect Import File\n", to: "broken.usr")
+        let outcome = TextImporter.importFile(dir.file("broken.usr"))
+        #expect(outcome.songs.isEmpty)
+        #expect(outcome.problems.count == 1)
+    }
+
+    @Test("Własny eksport JSON zapisany jako .mufl zachowuje tekst, chwyty i CCLI (R6-06)")
+    func ownJSONAsMufl() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        try dir.write(#"[{"title":"A","rawLyrics":"x","chords":"D A","ccliNumber":"5"}]"#, to: "own.mufl")
+        let outcome = TextImporter.importFile(dir.file("own.mufl"))
+        let song = try #require(outcome.songs.first)
+        #expect(outcome.songs.count == 1)
+        #expect(song.title == "A")
+        #expect(song.rawLyrics == "x")
+        #expect(song.chords == "D A")
+        #expect(song.ccliNumber == "5")
+    }
+
+    @Test("Plan JSON zapisany jako .hly nie jest pieśnią (R6-06)")
+    func planJSONAsHly() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        try dir.write(#"{"name":"Plan","items":[]}"#, to: "plan.hly")
+        let outcome = TextImporter.importFile(dir.file("plan.hly"))
+        #expect(outcome.songs.isEmpty)
+        #expect(outcome.problems.count == 1)
+    }
+
+    @Test("JSON Holyrics bez tytułu: tytuł z katalogu tłumaczeń, nie wpisany na stałe (R6-06)")
+    func holyricsJSONWithoutTitle() {
+        let songs = HolyricsImporter.parseHolyricsContent(#"[{"lyrics":"Linia"}]"#, fallbackTitle: "plik")
+        #expect(songs.map(\.rawLyrics) == ["Linia"])
+        #expect(songs.first?.title == Lnow("Bez tytułu"))
     }
 }

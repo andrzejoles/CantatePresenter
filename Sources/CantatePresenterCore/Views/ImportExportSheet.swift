@@ -239,7 +239,7 @@ public struct ImportExportSheet: View {
                         // MARK: - FULL BACKUP & GOOGLE DRIVE
                         GroupBox(label: Label(L("Lokalna kopia zapasowa (.cantatebackup)"), systemImage: "archivebox.fill")) {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text(L("Pełna kopia zapasowa zabezpiecza wszystkie elementy aplikacji: bazę pieśni wraz z chwytami, plany nabożeństw, pełne ustawienia, ekran początkowy Standby, zainstalowane języki tłumaczeń oraz bibliotekę oficjalnych logotypów."))
+                                Text(L("Pełna kopia zapasowa zawiera bazę pieśni wraz z chwytami, plany nabożeństw, ustawienia, własne języki tłumaczeń i raport CCLI. Logo są wbudowane w program. Własnego pliku planszy startowej wybranego w Ustawieniach kopia nie zawiera."))
                                     .font(.scaled(11, scale: scale))
                                     .foregroundColor(.secondary)
                                 

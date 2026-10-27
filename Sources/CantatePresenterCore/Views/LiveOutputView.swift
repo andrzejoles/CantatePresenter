@@ -84,8 +84,16 @@ public struct LiveOutputView: View {
                                 .foregroundColor(.white.opacity(0.5))
                         } else if !store.isLive {
                             // Ta sama plansza co na projektorze (własny plik, zegar, napis gotowości), pomniejszona (R4-15).
-                            StandbyWebView(htmlPath: store.settings.standbyHtmlPath, activeLogoId: store.settings.activeLogoId)
-                                .allowsHitTesting(false)
+                            // Strona jest składana w rozmiarze projektowym i pomniejszana jako obraz: przy pageZoom
+                            // poniżej ok. 0.5 WebKit nie zmniejsza tekstu poniżej minimum i napisy nachodziły na siebie.
+                            GeometryReader { geo in
+                                let width = StandbyZoom.designWidth
+                                StandbyWebView(htmlPath: store.settings.standbyHtmlPath, activeLogoId: store.settings.activeLogoId)
+                                    .frame(width: width, height: width / presentationAspectRatio)
+                                    .scaleEffect(geo.size.width / width, anchor: .topLeading)
+                                    .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
+                            }
+                            .allowsHitTesting(false)
                         } else if store.isClearText {
                             bgColor
                             Text(L("TEKST UKRYTY"))

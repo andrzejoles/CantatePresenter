@@ -80,7 +80,7 @@ public struct PresentationContentView: View {
                             }) {
                                 HStack(spacing: 6) {
                                     Image(systemName: "keyboard")
-                                    Text(L("Naciśnij ESC, aby wyjść z pełnego ekranu"))
+                                    Text(L("Naciśnij Esc, aby wyjść z pełnego ekranu"))
                                 }
                                 .font(.system(size: 11, weight: .semibold))
                                 .padding(.horizontal, 14)

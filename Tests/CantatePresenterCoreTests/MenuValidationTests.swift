@@ -30,6 +30,21 @@ struct MenuValidationTests {
         #expect(enabled("copy:", sheet: true))
         #expect(enabled("exportJSONAction", sheet: true))
     }
+
+    @Test("Projekcja na ekranie operatora wyłącza pozycje otwierające arkusz, panel albo okno (R8-02)")
+    func projectionOnOperatorScreenDisablesWindows() {
+        let opening = ["quickTextAction", "importAction", "createBackupAction", "restoreBackupAction", "focusSongSearchAction",
+                       "undoRestoreAction", "exportJSONAction", "exportFolderAction", "openUserManualAction", "showAboutPanelAction",
+                       "installToApplicationsAction"]
+        for action in opening {
+            #expect(!AppDelegate.isMenuItemEnabled(action: NSSelectorFromString(action), hasAttachedSheet: false, canUndoRestore: true, presentationCoversMainWindow: true), "\(action)")
+            #expect(AppDelegate.isMenuItemEnabled(action: NSSelectorFromString(action), hasAttachedSheet: false, canUndoRestore: true, presentationCoversMainWindow: false), "\(action)")
+        }
+        // Zoom, edycja i zakończenie programu (z widocznym pytaniem) zostają.
+        for action in ["zoomInAction", "copy:", "terminate:"] {
+            #expect(AppDelegate.isMenuItemEnabled(action: NSSelectorFromString(action), hasAttachedSheet: false, canUndoRestore: true, presentationCoversMainWindow: true), "\(action)")
+        }
+    }
 }
 
 // MARK: - R4-18: zamykanie w trakcie projekcji

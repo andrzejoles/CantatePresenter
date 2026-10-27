@@ -132,4 +132,12 @@ struct SongSelectImporterTests {
         #expect(TextImporter.importFromURL(txt).first?.ccliNumber == "9999001")
         #expect(TextImporter.importFromURL(pro).first?.title == "Morning Light")
     }
+
+    @Test("Pusta dyrektywa ChordPro {} albo {:} nie wywraca importu (R6-01)")
+    func emptyChordProDirective() {
+        let song = SongSelectImporter.parseChordPro("{title: X}\n{}\n{:}\n{ }\n[G]Amazing grace", fallbackTitle: "f")
+        #expect(song.title == "X")
+        #expect(song.rawLyrics == "Amazing grace")
+        #expect(song.chords?.contains("G") == true)
+    }
 }

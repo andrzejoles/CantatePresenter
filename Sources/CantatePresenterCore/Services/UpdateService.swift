@@ -22,6 +22,12 @@ struct UpdateConfiguration: Equatable {
             publicKey: infoDictionary?["SUPublicEDKey"] as? String ?? ""
         )
     }
+
+    /// Adres kanału dla Sparkle, gdy różni się od `SUFeedURL` z Info.plist (`CANTATE_UPDATE_FEED`);
+    /// `nil` = Sparkle bierze adres z Info.plist. Jedno źródło prawdy zamiast drugiego odczytu zmiennej (R5-06).
+    func feedOverride(infoDictionary: [String: Any]?) -> String? {
+        feedURL != (infoDictionary?["SUFeedURL"] as? String ?? "") ? feedURL : nil
+    }
 }
 
 // MARK: - Update Service
@@ -33,11 +39,18 @@ public final class UpdateService: NSObject, SPUUpdaterDelegate {
     public static let shared = UpdateService()
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "updates")
     
-    private let configuration = UpdateConfiguration.from(infoDictionary: Bundle.main.infoDictionary,
-                                                         environment: ProcessInfo.processInfo.environment)
+    private let configuration: UpdateConfiguration
+    nonisolated private let feedOverride: String?
     private var controller: SPUStandardUpdaterController?
     
     public var isAvailable: Bool { controller != nil }
+
+    override private init() {
+        let info = Bundle.main.infoDictionary
+        configuration = UpdateConfiguration.from(infoDictionary: info, environment: ProcessInfo.processInfo.environment)
+        feedOverride = configuration.feedOverride(infoDictionary: info)
+        super.init()
+    }
     
     public func start() {
         guard controller == nil else { return }
@@ -59,6 +72,6 @@ public final class UpdateService: NSObject, SPUUpdaterDelegate {
     // MARK: - SPUUpdaterDelegate
     
     nonisolated public func feedURLString(for updater: SPUUpdater) -> String? {
-        ProcessInfo.processInfo.environment["CANTATE_UPDATE_FEED"]
+        feedOverride
     }
 }

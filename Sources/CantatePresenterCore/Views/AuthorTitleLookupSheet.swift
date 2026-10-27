@@ -624,25 +624,8 @@ public struct AuthorTitleLookupSheet: View {
             guard batchProposals[i].isSelected && !batchProposals[i].isApplied else { continue }
             let prop = batchProposals[i]
             
-            if var song = store.songs.first(where: { $0.id == prop.songId }) {
-                // Update author
-                if prop.acceptAuthor {
-                    if !prop.proposedAuthor.isEmpty {
-                        if !onlyFillEmptyFields || song.author.trimmingCharacters(in: .whitespaces).isEmpty {
-                            song.author = prop.proposedAuthor
-                        }
-                    }
-                } else {
-                    // Stała w danych, nie tłumaczenie (R2-11).
-                    song.author = SongEnrichmentService.unknownAuthorPlaceholder
-                }
-                
-                // Update title if enabled
-                if updateTitleAlso && !prop.proposedTitle.isEmpty {
-                    song.title = prop.proposedTitle
-                }
-                
-                changedSongs.append(song)
+            if let song = store.songs.first(where: { $0.id == prop.songId }) {
+                changedSongs.append(prop.applied(to: song, onlyFillEmptyFields: onlyFillEmptyFields, updateTitle: updateTitleAlso))
                 batchProposals[i].isApplied = true
             }
         }

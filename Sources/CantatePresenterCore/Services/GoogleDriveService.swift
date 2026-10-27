@@ -293,7 +293,7 @@ public final class GoogleDriveService: Sendable {
             "name": archiveURL.lastPathComponent,
             "parents": [folderId],
             "mimeType": "application/zip",
-            "description": Lnow("CantatePresenter Pełny Backup (baza pieśni, chwyty, ustawienia, standby, języki, loga)")
+            "description": Lnow("CantatePresenter Pełny Backup (pieśni, chwyty, plany, ustawienia, języki)")
         ]
         let metadataData = try JSONSerialization.data(withJSONObject: metadata)
         

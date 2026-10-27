@@ -29,9 +29,41 @@ public struct CustomLanguage: Codable, Identifiable, Equatable {
             code: code,
             name: try container.decodeIfPresent(String.self, forKey: .name) ?? code,
             flag: try container.decodeIfPresent(String.self, forKey: .flag) ?? "🌐",
-            strings: (try? container.decodeIfPresent([String: String].self, forKey: .strings)) ?? [:]
+            strings: (try? container.decodeIfPresent(LossyStrings.self, forKey: .strings))?.values ?? [:]
         )
     }
+
+    /// Wartość, która nie jest tekstem (np. `"Rozmiar": 12` po ręcznej edycji), jest pomijana sama;
+    /// wcześniej znikały wszystkie teksty języka, a następny import zapisywał je jako puste (R6-09).
+    private struct LossyStrings: Decodable {
+        let values: [String: String]
+
+        private struct Key: CodingKey {
+            let stringValue: String
+            var intValue: Int? { nil }
+            init(stringValue: String) { self.stringValue = stringValue }
+            init?(intValue: Int) { nil }
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: Key.self)
+            var values: [String: String] = [:]
+            var skipped = 0
+            for key in container.allKeys {
+                if let value = try? container.decode(String.self, forKey: key) {
+                    values[key.stringValue] = value
+                } else {
+                    skipped += 1
+                }
+            }
+            if skipped > 0 {
+                CustomLanguage.logger.warning("Pominięto \(skipped) wartości własnego języka, które nie są tekstem")
+            }
+            self.values = values
+        }
+    }
+
+    private static let logger = Logger(subsystem: "com.cantate.presenter", category: "localization")
 }
 
 public struct TranslationTemplateItem: Codable {
@@ -316,6 +348,10 @@ public final class LocalizationService: ObservableObject {
         if let loadIssue {
             throw NSError(domain: "LocalizationService", code: 409, userInfo: [NSLocalizedDescriptionKey: loadIssue])
         }
+        // Dane z nowszej wersji są tylko do odczytu jak w `DataStore`: zapis tą wersją zgubiłby nowe pola (R6-08).
+        if isReadOnlyNewerSchema {
+            throw NSError(domain: "LocalizationService", code: 423, userInfo: [NSLocalizedDescriptionKey: Lnow("Dane z nowszej wersji aplikacji")])
+        }
 
         let customLang = CustomLanguage(code: targetCode, name: targetName, flag: targetFlag, strings: parsedStrings)
 
@@ -327,6 +363,12 @@ public final class LocalizationService: ObservableObject {
         customLanguages = updated
 
         return (code: targetCode, name: targetName, count: parsedStrings.count)
+    }
+
+    /// `settings.json` obok pliku języków ma nowszy numer formatu (`DataSchema`) niż ta wersja aplikacji.
+    private var isReadOnlyNewerSchema: Bool {
+        let settingsURL = customLanguagesURL.deletingLastPathComponent().appendingPathComponent("settings.json")
+        return (DataSchema.version(ofSettingsAt: settingsURL) ?? 0) > DataSchema.current
     }
 
     /// Zapis przez `JSONFileStore` (kopie przed zapisem); błąd trafia do wywołującego, nie jest połykany (N7).

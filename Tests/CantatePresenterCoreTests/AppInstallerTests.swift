@@ -68,4 +68,47 @@ struct AppInstallerTests {
     private func hasQuarantine(_ url: URL) -> Bool {
         getxattr(url.path, "com.apple.quarantine", nil, 0, 0, 0) >= 0
     }
+
+    // MARK: R7-04: anulowane zamknięcie po instalacji
+
+    private func waitForFile(_ url: URL, timeout: Duration) async -> Bool {
+        let deadline = ContinuousClock.now + timeout
+        while ContinuousClock.now < deadline {
+            if FileManager.default.fileExists(atPath: url.path) { return true }
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        return FileManager.default.fileExists(atPath: url.path)
+    }
+
+    @Test("Pomocnik uruchamia kopię dopiero po zakończeniu procesu (R7-04)")
+    func relaunchHelperOpensAfterExit() async throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let finished = Process()
+        finished.executableURL = URL(fileURLWithPath: "/usr/bin/true")
+        try finished.run()
+        finished.waitUntilExit()
+        let marker = dir.file("opened")
+
+        let helper = RelaunchHelper(waitingFor: finished.processIdentifier, open: marker.path, opener: "/usr/bin/touch")
+        try helper.start()
+
+        #expect(await waitForFile(marker, timeout: .seconds(5)))
+    }
+
+    @Test("Anulowane zamknięcie (np. „Anuluj” w trakcie projekcji) kończy pomocnika: kopia nie startuje później (R7-04)")
+    func cancelledTerminationStopsRelaunchHelper() async throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let marker = dir.file("opened")
+        // Czeka na ten proces testów, który dalej działa, jak program po „Anuluj”.
+        let helper = RelaunchHelper(waitingFor: ProcessInfo.processInfo.processIdentifier, open: marker.path, opener: "/usr/bin/touch")
+        try helper.start()
+        #expect(helper.isRunning)
+
+        helper.cancel()
+
+        #expect(!helper.isRunning)
+        #expect(!(await waitForFile(marker, timeout: .milliseconds(600))))
+    }
 }

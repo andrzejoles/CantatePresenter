@@ -758,7 +758,7 @@ public struct SettingsSheet: View {
                                 .controlSize(.small)
                             }
                             
-                            Text(L("Możesz także używać skrótów Cmd + / Cmd - oraz przycisków w prawym górnym rogu paska narzędzi."))
+                            Text(L("Możesz także używać skrótów ⌘+ / ⌘− oraz przycisków w prawym górnym rogu paska narzędzi."))
                                 .font(.scaled(11, scale: scale))
                                 .foregroundColor(.secondary)
                         }
@@ -972,7 +972,7 @@ public struct SettingsSheet: View {
         
         let panel = NSSavePanel()
         panel.title = L("Eksportuj słownik do tłumaczenia (szablon dla AI)")
-        panel.nameFieldStringValue = "holyrics_translations_\(store.settings.appLanguage).json"
+        panel.nameFieldStringValue = "cantate_translations_\(store.settings.appLanguage).json"
         panel.allowedContentTypes = [.json]
         panel.prompt = L("Eksportuj")
         

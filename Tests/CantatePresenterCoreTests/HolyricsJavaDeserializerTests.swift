@@ -193,6 +193,76 @@ struct HolyricsJavaDeserializerTests {
         }
     }
 
+    // MARK: R7-03: wzmocnienie przez referencje
+
+    /// Opis klasy `Music` z jednym polem `lyrics` (uchwyty: h0 opis, h1 typ pola).
+    private func musicClassDescriptor(into s: inout JavaStream) {
+        s.u8(0x72); s.utf("com.limagiran.holyrics.model.Music"); s.u64(0); s.u8(0x02); s.u16(1)
+        s.u8(UInt8(ascii: "L")); s.utf("lyrics"); s.string("Ljava/lang/String;")
+        s.u8(0x78); s.u8(0x70)
+    }
+
+    @Test("Lista miliona referencji do jednej pieśni: jedna pieśń, szybko (R7-03)")
+    func repeatedReferencesToOneSongCountOnce() throws {
+        var s = JavaStream()
+        s.u8(0x73); musicClassDescriptor(into: &s)                 // h2: obiekt Music
+        s.string(String(repeating: "Alleluja ", count: 6_000))     // h3: 54 KB tekstu
+        s.u8(0x73); s.u8(0x72); s.utf("java.util.ArrayList"); s.u64(0); s.u8(0x03); s.u16(1)
+        s.u8(UInt8(ascii: "I")); s.utf("size"); s.u8(0x78); s.u8(0x70)
+        let count: UInt32 = 200_000
+        s.u32(count); s.u8(0x77); s.u8(4); s.u32(count)
+        for _ in 0..<count { s.reference(2) }
+        s.u8(0x78)
+        // Ponowne referencje do całej listy na najwyższym poziomie też nie mnożą pieśni.
+        for _ in 0..<1_000 { s.reference(5) }
+
+        let start = ContinuousClock.now
+        let records = try parse(Data(s.bytes))
+        #expect(records.count == 1)
+        #expect(ContinuousClock.now - start < .seconds(5))
+    }
+
+    @Test("Ponowne referencje do listy pieśni nie dublują pieśni (R7-03)")
+    func repeatedListReferencesDoNotDuplicate() throws {
+        var bytes = Array(JavaStream.musicList(songs))
+        // h1 to obiekt ArrayList w `musicList`.
+        for _ in 0..<50 { bytes += [0x71, 0x00, 0x7E, 0x00, 0x01] }
+
+        #expect(try parse(Data(bytes)).map(\.title) == songs.map(\.title))
+    }
+
+    @Test("Tysiące pieśni z referencją do tego samego długiego tekstu: błąd zamiast gigabajtów (R7-03)")
+    func sharedLyricsAmplificationIsRejected() {
+        var s = JavaStream()
+        s.u8(0x73); musicClassDescriptor(into: &s)                 // h2: pierwszy obiekt Music
+        s.string(String(repeating: "Alleluja ", count: 6_000))     // h3
+        for _ in 0..<3_000 {
+            s.u8(0x73); s.reference(0); s.reference(3)              // 11 bajtów = 54 KB tekstu
+        }
+        let deserializer = HolyricsJavaDeserializer(data: Data(s.bytes))
+        let start = ContinuousClock.now
+        let result = deserializer.deserializeMusicRecordsPartially()
+        #expect(result.error != nil)
+        let total = result.records.reduce(0) { $0 + $1.lyrics.utf8.count }
+        #expect(total <= 8 * s.bytes.count + HolyricsJavaDeserializer.textAllowance)
+        #expect(ContinuousClock.now - start < .seconds(5))
+    }
+
+    @Test("Opis klasy z nieznanym typem pola: szybki błąd (R7-03)")
+    func unknownFieldTypeIsRejected() {
+        var s = JavaStream()
+        s.u8(0x73); s.u8(0x72); s.utf("X"); s.u64(0); s.u8(0x02); s.u16(65_535)
+        for _ in 0..<65_535 { s.u8(UInt8(ascii: "Q")); s.utf("") }
+        s.u8(0x78); s.u8(0x70)
+        for _ in 0..<2_000 { s.u8(0x73); s.reference(0) }
+
+        let start = ContinuousClock.now
+        #expect(throws: (any Error).self) {
+            try parse(Data(s.bytes))
+        }
+        #expect(ContinuousClock.now - start < .seconds(1))
+    }
+
     @Test(
         "Prawdziwy eksport Holyrics z repozytorium",
         .enabled(if: FileManager.default.fileExists(atPath: Self.realExportURL.path))
