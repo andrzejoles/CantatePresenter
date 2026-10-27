@@ -5,10 +5,27 @@ import AppKit
 public struct ImportProblem: Equatable, Sendable {
     public let fileName: String
     public let message: String
+    /// Plik czytelny, ale bez pieśni (plan, ustawienia, plist). Zgłaszany tylko, gdy użytkownik wskazał go wprost;
+    /// w folderze lub archiwum jest pomijany bez komunikatu, jak przed R6-05 (R10-07).
+    let isNoSongs: Bool
     
     public init(fileName: String, message: String) {
+        self.init(fileName: fileName, message: message, isNoSongs: false)
+    }
+    
+    private init(fileName: String, message: String, isNoSongs: Bool) {
         self.fileName = fileName
         self.message = message
+        self.isNoSongs = isNoSongs
+    }
+    
+    static func noSongs(in fileName: String) -> ImportProblem {
+        ImportProblem(fileName: fileName, message: Lnow("Nie znaleziono pieśni"), isNoSongs: true)
+    }
+    
+    /// Ten sam problem pod inną nazwą pliku (np. z nazwą archiwum na początku).
+    func renamed(_ fileName: String) -> ImportProblem {
+        ImportProblem(fileName: fileName, message: message, isNoSongs: isNoSongs)
     }
 }
 
@@ -59,7 +76,10 @@ public struct TextImporter {
                         guard kind?.isRegularFile == true, kind?.isSymbolicLink != true else { continue }
                     }
                     if supportedExtensions.contains(fileURL.pathExtension.lowercased()) {
-                        outcome.append(importFile(fileURL, insideArchive: insideArchive))
+                        var file = importFile(fileURL, insideArchive: insideArchive)
+                        // Folder danych aplikacji (plans.json, settings.json, manifest.json…) to nie błąd importu (R10-07).
+                        file.problems.removeAll(where: \.isNoSongs)
+                        outcome.append(file)
                     }
                 }
             }
@@ -68,8 +88,9 @@ public struct TextImporter {
         
         let ext = url.pathExtension.lowercased()
         
-        // 1. Archiwa i pliki Holyrics (.zip, .hly, .holyrics, .muf, .mufl, .xml)
-        if archiveExtensions.contains(ext) && insideArchive {
+        // 1. Archiwa i pliki Holyrics (.zip, .hly, .holyrics, .muf, .mufl, .xml). Tekstowy .hly/.holyrics
+        // w archiwum nie jest archiwum; rozstrzyga sygnatura ZIP, jak dla pliku wskazanego wprost (R10-04, R6-02).
+        if insideArchive, archiveExtensions.contains(ext), ext == "zip" || ZipArchive.hasSignature(url) {
             return ImportOutcome(problems: [ImportProblem(fileName: url.lastPathComponent, message: Lnow("Archiwum w archiwum nie jest rozpakowywane."))])
         }
         if HolyricsImporter.isHolyricsFile(url: url) || archiveExtensions.contains(ext) {
@@ -339,7 +360,7 @@ public struct TextImporter {
         }
         let songs = songs(fromJSONValue: json)
         guard !songs.isEmpty else {
-            return ImportOutcome(problems: [ImportProblem(fileName: fileName, message: Lnow("Nie znaleziono pieśni"))])
+            return ImportOutcome(problems: [.noSongs(in: fileName)])
         }
         return ImportOutcome(songs: songs)
     }
