@@ -88,7 +88,7 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] **N6** Przestarzałe API (ostrzeżenia kompilatora).
 - [x] **N7** Pozostałe ciche `try?` przy zapisie (np. własne języki).
 - [x] **N8** Indeks deduplikacji nieaktualizowany po zamianie pieśni głównej.
-- [x] **CI** `.github/workflows/ci.yml`: `swift build --build-tests` i `swift test` z `-Xswiftc -warnings-as-errors`, strony pilota i muzyków (`scripts/remote_check.py`), `build_app.sh` i `codesign --verify` na najnowszym stabilnym Xcode runnera macOS (bez bet), `permissions: contents: read`. Starsze SwiftPM nie kompilują `Localizable.xcstrings` do `.lproj`; `Localization.rawCatalog` czyta wtedy katalog JSON.
+- [x] **CI** `.github/workflows/ci.yml`: `swift build --build-tests` i `swift test` z `-Xswiftc -warnings-as-errors`, strony pilota i muzyków (`scripts/remote_check.py`), `build_app.sh` i `codesign --verify` na najnowszym stabilnym Xcode runnera macOS (bez bet i kandydatów wydania, także pod dowiązaniami: `scripts/newest_xcode.sh`), `permissions: contents: read`. Starsze SwiftPM nie kompilują `Localizable.xcstrings` do `.lproj`; `Localization.rawCatalog` czyta wtedy katalog JSON.
 - [x] PR etapu 3 (#4).
 
 Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):

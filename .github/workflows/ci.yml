@@ -32,10 +32,11 @@ jobs:
             exit 1
           fi
 
-      - name: Select the newest Xcode (no betas)
+      - name: Select the newest Xcode (no betas or release candidates)
         run: |
-          # Bety (Xcode_27_beta.app, Xcode-beta.app) pomijane, żeby CI nie przechodziło na nie po cichu (R1-04).
-          XCODE="$(ls -d /Applications/Xcode*.app | grep -v -i beta | sort -V | tail -1)"
+          # Bety i kandydaci wydania pomijani także pod dowiązaniami Xcode_26.5.app → …_beta_2.app (R1-04, R9-01).
+          scripts/newest_xcode.sh --self-test
+          XCODE="$(scripts/newest_xcode.sh)"
           sudo xcode-select -s "$XCODE"
           xcodebuild -version
           swift --version
