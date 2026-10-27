@@ -19,6 +19,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         
         Localization.currentLanguage = DataStore.shared.settings.appLanguage
+        // Ekrany nie usypiają w trakcie projekcji (R12-02); przed `UpdateService`, który z tego korzysta (R12-03).
+        ProjectionActivity.shared.start()
         UpdateService.shared.start()
         setupMainMenu()
         setupMainWindow()
@@ -37,6 +39,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate()
     }
     
+    public func applicationWillTerminate(_ notification: Notification) {
+        ProjectionActivity.shared.stop()
+    }
+
     public func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true
     }
