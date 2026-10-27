@@ -84,6 +84,8 @@ Telefon musi być w tej samej sieci Wi-Fi co Mac. Kod zawiera jednorazowy klucz 
 
 Gdy żadna pieśń nie jest prezentowana na żywo, projektor wyświetla planszę czuwania: wybrane logo, nazwę programu, wersję, zegar i napis „Gotowy do projekcji”. W **Ustawieniach → Plansza startowa i Logo aplikacji** możesz wskazać własny plik HTML; przycisk **Otwórz plik planszy w edytorze / przeglądarce** otwiera plik, który jest aktualnie używany. Podgląd w prawym panelu okna głównego pokazuje tę samą planszę w pomniejszeniu.
 
+Własna plansza to zwykły plik `.html` (`.htm`); przycisk otwiera go w domyślnej aplikacji do stron HTML (zwykle przeglądarce). Ze względów bezpieczeństwa plansza nie wczytuje niczego z internetu: czcionki internetowe (np. Google Fonts), obrazy i style spod adresów `http`/`https` się nie pojawią. Obrazy, style i czcionki umieść jako pliki obok pliku planszy albo wpisz w nim (`data:`). Skrypty w pliku działają (np. zegar), ale nie mogą się z niczym łączyć.
+
 ### Wybór oficjalnego logo:
 1. Otwórz **Ustawienia** i kliknij **Wybierz inne logo (23 propozycje)...**.
 2. W galerii dostępnych jest **23 profesjonalnych propozycji**, w tym:

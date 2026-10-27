@@ -67,7 +67,7 @@ public final class BackupService {
     }
 
     /// Pliki danych w kopii. Katalogi `logos/` i `templates/` nie są już tworzone ani czytane
-    /// (logo są wbudowane, R2-15); przywracanie przyjmuje je jeszcze ze starych kopii.
+    /// (logo są wbudowane, R2-15); przywracanie pomija je także w starych kopiach (R11-03).
     nonisolated static let archivedFiles = [
         "songs.json",
         "plans.json",

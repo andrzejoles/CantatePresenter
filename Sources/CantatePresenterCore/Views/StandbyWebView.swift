@@ -2,6 +2,8 @@ import Foundation
 import SwiftUI
 import WebKit
 import AppKit
+import UniformTypeIdentifiers
+import os
 
 final class PresentationWKWebView: WKWebView {
     // Nie przejmuje fokusu, więc klawisze trafiają do `KeyboardMonitor` jako okno projekcji.
@@ -107,8 +109,9 @@ public enum StandbyRenderer {
     // MARK: Content Security Policy
 
     /// Szablon planszy może pochodzić z cudzej kopii zapasowej albo z pliku z internetu (R7-02):
-    /// skrypty działają (zegar), ale nie mogą się nigdzie łączyć ani ładować niczego z sieci.
-    /// Obrazy, style i czcionki tylko z plików obok szablonu i z `data:` (logo END).
+    /// skrypty działają (zegar), ale nie mogą pobierać ani wysyłać niczego przez sieć. Obrazy, style i czcionki
+    /// tylko z plików obok szablonu i z `data:` (logo END). CSP nie obejmuje `<link rel="preconnect">`,
+    /// więc połączenia blokuje też lista reguł `StandbyNetworkBlock` (R11-01).
     public static let contentSecurityPolicy = "default-src 'none'; img-src file: data:; style-src 'unsafe-inline' file:; "
         + "font-src file: data:; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"
 
@@ -129,6 +132,58 @@ public enum StandbyRenderer {
         }
         return meta + "\n" + String(body)
     }
+}
+
+// MARK: - Standby Network Block
+
+/// Druga warstwa obok CSP (R11-01). CSP nie zatrzymuje `<link rel="preconnect">` ani `prerender`, więc skrypt
+/// szablonu mógł otworzyć połączenie (DNS i TCP) z dowolnym hostem i w ten sposób wysyłać dane. Lista reguł
+/// WebKit blokuje każde wczytanie `http(s)` i `ws(s)`. Kompilowana raz na uruchomienie; plansza wczytuje się
+/// dopiero, gdy lista jest dodana do widoku, a bez niej tylko szablon z pakietu aplikacji.
+@MainActor
+public enum StandbyNetworkBlock {
+    public static let identifier = "com.cantate.presenter.standby-network-block"
+    /// Wyrażenia reguł WebKit nie mają `|`, więc dwie reguły.
+    public static let encodedRules = """
+    [{"trigger":{"url-filter":"^https?://"},"action":{"type":"block"}},\
+    {"trigger":{"url-filter":"^wss?://"},"action":{"type":"block"}}]
+    """
+
+    private static var ruleList: WKContentRuleList?
+    private static var failed = false
+    private static var waiting: [(WKContentRuleList?) -> Void] = []
+
+    /// Wywołuje `completion` z listą reguł (od razu, jeśli jest już skompilowana) albo z `nil`, gdy kompilacja się
+    /// nie udała.
+    static func withRuleList(_ completion: @escaping (WKContentRuleList?) -> Void) {
+        if let ruleList { return completion(ruleList) }
+        if failed { return completion(nil) }
+        waiting.append(completion)
+        guard waiting.count == 1 else { return }
+        compile(in: WKContentRuleListStore.default()) { list in
+            ruleList = list
+            failed = list == nil
+            let callbacks = waiting
+            waiting = []
+            callbacks.forEach { $0(list) }
+        }
+    }
+
+    /// Kompiluje listę w podanym magazynie; `nil` przy błędzie (zapisanym w dzienniku).
+    static func compile(in store: WKContentRuleListStore?, completion: @escaping @MainActor (WKContentRuleList?) -> Void) {
+        guard let store else {
+            logger.error("Plansza: brak magazynu reguł WebKit")
+            return completion(nil)
+        }
+        store.compileContentRuleList(forIdentifier: identifier, encodedContentRuleList: encodedRules) { list, error in
+            if let error {
+                logger.error("Plansza: nie udało się skompilować blokady sieci: \(String(describing: error), privacy: .public)")
+            }
+            MainActor.assumeIsolated { completion(list) }
+        }
+    }
+
+    private static let logger = Logger(subsystem: "com.cantate.presenter", category: "standby")
 }
 
 // MARK: - Standby Navigation Policy
@@ -162,15 +217,35 @@ public enum StandbyTemplate {
         Localization.resourceBundle?.url(forResource: "standby", withExtension: "html")
     }
 
+    /// Zwykły plik `.html`/`.htm` (także przez dowiązanie). Ścieżka z ustawień może pochodzić z cudzej kopii
+    /// zapasowej, więc program, pakiet `.app` ani katalog nie są brane za planszę (R11-03).
+    public static func isHTMLFile(atPath path: String) -> Bool {
+        guard !path.isEmpty else { return false }
+        let url = URL(fileURLWithPath: path).resolvingSymlinksInPath()
+        guard ["html", "htm"].contains(url.pathExtension.lowercased()) else { return false }
+        return (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+    }
+
     public static func url(customPath: String, dataFile: URL = AppPaths.shared.standbyFile) -> URL? {
-        let fileManager = FileManager.default
-        if !customPath.isEmpty && fileManager.fileExists(atPath: customPath) {
+        if isHTMLFile(atPath: customPath) {
             return URL(fileURLWithPath: customPath)
         }
-        if fileManager.fileExists(atPath: dataFile.path) {
+        if isHTMLFile(atPath: dataFile.path) {
             return dataFile
         }
         return bundledURL
+    }
+
+    /// „Otwórz plik planszy”: zawsze w domyślnej aplikacji dla HTML, nigdy przez `NSWorkspace.open` samego pliku,
+    /// który dla programu albo `.command` by go uruchomił (R11-03). Bez takiej aplikacji: pokazanie w Finderze.
+    @MainActor
+    public static func openInHTMLViewer(_ url: URL) {
+        let workspace = NSWorkspace.shared
+        guard isHTMLFile(atPath: url.path), let viewer = workspace.urlForApplication(toOpen: .html) else {
+            workspace.activateFileViewerSelecting([url])
+            return
+        }
+        workspace.open([url], withApplicationAt: viewer, configuration: NSWorkspace.OpenConfiguration())
     }
 }
 
@@ -225,6 +300,9 @@ public struct StandbyWebView: NSViewRepresentable {
         var lastLogoId: String = ""
         var lastCredits: String = ""
         var navigationPolicy = StandbyNavigationPolicy()
+        /// Numer ostatniego zlecenia wczytania: po kompilacji reguł wczytywane jest tylko najnowsze.
+        var loadRequest = 0
+        var networkBlockInstalled = false
 
         public func webView(
             _ webView: WKWebView,
@@ -236,12 +314,27 @@ public struct StandbyWebView: NSViewRepresentable {
         }
     }
 
+    /// Wczytanie dopiero z blokadą sieci (R11-01). Gdy listy reguł nie da się skompilować, plansza jest tylko
+    /// z szablonu w pakiecie aplikacji: własny plik albo `standby.html` z cudzej kopii mógłby się wtedy łączyć.
     private func loadHTML(into webView: WKWebView, coordinator: Coordinator) {
+        coordinator.loadRequest += 1
+        let request = coordinator.loadRequest
+        StandbyNetworkBlock.withRuleList { [weak webView] ruleList in
+            guard let webView, request == coordinator.loadRequest else { return }
+            if let ruleList, !coordinator.networkBlockInstalled {
+                webView.configuration.userContentController.add(ruleList)
+                coordinator.networkBlockInstalled = true
+            }
+            render(into: webView, coordinator: coordinator, networkBlocked: coordinator.networkBlockInstalled)
+        }
+    }
+
+    private func render(into webView: WKWebView, coordinator: Coordinator, networkBlocked: Bool) {
         let fileManager = FileManager.default
         let resolvedLogoId = !activeLogoId.isEmpty ? activeLogoId : DataStore.shared.settings.activeLogoId
         let logoSVG = LogoCatalog.getById(resolvedLogoId).svgContent
-        
-        let targetURL = StandbyTemplate.url(customPath: htmlPath)
+
+        let targetURL = networkBlocked ? StandbyTemplate.url(customPath: htmlPath) : StandbyTemplate.bundledURL
         let template = targetURL.flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? Self.fallbackTemplate
         let baseURL = targetURL.flatMap { fileManager.fileExists(atPath: $0.path) ? $0.deletingLastPathComponent() : nil }
         coordinator.navigationPolicy.expectLoad(baseURL: baseURL)

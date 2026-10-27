@@ -47,7 +47,7 @@ Kluczowe elementy:
 
 ### Dane
 
-Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `ccli_usage.json`, `standby.html`, `history/` (5 ostatnich wersji przed zapisem, K1). `logos/` i `templates/` mogą zostać ze starszych wersji (migracja i przywracanie starych kopii je przenoszą), ale aplikacja ich nie czyta (R2-15).
+Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `ccli_usage.json`, `standby.html`, `history/` (5 ostatnich wersji przed zapisem, K1). `logos/` i `templates/` mogą zostać ze starszych wersji (migracja je przenosi; przywracanie kopii je pomija, R11-03), ale aplikacja ich nie czyta (R2-15).
 
 Przy pierwszym uruchomieniu, gdy w Application Support nie ma `songs.json`/`plans.json`/`settings.json`, dane są **kopiowane** ze starej lokalizacji (`data/` obok pakietu .app, a przy `swift run` z bieżącego katalogu). Stary katalog zostaje. Jeśli kopiowanie się nie uda, aplikacja w tej sesji używa starego katalogu i pokazuje alert.
 
@@ -88,7 +88,7 @@ Z przeglądu kodu (kolejność proponowana):
 - [x] **N6** Przestarzałe API (ostrzeżenia kompilatora).
 - [x] **N7** Pozostałe ciche `try?` przy zapisie (np. własne języki).
 - [x] **N8** Indeks deduplikacji nieaktualizowany po zamianie pieśni głównej.
-- [x] **CI** `.github/workflows/ci.yml`: `swift build --build-tests` i `swift test` z `-Xswiftc -warnings-as-errors`, strony pilota i muzyków (`scripts/remote_check.py`), `build_app.sh` i `codesign --verify` na najnowszym stabilnym Xcode runnera macOS (bez bet), `permissions: contents: read`. Starsze SwiftPM nie kompilują `Localizable.xcstrings` do `.lproj`; `Localization.rawCatalog` czyta wtedy katalog JSON.
+- [x] **CI** `.github/workflows/ci.yml`: `swift build --build-tests` i `swift test` z `-Xswiftc -warnings-as-errors`, strony pilota i muzyków (`scripts/remote_check.py`), `build_app.sh` i `codesign --verify` na najnowszym stabilnym Xcode runnera macOS (bez bet i kandydatów wydania, także pod dowiązaniami: `scripts/newest_xcode.sh`), `permissions: contents: read`. Starsze SwiftPM nie kompilują `Localizable.xcstrings` do `.lproj`; `Localization.rawCatalog` czyta wtedy katalog JSON.
 - [x] PR etapu 3 (#4).
 
 Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):

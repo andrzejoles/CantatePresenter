@@ -88,7 +88,7 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
   - Nazwa aplikacji **CantatePresenter** i bieżąca wersja (wstawiana przy wyświetlaniu).
   - Zegar czasu rzeczywistego (`HH:mm:ss`) i napis gotowości do projekcji w języku interfejsu.
   - Całość w 100% offline, bez konieczności połączenia z internetem.
-- **Konfigurowalna ścieżka**: W ustawieniach można wskazać dowolny własny plik `.html`, a także powrócić do domyślnej planszy jednym kliknięciem.
+- **Konfigurowalna ścieżka**: W ustawieniach można wskazać dowolny własny plik `.html`, a także powrócić do domyślnej planszy jednym kliknięciem. Plansza nie wczytuje niczego z sieci (CSP i blokada `http(s)`/`ws(s)` w WebKit, R7-02, R11-01): czcionki, obrazy i style tylko z plików obok szablonu albo z `data:`.
 
 ### 9. 🔍 Pieśni z Wikiźródeł i import 1-klikiem
 - Wbudowana funkcja **"Online"** w pasku narzędzi.
@@ -192,4 +192,4 @@ Podatności zgłaszaj prywatnie przez zakładkę **Security** → **Report a vul
 
 ## Licencja
 
-CantatePresenter jest udostępniany na licencji MIT (plik [LICENSE](LICENSE)). Biblioteka Sparkle (aktualizacje macOS) ma własną licencję MIT. Teksty pieśni w bibliotece użytkownika i w kopiach zapasowych nie są objęte licencją programu; ich prawa autorskie i licencje (np. CCLI) pozostają po stronie autorów i wydawców.
+CantatePresenter jest udostępniany na licencji MIT (plik [LICENSE](LICENSE)). Biblioteka Sparkle (aktualizacje macOS) ma własną licencję MIT; jej tekst (z licencjami użytych przez nią bibliotek) jest w aplikacji (`Contents/Resources/LICENSE-Sparkle.txt`) i w każdym wydaniu. Teksty pieśni w bibliotece użytkownika i w kopiach zapasowych nie są objęte licencją programu; ich prawa autorskie i licencje (np. CCLI) pozostają po stronie autorów i wydawców.

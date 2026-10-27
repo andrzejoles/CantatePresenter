@@ -12,58 +12,100 @@ import os
 /// więc adresy, które nie pokazały jeszcze tokenu, mają wspólną pulę mniejszą niż całość. Adres, z którego
 /// przyszło żądanie z poprawnym tokenem (telefon, tablet muzyków), jest zaufany i korzysta z reszty miejsc.
 /// Adresy IPv6 są liczone po prefiksie /64.
+///
+/// Zaufanie trwa do „Nowy kod” albo zamknięcia aplikacji, nie wygasa z czasem: telefon zablokowany na czas
+/// kazania nie pyta o stan i po przebudzeniu musiałby znów walczyć o pulę anonimową (R11-02). Gdy brakuje
+/// miejsca, nowe połączenie wyrzuca najstarsze anonimowe, które nie przysłało jeszcze żądania: telefon wysyła
+/// je zaraz po połączeniu, więc wygrywa z bezczynnymi połączeniami trzymanymi przez inne urządzenie.
 struct RemoteConnectionCounter: Sendable {
     enum Pool: Sendable, Equatable {
         case anonymous
         case trusted
     }
 
-    /// Jak długo adres pozostaje zaufany po ostatnim żądaniu z tokenem (telefon pyta co sekundę).
-    static let trustDuration: TimeInterval = 600
-    private static let maxTrustedHosts = 64
+    struct Admission: Sendable, Equatable {
+        let id: UInt64
+        let pool: Pool
+        /// Połączenie wyrzucone, żeby zrobić miejsce; wywołujący je zamyka.
+        let evicted: UInt64?
+    }
+
+    /// Najwięcej zaufanych adresów; ponad limit usuwany jest najdawniej używany.
+    static let maxTrustedHosts = 64
 
     private(set) var total = 0
     private(set) var anonymous = 0
     private(set) var perHost: [String: Int] = [:]
-    private(set) var trustedUntil: [String: Date] = [:]
+    private var connections: [UInt64: (host: String, pool: Pool)] = [:]
+    /// Anonimowe połączenia bez kompletnego żądania, od najstarszego.
+    private var idleAnonymous: [UInt64] = []
+    /// Zaufany adres → numer ostatniego użycia (LRU).
+    private var trustedHosts: [String: UInt64] = [:]
+    private var nextID: UInt64 = 0
+    private var clock: UInt64 = 0
 
-    /// - Returns: pula, z której przyznano miejsce, albo `nil`, gdy połączenie trzeba zamknąć.
-    mutating func admit(host: String, maxTotal: Int, maxAnonymous: Int, maxPerHost: Int, now: Date = Date()) -> Pool? {
-        guard total < maxTotal, perHost[host, default: 0] < maxPerHost else { return nil }
-        let pool: Pool
-        if let until = trustedUntil[host], until > now {
-            pool = .trusted
-        } else {
-            guard anonymous < maxAnonymous else { return nil }
-            pool = .anonymous
-            anonymous += 1
-        }
-        total += 1
-        perHost[host, default: 0] += 1
-        return pool
+    var trustedHostCount: Int { trustedHosts.count }
+
+    func isTrusted(host: String) -> Bool {
+        trustedHosts[host] != nil
     }
 
-    mutating func release(host: String, pool: Pool) {
-        total = max(0, total - 1)
-        if pool == .anonymous {
-            anonymous = max(0, anonymous - 1)
+    /// - Returns: numer połączenia, pula i ewentualnie wyrzucone połączenie, albo `nil`, gdy połączenie
+    ///   trzeba zamknąć (limit na adres albo wszystkie miejsca zajęte przez połączenia z żądaniem w toku).
+    mutating func admit(host: String, maxTotal: Int, maxAnonymous: Int, maxPerHost: Int) -> Admission? {
+        guard perHost[host, default: 0] < maxPerHost else { return nil }
+        let pool: Pool = isTrusted(host: host) ? .trusted : .anonymous
+        var evicted: UInt64?
+        if total >= maxTotal || (pool == .anonymous && anonymous >= maxAnonymous) {
+            guard let victim = idleAnonymous.first else { return nil }
+            remove(victim)
+            evicted = victim
         }
-        let remaining = perHost[host, default: 0] - 1
-        perHost[host] = remaining > 0 ? remaining : nil
+        nextID += 1
+        connections[nextID] = (host, pool)
+        total += 1
+        perHost[host, default: 0] += 1
+        if pool == .anonymous {
+            anonymous += 1
+            idleAnonymous.append(nextID)
+        }
+        return Admission(id: nextID, pool: pool, evicted: evicted)
+    }
+
+    /// Połączenie przysłało całe żądanie: nie jest już bezczynne i nie zostanie wyrzucone.
+    mutating func requestReceived(id: UInt64) {
+        idleAnonymous.removeAll { $0 == id }
+    }
+
+    /// Zamknięte połączenie; wyrzucone wcześniej albo nieznane jest pomijane.
+    mutating func release(id: UInt64) {
+        remove(id)
+    }
+
+    private mutating func remove(_ id: UInt64) {
+        guard let connection = connections.removeValue(forKey: id) else { return }
+        total = max(0, total - 1)
+        if connection.pool == .anonymous {
+            anonymous = max(0, anonymous - 1)
+            idleAnonymous.removeAll { $0 == id }
+        }
+        let remaining = perHost[connection.host, default: 0] - 1
+        perHost[connection.host] = remaining > 0 ? remaining : nil
     }
 
     /// Żądanie z poprawnym tokenem: adres dostaje miejsca poza pulą anonimową.
-    mutating func markAuthorized(host: String, now: Date = Date()) {
-        if trustedUntil.count >= Self.maxTrustedHosts {
-            trustedUntil = trustedUntil.filter { $0.value > now }
+    mutating func markAuthorized(host: String) {
+        clock += 1
+        if trustedHosts[host] == nil, trustedHosts.count >= Self.maxTrustedHosts,
+           let oldest = trustedHosts.min(by: { $0.value < $1.value })?.key {
+            trustedHosts[oldest] = nil
         }
-        guard trustedUntil.count < Self.maxTrustedHosts || trustedUntil[host] != nil else { return }
-        trustedUntil[host] = now.addingTimeInterval(Self.trustDuration)
+        trustedHosts[host] = clock
     }
 
     /// Nowy token: dotychczasowe telefony nie są już zaufane.
     mutating func revokeTrust() {
-        trustedUntil = [:]
+        trustedHosts = [:]
     }
 
     /// Klucz limitu dla adresu: IPv4 bez zmian (także zapisany jako IPv6 `::ffff:a.b.c.d`), IPv6 jako prefiks /64
@@ -117,6 +159,8 @@ public final class RemoteControlServer {
     @ObservationIgnored private let queue = DispatchQueue(label: "com.cantate.presenter.remote")
     /// Otwarte połączenia; ponad limit nowe są od razu zamykane (telefony i tablety pytają co sekundę i rozłączają się).
     @ObservationIgnored nonisolated private let openConnections = OSAllocatedUnfairLock(initialState: RemoteConnectionCounter())
+    /// Otwarte połączenia po numerze z licznika, żeby wyrzucone dało się zamknąć (R11-02).
+    @ObservationIgnored nonisolated private let liveConnections = OSAllocatedUnfairLock(initialState: [UInt64: NWConnection]())
     /// Kopia tokenów dla kolejki sieci: zły token dostaje 403 bez przechodzenia na wątek główny (R3-05).
     @ObservationIgnored nonisolated private let acceptedTokens: OSAllocatedUnfairLock<(control: String, stage: String)>
     nonisolated private let maxConnections: Int
@@ -240,19 +284,26 @@ public final class RemoteControlServer {
     
     nonisolated private func accept(_ connection: NWConnection) {
         let bucket = RemoteConnectionCounter.bucket(forHost: Self.host(of: connection.endpoint))
-        let pool = openConnections.withLock {
+        let admission = openConnections.withLock {
             $0.admit(host: bucket, maxTotal: maxConnections, maxAnonymous: maxAnonymousConnections, maxPerHost: maxConnectionsPerHost)
         }
-        guard let pool else {
+        guard let admission else {
             connection.cancel()
             return
+        }
+        // Wszystko na jednej kolejce `queue`, więc tabela połączeń jest spójna z licznikiem.
+        let id = admission.id
+        liveConnections.withLock { $0[id] = connection }
+        if let evicted = admission.evicted {
+            liveConnections.withLock { $0.removeValue(forKey: evicted) }?.cancel()
         }
         connection.stateUpdateHandler = { [weak self] state in
             switch state {
             case .failed:
                 connection.cancel()
             case .cancelled:
-                self?.openConnections.withLock { $0.release(host: bucket, pool: pool) }
+                self?.openConnections.withLock { $0.release(id: id) }
+                self?.liveConnections.withLock { _ = $0.removeValue(forKey: id) }
             default:
                 break
             }
@@ -260,17 +311,18 @@ public final class RemoteControlServer {
         connection.start(queue: queue)
         // Połączenie, które nie przyśle żądania w porę, jest zamykane (R3-05).
         queue.asyncAfter(deadline: .now() + Self.requestDeadline) { connection.cancel() }
-        receive(on: connection, buffer: Data())
+        receive(on: connection, id: id, buffer: Data())
     }
     
-    nonisolated private func receive(on connection: NWConnection, buffer: Data) {
+    nonisolated private func receive(on connection: NWConnection, id: UInt64, buffer: Data) {
         connection.receive(minimumIncompleteLength: 1, maximumLength: 16 * 1024) { [weak self] data, _, isComplete, error in
             var buffer = buffer
             if let data { buffer.append(data) }
             switch RemoteHTTPRequest.parse(buffer) {
             case .incomplete where error == nil && !isComplete:
-                self?.receive(on: connection, buffer: buffer)
+                self?.receive(on: connection, id: id, buffer: buffer)
             case .complete(let request):
+                self?.openConnections.withLock { $0.requestReceived(id: id) }
                 // Każda ścieżka wymaga tokenu sterowania albo muzyków: bez niego 403 od razu, na kolejce sieci.
                 guard let self, self.isAuthorized(request) else {
                     Self.send(RemoteRouter.forbidden(), on: connection)

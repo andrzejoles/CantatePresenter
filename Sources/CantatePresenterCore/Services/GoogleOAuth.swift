@@ -61,8 +61,10 @@ public enum GoogleOAuth {
     }
 
     public static func randomState() -> String {
-        var bytes = [UInt8](repeating: 0, count: 24)
-        _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+        // Jak weryfikator PKCE: generator systemowy nie zwraca błędu, więc `state` nigdy nie zostanie z zerami
+        // (wynik SecRandomCopyBytes był pomijany, przegląd R11).
+        var generator = SystemRandomNumberGenerator()
+        let bytes = (0..<24).map { _ in UInt8.random(in: .min ... .max, using: &generator) }
         return base64URL(Data(bytes))
     }
 
