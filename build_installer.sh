@@ -82,12 +82,18 @@ if [ -f "$DIR/Resources/AppIcon.icns" ]; then
     fi
 fi
 
-# Generowanie skompresowanego DMG (UDZO)
-hdiutil create -volname "CantatePresenter" \
-               -srcfolder "$STAGING_DIR" \
-               -ov \
-               -format UDZO \
-               "$DMG_OUTPUT"
+# Generowanie skompresowanego DMG (UDZO). Na macOS 27 `hdiutil create` jest przestarzałe (R5-03):
+# `diskutil image create from` tworzy wolumin APFS; macOS 14/15 go nie mają, wtedy hdiutil.
+rm -f "$DMG_OUTPUT"
+if diskutil image create from -h > /dev/null 2>&1; then
+    diskutil image create from --format UDZO --volumeName "CantatePresenter" "$STAGING_DIR" "$DMG_OUTPUT"
+else
+    hdiutil create -volname "CantatePresenter" \
+                   -srcfolder "$STAGING_DIR" \
+                   -ov \
+                   -format UDZO \
+                   "$DMG_OUTPUT"
+fi
 
 if [ -n "${CANTATE_SIGN_IDENTITY:-}" ] && [ "$CANTATE_SIGN_IDENTITY" != "-" ]; then
     codesign --force --timestamp --sign "$CANTATE_SIGN_IDENTITY" "$DMG_OUTPUT"

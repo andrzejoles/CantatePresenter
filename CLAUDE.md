@@ -7,7 +7,7 @@ Natywna aplikacja macOS (Apple Silicon, macOS 14+) do projekcji tekstów pieśni
 ```bash
 swift build                 # szybka kompilacja debug, sprawdzaj po każdej zmianie
 swift build -c release      # build release (używany przez build_app.sh)
-./build_app.sh              # składa CantatePresenter.app (Info.plist inline, podpis ad-hoc z Hardened Runtime)
+./build_app.sh              # składa CantatePresenter.app (Info.plist inline + InfoPlist.strings pl/en/de/es/uk, podpis ad-hoc z Hardened Runtime)
 ./run.sh                    # buduje .app (przyrostowo) i uruchamia
 open CantatePresenter.app   # uruchomienie już zbudowanej aplikacji
 ./build_installer.sh        # PKG + DMG do dist/
@@ -47,7 +47,7 @@ Kluczowe elementy:
 
 ### Dane
 
-Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `ccli_usage.json`, `standby.html`, `logos/`, `templates/`, `history/` (5 ostatnich wersji przed zapisem, K1).
+Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `ccli_usage.json`, `standby.html`, `history/` (5 ostatnich wersji przed zapisem, K1). `logos/` i `templates/` mogą zostać ze starszych wersji (migracja i przywracanie starych kopii je przenoszą), ale aplikacja ich nie czyta (R2-15).
 
 Przy pierwszym uruchomieniu, gdy w Application Support nie ma `songs.json`/`plans.json`/`settings.json`, dane są **kopiowane** ze starej lokalizacji (`data/` obok pakietu .app, a przy `swift run` z bieżącego katalogu). Stary katalog zostaje. Jeśli kopiowanie się nie uda, aplikacja w tej sesji używa starego katalogu i pokazuje alert.
 
@@ -93,8 +93,13 @@ Z przeglądu kodu (kolejność proponowana):
 
 Decyzje właściciela (zadania; przed wykonaniem potwierdzić z właścicielem):
 - [x] Przepisanie historii gita: zrobione 2026-10-17 (jednorazowym skryptem, usuniętym 2026-10-26, jest w historii gita; kopie w `dist/history-backup-*.bundle`). Plik `.mufl` jest tylko lokalnie (`.gitignore`). Stare commity zostają jeszcze w odnośnikach zamkniętych PR na GitHubie; usunąć je może tylko GitHub Support. Uwaga: `git reset --keep` po przepisaniu kasuje `.mufl` z dysku (był śledzony w starej historii); odtworzenie: `git show <stary commit>:2026-10-14_16-19-00.mufl > 2026-10-14_16-19-00.mufl` albo z kopii `.bundle`.
+<<<<<<< HEAD
 - [x] Podpis Developer ID i notaryzacja: przygotowane (`CANTATE_SIGN_IDENTITY`, `CANTATE_INSTALLER_IDENTITY`, `CANTATE_NOTARY_PROFILE`, `scripts/notarize.sh`, `Resources/CantatePresenter.entitlements`, `docs/RELEASE.md`). Decyzja właściciela 2026-10-16: **na razie bez konta Apple Developer** (koszt); wydania podpisane ad-hoc, nienotaryzowane (skutki: `docs/RELEASE.md`, punkt 4). Nie proponuj zakupu konta, dopóki właściciel nie wróci do tematu. Hardened Runtime przy każdym podpisie, także ad-hoc (R3-01); przy ad-hoc `build_app.sh` dodaje tylko `com.apple.security.cs.disable-library-validation` (inaczej dyld odrzuca Sparkle.framework).
 - [x] Automatyczne aktualizacje: Sparkle 2.10.1 (`UpdateService`, menu „Sprawdź uaktualnienia...”), kanał `releases/latest/download/appcast.xml`, klucz EdDSA w Pęku kluczy (konto `cantate-presenter`), wydanie `scripts/release.sh` (szkic na GitHubie). Sprawdzone lokalnie: kopia z podpisem ad-hoc zaktualizowała się sama. Kanał podpisany (`SURequireSignedFeed`, `SUVerifyUpdateBeforeExtraction`, R3-09).
+=======
+- [x] Podpis Developer ID i notaryzacja: przygotowane (`CANTATE_SIGN_IDENTITY`, `CANTATE_INSTALLER_IDENTITY`, `CANTATE_NOTARY_PROFILE`, `scripts/notarize.sh`, `Resources/CantatePresenter.entitlements`, `docs/RELEASE.md`). Decyzja właściciela 2026-10-16: **na razie bez konta Apple Developer** (koszt); wydania podpisane ad-hoc, nienotaryzowane (skutki: `docs/RELEASE.md`, punkt 4). Nie proponuj zakupu konta, dopóki właściciel nie wróci do tematu. Hardened Runtime przy każdym podpisie, także ad-hoc (R3-01); przy ad-hoc `build_app.sh` dodaje tylko `com.apple.security.cs.disable-library-validation` (inaczej dyld odrzuca Sparkle.framework), dlatego usuwa też z programu wszystkie `LC_RPATH` poza `/usr/lib/swift` i `@executable_path/../Frameworks` (R7-01). Linker dostaje wersję SDK wprost (`-platform_version`), bo domyślny system budowania SwiftPM wpisywał `sdk 14.0` (R5-02); `build_app.sh` sprawdza obie rzeczy po podpisie.
+- [x] Automatyczne aktualizacje: Sparkle 2.10.1 (`UpdateService`, menu „Sprawdź uaktualnienia…”), kanał `releases/latest/download/appcast.xml`, klucz EdDSA w Pęku kluczy (konto `cantate-presenter`), wydanie `scripts/release.sh` (szkic na GitHubie). Sprawdzone lokalnie: kopia z podpisem ad-hoc zaktualizowała się sama. Kanał podpisany (`SURequireSignedFeed`, `SUVerifyUpdateBeforeExtraction`, R3-09).
+>>>>>>> worktree-agent-a675bed59a4914cd0
 - [ ] Weryfikacja aplikacji w Google (zniesienie limitu 100 testerów i ostrzeżenia przy logowaniu; wymaga m.in. polityki prywatności).
 - [x] Pole `schemaVersion` (decyzja 2026-10-16: tak): w `settings.json` i manifeście kopii, bez zmiany kształtu pozostałych plików; nowsze dane tylko do odczytu.
 
@@ -112,8 +117,8 @@ Weryfikacja przez właściciela:
 
 Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTests/`) testuje bibliotekę `CantatePresenterCore` przez `@testable import`, więc typy nie muszą być `public`. Używaj Swift Testing (`import Testing`, `@Suite`, `@Test`, `#expect`); przed indeksowaniem wyników używaj `try #require(...)`, bo przekroczenie zakresu wywraca cały proces testowy. Wymaga pełnego Xcode, nie samych Command Line Tools.
 
-- Priorytet testów: `Song.parseLyrics`, `GuitarChordsService.transpose`, `HolyricsJavaDeserializer` (pliki z `data/holyrics_samples/` oraz ich obcięte/uszkodzone kopie), `TextImporter.readTextWithBestEncoding`, deduplikacja, zgodność wstecz dekoderów modeli (stary JSON musi się wczytać).
-- Testy nigdy nie mogą czytać ani zapisywać prawdziwego katalogu danych. Ścieżki wstrzykuj, używaj katalogów tymczasowych.
+- Priorytet testów: `Song.parseLyrics`, `GuitarChordsService.transpose`, `HolyricsJavaDeserializer` (wzorce `shared/fixtures/holyrics-*` oraz ich obcięte/uszkodzone kopie), `TextImporter.readTextWithBestEncoding`, deduplikacja, zgodność wstecz dekoderów modeli (stary JSON musi się wczytać).
+- Testy nigdy nie mogą czytać ani zapisywać prawdziwego katalogu danych. Ścieżki wstrzykuj, używaj katalogów tymczasowych. Kod pod testem nie może sięgać do `DataStore.shared` ani `L()` (czyta `DataStore.shared`): język i `DataStore` podawaj jako parametr (R5-01). Zabezpieczenia: `AppPaths.shared` w procesie testów (`AppPaths.isRunningTests`) bez `CANTATE_DATA_DIR` wskazuje katalog tymczasowy, a CI uruchamia testy z `CANTATE_DATA_DIR` na nieistniejący katalog i przerywa, jeśli powstanie.
 - Każdy błąd naprawiany z raportu: najpierw test, który go odtwarza, potem poprawka.
 
 ## Weryfikacja zmian

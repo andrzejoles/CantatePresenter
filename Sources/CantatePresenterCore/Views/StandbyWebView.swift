@@ -101,7 +101,54 @@ public enum StandbyRenderer {
             result.replaceSubrange(version, with: texts.version)
         }
         result = result.replacingOccurrences(of: defaultReadyText, with: texts.ready)
-        return StandbyCredits.inject(into: result, credits: texts.credits)
+        return injectContentSecurityPolicy(into: StandbyCredits.inject(into: result, credits: texts.credits))
+    }
+
+    // MARK: Content Security Policy
+
+    /// Szablon planszy może pochodzić z cudzej kopii zapasowej albo z pliku z internetu (R7-02):
+    /// skrypty działają (zegar), ale nie mogą się nigdzie łączyć ani ładować niczego z sieci.
+    /// Obrazy, style i czcionki tylko z plików obok szablonu i z `data:` (logo END).
+    public static let contentSecurityPolicy = "default-src 'none'; img-src file: data:; style-src 'unsafe-inline' file:; "
+        + "font-src file: data:; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+
+    /// Wstawia CSP na samym początku dokumentu (zaraz po `<!DOCTYPE>`), przed jakimkolwiek skryptem szablonu.
+    /// Parser HTML umieszcza taki `<meta>` w niejawnym `<head>`, więc obejmuje całą stronę.
+    static func injectContentSecurityPolicy(into html: String) -> String {
+        let meta = "<meta http-equiv=\"Content-Security-Policy\" content=\"\(contentSecurityPolicy)\">"
+        let body = html.drop { $0.isWhitespace || $0 == "\u{FEFF}" }
+        if body.prefix(9).lowercased() == "<!doctype", let end = body.firstIndex(of: ">") {
+            let doctype = body[...end]
+            var rest = body[body.index(after: end)...]
+            var separator = ""
+            if rest.first == "\n" {
+                separator = "\n"
+                rest = rest.dropFirst()
+            }
+            return String(doctype) + separator + meta + "\n" + String(rest)
+        }
+        return meta + "\n" + String(body)
+    }
+}
+
+// MARK: - Standby Navigation Policy
+
+/// Plansza wyświetla tylko to, co wczytała aplikacja (R7-02): każde wczytanie zlecone przez
+/// `loadHTMLString` przepuszcza dokładnie jedną nawigację głównej ramki pod adres bazowy;
+/// przekierowania, linki, `location = …` i `<meta http-equiv="refresh">` są odrzucane.
+public struct StandbyNavigationPolicy: Sendable {
+    private var expected: String?
+
+    public init() {}
+
+    public mutating func expectLoad(baseURL: URL?) {
+        expected = (baseURL ?? URL(string: "about:blank"))?.absoluteString
+    }
+
+    public mutating func allow(url: URL?, isMainFrame: Bool) -> Bool {
+        guard isMainFrame, let expected, url?.absoluteString == expected else { return false }
+        self.expected = nil
+        return true
     }
 }
 
@@ -136,17 +183,24 @@ public struct StandbyWebView: NSViewRepresentable {
         self.activeLogoId = activeLogoId
     }
     
-    public func makeNSView(context: Context) -> WKWebView {
+    /// Bez `allowFileAccessFromFileURLs` (R7-02): skrypt szablonu nie odczyta plików z dysku. Obrazy i style
+    /// obok szablonu nadal się wczytują jako zwykłe zasoby strony.
+    static func makeConfiguration() -> WKWebViewConfiguration {
         let config = WKWebViewConfiguration()
-        config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
-        
-        let webView = PresentationWKWebView(frame: .zero, configuration: config)
+        config.preferences.setValue(false, forKey: "allowFileAccessFromFileURLs")
+        config.preferences.javaScriptCanOpenWindowsAutomatically = false
+        return config
+    }
+
+    public func makeNSView(context: Context) -> WKWebView {
+        let webView = PresentationWKWebView(frame: .zero, configuration: Self.makeConfiguration())
         webView.setValue(false, forKey: "drawsBackground")
-        
+        webView.navigationDelegate = context.coordinator
+
         context.coordinator.lastLoadedPath = htmlPath
         context.coordinator.lastLogoId = activeLogoId
         context.coordinator.lastCredits = StandbyCredits.text
-        loadHTML(into: webView)
+        loadHTML(into: webView, coordinator: context.coordinator)
         return webView
     }
     
@@ -158,21 +212,31 @@ public struct StandbyWebView: NSViewRepresentable {
             context.coordinator.lastLoadedPath = htmlPath
             context.coordinator.lastLogoId = activeLogoId
             context.coordinator.lastCredits = credits
-            loadHTML(into: nsView)
+            loadHTML(into: nsView, coordinator: context.coordinator)
         }
     }
-    
+
     public func makeCoordinator() -> Coordinator {
         Coordinator()
     }
-    
-    public class Coordinator {
+
+    public final class Coordinator: NSObject, WKNavigationDelegate {
         var lastLoadedPath: String = ""
         var lastLogoId: String = ""
         var lastCredits: String = ""
+        var navigationPolicy = StandbyNavigationPolicy()
+
+        public func webView(
+            _ webView: WKWebView,
+            decidePolicyFor navigationAction: WKNavigationAction,
+            decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void
+        ) {
+            let isMainFrame = navigationAction.targetFrame?.isMainFrame ?? false
+            decisionHandler(navigationPolicy.allow(url: navigationAction.request.url, isMainFrame: isMainFrame) ? .allow : .cancel)
+        }
     }
-    
-    private func loadHTML(into webView: WKWebView) {
+
+    private func loadHTML(into webView: WKWebView, coordinator: Coordinator) {
         let fileManager = FileManager.default
         let resolvedLogoId = !activeLogoId.isEmpty ? activeLogoId : DataStore.shared.settings.activeLogoId
         let logoSVG = LogoCatalog.getById(resolvedLogoId).svgContent
@@ -180,6 +244,7 @@ public struct StandbyWebView: NSViewRepresentable {
         let targetURL = StandbyTemplate.url(customPath: htmlPath)
         let template = targetURL.flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? Self.fallbackTemplate
         let baseURL = targetURL.flatMap { fileManager.fileExists(atPath: $0.path) ? $0.deletingLastPathComponent() : nil }
+        coordinator.navigationPolicy.expectLoad(baseURL: baseURL)
         webView.loadHTMLString(StandbyRenderer.render(html: template, logoSVG: logoSVG, texts: .current), baseURL: baseURL)
     }
 

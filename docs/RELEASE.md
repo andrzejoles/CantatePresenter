@@ -44,6 +44,18 @@ oraz zgodę na mikrofon. Uprawnienia: mikrofon (`Resources/CantatePresenter.enti
 bibliotek odrzuca Sparkle.framework z pakietu. Zmienne `DYLD_*` nadal są ignorowane. `build_app.sh` przerywa
 budowanie, jeśli podpis nie ma Hardened Runtime.
 
+Bez kontroli bibliotek dyld wczyta każdą bibliotekę, którą znajdzie w ścieżkach `LC_RPATH` programu. Dlatego
+`build_app.sh` usuwa ścieżki dopisane przez SwiftPM (`@loader_path`, bezwzględna ścieżka do narzędzi Xcode, R7-01)
+i zostawia tylko `/usr/lib/swift` (chroniony przez SIP) oraz `@executable_path/../Frameworks`; inna lista
+przerywa budowanie. Ryzyko, które zostaje przy podpisie ad-hoc (decyzja: bez konta Apple Developer): program,
+który może zapisywać w pakiecie aplikacji, może podmienić Sparkle.framework i uruchomić swój kod z uprawnieniami
+aplikacji (Pęk kluczy, mikrofon). Pakiet przeciągnięty do Programów albo zainstalowany przez „Zainstaluj
+w folderze Programy” należy do użytkownika; instalator PKG zapisuje go jako root, co tę drogę zamyka.
+
+`build_app.sh` sprawdza też `LC_BUILD_VERSION`: `minos 14.0` i wersja SDK, z którym zbudowano program (R5-02).
+Domyślny system budowania SwiftPM wpisywał tam 14.0, przez co AppKit i SwiftUI działały w trybie zgodności ze
+starym SDK (na macOS 26+ bez nowego wyglądu).
+
 ## 3. Automatyczne aktualizacje (Sparkle)
 
 Aplikacja sprawdza raz dziennie plik `appcast.xml` z ostatniego wydania na GitHubie

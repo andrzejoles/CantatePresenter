@@ -54,9 +54,40 @@ public struct AppPaths: Equatable, Sendable {
             bundleURL: Bundle.main.bundleURL,
             currentDirectory: URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true),
             applicationSupport: fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0],
+            isTestProcess: isRunningTests,
             fileManager: fileManager
         )
     }()
+
+    // MARK: - Test Process Guard
+
+    /// Proces testów (`swift test`: `swiftpm-testing-helper` albo `xctest`, Xcode). Testy nigdy nie mogą
+    /// sięgać do prawdziwego katalogu danych (R5-01), więc `shared` dostaje wtedy katalog tymczasowy.
+    public static let isRunningTests: Bool = {
+        let process = ProcessInfo.processInfo
+        return isTestProcess(
+            processName: process.processName,
+            arguments: process.arguments,
+            environment: process.environment,
+            xctestLoaded: NSClassFromString("XCTestCase") != nil
+        )
+    }()
+
+    static func isTestProcess(processName: String, arguments: [String], environment: [String: String], xctestLoaded: Bool) -> Bool {
+        if xctestLoaded { return true }
+        if ["xctest", "swiftpm-testing-helper"].contains(processName) { return true }
+        if environment["XCTestBundlePath"] != nil || environment["XCTestConfigurationFilePath"] != nil
+            || environment["XCTestSessionIdentifier"] != nil {
+            return true
+        }
+        return arguments.contains { $0.contains(".xctest/") || $0.hasSuffix(".xctest") }
+    }
+
+    /// Katalog danych testów bez `CANTATE_DATA_DIR`: osobny dla procesu, w katalogu tymczasowym.
+    static func testDataDirectory(fileManager: FileManager) -> URL {
+        fileManager.temporaryDirectory
+            .appendingPathComponent("CantatePresenter-tests-\(ProcessInfo.processInfo.processIdentifier)", isDirectory: true)
+    }
 
     // MARK: - Resolution
 
@@ -65,10 +96,19 @@ public struct AppPaths: Equatable, Sendable {
         bundleURL: URL,
         currentDirectory: URL,
         applicationSupport: URL,
+        isTestProcess: Bool = false,
         fileManager: FileManager = .default
     ) -> AppPaths {
         if let override = environment[environmentKey], !override.isEmpty {
             let directory = URL(fileURLWithPath: (override as NSString).expandingTildeInPath, isDirectory: true)
+            createDirectory(directory, fileManager: fileManager)
+            return AppPaths(dataDirectory: directory)
+        }
+
+        if isTestProcess {
+            // Bez migracji i bez Application Support: test, który tu trafił, sięgnął do `DataStore.shared`.
+            let directory = testDataDirectory(fileManager: fileManager)
+            logger.fault("Testy użyły AppPaths.shared; zamiast prawdziwych danych katalog \(directory.path, privacy: .public)")
             createDirectory(directory, fileManager: fileManager)
             return AppPaths(dataDirectory: directory)
         }
