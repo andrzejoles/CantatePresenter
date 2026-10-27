@@ -95,16 +95,16 @@ struct BackupArchiveTests {
         #expect(!FileManager.default.fileExists(atPath: target.path))
     }
 
-    @Test("Dowiązanie wewnątrz katalogu ze starej kopii też jest odrzucane (R2-14)")
-    func rejectsNestedSymlinks() throws {
+    @Test("Dowiązanie w katalogu starej kopii nie trafia do danych: logos/ nie jest przywracane (R2-14, R11-03)")
+    func ignoresNestedSymlinks() throws {
         let dir = try TestDirectory()
         defer { dir.remove() }
         let data = try makeDataDirectory(in: dir)
         try FileManager.default.createSymbolicLink(atPath: data.appendingPathComponent("logos/link.png").path, withDestinationPath: "/etc/hosts")
+        let target = dir.url.appendingPathComponent("cel/CantatePresenter")
 
-        #expect(throws: BackupRestorer.RestoreError.self) {
-            try BackupRestorer(dataDirectory: dir.url.appendingPathComponent("cel/CantatePresenter")).restore(fromExtracted: data)
-        }
+        _ = try BackupRestorer(dataDirectory: target).restore(fromExtracted: data)
+        #expect(!FileManager.default.fileExists(atPath: target.appendingPathComponent("logos").path))
     }
 
     @Test("Rozmiar po rozpakowaniu z zipinfo (R2-14)")
@@ -193,5 +193,38 @@ struct BackupUnsavedSettingsTests {
         let settingsData = try Data(contentsOf: BackupRestorer.contentRoot(in: extracted).appendingPathComponent("settings.json"))
         let settings = try JSONFileStore.makeDecoder().decode(AppSettings.self, from: settingsData)
         #expect(settings.fontFamily == "R6-03 Font")
+    }
+
+    private func savedSettings(in directory: URL) throws -> AppSettings {
+        let data = try Data(contentsOf: directory.appendingPathComponent("settings.json"))
+        return try JSONFileStore.makeDecoder().decode(AppSettings.self, from: data)
+    }
+
+    @Test("Przywracanie i cofnięcie z arkusza Ustawień zachowują ustawienia zmienione w pamięci (R10-03)")
+    func restoreKeepsInMemorySettings() async throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let source = dir.url.appendingPathComponent("kopia")
+        let sourceStore = DataStore(dataDirectory: source)
+        sourceStore.settings.ccliLicenseNumber = "z kopii"
+        sourceStore.saveSettings()
+        let archive = try await BackupService.createBackupArchive(of: sourceStore, in: source, comment: nil, temporaryDirectory: dir.url).archiveURL
+        defer { BackupService.removeTemporaryArchive(archive) }
+
+        let data = dir.url.appendingPathComponent("dane")
+        let store = DataStore(dataDirectory: data)
+        store.settings.ccliLicenseNumber = "przed przywróceniem"
+
+        _ = try await BackupService.restoreBackup(from: archive, into: store, dataDirectory: data)
+
+        #expect(store.settings.ccliLicenseNumber == "z kopii")
+        let previous = try #require(BackupRestorer(dataDirectory: data).previousStateDetails().first)
+        #expect(try savedSettings(in: previous.url).ccliLicenseNumber == "przed przywróceniem")
+
+        store.settings.ccliLicenseNumber = "przed cofnięciem"
+        let kept = try BackupService.undoLastRestore(of: store, dataDirectory: data)
+
+        #expect(store.settings.ccliLicenseNumber == "przed przywróceniem")
+        #expect(try savedSettings(in: kept).ccliLicenseNumber == "przed cofnięciem")
     }
 }

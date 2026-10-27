@@ -300,7 +300,10 @@ public struct LiveOutputView: View {
                     }
                     .pickerStyle(MenuPickerStyle())
                     .font(.scaled(11, scale: scale))
-                    
+                    // Projekcja zostaje na swoim ekranie, a podglądy liczyłyby Auto-Fit dla nowo wybranego (R12-06).
+                    .disabled(screenManager.isPresentationActive)
+                    .help(screenManager.isPresentationActive ? L("Zatrzymaj pełny ekran, aby zmienić ekran projekcji") : "")
+
                     // Launch buttons
                     VStack(spacing: 6) {
                         Button(action: {

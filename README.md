@@ -88,7 +88,7 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
   - Nazwa aplikacji **CantatePresenter** i bieżąca wersja (wstawiana przy wyświetlaniu).
   - Zegar czasu rzeczywistego (`HH:mm:ss`) i napis gotowości do projekcji w języku interfejsu.
   - Całość w 100% offline, bez konieczności połączenia z internetem.
-- **Konfigurowalna ścieżka**: W ustawieniach można wskazać dowolny własny plik `.html`, a także powrócić do domyślnej planszy jednym kliknięciem.
+- **Konfigurowalna ścieżka**: W ustawieniach można wskazać dowolny własny plik `.html`, a także powrócić do domyślnej planszy jednym kliknięciem. Plansza nie wczytuje niczego z sieci (CSP i blokada `http(s)`/`ws(s)` w WebKit, R7-02, R11-01): czcionki, obrazy i style tylko z plików obok szablonu albo z `data:`.
 
 ### 9. 🔍 Pieśni z Wikiźródeł i import 1-klikiem
 - Wbudowana funkcja **"Online"** w pasku narzędzi.
@@ -135,11 +135,7 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 
 ### 17. 🌐 Wielojęzyczność i tłumaczenie dla Agenta AI
 - Wbudowane języki interfejsu (Polski, English, Deutsch, Español, Українська).
-<<<<<<< HEAD
-- Eksport słownika interfejsu do pliku JSON (`cantate_translations_<język>.json`) z opisami kontekstu każdego elementu dla agentów AI i tłumaczy.
-=======
-- Eksport słownika interfejsu do pliku JSON z precyzyjnymi opisami kontekstu każdego elementu dla agentów AI i tłumaczy (Ustawienia, generowany z aktualnego katalogu tekstów).
->>>>>>> worktree-agent-a675bed59a4914cd0
+- Eksport słownika interfejsu do pliku JSON (`cantate_translations_<język>.json`, w Ustawieniach, generowany z aktualnego katalogu tekstów) z opisami kontekstu każdego elementu dla agentów AI i tłumaczy.
 - Import przetłumaczonego pliku JSON i natychmiastowa aktywacja nowego języka w interfejsie.
 
 ### 18. 🎵 Ekran dla muzyków
@@ -196,4 +192,4 @@ Podatności zgłaszaj prywatnie przez zakładkę **Security** → **Report a vul
 
 ## Licencja
 
-CantatePresenter jest udostępniany na licencji MIT (plik [LICENSE](LICENSE)). Biblioteka Sparkle (aktualizacje macOS) ma własną licencję MIT. Teksty pieśni w bibliotece użytkownika i w kopiach zapasowych nie są objęte licencją programu; ich prawa autorskie i licencje (np. CCLI) pozostają po stronie autorów i wydawców.
+CantatePresenter jest udostępniany na licencji MIT (plik [LICENSE](LICENSE)). Biblioteka Sparkle (aktualizacje macOS) ma własną licencję MIT; jej tekst (z licencjami użytych przez nią bibliotek) jest w aplikacji (`Contents/Resources/LICENSE-Sparkle.txt`) i w każdym wydaniu. Teksty pieśni w bibliotece użytkownika i w kopiach zapasowych nie są objęte licencją programu; ich prawa autorskie i licencje (np. CCLI) pozostają po stronie autorów i wydawców.

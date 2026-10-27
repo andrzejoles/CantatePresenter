@@ -88,6 +88,11 @@ public final class DataStore {
     @ObservationIgnored private var lockedFileNames: Set<String> = []
     /// Dane z nowszej wersji formatu (`DataSchema`): wszystkie zapisy pominięte.
     @ObservationIgnored public private(set) var isReadOnlyNewerSchema = false
+    /// Biblioteka w pamięci nie odpowiada danym na dysku: plik był nieczytelny (zapis do niego wstrzymany)
+    /// albo dane są z nowszej wersji. Nie zależy od zamknięcia alertu (R10-01).
+    public var hasUnreadableData: Bool {
+        !lockedFileNames.isEmpty || isReadOnlyNewerSchema
+    }
     /// Ustawienia w stanie z ostatniego zapisu lub wczytania (`saveSettingsIfChanged`).
     @ObservationIgnored private var lastSavedSettings: AppSettings?
     /// Ostatnia pieśń z aktywnego planu; po „szybkim tekście” poprzednia/następna pieśń liczy się od niej (N11).

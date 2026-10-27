@@ -20,6 +20,15 @@ struct GoogleOAuthTests {
         #expect(GoogleOAuth.PKCE().verifier != pkce.verifier)
     }
 
+    @Test("state: 24 losowe bajty w base64url, za każdym razem inne")
+    func randomState() {
+        let states = (0..<50).map { _ in GoogleOAuth.randomState() }
+        let allowed = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
+        #expect(states.allSatisfy { $0.count == 32 && $0.unicodeScalars.allSatisfy(allowed.contains) })
+        #expect(Set(states).count == states.count)
+        #expect(!states.contains(GoogleOAuth.base64URL(Data(count: 24))))
+    }
+
     @Test("Adres logowania: loopback, PKCE S256, state, bez zablokowanego oob")
     func authorizationURL() throws {
         let url = try #require(GoogleOAuth.authorizationURL(

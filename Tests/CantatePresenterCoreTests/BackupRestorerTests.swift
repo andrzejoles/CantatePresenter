@@ -45,7 +45,8 @@ struct BackupRestorerTests {
 
         #expect(try titles(in: data) == ["Z kopii 1", "Z kopii 2"])
         #expect(result.songsCount == 2)
-        #expect(FileManager.default.fileExists(atPath: data.appendingPathComponent("logos/logo.png").path))
+        // logos/ i templates/ nie są już przywracane (R11-03).
+        #expect(!FileManager.default.fileExists(atPath: data.appendingPathComponent("logos").path))
         #expect(FileManager.default.fileExists(atPath: data.appendingPathComponent("history/songs.1.json").path))
         #expect(!FileManager.default.fileExists(atPath: data.appendingPathComponent("obcy.sh").path))
         #expect(!FileManager.default.fileExists(atPath: data.appendingPathComponent("manifest.json").path))
@@ -154,5 +155,71 @@ struct BackupRestorerTests {
         try await BackupRestorer.unzip(archive, to: target)
 
         #expect(FileManager.default.fileExists(atPath: target.appendingPathComponent("songs.json").path))
+    }
+
+    // MARK: - R11-03: programy z kopii i ścieżka planszy
+
+    @Test("Program w templates/ ani logos/ z kopii nie trafia do danych (R11-03)")
+    func legacyFoldersAreNotRestored() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let (data, backup) = try makeFixture(in: dir)
+        let fileManager = FileManager.default
+        try fileManager.createDirectory(at: backup.appendingPathComponent("templates/Plansza.app/Contents/MacOS"), withIntermediateDirectories: true)
+        let script = backup.appendingPathComponent("templates/x.command")
+        try Data("#!/bin/sh\necho".utf8).write(to: script)
+        try fileManager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
+
+        _ = try BackupRestorer(dataDirectory: data).restore(fromExtracted: backup)
+
+        #expect(try titles(in: data) == ["Z kopii 1", "Z kopii 2"])
+        #expect(!fileManager.fileExists(atPath: data.appendingPathComponent("templates").path))
+        #expect(!fileManager.fileExists(atPath: data.appendingPathComponent("logos").path))
+    }
+
+    @Test("Katalog w miejscu pliku danych (np. standby.html/) odrzuca kopię (R11-03)")
+    func rejectsDirectoryInPlaceOfFile() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let (data, backup) = try makeFixture(in: dir)
+        try FileManager.default.createDirectory(at: backup.appendingPathComponent("standby.html/Contents"), withIntermediateDirectories: true)
+
+        #expect(throws: BackupRestorer.RestoreError.self) {
+            try BackupRestorer(dataDirectory: data).restore(fromExtracted: backup)
+        }
+        #expect(try titles(in: data) == ["Obecna"])
+    }
+
+    @Test("Ścieżka planszy z kopii, która nie wskazuje pliku .html, jest czyszczona; reszta ustawień zostaje (R11-03)")
+    func invalidStandbyPathIsCleared() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let fileManager = FileManager.default
+        try dir.write("#!/bin/sh\n", to: "x.command")
+        try fileManager.createDirectory(at: dir.file("Plansza.app"), withIntermediateDirectories: true)
+        try dir.write("<html></html>", to: "własna.html")
+
+        func restoredSettings(standbyPath: String) throws -> [String: Any] {
+            let (data, backup) = try makeFixture(in: dir)
+            defer {
+                try? fileManager.removeItem(at: data.deletingLastPathComponent())
+                try? fileManager.removeItem(at: backup)
+            }
+            let settings: [String: Any] = ["standbyHtmlPath": standbyPath, "appLanguage": "en", "schemaVersion": DataSchema.current]
+            try JSONSerialization.data(withJSONObject: settings).write(to: backup.appendingPathComponent("settings.json"))
+            _ = try BackupRestorer(dataDirectory: data).restore(fromExtracted: backup)
+            let object = try JSONSerialization.jsonObject(with: Data(contentsOf: data.appendingPathComponent("settings.json")))
+            return try #require(object as? [String: Any])
+        }
+
+        for bad in [dir.file("x.command").path, dir.file("Plansza.app").path, dir.file("brak.html").path] {
+            let settings = try restoredSettings(standbyPath: bad)
+            #expect(settings["standbyHtmlPath"] as? String == "", "\(bad)")
+            #expect(settings["appLanguage"] as? String == "en")
+        }
+        let good = try restoredSettings(standbyPath: dir.file("własna.html").path)
+        #expect(good["standbyHtmlPath"] as? String == dir.file("własna.html").path)
+        let empty = try restoredSettings(standbyPath: "")
+        #expect(empty["standbyHtmlPath"] as? String == "")
     }
 }

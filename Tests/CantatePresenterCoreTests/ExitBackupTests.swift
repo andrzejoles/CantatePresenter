@@ -125,8 +125,10 @@ struct ExitBackupTests {
             _ = try ExitBackupCoordinator.keepLocally(archive, in: backups, limit: 5)
         }
 
-        let issues = [PersistenceIssue(kind: .unreadable, fileName: "songs.json", quarantinedCopy: nil, errorDescription: "")]
-        let prune = ExitBackupCoordinator.shouldPruneLocalCopies(issues: issues)
+        let dataDir = try TestDirectory()
+        defer { dataDir.remove() }
+        try dataDir.write("{", to: "songs.json")
+        let prune = ExitBackupCoordinator.shouldPruneLocalCopies(store: DataStore(dataDirectory: dataDir.url))
         for index in 6...7 {
             let archive = try makeArchive(in: dir, name: "exit-2026-10-0\(index).cantatebackup")
             _ = try ExitBackupCoordinator.keepLocally(archive, in: backups, limit: 5, prune: prune)
@@ -134,8 +136,44 @@ struct ExitBackupTests {
 
         #expect(!prune)
         #expect(try FileManager.default.contentsOfDirectory(atPath: backups.path).count == 7)
-        #expect(ExitBackupCoordinator.shouldPruneLocalCopies(issues: []))
-        #expect(!ExitBackupCoordinator.shouldPruneLocalCopies(issues: [PersistenceIssue(kind: .newerSchema, fileName: "2", quarantinedCopy: nil, errorDescription: "")]))
-        #expect(ExitBackupCoordinator.shouldPruneLocalCopies(issues: [PersistenceIssue(kind: .saveFailed, fileName: "songs.json", quarantinedCopy: nil, errorDescription: "")]))
+    }
+
+    @Test("Zamknięty alert o nieczytelnym pliku nie włącza usuwania starszych kopii (R10-01)")
+    func dismissedUnreadableAlertStillKeepsCopies() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        try dir.write("{", to: "songs.json")
+        let store = DataStore(dataDirectory: dir.url)
+        let issue = try #require(store.persistenceIssues.first { $0.kind == .unreadable })
+
+        store.dismissPersistenceIssue(issue)
+
+        #expect(store.persistenceIssues.isEmpty)
+        #expect(store.hasUnreadableData)
+        #expect(!ExitBackupCoordinator.shouldPruneLocalCopies(store: store))
+    }
+
+    @Test("Zamknięty alert o nowszej wersji danych nie włącza usuwania starszych kopii (R10-01)")
+    func dismissedNewerSchemaAlertStillKeepsCopies() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        try dir.write(#"{"schemaVersion": 99}"#, to: "settings.json")
+        let store = DataStore(dataDirectory: dir.url)
+        for issue in store.persistenceIssues {
+            store.dismissPersistenceIssue(issue)
+        }
+
+        #expect(store.persistenceIssues.isEmpty)
+        #expect(!ExitBackupCoordinator.shouldPruneLocalCopies(store: store))
+    }
+
+    @Test("Czytelne dane: starsze kopie są usuwane")
+    func readableDataPrunes() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let store = DataStore(dataDirectory: dir.url)
+
+        #expect(!store.hasUnreadableData)
+        #expect(ExitBackupCoordinator.shouldPruneLocalCopies(store: store))
     }
 }

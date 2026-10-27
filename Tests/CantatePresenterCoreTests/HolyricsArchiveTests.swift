@@ -97,4 +97,102 @@ struct HolyricsArchiveTests {
         #expect(outcome.songs.map(\.title) == ["Barka"])
         #expect(outcome.problems.isEmpty)
     }
+
+    @Test("Tekstowy .hly w archiwum ZIP się wczytuje; prawdziwy ZIP nazwany .hly jest archiwum w archiwum (R10-04)")
+    func textHlyInsideZip() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let pack = dir.file("paczka")
+        try FileManager.default.createDirectory(at: pack, withIntermediateDirectories: true)
+        try Data("@nome: Barka\n##(Verse 1)\nPan kiedyś stanął".utf8).write(to: pack.appendingPathComponent("barka.hly"))
+        let inner = dir.file("wewnętrzne")
+        try FileManager.default.createDirectory(at: inner, withIntermediateDirectories: true)
+        try Data("Pasterz\n\nPan jest pasterzem moim".utf8).write(to: inner.appendingPathComponent("pasterz.txt"))
+        try zip(inner, to: pack.appendingPathComponent("środek.hly"))
+        try zip(pack, to: dir.file("paczka.zip"))
+
+        let outcome = TextImporter.importFile(dir.file("paczka.zip"))
+
+        #expect(outcome.songs.map(\.title) == ["Barka"])
+        #expect(outcome.problems.count == 1)
+        #expect(outcome.problems.first?.fileName.hasSuffix("środek.hly") == true)
+    }
+
+    @Test("XML bez pieśni (np. plist) nie staje się pieśnią z surowym XML; pieśni XML wczytują się dalej (R10-05)")
+    func xmlWithoutSongs() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        try dir.write(#"<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict><key>CFBundleName</key><string>Foo</string></dict></plist>"#, to: "Info.xml")
+        try dir.write("<song><title>Barka</title><lyrics>Pan kiedyś stanął</lyrics></song>", to: "barka.xml")
+
+        let plist = TextImporter.importFile(dir.file("Info.xml"))
+        let song = TextImporter.importFile(dir.file("barka.xml"))
+
+        #expect(plist.songs.isEmpty)
+        #expect(plist.problems.map(\.fileName) == ["Info.xml"])
+        #expect(song.songs.map(\.title) == ["Barka"])
+        #expect(song.problems.isEmpty)
+    }
+
+    /// Kopia folderu danych CantatePresenter: tylko `songs.json` zawiera pieśni.
+    private func makeDataFolder(in dir: TestDirectory) throws -> URL {
+        let data = dir.file("dane")
+        try FileManager.default.createDirectory(at: data, withIntermediateDirectories: true)
+        let files = [
+            "songs.json": #"[{"title":"A","rawLyrics":"x"}]"#,
+            "plans.json": #"[{"name":"Plan","items":[]}]"#,
+            "settings.json": #"{"fontFamily":"X","schemaVersion":1}"#,
+            "ccli_usage.json": "[]",
+            "custom_languages.json": #"[{"code":"xx","name":"Test","flag":"🌐","strings":{"Tak":"Ja"}}]"#,
+            "manifest.json": #"{"appName":"CantatePresenter","songsCount":1,"plansCount":1}"#
+        ]
+        for (name, text) in files {
+            try Data(text.utf8).write(to: data.appendingPathComponent(name))
+        }
+        return data
+    }
+
+    @Test("Folder i ZIP z danymi aplikacji: pliki bez pieśni są pomijane bez komunikatu (R10-07)")
+    func dataFolderFilesAreSkippedSilently() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let data = try makeDataFolder(in: dir)
+        try zip(data, to: dir.file("dane.zip"))
+
+        for url in [data, dir.file("dane.zip")] {
+            let outcome = TextImporter.importFile(url)
+            #expect(outcome.songs.map(\.title) == ["A"], "\(url.lastPathComponent)")
+            #expect(outcome.problems.isEmpty, "\(url.lastPathComponent): \(outcome.problems)")
+        }
+    }
+
+    @Test("Folder: nieczytelny JSON jest zgłaszany, a plik bez pieśni wybrany wprost też (R10-07)")
+    func brokenJSONInFolderIsReported() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let data = try makeDataFolder(in: dir)
+        try Data("{ zepsuty".utf8).write(to: data.appendingPathComponent("broken.json"))
+
+        let folder = TextImporter.importFile(data)
+        let plans = TextImporter.importFile(data.appendingPathComponent("plans.json"))
+
+        #expect(folder.songs.map(\.title) == ["A"])
+        #expect(folder.problems.map(\.fileName) == ["broken.json"])
+        #expect(plans.songs.isEmpty)
+        #expect(plans.problems.map(\.fileName) == ["plans.json"])
+    }
+
+    @Test("ZIP bez żadnej pieśni wybrany wprost jest zgłaszany")
+    func zipWithoutSongsIsReported() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let data = try makeDataFolder(in: dir)
+        try FileManager.default.removeItem(at: data.appendingPathComponent("songs.json"))
+        try zip(data, to: dir.file("bez-piesni.zip"))
+
+        let outcome = TextImporter.importFile(dir.file("bez-piesni.zip"))
+
+        #expect(outcome.songs.isEmpty)
+        #expect(outcome.problems.map(\.fileName) == ["bez-piesni.zip"])
+    }
 }

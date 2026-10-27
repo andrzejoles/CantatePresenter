@@ -47,12 +47,13 @@ budowanie, jeśli podpis nie ma Hardened Runtime.
 Bez kontroli bibliotek dyld wczyta każdą bibliotekę, którą znajdzie w ścieżkach `LC_RPATH` programu. Dlatego
 `build_app.sh` usuwa ścieżki dopisane przez SwiftPM (`@loader_path`, bezwzględna ścieżka do narzędzi Xcode, R7-01)
 i zostawia tylko `/usr/lib/swift` (chroniony przez SIP) oraz `@executable_path/../Frameworks`; inna lista
-przerywa budowanie. Ryzyko, które zostaje przy podpisie ad-hoc (decyzja: bez konta Apple Developer): program,
+przerywa budowanie, podobnie jak biblioteka wczytywana spoza `/System`, `/usr/lib` i Sparkle z pakietu. Ryzyko, które zostaje przy podpisie ad-hoc (decyzja: bez konta Apple Developer): program,
 który może zapisywać w pakiecie aplikacji, może podmienić Sparkle.framework i uruchomić swój kod z uprawnieniami
 aplikacji (Pęk kluczy, mikrofon). Pakiet przeciągnięty do Programów albo zainstalowany przez „Zainstaluj
 w folderze Programy” należy do użytkownika; instalator PKG zapisuje go jako root, co tę drogę zamyka.
 
-`build_app.sh` sprawdza też `LC_BUILD_VERSION`: `minos 14.0` i wersja SDK, z którym zbudowano program (R5-02).
+`build_app.sh` sprawdza też `LC_BUILD_VERSION`: `minos` równe minimalnej wersji macOS z `Package.swift` (jedyne
+źródło, z niego też `LSMinimumSystemVersion`, R9-04) i wersja SDK, z którym zbudowano program (R5-02).
 Domyślny system budowania SwiftPM wpisywał tam 14.0, przez co AppKit i SwiftUI działały w trybie zgodności ze
 starym SDK (na macOS 26+ bez nowego wyglądu).
 
@@ -60,7 +61,7 @@ starym SDK (na macOS 26+ bez nowego wyglądu).
 
 Aplikacja sprawdza raz dziennie plik `appcast.xml` z ostatniego wydania na GitHubie
 (`https://github.com/andrzejoles/CantatePresenter/releases/latest/download/appcast.xml`); menu
-„Sprawdź uaktualnienia…” robi to od razu. Aktualizacja jest podpisana kluczem EdDSA, więc nikt poza
+„Sprawdź uaktualnienia...” robi to od razu (poza projekcją; zaplanowane sprawdzenie i okno aktualizacji czekają do jej końca, R12-03). Aktualizacja jest podpisana kluczem EdDSA, więc nikt poza
 właścicielem klucza nie podsunie aplikacji innego pliku. Podpisany jest też sam `appcast.xml`
 (`SURequireSignedFeed`, `SUVerifyUpdateBeforeExtraction`, R3-09): zmieniony na GitHubie kanał (opis, odnośniki,
 wersje) jest odrzucany, a archiwum jest sprawdzane przed rozpakowaniem. `generate_appcast` podpisuje kanał sam,

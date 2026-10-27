@@ -67,7 +67,7 @@ public final class BackupService {
     }
 
     /// Pliki danych w kopii. Katalogi `logos/` i `templates/` nie są już tworzone ani czytane
-    /// (logo są wbudowane, R2-15); przywracanie przyjmuje je jeszcze ze starych kopii.
+    /// (logo są wbudowane, R2-15); przywracanie pomija je także w starych kopiach (R11-03).
     nonisolated static let archivedFiles = [
         "songs.json",
         "plans.json",
@@ -216,6 +216,15 @@ public final class BackupService {
     /// The archive is unpacked off the main thread, validated, and swapped in as a whole; the previous data
     /// directory is kept so the restore can be undone.
     public func restoreBackup(from archiveURL: URL) async throws -> BackupManifest {
+        let manifest = try await Self.restoreBackup(from: archiveURL, into: DataStore.shared, dataDirectory: dataDirectory)
+        LocalizationService.shared.loadCustomLanguages()
+        return manifest
+    }
+
+    /// Przywracanie dla wskazanego magazynu i katalogu. Ustawienia zmienione w otwartym arkuszu Ustawień
+    /// (skąd zwykle przywracamy) są najpierw zapisywane, żeby trafiły do zachowanego stanu
+    /// „przed przywróceniem”, do którego wraca „Cofnij ostatnie przywracanie” (R10-03, jak R6-03).
+    static func restoreBackup(from archiveURL: URL, into store: DataStore, dataDirectory: URL) async throws -> BackupManifest {
         let fileManager = FileManager.default
         guard fileManager.fileExists(atPath: archiveURL.path) else {
             throw NSError(domain: "CantateBackup", code: 2, userInfo: [NSLocalizedDescriptionKey: Lnow("Wskazany plik kopii zapasowej nie istnieje: {0}", archiveURL.lastPathComponent)])
@@ -237,8 +246,9 @@ public final class BackupService {
 
         // Folder danych spakowany w Finderze nie ma manifestu: datą kopii jest stan plików, nie chwila przywracania (R6-13).
         let fallbackDate = Self.dataDate(in: contentRoot) ?? Date()
+        store.saveSettingsIfChanged()
         let result = try BackupRestorer(dataDirectory: dataDirectory).restore(fromExtracted: contentRoot)
-        reloadStores()
+        reload(store)
 
         return manifest ?? BackupManifest(
             createdAt: fallbackDate,
@@ -270,16 +280,22 @@ public final class BackupService {
     /// - Returns: folder z danymi sprzed cofnięcia.
     @discardableResult
     public func undoLastRestore() throws -> URL {
-        let kept = try BackupRestorer(dataDirectory: dataDirectory).undoLastRestore()
-        reloadStores()
+        let kept = try Self.undoLastRestore(of: DataStore.shared, dataDirectory: dataDirectory)
+        LocalizationService.shared.loadCustomLanguages()
         return kept
     }
 
-    private func reloadStores() {
-        let store = DataStore.shared
+    /// Jak przy przywracaniu: niezapisane ustawienia trafiają do danych zachowanych przy cofnięciu (R10-03).
+    static func undoLastRestore(of store: DataStore, dataDirectory: URL) throws -> URL {
+        store.saveSettingsIfChanged()
+        let kept = try BackupRestorer(dataDirectory: dataDirectory).undoLastRestore()
+        reload(store)
+        return kept
+    }
+
+    private static func reload(_ store: DataStore) {
         store.reloadAll()
         store.updateActiveLogo(id: store.settings.activeLogoId)
-        LocalizationService.shared.loadCustomLanguages()
     }
 
     // MARK: - Save Dialog Helper

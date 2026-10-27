@@ -82,15 +82,21 @@ Pliki \`CantatePresenter-$VERSION.zip\` i \`appcast.xml\` służą automatycznym
 Poprawki bezpieczeństwa trafiają tylko do najnowszego wydania. Podatności zgłaszaj prywatnie: Security → Report a vulnerability (https://github.com/andrzejoles/CantatePresenter/security/advisories/new). Zasady: \`SECURITY.md\`.
 
 ## Licencja
-Licencja MIT, plik \`LICENSE\` w repozytorium i w wydaniu. Teksty pieśni nie są objęte licencją programu.
+Licencja MIT, plik \`LICENSE\` w repozytorium i w wydaniu. Biblioteka Sparkle (aktualizacje) ma własną licencję: \`LICENSE-Sparkle.txt\` w wydaniu i w aplikacji. Teksty pieśni nie są objęte licencją programu.
 NOTES
 } > "$RELEASE_DIR/notes.md"
+
+# Licencja Sparkle z gotowej aplikacji (build_app.sh przerywa budowanie bez niej, R9-02). Kopiowana po
+# generate_appcast, żeby narzędzie widziało w katalogu tylko archiwum i opis zmian.
+SPARKLE_LICENSE="$ROOT/CantatePresenter.app/Contents/Resources/LICENSE-Sparkle.txt"
+[ -f "$SPARKLE_LICENSE" ] || { echo "Brak $SPARKLE_LICENSE (licencja Sparkle)" >&2; exit 1; }
+cp "$SPARKLE_LICENSE" "$RELEASE_DIR/LICENSE-Sparkle.txt"
 
 git tag "$TAG"
 git push origin "$TAG"
 # Nieudane utworzenie wydania nie może zostawić znacznika, bo ponowne uruchomienie zatrzymałoby się na nim (R1-08).
 if ! gh release create "$TAG" --draft --title "CantatePresenter $VERSION" --notes-file "$RELEASE_DIR/notes.md" \
-    "$RELEASE_DIR/CantatePresenter-$VERSION.zip" "$RELEASE_DIR/appcast.xml" "$ROOT/LICENSE" \
+    "$RELEASE_DIR/CantatePresenter-$VERSION.zip" "$RELEASE_DIR/appcast.xml" "$ROOT/LICENSE" "$RELEASE_DIR/LICENSE-Sparkle.txt" \
     "dist/CantatePresenter-$VERSION.dmg" "dist/CantatePresenter-$VERSION.pkg"; then
     echo "Nie udało się utworzyć wydania $TAG; usuwam znacznik" >&2
     git push --delete origin "$TAG" || echo "Usuń znacznik na GitHubie ręcznie: git push --delete origin $TAG" >&2

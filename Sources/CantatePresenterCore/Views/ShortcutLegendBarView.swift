@@ -170,7 +170,7 @@ public struct ShortcutLegendBarView: View {
                         heightFactor: heightFactor,
                         action: {
                             if ScreenManager.shared.isPresentationActive,
-                               KeyboardRouter.stopClosesPresentationWindow(screenCount: NSScreen.screens.count, context: .mainWindow(focus: .other), isLive: store.isLive) {
+                               KeyboardRouter.stopClosesPresentationWindow(screenCount: NSScreen.screens.count, coversMainWindow: ScreenManager.shared.presentationCoversMainWindow, context: .mainWindow(focus: .other), isLive: store.isLive) {
                                 ScreenManager.shared.stopPresentation()
                             }
                             store.stopLive()
@@ -281,11 +281,10 @@ public struct KeyboardShortcutItemView: View {
                     .foregroundColor(isActive ? .white : .primary)
                     .padding(.horizontal, max(4, round(6.0 * heightFactor)))
                     .padding(.vertical, max(2, round(2.0 * heightFactor)))
-                    .background(isActive ? Color.red : (isHovered ? Color.secondary.opacity(0.18) : Color(NSColor.controlBackgroundColor)))
-                    .cornerRadius(max(3, round(4.0 * heightFactor)))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: max(3, round(4.0 * heightFactor)))
-                            .stroke(isActive ? Color.white.opacity(0.6) : Color.secondary.opacity(0.35), lineWidth: 1)
+                    .cardStyle(
+                        fill: isActive ? Color.red : (isHovered ? Color.secondary.opacity(0.18) : Color(NSColor.controlBackgroundColor)),
+                        cornerRadius: max(3, round(4.0 * heightFactor)),
+                        outline: isActive ? Color.white.opacity(0.6) : Color.secondary.opacity(0.35)
                     )
                     .shadow(color: Color.black.opacity(0.12), radius: 1, x: 0, y: 1)
                 

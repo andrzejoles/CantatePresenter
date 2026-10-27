@@ -8,8 +8,13 @@ public struct PresentationContentView: View {
     
     @State private var showEscHint: Bool = false
     
-    public init(isPreviewWindow: Bool = false) {
+    /// Podpowiedź „Esc” na starcie: okno projekcji zasłania okno główne (jeden ekran, obraz lustrzany
+    /// albo projekcja na ekranie operatora przy dwóch ekranach), R12-07.
+    private let showsEscHintOnAppear: Bool
+
+    public init(isPreviewWindow: Bool = false, coversMainWindow: Bool = false) {
         self.isPreviewWindow = isPreviewWindow
+        self.showsEscHintOnAppear = coversMainWindow
     }
     
     public var body: some View {
@@ -67,7 +72,7 @@ public struct PresentationContentView: View {
                     }
                 }
                 
-                // Auto-fading ESC hint when running on single screen
+                // Znikająca podpowiedź Esc, gdy projekcja zasłania okno główne
                 if !isPreviewWindow && showEscHint {
                     VStack {
                         HStack {
@@ -107,7 +112,7 @@ public struct PresentationContentView: View {
         // (`screen.frame`), więc podział wierszy na projektorze i w podglądzie jest ten sam (R4-16).
         .ignoresSafeArea()
         .onAppear {
-            if !isPreviewWindow && NSScreen.screens.count == 1 {
+            if !isPreviewWindow && (showsEscHintOnAppear || NSScreen.screens.count == 1) {
                 showEscHint = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
                     withAnimation(.easeInOut(duration: 0.6)) {

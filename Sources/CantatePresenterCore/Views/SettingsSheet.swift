@@ -183,8 +183,7 @@ public struct SettingsSheet: View {
                                     .foregroundColor(.secondary)
                             }
                             .padding(8)
-                            .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
-                            .cornerRadius(6)
+                            .cardStyle(fill: Color(NSColor.controlBackgroundColor).opacity(0.6), cornerRadius: 6)
                         }
                         .padding(8)
                     }
@@ -231,8 +230,7 @@ public struct SettingsSheet: View {
                                 .controlSize(.small)
                             }
                             .padding(8)
-                            .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-                            .cornerRadius(8)
+                            .cardStyle(fill: Color(NSColor.controlBackgroundColor).opacity(0.5), cornerRadius: 8)
                             
                             Divider()
                             
@@ -941,7 +939,7 @@ public struct SettingsSheet: View {
     /// Otwiera plik, z którego naprawdę jest plansza; na świeżej instalacji szablon z pakietu (R4-37).
     private func openStandbyHtmlFile() {
         guard let url = StandbyTemplate.url(customPath: store.settings.standbyHtmlPath) else { return }
-        NSWorkspace.shared.open(url)
+        StandbyTemplate.openInHTMLViewer(url)
     }
     
     // MARK: - CCLI Report

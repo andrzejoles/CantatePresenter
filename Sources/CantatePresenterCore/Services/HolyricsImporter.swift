@@ -112,7 +112,8 @@ public struct HolyricsImporter {
         if let json = TextImporter.jsonOutcomeIfJSON(content, fileName: fileName) {
             return json
         }
-        return ImportOutcome(songs: parseHolyricsContent(content, fallbackTitle: url.deletingPathExtension().lastPathComponent))
+        let songs = parseHolyricsContent(content, fallbackTitle: url.deletingPathExtension().lastPathComponent)
+        return songs.isEmpty ? ImportOutcome(problems: [.noSongs(in: fileName)]) : ImportOutcome(songs: songs)
     }
     
     /// Imports songs from any Holyrics file (.muf, .mufl, .hly, .holyrics, .xml, .json, .txt)
@@ -142,10 +143,12 @@ public struct HolyricsImporter {
             return TextImporter.songs(fromJSONValue: json)
         }
         
-        // B. Try XML (OpenSong / OpenLyrics / Holyrics XML format)
+        // B. Try XML (OpenSong / OpenLyrics / Holyrics XML format). XML bez pieśni (plist, metadane innych
+        // programów) nie staje się pieśnią z surowym XML (R10-05, jak JSON w R6-06); tekst ze znacznikami
+        // Holyrics zaczynający się od „<” idzie dalej.
         if trimmed.hasPrefix("<") {
             let xmlSongs = parseHolyricsXML(trimmed, fallbackTitle: fallbackTitle)
-            if !xmlSongs.isEmpty {
+            if !xmlSongs.isEmpty || !looksLikeHolyricsText(trimmed) {
                 return xmlSongs
             }
         }
@@ -308,12 +311,12 @@ public struct HolyricsImporter {
         process.waitUntilExit()
         
         var outcome = TextImporter.importFile(tempDir, insideArchive: true)
-        outcome.problems = outcome.problems.map { ImportProblem(fileName: "\(fileName)/\($0.fileName)", message: $0.message) }
+        outcome.problems = outcome.problems.map { $0.renamed("\(fileName)/\($0.fileName)") }
         // Kod 1 = ostrzeżenia unzip (część plików rozpakowana); wyższy = błąd (R2-14).
         if process.terminationStatus != 0 {
             outcome.problems.insert(ImportProblem(fileName: fileName, message: Lnow("Archiwum rozpakowane z błędami (kod unzip: {0}); część pieśni mogła zostać pominięta.", process.terminationStatus)), at: 0)
         } else if outcome.songs.isEmpty && outcome.problems.isEmpty {
-            outcome.problems.append(ImportProblem(fileName: fileName, message: Lnow("Nie znaleziono pieśni")))
+            outcome.problems.append(.noSongs(in: fileName))
         }
         return outcome
     }

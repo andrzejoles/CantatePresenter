@@ -7,7 +7,13 @@ cd "$DIR"
 echo "=== Budowanie CantatePresenter (Apple Silicon arm64 Native) ==="
 # Domyślny system budowania SwiftPM (swiftbuild) wpisuje do LC_BUILD_VERSION wersję SDK równą minimalnej (14.0),
 # więc AppKit/SwiftUI działałyby w trybie zgodności ze starym SDK (R5-02). Wersję SDK podajemy linkerowi wprost.
-MIN_MACOS="14.0"
+# Minimalna wersja macOS tylko z Package.swift (R9-04): ta sama trafia do -platform_version, LSMinimumSystemVersion
+# i kontroli na końcu, więc podniesienie jej w pakiecie nie zostawi programu oznaczonego starszą wersją.
+PACKAGE_JSON="$(swift package dump-package)"
+[ "$(/usr/bin/plutil -extract platforms.0.platformName raw -o - - <<< "$PACKAGE_JSON")" = "macos" ] \
+    || { echo "BŁĄD: Package.swift: pierwsza platforma to nie macOS" >&2; exit 1; }
+MIN_MACOS="$(/usr/bin/plutil -extract platforms.0.version raw -o - - <<< "$PACKAGE_JSON")"
+[[ "$MIN_MACOS" =~ ^[0-9]+(\.[0-9]+)+$ ]] || { echo "BŁĄD: nieczytelna minimalna wersja macOS: '$MIN_MACOS'" >&2; exit 1; }
 SDK_VERSION="$(xcrun --sdk macosx --show-sdk-version)"
 swift build -c release -Xlinker -platform_version -Xlinker macos -Xlinker "$MIN_MACOS" -Xlinker "$SDK_VERSION"
 
@@ -50,8 +56,9 @@ ditto "$SPARKLE_FRAMEWORK" "$CONTENTS_DIR/Frameworks/Sparkle.framework"
 SWIFT_RUNTIME_RPATH="/usr/lib/swift"
 BUNDLE_FRAMEWORKS_RPATH="@executable_path/../Frameworks"
 ALLOWED_RPATHS="$(printf '%s\n' "$SWIFT_RUNTIME_RPATH" "$BUNDLE_FRAMEWORKS_RPATH")"
+# Cała ścieżka, także ze spacjami (np. „/Applications/Xcode 27.app/…”, R9-03).
 list_rpaths() {
-    otool -l "$1" | awk '$1 == "cmd" && $2 == "LC_RPATH" { getline; getline; print $2 }'
+    otool -l "$1" | awk '$1 == "cmd" && $2 == "LC_RPATH" { getline; getline; sub(/^ *path /, ""); sub(/ \(offset [0-9]+\)$/, ""); print }'
 }
 while IFS= read -r rpath; do
     if [ -n "$rpath" ] && ! grep -qxF -- "$rpath" <<< "$ALLOWED_RPATHS"; then
@@ -66,6 +73,13 @@ fi
 cp "$DIR/INSTRUKCJA.md" "$RESOURCES_DIR/INSTRUKCJA.md"
 # Licencja MIT w pakiecie aplikacji
 cp "$DIR/LICENSE" "$RESOURCES_DIR/LICENSE"
+# Licencja Sparkle (MIT, z licencjami bsdiff/bspatch i innymi): wymagana przy rozpowszechnianiu frameworka (R9-02).
+SPARKLE_LICENSE="$DIR/.build/artifacts/sparkle/Sparkle/LICENSE"
+if [ ! -f "$SPARKLE_LICENSE" ]; then
+    echo "BŁĄD: brak $SPARKLE_LICENSE (licencja Sparkle musi być w aplikacji; swift package resolve)" >&2
+    exit 1
+fi
+cp "$SPARKLE_LICENSE" "$RESOURCES_DIR/LICENSE-Sparkle.txt"
 
 if [ -f "$DIR/Resources/AppIcon.icns" ]; then
     cp "$DIR/Resources/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"
@@ -104,14 +118,12 @@ cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
     <string>1.0.0</string>
     <key>CFBundleVersion</key>
     <string>1</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>14.0</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSSupportsAutomaticGraphicsSwitching</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
-    <string>© 2026 Andrzej Oles. Opracowano we współpracy z Claude (Anthropic).</string>
+    <string>© 2026 Andrzej Oles</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Aplikacja wymaga dostępu do mikrofonu, aby umożliwić dyktowanie tekstu nowej pieśni oraz wyszukiwanie głosowe.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
@@ -186,16 +198,22 @@ for strings in "$RESOURCES_DIR"/*.lproj/InfoPlist.strings; do
 done
 
 # Identyfikator paczki zasobów SwiftPM bierze się z nazwy katalogu repozytorium (R5-08); ustalamy go.
-RESOURCE_PLIST="$RESOURCES_DIR/CantatePresenter_CantatePresenterCore.bundle/Contents/Info.plist"
-if [ -f "$RESOURCE_PLIST" ]; then
-    /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.cantate.presenter.core-resources" "$RESOURCE_PLIST"
-fi
+# Układ z Contents/ (swiftbuild) albo płaski (--build-system native, CI; R9-07).
+for RESOURCE_PLIST in "$RESOURCES_DIR/CantatePresenter_CantatePresenterCore.bundle/Contents/Info.plist" \
+    "$RESOURCES_DIR/CantatePresenter_CantatePresenterCore.bundle/Info.plist"; do
+    if [ -f "$RESOURCE_PLIST" ]; then
+        # Płaska paczka z natywnego systemu budowania może nie mieć tego klucza wcale.
+        /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.cantate.presenter.core-resources" "$RESOURCE_PLIST" 2>/dev/null \
+            || /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.cantate.presenter.core-resources" "$RESOURCE_PLIST"
+    fi
+done
 
 # Wersja z historii gita (scripts/version.sh: PR i commity od ostatniego PR), numer kompilacji = liczba commitów
 VERSION="$("$DIR/scripts/version.sh")"
 BUILD_NUMBER="$(git -C "$DIR" rev-list --count HEAD 2>/dev/null || echo 1)"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$CONTENTS_DIR/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$CONTENTS_DIR/Info.plist"
+/usr/libexec/PlistBuddy -c "Add :LSMinimumSystemVersion string $MIN_MACOS" "$CONTENTS_DIR/Info.plist"
 
 # Przykładowe dane dewelopera (N9) nie mogą trafić do aplikacji ani instalatora.
 LEAKED="$(find "$APP_DIR" \( -name "*.mufl" -o -name "*.muf" -o -name "songs.json" -o -name "plans.json" -o -name "settings.json" \) -print)"
@@ -242,6 +260,17 @@ if [ "$FINAL_RPATHS" != "$(sort <<< "$ALLOWED_RPATHS")" ]; then
     echo "$FINAL_RPATHS" >&2
     exit 1
 fi
+# Biblioteki tylko z systemu i Sparkle z pakietu: kontrola bibliotek jest wyłączona (ad-hoc), więc biblioteka spod
+# zapisywalnej ścieżki (np. /opt/homebrew/lib) mogłaby zostać podmieniona (przegląd R11).
+FOREIGN_LIBS="$(otool -L "$MACOS_DIR/CantatePresenter" | tail -n +2 | sed -E 's/^[[:space:]]+//; s/ \(compatibility version .*\)$//' |
+    grep -vE '^(/System/|/usr/lib/|@rpath/Sparkle\.framework/)' || true)"
+if [ -n "$FOREIGN_LIBS" ]; then
+    echo "BŁĄD: program wczytuje biblioteki spoza systemu i pakietu:" >&2
+    echo "$FOREIGN_LIBS" >&2
+    exit 1
+fi
+MINIMUM_IN_PLIST="$(/usr/libexec/PlistBuddy -c "Print :LSMinimumSystemVersion" "$CONTENTS_DIR/Info.plist")"
+[ "$MINIMUM_IN_PLIST" = "$MIN_MACOS" ] || { echo "BŁĄD: LSMinimumSystemVersion $MINIMUM_IN_PLIST zamiast $MIN_MACOS" >&2; exit 1; }
 BUILD_VERSION="$(otool -l "$MACOS_DIR/CantatePresenter" | awk '$1 == "cmd" && $2 == "LC_BUILD_VERSION" { found = 1 } found && $1 == "minos" { minos = $2 } found && $1 == "sdk" { print minos, $2; exit }')"
 if [ "$BUILD_VERSION" != "$MIN_MACOS $SDK_VERSION" ]; then
     echo "BŁĄD: LC_BUILD_VERSION (minos sdk) = '$BUILD_VERSION', oczekiwano '$MIN_MACOS $SDK_VERSION'" >&2
