@@ -149,7 +149,7 @@ struct StandbyIsolationTests {
     func noFileAccessFromFileURLs() {
         let config = StandbyWebView.makeConfiguration()
         #expect((config.preferences.value(forKey: "allowFileAccessFromFileURLs") as? Bool) == false)
-        #expect((config.preferences.value(forKey: "allowUniversalAccessFromFileURLs") as? Bool) != true)
+        #expect(!config.preferences.javaScriptCanOpenWindowsAutomatically)
     }
 
     @Test("Nawigacja: tylko wczytanie zlecone przez aplikację, potem żadnej")
