@@ -18,6 +18,22 @@ final class PresentationWKWebView: WKWebView {
     }
 }
 
+/// Kontener planszy. `WKWebView` powstaje w nim dopiero wtedy, gdy lista reguł blokady sieci jest gotowa,
+/// i dostaje ją w konfiguracji (R11-01): lista dodana do już utworzonego widoku dawała pustą planszę.
+public final class StandbyContainerView: NSView {
+    override public var acceptsFirstResponder: Bool { false }
+
+    var webView: WKWebView? {
+        didSet {
+            oldValue?.removeFromSuperview()
+            guard let webView else { return }
+            webView.frame = bounds
+            webView.autoresizingMask = [.width, .height]
+            addSubview(webView)
+        }
+    }
+}
+
 // MARK: - Standby Zoom
 
 /// Plansza ma rozmiary w px i rem dobrane do ok. 960 px szerokości; na projektorze były za małe.
@@ -260,26 +276,26 @@ public struct StandbyWebView: NSViewRepresentable {
     
     /// Bez `allowFileAccessFromFileURLs` (R7-02): skrypt szablonu nie odczyta plików z dysku. Obrazy i style
     /// obok szablonu nadal się wczytują jako zwykłe zasoby strony.
-    static func makeConfiguration() -> WKWebViewConfiguration {
+    static func makeConfiguration(ruleList: WKContentRuleList? = nil) -> WKWebViewConfiguration {
         let config = WKWebViewConfiguration()
         config.preferences.setValue(false, forKey: "allowFileAccessFromFileURLs")
         config.preferences.javaScriptCanOpenWindowsAutomatically = false
+        if let ruleList {
+            config.userContentController.add(ruleList)
+        }
         return config
     }
 
-    public func makeNSView(context: Context) -> WKWebView {
-        let webView = PresentationWKWebView(frame: .zero, configuration: Self.makeConfiguration())
-        webView.setValue(false, forKey: "drawsBackground")
-        webView.navigationDelegate = context.coordinator
-
+    public func makeNSView(context: Context) -> StandbyContainerView {
+        let container = StandbyContainerView()
         context.coordinator.lastLoadedPath = htmlPath
         context.coordinator.lastLogoId = activeLogoId
         context.coordinator.lastCredits = StandbyCredits.text
-        loadHTML(into: webView, coordinator: context.coordinator)
-        return webView
+        loadHTML(into: container, coordinator: context.coordinator)
+        return container
     }
     
-    public func updateNSView(_ nsView: WKWebView, context: Context) {
+    public func updateNSView(_ nsView: StandbyContainerView, context: Context) {
         // Napis z autorem zależy od języka, więc jego zmiana też przeładowuje planszę.
         let credits = StandbyCredits.text
         if context.coordinator.lastLoadedPath != htmlPath || context.coordinator.lastLogoId != activeLogoId
@@ -316,17 +332,23 @@ public struct StandbyWebView: NSViewRepresentable {
 
     /// Wczytanie dopiero z blokadą sieci (R11-01). Gdy listy reguł nie da się skompilować, plansza jest tylko
     /// z szablonu w pakiecie aplikacji: własny plik albo `standby.html` z cudzej kopii mógłby się wtedy łączyć.
-    private func loadHTML(into webView: WKWebView, coordinator: Coordinator) {
+    private func loadHTML(into container: StandbyContainerView, coordinator: Coordinator) {
         coordinator.loadRequest += 1
         let request = coordinator.loadRequest
-        StandbyNetworkBlock.withRuleList { [weak webView] ruleList in
-            guard let webView, request == coordinator.loadRequest else { return }
-            if let ruleList, !coordinator.networkBlockInstalled {
-                webView.configuration.userContentController.add(ruleList)
-                coordinator.networkBlockInstalled = true
-            }
+        StandbyNetworkBlock.withRuleList { [weak container] ruleList in
+            guard let container, request == coordinator.loadRequest else { return }
+            let webView = container.webView ?? makeWebView(in: container, ruleList: ruleList, coordinator: coordinator)
             render(into: webView, coordinator: coordinator, networkBlocked: coordinator.networkBlockInstalled)
         }
+    }
+
+    private func makeWebView(in container: StandbyContainerView, ruleList: WKContentRuleList?, coordinator: Coordinator) -> WKWebView {
+        let webView = PresentationWKWebView(frame: container.bounds, configuration: Self.makeConfiguration(ruleList: ruleList))
+        webView.setValue(false, forKey: "drawsBackground")
+        webView.navigationDelegate = coordinator
+        coordinator.networkBlockInstalled = ruleList != nil
+        container.webView = webView
+        return webView
     }
 
     private func render(into webView: WKWebView, coordinator: Coordinator, networkBlocked: Bool) {
