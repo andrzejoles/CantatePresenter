@@ -110,14 +110,6 @@ public struct TextImporter {
         return ImportOutcome(songs: song.title.isEmpty && song.rawLyrics.isEmpty ? [] : [song])
     }
     
-    /// Parses a single text file
-    public static func parseFile(at url: URL) -> Song? {
-        guard let text = readTextWithBestEncoding(from: url) else { return nil }
-        
-        let filenameTitle = url.deletingPathExtension().lastPathComponent
-        return parseString(rawContent: text, fallbackTitle: filenameTitle)
-    }
-    
     /// Parses raw text into a Song structure. Nagłówek (Tytuł:, Autor:, Tonacja:, Tagi:, CCLI:, Copyright:,
     /// Źródło:) jest czytany tylko przed pierwszą pustą linią, a sekcja chwytów z eksportu tekstowego
     /// (`SongExporter.chordsSectionMarker`) wraca do pola `chords` (R2-21).

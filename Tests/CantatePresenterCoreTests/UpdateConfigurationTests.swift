@@ -23,6 +23,9 @@ struct UpdateConfigurationTests {
         let config = UpdateConfiguration.from(infoDictionary: info, environment: ["CANTATE_UPDATE_FEED": "http://127.0.0.1:8000/appcast.xml"])
         #expect(config.feedURL == "http://127.0.0.1:8000/appcast.xml")
         #expect(config.isComplete)
+        // Sparkle dostaje adres z konfiguracji tylko, gdy różni się od Info.plist (R5-06).
+        #expect(config.feedOverride(infoDictionary: info) == "http://127.0.0.1:8000/appcast.xml")
+        #expect(UpdateConfiguration.from(infoDictionary: info, environment: [:]).feedOverride(infoDictionary: info) == nil)
     }
 
     /// Info.plist i podpis składane przez `build_app.sh` (R3-01, R3-09).
