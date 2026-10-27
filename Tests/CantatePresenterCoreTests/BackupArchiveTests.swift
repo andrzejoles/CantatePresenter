@@ -95,16 +95,16 @@ struct BackupArchiveTests {
         #expect(!FileManager.default.fileExists(atPath: target.path))
     }
 
-    @Test("Dowiązanie wewnątrz katalogu ze starej kopii też jest odrzucane (R2-14)")
-    func rejectsNestedSymlinks() throws {
+    @Test("Dowiązanie w katalogu starej kopii nie trafia do danych: logos/ nie jest przywracane (R2-14, R11-03)")
+    func ignoresNestedSymlinks() throws {
         let dir = try TestDirectory()
         defer { dir.remove() }
         let data = try makeDataDirectory(in: dir)
         try FileManager.default.createSymbolicLink(atPath: data.appendingPathComponent("logos/link.png").path, withDestinationPath: "/etc/hosts")
+        let target = dir.url.appendingPathComponent("cel/CantatePresenter")
 
-        #expect(throws: BackupRestorer.RestoreError.self) {
-            try BackupRestorer(dataDirectory: dir.url.appendingPathComponent("cel/CantatePresenter")).restore(fromExtracted: data)
-        }
+        _ = try BackupRestorer(dataDirectory: target).restore(fromExtracted: data)
+        #expect(!FileManager.default.fileExists(atPath: target.appendingPathComponent("logos").path))
     }
 
     @Test("Rozmiar po rozpakowaniu z zipinfo (R2-14)")

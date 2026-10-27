@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import WebKit
 import AppKit
+import UniformTypeIdentifiers
 
 final class PresentationWKWebView: WKWebView {
     // Nie przejmuje fokusu, więc klawisze trafiają do `KeyboardMonitor` jako okno projekcji.
@@ -162,15 +163,35 @@ public enum StandbyTemplate {
         Localization.resourceBundle?.url(forResource: "standby", withExtension: "html")
     }
 
+    /// Zwykły plik `.html`/`.htm` (także przez dowiązanie). Ścieżka z ustawień może pochodzić z cudzej kopii
+    /// zapasowej, więc program, pakiet `.app` ani katalog nie są brane za planszę (R11-03).
+    public static func isHTMLFile(atPath path: String) -> Bool {
+        guard !path.isEmpty else { return false }
+        let url = URL(fileURLWithPath: path).resolvingSymlinksInPath()
+        guard ["html", "htm"].contains(url.pathExtension.lowercased()) else { return false }
+        return (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+    }
+
     public static func url(customPath: String, dataFile: URL = AppPaths.shared.standbyFile) -> URL? {
-        let fileManager = FileManager.default
-        if !customPath.isEmpty && fileManager.fileExists(atPath: customPath) {
+        if isHTMLFile(atPath: customPath) {
             return URL(fileURLWithPath: customPath)
         }
-        if fileManager.fileExists(atPath: dataFile.path) {
+        if isHTMLFile(atPath: dataFile.path) {
             return dataFile
         }
         return bundledURL
+    }
+
+    /// „Otwórz plik planszy”: zawsze w domyślnej aplikacji dla HTML, nigdy przez `NSWorkspace.open` samego pliku,
+    /// który dla programu albo `.command` by go uruchomił (R11-03). Bez takiej aplikacji: pokazanie w Finderze.
+    @MainActor
+    public static func openInHTMLViewer(_ url: URL) {
+        let workspace = NSWorkspace.shared
+        guard isHTMLFile(atPath: url.path), let viewer = workspace.urlForApplication(toOpen: .html) else {
+            workspace.activateFileViewerSelecting([url])
+            return
+        }
+        workspace.open([url], withApplicationAt: viewer, configuration: NSWorkspace.OpenConfiguration())
     }
 }
 

@@ -47,10 +47,10 @@ public struct BackupRestorer {
         }
     }
 
-    /// `logos/` i `templates/` tylko ze starych kopii: aplikacja ich już nie tworzy ani nie czyta (R2-15).
+    /// Same pliki. `logos/` i `templates/` ze starych kopii są pomijane (R11-03): aplikacja ich nie czyta (R2-15),
+    /// a mogły wnieść do danych program, na który wskazałaby ścieżka planszy z `settings.json`.
     public static let allowedItems = [
-        "songs.json", "plans.json", "settings.json", "custom_languages.json", "standby.html", "logos", "templates",
-        "ccli_usage.json"
+        "songs.json", "plans.json", "settings.json", "custom_languages.json", "standby.html", "ccli_usage.json"
     ]
 
     /// Katalog z danymi w rozpakowanym archiwum: korzeń albo jedyny (lub pierwszy pasujący) podfolder
@@ -122,6 +122,9 @@ public struct BackupRestorer {
                 }
                 try fileManager.copyItem(at: contentRoot.appendingPathComponent(item), to: target)
             }
+            if fileManager.fileExists(atPath: contentRoot.appendingPathComponent("settings.json").path) {
+                try clearInvalidStandbyPath(inSettingsAt: staging.appendingPathComponent("settings.json"))
+            }
 
             let previousName = previousStatePrefix + Self.timestamp()
             try fileManager.createDirectory(at: dataDirectory, withIntermediateDirectories: true)
@@ -140,25 +143,28 @@ public struct BackupRestorer {
         }
     }
 
-    /// Do danych trafiają tylko zwykłe pliki i katalogi: dowiązanie (np. `standby.html` → plik spoza kopii)
-    /// albo plik specjalny odrzuca całą kopię (R2-14).
+    /// Do danych trafiają tylko zwykłe pliki: dowiązanie (np. `standby.html` → plik spoza kopii), katalog
+    /// (np. pakiet `.app` pod nazwą pliku danych, R11-03) albo plik specjalny odrzuca całą kopię (R2-14).
     private func rejectUnsafeItems(in contentRoot: URL) throws {
-        let keys: Set<URLResourceKey> = [.isSymbolicLinkKey, .isRegularFileKey, .isDirectoryKey]
-        func check(_ values: URLResourceValues, name: String) throws {
-            if values.isSymbolicLink == true || (values.isRegularFile != true && values.isDirectory != true) {
-                throw RestoreError.unsafeItem(name)
-            }
-        }
+        let keys: Set<URLResourceKey> = [.isSymbolicLinkKey, .isRegularFileKey]
         for item in Self.allowedItems {
             // Wartości samego elementu (bez podążania za dowiązaniem); brak elementu = pomijamy.
             guard let values = try? contentRoot.appendingPathComponent(item).resourceValues(forKeys: keys) else { continue }
-            try check(values, name: item)
-            guard values.isDirectory == true else { continue }
-            let enumerator = fileManager.enumerator(at: contentRoot.appendingPathComponent(item), includingPropertiesForKeys: Array(keys))
-            while let child = enumerator?.nextObject() as? URL {
-                try check(try child.resourceValues(forKeys: keys), name: item + "/" + child.lastPathComponent)
+            if values.isSymbolicLink == true || values.isRegularFile != true {
+                throw RestoreError.unsafeItem(item)
             }
         }
+    }
+
+    /// Ścieżka własnej planszy z kopii, która nie wskazuje zwykłego pliku `.html` na tym Macu, jest czyszczona
+    /// (R11-03): z cudzej kopii mogłaby wskazywać program. Zmieniane jest tylko to pole, reszta pliku zostaje.
+    private func clearInvalidStandbyPath(inSettingsAt url: URL) throws {
+        let key = "standbyHtmlPath"
+        guard var settings = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any],
+              let path = settings[key] as? String, !path.isEmpty, !StandbyTemplate.isHTMLFile(atPath: path) else { return }
+        settings[key] = ""
+        try JSONSerialization.data(withJSONObject: settings, options: [.prettyPrinted, .withoutEscapingSlashes]).write(to: url, options: .atomic)
+        Self.logger.notice("Kopia: pominięto ścieżkę planszy, która nie jest plikiem HTML: \(path, privacy: .private)")
     }
 
     private func validate(_ contentRoot: URL) throws -> (songs: Int, plans: Int) {

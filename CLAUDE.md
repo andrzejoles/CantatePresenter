@@ -47,7 +47,7 @@ Kluczowe elementy:
 
 ### Dane
 
-Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `ccli_usage.json`, `standby.html`, `history/` (5 ostatnich wersji przed zapisem, K1). `logos/` i `templates/` mogą zostać ze starszych wersji (migracja i przywracanie starych kopii je przenoszą), ale aplikacja ich nie czyta (R2-15).
+Katalog danych wyznacza wyłącznie `AppPaths` (K2): `~/Library/Application Support/CantatePresenter`, albo katalog ze zmiennej `CANTATE_DATA_DIR`. Pliki: `songs.json`, `plans.json`, `settings.json`, `custom_languages.json`, `ccli_usage.json`, `standby.html`, `history/` (5 ostatnich wersji przed zapisem, K1). `logos/` i `templates/` mogą zostać ze starszych wersji (migracja je przenosi; przywracanie kopii je pomija, R11-03), ale aplikacja ich nie czyta (R2-15).
 
 Przy pierwszym uruchomieniu, gdy w Application Support nie ma `songs.json`/`plans.json`/`settings.json`, dane są **kopiowane** ze starej lokalizacji (`data/` obok pakietu .app, a przy `swift run` z bieżącego katalogu). Stary katalog zostaje. Jeśli kopiowanie się nie uda, aplikacja w tej sesji używa starego katalogu i pokazuje alert.
 

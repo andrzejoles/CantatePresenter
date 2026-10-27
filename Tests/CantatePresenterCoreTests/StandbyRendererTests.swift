@@ -103,6 +103,35 @@ struct StandbyTemplateTests {
         #expect(StandbyTemplate.url(customPath: dir.file("custom.html").path, dataFile: dataFile) == dir.file("custom.html"))
         #expect(StandbyTemplate.url(customPath: dir.file("brak.html").path, dataFile: dataFile) == dataFile)
     }
+
+    @Test("Plansza tylko ze zwykłego pliku .html: program, pakiet .app, katalog i dowiązanie do programu są pomijane (R11-03)")
+    func customTemplateMustBeHTMLFile() throws {
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let fileManager = FileManager.default
+        try dir.write("<html>dane</html>", to: "standby.html")
+        let dataFile = dir.file("standby.html")
+        try dir.write("#!/bin/sh\n", to: "x.command")
+        try fileManager.createDirectory(at: dir.file("Plansza.app/Contents/MacOS"), withIntermediateDirectories: true)
+        try fileManager.createDirectory(at: dir.file("katalog.html"), withIntermediateDirectories: true)
+        try fileManager.createSymbolicLink(at: dir.file("link.html"), withDestinationURL: dir.file("x.command"))
+        try dir.write("<html>własny</html>", to: "WIELKIE.HTM")
+        try fileManager.createSymbolicLink(at: dir.file("dobry-link.html"), withDestinationURL: dir.file("WIELKIE.HTM"))
+
+        for name in ["x.command", "Plansza.app", "katalog.html", "link.html"] {
+            #expect(!StandbyTemplate.isHTMLFile(atPath: dir.file(name).path), "\(name)")
+            #expect(StandbyTemplate.url(customPath: dir.file(name).path, dataFile: dataFile) == dataFile, "\(name)")
+        }
+        #expect(StandbyTemplate.isHTMLFile(atPath: dir.file("WIELKIE.HTM").path))
+        #expect(StandbyTemplate.url(customPath: dir.file("WIELKIE.HTM").path, dataFile: dataFile) == dir.file("WIELKIE.HTM"))
+        #expect(StandbyTemplate.url(customPath: dir.file("dobry-link.html").path, dataFile: dataFile) == dir.file("dobry-link.html"))
+        #expect(!StandbyTemplate.isHTMLFile(atPath: ""))
+
+        // standby.html w katalogu danych też musi być zwykłym plikiem.
+        try fileManager.removeItem(at: dataFile)
+        try fileManager.createDirectory(at: dataFile, withIntermediateDirectories: true)
+        #expect(StandbyTemplate.url(customPath: "", dataFile: dataFile) == StandbyTemplate.bundledURL)
+    }
 }
 
 @Suite("Powiększenie planszy")
