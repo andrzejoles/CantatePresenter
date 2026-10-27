@@ -107,45 +107,109 @@ struct RemoteHTTPTests {
         #expect(try respond("GET /stage?t=wrong HTTP/1.1\r\n\r\n").status == 403)
     }
 
+    private static func admit(_ counter: inout RemoteConnectionCounter, _ host: String, total: Int = 32, anonymous: Int = 16,
+                              perHost: Int = 8) -> RemoteConnectionCounter.Admission? {
+        counter.admit(host: host, maxTotal: total, maxAnonymous: anonymous, maxPerHost: perHost)
+    }
+
     @Test("Licznik połączeń: limit łączny i na adres, zwolnienie miejsca (R3-05)")
-    func connectionCounter() {
+    func connectionCounter() throws {
         var counter = RemoteConnectionCounter()
-        let admitted = ["a", "a", "a", "b", "c"].map { counter.admit(host: $0, maxTotal: 3, maxAnonymous: 3, maxPerHost: 2) != nil }
-        #expect(admitted == [true, true, false, true, false])
-        counter.release(host: "a", pool: .anonymous)
+        let admitted = ["a", "a", "a", "b"].map { counter.admit(host: $0, maxTotal: 3, maxAnonymous: 3, maxPerHost: 2) }
+        #expect(admitted.map { $0 != nil } == [true, true, false, true])
+        let ids = admitted.compactMap { $0?.id }
+        #expect(Set(ids).count == 3)
+        // Wszystkie miejsca zajęte przez połączenia z żądaniem w toku: nowe jest odrzucane.
+        ids.forEach { counter.requestReceived(id: $0) }
+        #expect(counter.admit(host: "c", maxTotal: 3, maxAnonymous: 3, maxPerHost: 2) == nil)
+        counter.release(id: ids[0])
         #expect(counter.total == 2 && counter.perHost["a"] == 1)
-        let afterRelease = counter.admit(host: "c", maxTotal: 3, maxAnonymous: 3, maxPerHost: 2)
-        #expect(afterRelease == .anonymous)
-        counter.release(host: "c", pool: .anonymous)
-        counter.release(host: "b", pool: .anonymous)
-        counter.release(host: "a", pool: .anonymous)
+        let afterRelease = try #require(Self.admit(&counter, "c", total: 3, anonymous: 3, perHost: 2))
+        #expect(afterRelease.pool == .anonymous && afterRelease.evicted == nil)
+        // Podwójne zwolnienie (np. po wyrzuceniu) niczego nie psuje.
+        counter.release(id: ids[0])
+        [afterRelease.id, ids[1], ids[2]].forEach { counter.release(id: $0) }
         #expect(counter.total == 0 && counter.anonymous == 0 && counter.perHost.isEmpty)
     }
 
-    @Test("Kilka adresów bez tokenu nie zajmie miejsc telefonu z tokenem (R7-05)")
+    @Test("Kilka adresów bez tokenu nie zajmie miejsc telefonu z tokenem (R7-05); zaufanie do nowego kodu (R11-02)")
     func authorizedHostKeepsCapacity() {
         var counter = RemoteConnectionCounter()
-        let now = Date()
-        counter.markAuthorized(host: "192.168.1.20", now: now)
-        // Atakujący z 4 adresów po 8 połączeń.
+        counter.markAuthorized(host: "192.168.1.20")
+        // Atakujący z 4 adresów po 8 połączeń; połączenia wysłały żądanie, więc nie można ich wyrzucić.
         var attacker = 0
         for host in ["192.168.1.66", "192.168.1.67", "192.168.1.68", "192.168.1.69"] {
-            for _ in 0..<8 where counter.admit(host: host, maxTotal: 32, maxAnonymous: 16, maxPerHost: 8, now: now) != nil {
+            for _ in 0..<8 {
+                guard let admission = counter.admit(host: host, maxTotal: 32, maxAnonymous: 16, maxPerHost: 8) else { continue }
+                counter.requestReceived(id: admission.id)
                 attacker += 1
             }
         }
         #expect(attacker == 16)
-        let phone = (0..<8).map { _ in counter.admit(host: "192.168.1.20", maxTotal: 32, maxAnonymous: 16, maxPerHost: 8, now: now) }
-        #expect(phone.allSatisfy { $0 == .trusted })
-        // Nowy adres bez tokenu: pula anonimowa pełna.
-        #expect(counter.admit(host: "192.168.1.70", maxTotal: 32, maxAnonymous: 16, maxPerHost: 8, now: now) == nil)
-        // Zaufanie wygasa, a nowy token je cofa.
-        let later = now.addingTimeInterval(RemoteConnectionCounter.trustDuration + 1)
-        counter.release(host: "192.168.1.20", pool: .trusted)
-        #expect(counter.admit(host: "192.168.1.20", maxTotal: 32, maxAnonymous: 16, maxPerHost: 8, now: later) == nil)
-        counter.markAuthorized(host: "192.168.1.20", now: later)
+        let phone = (0..<8).map { _ in counter.admit(host: "192.168.1.20", maxTotal: 32, maxAnonymous: 16, maxPerHost: 8) }
+        #expect(phone.allSatisfy { $0?.pool == .trusted })
+        // Nowy adres bez tokenu: pula anonimowa pełna, nikogo bezczynnego do wyrzucenia.
+        #expect(counter.admit(host: "192.168.1.70", maxTotal: 32, maxAnonymous: 16, maxPerHost: 8) == nil)
+        // Zaufanie nie wygasa z czasem (telefon zablokowany na czas kazania), tylko po „Nowy kod”.
+        phone.compactMap { $0?.id }.forEach { counter.release(id: $0) }
+        #expect(counter.admit(host: "192.168.1.20", maxTotal: 32, maxAnonymous: 16, maxPerHost: 8)?.pool == .trusted)
         counter.revokeTrust()
-        #expect(counter.admit(host: "192.168.1.20", maxTotal: 32, maxAnonymous: 16, maxPerHost: 8, now: later) == nil)
+        #expect(counter.admit(host: "192.168.1.20", maxTotal: 32, maxAnonymous: 16, maxPerHost: 8) == nil)
+    }
+
+    @Test("Pełna pula anonimowa: nowe połączenie wyrzuca najstarsze bezczynne, a nie jest odrzucane (R11-02)")
+    func evictsOldestIdleAnonymous() throws {
+        var counter = RemoteConnectionCounter()
+        // Atakujący z IPv4 i jednej sieci IPv6 trzyma 16 bezczynnych połączeń.
+        var idle: [UInt64] = []
+        for host in ["192.168.1.66", "fe80:0:0:0::/64"] {
+            for _ in 0..<8 {
+                idle.append(try #require(Self.admit(&counter, host)).id)
+            }
+        }
+        // Telefon (jeszcze bez zaufania) dostaje miejsce kosztem najstarszego bezczynnego połączenia.
+        let phone = try #require(Self.admit(&counter, "192.168.1.20"))
+        #expect(phone.pool == .anonymous && phone.evicted == idle[0])
+        #expect(counter.anonymous == 16 && counter.total == 16 && counter.perHost["192.168.1.66"] == 7)
+        counter.release(id: idle[0]) // zamknięcie wyrzuconego połączenia nie zwalnia drugi raz
+        #expect(counter.anonymous == 16 && counter.total == 16)
+        // Żądanie z tokenem: odtąd telefon korzysta z puli zaufanej.
+        counter.requestReceived(id: phone.id)
+        counter.markAuthorized(host: "192.168.1.20")
+        let next = try #require(Self.admit(&counter, "192.168.1.20"))
+        #expect(next.pool == .trusted && next.evicted == nil)
+        // Połączenie telefonu z żądaniem w toku nie jest wyrzucane: kolejne nowe biorą miejsca atakującego.
+        for expected in idle[1...] {
+            #expect(counter.admit(host: "192.168.1.71", maxTotal: 32, maxAnonymous: 16, maxPerHost: 32)?.evicted == expected)
+        }
+        // Teraz bezczynne są tylko połączenia z 192.168.1.71 (najstarsze pierwsze).
+        let more = try #require(Self.admit(&counter, "192.168.1.72"))
+        #expect(more.evicted != phone.id && more.evicted != nil)
+    }
+
+    @Test("Limit łączny zajęty: zaufany telefon też wyrzuca bezczynne połączenie anonimowe (R11-02)")
+    func trustedHostEvictsWhenTotalIsFull() throws {
+        var counter = RemoteConnectionCounter()
+        counter.markAuthorized(host: "phone")
+        let anonymous = try #require(Self.admit(&counter, "a", total: 2, anonymous: 2, perHost: 2))
+        let trusted = try #require(Self.admit(&counter, "phone", total: 2, anonymous: 2, perHost: 2))
+        counter.requestReceived(id: trusted.id)
+        let second = try #require(Self.admit(&counter, "phone", total: 2, anonymous: 2, perHost: 2))
+        #expect(second.pool == .trusted && second.evicted == anonymous.id)
+        // Same zaufane połączenia: brak kogo wyrzucić.
+        #expect(counter.admit(host: "b", maxTotal: 2, maxAnonymous: 2, maxPerHost: 2) == nil)
+    }
+
+    @Test("Tabela zaufanych adresów ograniczona: usuwany najdawniej używany (R11-02)")
+    func trustedHostsAreBoundedLRU() {
+        var counter = RemoteConnectionCounter()
+        let limit = RemoteConnectionCounter.maxTrustedHosts
+        for index in 0..<limit { counter.markAuthorized(host: "host\(index)") }
+        counter.markAuthorized(host: "host0") // znów używany
+        counter.markAuthorized(host: "nowy")
+        #expect(counter.trustedHostCount == limit)
+        #expect(counter.isTrusted(host: "host0") && counter.isTrusted(host: "nowy"))
+        #expect(!counter.isTrusted(host: "host1"))
     }
 
     @Test("Adresy IPv6 liczone po prefiksie /64, IPv4 zapisane jako IPv6 jak IPv4 (R7-05)")
@@ -341,7 +405,7 @@ struct RemoteServerTests {
         #expect(server.connectedDevices() == 0)
     }
 
-    @Test("Ponad limit połączeń nowe są zamykane; po rozłączeniu serwer znów odpowiada")
+    @Test("Limit połączeń zajęty przez bezczynne: nowe wyrzuca najstarsze i dostaje odpowiedź (R11-02)")
     func connectionLimit() async throws {
         let server = RemoteControlServer(maxConnections: 2, route: { _, _, _ in .text("ok", status: 200) })
         server.start(port: 0)
@@ -354,14 +418,11 @@ struct RemoteServerTests {
         let session = URLSession(configuration: .ephemeral)
         defer { session.invalidateAndCancel() }
 
-        // Dwa połączenia bez żądania zajmują limit.
+        // Dwa połączenia bez żądania zajmują limit; przed R11-02 telefon był wtedy odrzucany.
         var idle: [NWConnection] = []
         for _ in 0..<2 { idle.append(try await Self.openIdleConnection(port: port)) }
+        defer { idle.forEach { $0.cancel() } }
         try await Task.sleep(nanoseconds: 200_000_000)
-        await #expect(throws: (any Error).self) { _ = try await session.data(from: url) }
-
-        idle.forEach { $0.cancel() }
-        try await Task.sleep(nanoseconds: 300_000_000)
         let (data, _) = try await session.data(from: url)
         #expect(String(decoding: data, as: UTF8.self) == "ok")
     }
