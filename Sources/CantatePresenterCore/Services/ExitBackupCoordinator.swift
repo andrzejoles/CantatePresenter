@@ -131,8 +131,9 @@ public final class ExitBackupCoordinator {
 
     /// Przy nieczytelnym pliku danych albo danych z nowszej wersji kopia przy zamykaniu nie pokazuje
     /// prawdziwej biblioteki; kolejne zamknięcia nie mogą wtedy wyprzeć dobrych kopii lokalnych (R6-10).
-    static func shouldPruneLocalCopies(issues: [PersistenceIssue]) -> Bool {
-        !issues.contains { $0.kind == .unreadable || $0.kind == .newerSchema }
+    /// Decyduje stan magazynu, nie lista alertów: alert znika po kliknięciu OK, a plik zostaje zablokowany (R10-01).
+    static func shouldPruneLocalCopies(store: DataStore) -> Bool {
+        !store.hasUnreadableData
     }
 
     // MARK: - Live Operations
@@ -147,7 +148,7 @@ public final class ExitBackupCoordinator {
             },
             keepLocally: { archive in
                 try keepLocally(archive, in: dataDirectory.appendingPathComponent(localBackupsDirectoryName),
-                                prune: shouldPruneLocalCopies(issues: DataStore.shared.persistenceIssues))
+                                prune: shouldPruneLocalCopies(store: DataStore.shared))
             }
         )
     }
