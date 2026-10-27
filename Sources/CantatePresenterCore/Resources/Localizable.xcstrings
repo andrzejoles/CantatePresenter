@@ -21225,6 +21225,34 @@
         }
       }
     },
+    "Zatrzymaj pełny ekran, aby zmienić ekran projekcji": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop full screen to change the projection screen"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vollbild beenden, um den Projektionsbildschirm zu ändern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detén la pantalla completa para cambiar la pantalla de proyección"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вийдіть з повного екрана, щоб змінити екран проєкції"
+          }
+        }
+      }
+    },
     "Zatrzymaj prezentację": {
       "localizations": {
         "en": {
