@@ -248,6 +248,34 @@ struct HolyricsJavaDeserializerTests {
         #expect(ContinuousClock.now - start < .seconds(5))
     }
 
+    /// R10-08: pieśni są zbierane z listy (i obiektów) najwyższego poziomu; referencja do pieśni odczytanej
+    /// wcześniej nic nie dodaje (R7-03). Pieśń zapisana najpierw w polu innego obiektu, a potem tylko wskazana
+    /// referencją z listy, nie trafia więc do wyniku. Prawdziwy eksport Holyrics tak nie wygląda: to `ArrayList`
+    /// obiektów `Music`, każdy zapisany w liście w całości, a klasa `Music` nie ma pól typu `Music` (same napisy,
+    /// liczby, `List order`, `String[]`). Ten sam wynik (901 pieśni) dają stary i nowy deserializer na prawdziwym pliku.
+    @Test("Referencja z listy do pieśni zapisanej wcześniej w polu innego obiektu nic nie dodaje (R10-08)")
+    func referenceToSongReadInsideAnotherObject() throws {
+        var s = JavaStream()
+        // h0: opis klasy Wrapper, h1: typ pola, h2: obiekt Wrapper
+        s.u8(0x73); s.u8(0x72); s.utf("Wrapper"); s.u64(0); s.u8(0x02); s.u16(1)
+        s.u8(UInt8(ascii: "L")); s.utf("favorite"); s.string("Ljava/lang/Object;")
+        s.u8(0x78); s.u8(0x70)
+        // Pole `favorite`: h3 opis Music, h4 typ pola, h5 obiekt Music, h6 tekst
+        s.u8(0x73); musicClassDescriptor(into: &s)
+        s.string("Pan kiedyś stanął nad brzegiem")
+        // h7: opis ArrayList, h8: lista z referencją do h5
+        s.u8(0x73); s.u8(0x72); s.utf("java.util.ArrayList"); s.u64(0); s.u8(0x03); s.u16(1)
+        s.u8(UInt8(ascii: "I")); s.utf("size"); s.u8(0x78); s.u8(0x70)
+        s.u32(1); s.u8(0x77); s.u8(4); s.u32(1)
+        s.reference(5)
+        s.u8(0x78)
+
+        let result = HolyricsJavaDeserializer(data: Data(s.bytes)).deserializeMusicRecordsPartially()
+
+        #expect(result.error == nil)
+        #expect(result.records.isEmpty)
+    }
+
     @Test("Opis klasy z nieznanym typem pola: szybki błąd (R7-03)")
     func unknownFieldTypeIsRejected() {
         var s = JavaStream()
