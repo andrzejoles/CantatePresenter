@@ -473,7 +473,11 @@ extension AppDelegate: NSMenuItemValidation {
             #selector(exportFolderAction),
             #selector(openUserManualAction),
             #selector(showAboutPanelAction),
-            #selector(installToApplicationsAction)
+            #selector(installToApplicationsAction),
+            // Okno Sparkle, TextEdit i przeglądarka też byłyby pod oknem projekcji (R12-03).
+            #selector(UpdateService.checkForUpdates(_:)),
+            #selector(openInstructionMarkdownAction),
+            #selector(openGitHubProjectAction)
         ]
         if let action, opensOverMainWindow.contains(action), hasAttachedSheet {
             return false

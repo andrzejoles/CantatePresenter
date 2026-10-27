@@ -54,3 +54,47 @@ struct UpdateConfigurationTests {
         #expect(!script.contains("com.apple.security.cs.allow-dyld-environment-variables"))
     }
 }
+
+// MARK: - R12-03: aktualizacje a projekcja
+
+@MainActor
+@Suite("Aktualizacje w trakcie projekcji (R12-03)")
+struct UpdatePresentationPolicyTests {
+    @Test("Zaplanowane sprawdzenie czeka do końca projekcji, polecenie z menu nie")
+    func scheduledCheckWaits() {
+        #expect(!UpdatePresentationPolicy.mayCheck(userInitiated: false, isProjecting: true))
+        #expect(UpdatePresentationPolicy.mayCheck(userInitiated: false, isProjecting: false))
+        #expect(UpdatePresentationPolicy.mayCheck(userInitiated: true, isProjecting: true))
+    }
+
+    @Test("Sparkle pokazuje wydanie sam tylko od razu i poza projekcją; resztę odkłada UpdateService")
+    func scheduledAlertDeferred() {
+        #expect(UpdatePresentationPolicy.sparkleShowsScheduledUpdate(immediateFocus: true, isProjecting: false))
+        #expect(!UpdatePresentationPolicy.sparkleShowsScheduledUpdate(immediateFocus: true, isProjecting: true))
+        // Sparkle czekałby na aktywację aplikacji, która może przyjść w trakcie projekcji.
+        #expect(!UpdatePresentationPolicy.sparkleShowsScheduledUpdate(immediateFocus: false, isProjecting: false))
+        #expect(UpdatePresentationPolicy.showsPendingUpdate(appIsActive: true, isProjecting: false))
+        #expect(!UpdatePresentationPolicy.showsPendingUpdate(appIsActive: true, isProjecting: true))
+        #expect(!UpdatePresentationPolicy.showsPendingUpdate(appIsActive: false, isProjecting: false))
+    }
+
+    @Test("„Sprawdź uaktualnienia...” wyłączone w trakcie sprawdzania i pod oknem projekcji")
+    func menuItem() {
+        #expect(UpdatePresentationPolicy.isCheckMenuItemEnabled(canCheckForUpdates: true, presentationCoversMainWindow: false))
+        #expect(!UpdatePresentationPolicy.isCheckMenuItemEnabled(canCheckForUpdates: false, presentationCoversMainWindow: false))
+        #expect(!UpdatePresentationPolicy.isCheckMenuItemEnabled(canCheckForUpdates: true, presentationCoversMainWindow: true))
+    }
+
+    @Test("Metody delegatów mają selektory, które wywołuje Sparkle 2.10")
+    func delegateSelectors() {
+        let service = UpdateService.shared
+        for selector in ["updater:mayPerformUpdateCheck:error:",
+                         "supportsGentleScheduledUpdateReminders",
+                         "standardUserDriverShouldHandleShowingScheduledUpdate:andInImmediateFocus:",
+                         "standardUserDriverWillHandleShowingUpdate:forUpdate:state:",
+                         "standardUserDriverDidReceiveUserAttentionForUpdate:",
+                         "standardUserDriverWillFinishUpdateSession"] {
+            #expect(service.responds(to: NSSelectorFromString(selector)), "\(selector)")
+        }
+    }
+}

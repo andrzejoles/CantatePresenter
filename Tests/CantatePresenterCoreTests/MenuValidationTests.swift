@@ -35,7 +35,7 @@ struct MenuValidationTests {
     func projectionOnOperatorScreenDisablesWindows() {
         let opening = ["quickTextAction", "importAction", "createBackupAction", "restoreBackupAction", "focusSongSearchAction",
                        "undoRestoreAction", "exportJSONAction", "exportFolderAction", "openUserManualAction", "showAboutPanelAction",
-                       "installToApplicationsAction"]
+                       "installToApplicationsAction", "checkForUpdates:", "openInstructionMarkdownAction", "openGitHubProjectAction"]
         for action in opening {
             #expect(!AppDelegate.isMenuItemEnabled(action: NSSelectorFromString(action), hasAttachedSheet: false, canUndoRestore: true, presentationCoversMainWindow: true), "\(action)")
             #expect(AppDelegate.isMenuItemEnabled(action: NSSelectorFromString(action), hasAttachedSheet: false, canUndoRestore: true, presentationCoversMainWindow: false), "\(action)")
