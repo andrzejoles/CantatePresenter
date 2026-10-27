@@ -110,16 +110,53 @@ struct RemoteHTTPTests {
     @Test("Licznik połączeń: limit łączny i na adres, zwolnienie miejsca (R3-05)")
     func connectionCounter() {
         var counter = RemoteConnectionCounter()
-        let admitted = ["a", "a", "a", "b", "c"].map { counter.admit(host: $0, maxTotal: 3, maxPerHost: 2) }
+        let admitted = ["a", "a", "a", "b", "c"].map { counter.admit(host: $0, maxTotal: 3, maxAnonymous: 3, maxPerHost: 2) != nil }
         #expect(admitted == [true, true, false, true, false])
-        counter.release(host: "a")
+        counter.release(host: "a", pool: .anonymous)
         #expect(counter.total == 2 && counter.perHost["a"] == 1)
-        let afterRelease = counter.admit(host: "c", maxTotal: 3, maxPerHost: 2)
-        #expect(afterRelease)
-        counter.release(host: "c")
-        counter.release(host: "b")
-        counter.release(host: "a")
-        #expect(counter.total == 0 && counter.perHost.isEmpty)
+        let afterRelease = counter.admit(host: "c", maxTotal: 3, maxAnonymous: 3, maxPerHost: 2)
+        #expect(afterRelease == .anonymous)
+        counter.release(host: "c", pool: .anonymous)
+        counter.release(host: "b", pool: .anonymous)
+        counter.release(host: "a", pool: .anonymous)
+        #expect(counter.total == 0 && counter.anonymous == 0 && counter.perHost.isEmpty)
+    }
+
+    @Test("Kilka adresów bez tokenu nie zajmie miejsc telefonu z tokenem (R7-05)")
+    func authorizedHostKeepsCapacity() {
+        var counter = RemoteConnectionCounter()
+        let now = Date()
+        counter.markAuthorized(host: "192.168.1.20", now: now)
+        // Atakujący z 4 adresów po 8 połączeń.
+        var attacker = 0
+        for host in ["192.168.1.66", "192.168.1.67", "192.168.1.68", "192.168.1.69"] {
+            for _ in 0..<8 where counter.admit(host: host, maxTotal: 32, maxAnonymous: 16, maxPerHost: 8, now: now) != nil {
+                attacker += 1
+            }
+        }
+        #expect(attacker == 16)
+        let phone = (0..<8).map { _ in counter.admit(host: "192.168.1.20", maxTotal: 32, maxAnonymous: 16, maxPerHost: 8, now: now) }
+        #expect(phone.allSatisfy { $0 == .trusted })
+        // Nowy adres bez tokenu: pula anonimowa pełna.
+        #expect(counter.admit(host: "192.168.1.70", maxTotal: 32, maxAnonymous: 16, maxPerHost: 8, now: now) == nil)
+        // Zaufanie wygasa, a nowy token je cofa.
+        let later = now.addingTimeInterval(RemoteConnectionCounter.trustDuration + 1)
+        counter.release(host: "192.168.1.20", pool: .trusted)
+        #expect(counter.admit(host: "192.168.1.20", maxTotal: 32, maxAnonymous: 16, maxPerHost: 8, now: later) == nil)
+        counter.markAuthorized(host: "192.168.1.20", now: later)
+        counter.revokeTrust()
+        #expect(counter.admit(host: "192.168.1.20", maxTotal: 32, maxAnonymous: 16, maxPerHost: 8, now: later) == nil)
+    }
+
+    @Test("Adresy IPv6 liczone po prefiksie /64, IPv4 zapisane jako IPv6 jak IPv4 (R7-05)")
+    func connectionBuckets() {
+        #expect(RemoteConnectionCounter.bucket(forHost: "192.168.1.5") == "192.168.1.5")
+        #expect(RemoteConnectionCounter.bucket(forHost: "::ffff:192.168.1.5") == "192.168.1.5")
+        #expect(RemoteConnectionCounter.bucket(forHost: "fe80::1%en0") == RemoteConnectionCounter.bucket(forHost: "fe80::abcd:2%en0"))
+        #expect(RemoteConnectionCounter.bucket(forHost: "2001:db8:1:2::5") == "2001:db8:1:2::/64")
+        #expect(RemoteConnectionCounter.bucket(forHost: "2001:db8:1:2:aaaa:bbbb:cccc:dddd") == "2001:db8:1:2::/64")
+        #expect(RemoteConnectionCounter.bucket(forHost: "2001:db8:1:3::5") != "2001:db8:1:2::/64")
+        #expect(RemoteConnectionCounter.bucket(forHost: "not an address") == "not an address")
     }
 
     @Test("Token: 128 bitów, bez znaków wymagających kodowania w adresie")
