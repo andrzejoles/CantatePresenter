@@ -202,7 +202,9 @@ done
 for RESOURCE_PLIST in "$RESOURCES_DIR/CantatePresenter_CantatePresenterCore.bundle/Contents/Info.plist" \
     "$RESOURCES_DIR/CantatePresenter_CantatePresenterCore.bundle/Info.plist"; do
     if [ -f "$RESOURCE_PLIST" ]; then
-        /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.cantate.presenter.core-resources" "$RESOURCE_PLIST"
+        # Płaska paczka z natywnego systemu budowania może nie mieć tego klucza wcale.
+        /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.cantate.presenter.core-resources" "$RESOURCE_PLIST" 2>/dev/null \
+            || /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.cantate.presenter.core-resources" "$RESOURCE_PLIST"
     fi
 done
 
