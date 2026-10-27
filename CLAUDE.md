@@ -66,7 +66,7 @@ Kolejność, jeden PR na etap:
 2. **Kopie i importy**: W2 (backup w `applicationShouldTerminate` z `.terminateLater`), W3 + W4 (OAuth loopback + PKCE, tokeny w Pęku kluczy), W6 (zabezpieczenia deserializera), W7 + S7 (transpozycja, nagłówki sekcji), S3–S6.
 3. **Jakość**: S2 (`@Observable`, podział `DataStore`, cache wyszukiwania i Auto-Fit), N1 (wspólny `SlideTextView`), S10 (String Catalog), CI, porządki (N9, N10, S11).
 
-Etapy 1–3 scalone (PR #1–#4). Druga runda przeglądu (2026-10-26, ID R1–R4 w commitach): PR #33.
+Etapy 1–3 scalone (PR #1–#4). Druga runda przeglądu (2026-10-26, ID R1–R4 w commitach): PR #33. Trzecia runda (2026-10-27, ID R5–R8): PR #34.
 
 ## Do zrobienia
 
