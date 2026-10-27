@@ -60,7 +60,7 @@ starym SDK (na macOS 26+ bez nowego wyglądu).
 
 Aplikacja sprawdza raz dziennie plik `appcast.xml` z ostatniego wydania na GitHubie
 (`https://github.com/andrzejoles/CantatePresenter/releases/latest/download/appcast.xml`); menu
-„Sprawdź uaktualnienia…” robi to od razu. Aktualizacja jest podpisana kluczem EdDSA, więc nikt poza
+„Sprawdź uaktualnienia...” robi to od razu (poza projekcją; zaplanowane sprawdzenie i okno aktualizacji czekają do jej końca, R12-03). Aktualizacja jest podpisana kluczem EdDSA, więc nikt poza
 właścicielem klucza nie podsunie aplikacji innego pliku. Podpisany jest też sam `appcast.xml`
 (`SURequireSignedFeed`, `SUVerifyUpdateBeforeExtraction`, R3-09): zmieniony na GitHubie kanał (opis, odnośniki,
 wersje) jest odrzucany, a archiwum jest sprawdzane przed rozpakowaniem. `generate_appcast` podpisuje kanał sam,
