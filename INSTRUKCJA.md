@@ -40,11 +40,13 @@ Okno główne programu podzielone jest na 3 intuicyjne strefy:
 
 ### Prezentacja na pojedynczym ekranie (Single-Screen Mode)
 * Bez zewnętrznego ekranu przycisk **Prezentuj na pełnym ekranie** zakrywa ekran Twojego Maca. Program nie uruchamia pełnego ekranu sam.
+* Tak samo działa projekcja przy dwóch ekranach, gdy w **Ekrany i Projektor** wybierzesz ekran, na którym jest okno główne: pełny ekran je zakrywa, a `Esc` od razu go zamyka.
 * **Wyjście z prezentacji**: klawisz **`Esc`** zamyka pełny ekran, kończy projekcję i wraca do okna głównego.
 * Na starcie pełnego ekranu wyświetla się na chwilę podpowiedź o klawiszu `Esc`.
 * Dopóki pełny ekran zakrywa okno główne (także przy obrazie lustrzanym na projektorze), polecenia menu otwierające okna i arkusze (np. **Szybki tekst**, **Importuj pieśni...**, kopia zapasowa, **Szukaj pieśni**) są nieaktywne, bo okno zostałoby pod projekcją. Najpierw zakończ projekcję klawiszem `Esc`. Pytanie przy zamykaniu programu (`⌘Q`) jest widoczne nad projekcją.
 
 ### Esc przy dwóch ekranach
+* Dotyczy projekcji na innym ekranie niż okno główne.
 * Okno główne zostaje aktywne, a klawisze działają w nim jak zwykle. **`Esc`** gasi tekst: projektor pokazuje planszę czuwania, okno projekcji zostaje otwarte.
 * Jeśli klikniesz okno na projektorze, pierwsze **`Esc`** w nim gasi tekst, a dopiero drugie zamyka okno projekcji.
 * Okno projekcji zamyka też przycisk **Zatrzymaj pełny ekran** w prawym panelu.

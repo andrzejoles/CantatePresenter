@@ -173,11 +173,12 @@ public enum KeyboardRouter {
 extension KeyboardRouter {
     /// Czy zatrzymanie projekcji (Esc) ma też zamknąć okno projekcji (R4-02).
     ///
-    /// Jeden ekran: tak, bo okno projekcji zasłania okno główne. Dwa ekrany: z okna głównego nigdy
-    /// (projektor pokazuje planszę); w oknie projekcji dopiero drugie Esc, gdy tekst jest już zgaszony,
-    /// żeby jedno przypadkowe Esc nie pokazało zgromadzeniu pulpitu projektora.
-    public static func stopClosesPresentationWindow(screenCount: Int, context: Context, isLive: Bool) -> Bool {
-        if screenCount <= 1 { return true }
+    /// Jeden ekran: tak, bo okno projekcji zasłania okno główne; tak samo przy dwóch ekranach, gdy projekcja
+    /// jest na ekranie okna głównego (`ScreenManager.presentationCoversMainWindow`, R12-07). Dwa ekrany:
+    /// z okna głównego nigdy (projektor pokazuje planszę); w oknie projekcji dopiero drugie Esc, gdy tekst
+    /// jest już zgaszony, żeby jedno przypadkowe Esc nie pokazało zgromadzeniu pulpitu projektora.
+    public static func stopClosesPresentationWindow(screenCount: Int, coversMainWindow: Bool = false, context: Context, isLive: Bool) -> Bool {
+        if screenCount <= 1 || coversMainWindow { return true }
         return context == .presentationWindow && !isLive
     }
 }
@@ -423,7 +424,7 @@ public final class KeyboardMonitor {
             }
         case .stopPresentation:
             if screenManager.isPresentationActive,
-               KeyboardRouter.stopClosesPresentationWindow(screenCount: NSScreen.screens.count, context: context, isLive: store.isLive) {
+               KeyboardRouter.stopClosesPresentationWindow(screenCount: NSScreen.screens.count, coversMainWindow: screenManager.presentationCoversMainWindow, context: context, isLive: store.isLive) {
                 screenManager.stopPresentation()
             }
             store.stopLive()

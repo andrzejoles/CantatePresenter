@@ -340,7 +340,7 @@ final class AppKitPresentationWindowHost: PresentationWindowHost {
     }
     
     func open(on screen: NSScreen?, frame: CGRect, takesKeyboard: Bool) {
-        let hostingController = NSHostingController(rootView: PresentationContentView())
+        let hostingController = NSHostingController(rootView: PresentationContentView(coversMainWindow: takesKeyboard))
         let window = PresentationWindow(
             contentRect: frame,
             styleMask: [.borderless],

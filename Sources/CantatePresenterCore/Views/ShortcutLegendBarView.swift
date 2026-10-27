@@ -170,7 +170,7 @@ public struct ShortcutLegendBarView: View {
                         heightFactor: heightFactor,
                         action: {
                             if ScreenManager.shared.isPresentationActive,
-                               KeyboardRouter.stopClosesPresentationWindow(screenCount: NSScreen.screens.count, context: .mainWindow(focus: .other), isLive: store.isLive) {
+                               KeyboardRouter.stopClosesPresentationWindow(screenCount: NSScreen.screens.count, coversMainWindow: ScreenManager.shared.presentationCoversMainWindow, context: .mainWindow(focus: .other), isLive: store.isLive) {
                                 ScreenManager.shared.stopPresentation()
                             }
                             store.stopLive()
