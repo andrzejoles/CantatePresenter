@@ -24,6 +24,14 @@ jobs:
         with:
           fetch-depth: 0 # build_app.sh liczy numer kompilacji z historii (N10)
 
+      # Nierozwiązany konflikt scalania trafił raz do main w README i CLAUDE.md (R12-01).
+      - name: No merge conflict markers
+        run: |
+          if git grep -n -E '^(<<<<<<<|>>>>>>>)( |$)|^=======$' -- . ':!*.xcstrings'; then
+            echo "::error::Znaczniki konfliktu scalania w repozytorium"
+            exit 1
+          fi
+
       - name: Select the newest Xcode (no betas)
         run: |
           # Bety (Xcode_27_beta.app, Xcode-beta.app) pomijane, żeby CI nie przechodziło na nie po cichu (R1-04).

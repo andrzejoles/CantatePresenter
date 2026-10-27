@@ -135,11 +135,7 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 
 ### 17. 🌐 Wielojęzyczność i tłumaczenie dla Agenta AI
 - Wbudowane języki interfejsu (Polski, English, Deutsch, Español, Українська).
-<<<<<<< HEAD
-- Eksport słownika interfejsu do pliku JSON (`cantate_translations_<język>.json`) z opisami kontekstu każdego elementu dla agentów AI i tłumaczy.
-=======
-- Eksport słownika interfejsu do pliku JSON z precyzyjnymi opisami kontekstu każdego elementu dla agentów AI i tłumaczy (Ustawienia, generowany z aktualnego katalogu tekstów).
->>>>>>> worktree-agent-a675bed59a4914cd0
+- Eksport słownika interfejsu do pliku JSON (`cantate_translations_<język>.json`, w Ustawieniach, generowany z aktualnego katalogu tekstów) z opisami kontekstu każdego elementu dla agentów AI i tłumaczy.
 - Import przetłumaczonego pliku JSON i natychmiastowa aktywacja nowego języka w interfejsie.
 
 ### 18. 🎵 Ekran dla muzyków
