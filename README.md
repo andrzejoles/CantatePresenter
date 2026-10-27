@@ -192,4 +192,4 @@ Podatności zgłaszaj prywatnie przez zakładkę **Security** → **Report a vul
 
 ## Licencja
 
-CantatePresenter jest udostępniany na licencji MIT (plik [LICENSE](LICENSE)). Biblioteka Sparkle (aktualizacje macOS) ma własną licencję MIT. Teksty pieśni w bibliotece użytkownika i w kopiach zapasowych nie są objęte licencją programu; ich prawa autorskie i licencje (np. CCLI) pozostają po stronie autorów i wydawców.
+CantatePresenter jest udostępniany na licencji MIT (plik [LICENSE](LICENSE)). Biblioteka Sparkle (aktualizacje macOS) ma własną licencję MIT; jej tekst (z licencjami użytych przez nią bibliotek) jest w aplikacji (`Contents/Resources/LICENSE-Sparkle.txt`) i w każdym wydaniu. Teksty pieśni w bibliotece użytkownika i w kopiach zapasowych nie są objęte licencją programu; ich prawa autorskie i licencje (np. CCLI) pozostają po stronie autorów i wydawców.
