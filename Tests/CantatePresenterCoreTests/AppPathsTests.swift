@@ -156,6 +156,16 @@ struct AppPathsTests {
         #expect(legacy.path == "/repo/data")
     }
 
+    @Test("Pakiet zbudowany w build.noindex szuka starych danych w katalogu repozytorium")
+    func legacyDirectoryForBuildFolder() {
+        let legacy = AppPaths.legacyDataDirectory(
+            bundleURL: URL(fileURLWithPath: "/repo/build.noindex/CantatePresenter.app"),
+            currentDirectory: URL(fileURLWithPath: "/")
+        )
+
+        #expect(legacy.path == "/repo/data")
+    }
+
     @Test("Nieudana migracja: aplikacja zostaje przy starym katalogu, żeby nie zacząć od pustej biblioteki")
     func failedMigrationFallsBackToLegacy() throws {
         let dir = try TestDirectory()

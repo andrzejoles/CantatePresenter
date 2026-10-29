@@ -64,5 +64,5 @@ jobs:
       - name: Package the app (no Google OAuth client in CI)
         run: |
           ./build_app.sh
-          codesign --verify --strict CantatePresenter.app
+          codesign --verify --strict build.noindex/CantatePresenter.app
 

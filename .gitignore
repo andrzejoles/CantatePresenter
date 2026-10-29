@@ -1,6 +1,7 @@
 .build/
 .swiftpm/
 CantatePresenter.app/
+build.noindex/
 *.app/
 *.xcodeproj
 *.xcworkspace

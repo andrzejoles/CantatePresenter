@@ -8,4 +8,4 @@ cd "$DIR"
 ./build_app.sh
 
 echo "Uruchamianie CantatePresenter..."
-open "$DIR/CantatePresenter.app"
+open "$DIR/build.noindex/CantatePresenter.app"

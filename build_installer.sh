@@ -6,6 +6,7 @@ cd "$DIR"
 
 VERSION="$("$DIR/scripts/version.sh")"
 APP_NAME="CantatePresenter.app"
+APP_DIR="$DIR/build.noindex/$APP_NAME"
 DIST_DIR="$DIR/dist"
 
 echo "=========================================================="
@@ -35,7 +36,7 @@ trap 'rm -rf "$PKG_ROOT" "$COMPONENT_PLIST" "$STAGING_DIR"' EXIT
 chmod 755 "$PKG_ROOT" "$STAGING_DIR"
 # Pakiet nieprzenoszalny (R3-11): Instalator zawsze kładzie aplikację w /Applications, zamiast „uaktualniać”
 # kopię z tym samym identyfikatorem znalezioną gdzie indziej (np. w Pobranych).
-ditto "$DIR/$APP_NAME" "$PKG_ROOT/$APP_NAME"
+ditto "$APP_DIR" "$PKG_ROOT/$APP_NAME"
 pkgbuild --analyze --root "$PKG_ROOT" "$COMPONENT_PLIST" >/dev/null
 /usr/bin/plutil -replace 0.BundleIsRelocatable -bool NO "$COMPONENT_PLIST"
 pkgbuild --root "$PKG_ROOT" \
@@ -52,7 +53,7 @@ echo ""
 echo "[3/4] Przygotowywanie obrazu dysku DMG..."
 DMG_OUTPUT="$DIST_DIR/CantatePresenter-$VERSION.dmg"
 # Kopiowanie aplikacji
-cp -R "$DIR/$APP_NAME" "$STAGING_DIR/"
+cp -R "$APP_DIR" "$STAGING_DIR/"
 
 # Skrót do folderu Programy
 ln -s /Applications "$STAGING_DIR/Przeciągnij do Programy (Applications)"

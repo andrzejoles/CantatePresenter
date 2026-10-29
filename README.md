@@ -15,7 +15,7 @@ Możesz uruchomić aplikację na dwa sposoby:
    ./run.sh
    ```
 2. **Bezpośrednio z Findera**:
-   Kliknij dwukrotnie w plik aplikacji **`CantatePresenter.app`** w folderze projektu.
+   Kliknij dwukrotnie w plik aplikacji **`CantatePresenter.app`** w folderze `build.noindex` projektu (Spotlight pomija ten folder, więc w panelu Aplikacje widać tylko kopię zainstalowaną w Programach).
 
 Jeżeli chcesz ponownie przebudować aplikację po edycji kodu:
 ```bash
@@ -164,7 +164,7 @@ Struktura repozytorium (dane użytkownika aplikacja trzyma w `~/Library/Applicat
 ```
 CantatePresenter/
 ├── Package.swift          # Konfiguracja Swift Package Manager
-├── build_app.sh           # Skrypt budujący CantatePresenter.app (pakiet nie jest w repozytorium)
+├── build_app.sh           # Skrypt budujący build.noindex/CantatePresenter.app (pakiet nie jest w repozytorium)
 ├── build_installer.sh     # Instalator PKG i obraz DMG do dist/
 ├── run.sh                 # Skrypt uruchamiający
 ├── data/                  # Stara lokalizacja danych: przykłady dla dewelopera i źródło migracji (nie trafia do aplikacji)
