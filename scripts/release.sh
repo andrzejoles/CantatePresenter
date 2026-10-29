@@ -34,7 +34,7 @@ echo "Czekam na CI ($RUN_ID)..."
 gh run watch "$RUN_ID" --exit-status >/dev/null || { echo "CI dla $SHA nie przeszło" >&2; exit 1; }
 
 ./build_installer.sh
-ditto -c -k --sequesterRsrc --keepParent CantatePresenter.app "$RELEASE_DIR/CantatePresenter-$VERSION.zip"
+ditto -c -k --sequesterRsrc --keepParent build.noindex/CantatePresenter.app "$RELEASE_DIR/CantatePresenter-$VERSION.zip"
 
 # Lista zmian: tytuły scalonych PR od poprzedniego wydania (pierwszy niepusty wiersz opisu commita scalającego,
 # a bez opisu temat ostatniego commita gałęzi PR), najwyżej 40.
@@ -88,7 +88,7 @@ NOTES
 
 # Licencja Sparkle z gotowej aplikacji (build_app.sh przerywa budowanie bez niej, R9-02). Kopiowana po
 # generate_appcast, żeby narzędzie widziało w katalogu tylko archiwum i opis zmian.
-SPARKLE_LICENSE="$ROOT/CantatePresenter.app/Contents/Resources/LICENSE-Sparkle.txt"
+SPARKLE_LICENSE="$ROOT/build.noindex/CantatePresenter.app/Contents/Resources/LICENSE-Sparkle.txt"
 [ -f "$SPARKLE_LICENSE" ] || { echo "Brak $SPARKLE_LICENSE (licencja Sparkle)" >&2; exit 1; }
 cp "$SPARKLE_LICENSE" "$RELEASE_DIR/LICENSE-Sparkle.txt"
 

@@ -18,13 +18,22 @@ SDK_VERSION="$(xcrun --sdk macosx --show-sdk-version)"
 swift build -c release -Xlinker -platform_version -Xlinker macos -Xlinker "$MIN_MACOS" -Xlinker "$SDK_VERSION"
 
 APP_NAME="CantatePresenter.app"
-APP_DIR="$DIR/$APP_NAME"
+# Pakiet powstaje w katalogu z końcówką .noindex: Spotlight go pomija, więc kopia robocza nie pojawia się
+# w panelu Aplikacje obok zainstalowanej w /Applications.
+BUILD_DIR="$DIR/build.noindex"
+APP_DIR="$BUILD_DIR/$APP_NAME"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
 
 echo "=== Tworzenie pakietu aplikacji $APP_NAME ==="
 rm -rf "$APP_DIR"
+# Starsze wersje skryptu budowały pakiet w katalogu głównym repozytorium; ta kopia była widoczna w panelu Aplikacje.
+OLD_APP_DIR="$DIR/$APP_NAME"
+if [ -d "$OLD_APP_DIR" ]; then
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$OLD_APP_DIR" || true
+    rm -rf "$OLD_APP_DIR"
+fi
 mkdir -p "$MACOS_DIR"
 mkdir -p "$RESOURCES_DIR"
 

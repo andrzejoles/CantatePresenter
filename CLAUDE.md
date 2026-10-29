@@ -7,9 +7,9 @@ Natywna aplikacja macOS (Apple Silicon, macOS 14+) do projekcji tekstów pieśni
 ```bash
 swift build                 # szybka kompilacja debug, sprawdzaj po każdej zmianie
 swift build -c release      # build release (używany przez build_app.sh)
-./build_app.sh              # składa CantatePresenter.app (Info.plist inline + InfoPlist.strings pl/en/de/es/uk, podpis ad-hoc z Hardened Runtime)
+./build_app.sh              # składa build.noindex/CantatePresenter.app (Info.plist inline + InfoPlist.strings pl/en/de/es/uk, podpis ad-hoc z Hardened Runtime)
 ./run.sh                    # buduje .app (przyrostowo) i uruchamia
-open CantatePresenter.app   # uruchomienie już zbudowanej aplikacji
+open build.noindex/CantatePresenter.app   # uruchomienie już zbudowanej aplikacji
 ./build_installer.sh        # PKG + DMG do dist/
 scripts/version.sh          # wersja: (1 + PR/10).(PR mod 10).(commity od ostatniego scalonego PR)
 xed .                       # otwarcie pakietu w Xcode
@@ -19,8 +19,9 @@ gh run list --limit 3       # wyniki CI (gh zalogowane, token z uprawnieniem wor
 
 - `swift run` działa, ale mikrofon/dyktowanie nie mają wtedy uprawnień (brak Info.plist). Do sprawdzania funkcji używaj `./build_app.sh` + `open`.
 - Logowanie Google: `build_app.sh` wbudowuje klienta OAuth (typ „Aplikacja komputerowa”, projekt `CantatePresenter` w Google Cloud Console) z pliku `google-oauth-client.json` w katalogu głównym (albo `$GOOGLE_OAUTH_CLIENT_JSON`) do Info.plist (`CantateGoogleClientID`, `CantateGoogleClientSecret`). Plik jest w `.gitignore`; nigdy go nie commituj ani nie wypisuj jego zawartości. Bez pliku przycisk logowania jest nieaktywny. Aplikacja jest niezweryfikowana: logować mogą się tylko użytkownicy testowi dodani w konsoli (do 100).
-- Próby na kopii danych: `CANTATE_DATA_DIR=/ścieżka/do/kopii CantatePresenter.app/Contents/MacOS/CantatePresenter`. Zmiana `HOME` **nie** przekierowuje Application Support.
+- Próby na kopii danych: `CANTATE_DATA_DIR=/ścieżka/do/kopii build.noindex/CantatePresenter.app/Contents/MacOS/CantatePresenter`. Zmiana `HOME` **nie** przekierowuje Application Support.
 - Numer wersji nie jest nigdzie zapisany ręcznie (decyzja właściciela 2026-10-16): `scripts/version.sh` liczy scalone PR (commity „Merge pull request #” w historii pierwszego rodzica) i commity od ostatniego z nich: 8 PR + 3 commity = 1.8.3, 10 PR = 2.0.0. PR scalaj zwykłym „Merge pull request” (nie squash), inaczej się nie policzy. Numer kompilacji to liczba wszystkich commitów. Pliku `VERSION` nie ma w repozytorium. CI potrzebuje pełnej historii (`fetch-depth: 0`).
+- Pakiet powstaje w `build.noindex/`: Spotlight pomija katalogi z końcówką `.noindex`, więc kopia robocza nie dubluje aplikacji z `/Applications` w panelu Aplikacje. Nie przenoś wyniku budowania z powrotem do katalogu głównego. `build_app.sh` usuwa i wyrejestrowuje starą kopię `CantatePresenter.app` z katalogu głównego. Stare dane `data/` są szukane w katalogu repozytorium (`AppPaths.legacyDataDirectory`).
 - Nie ma lintera ani formatera w projekcie. Trzymaj się stylu istniejącego kodu.
 
 ## Architektura
@@ -119,7 +120,7 @@ Cel testowy `CantatePresenterCoreTests` (katalog `Tests/CantatePresenterCoreTest
 ## Weryfikacja zmian
 
 - Po każdej zmianie: `swift build`, a gdy istnieją testy, `swift test`.
-- Zmiany w UI, klawiaturze, oknach lub projekcji sprawdzaj w działającej aplikacji (`./build_app.sh && open CantatePresenter.app`). Bez drugiego monitora użyj „Otwórz okno testowe” w prawym panelu.
+- Zmiany w UI, klawiaturze, oknach lub projekcji sprawdzaj w działającej aplikacji (`./build_app.sh && open build.noindex/CantatePresenter.app`). Bez drugiego monitora użyj „Otwórz okno testowe” w prawym panelu.
 - Scenariusze do ręcznego sprawdzenia przy K3/W5: Esc przy otwartym arkuszu Ustawień w trakcie projekcji nie może zatrzymać projekcji; Enter w arkuszu nie może jej uruchomić; strzałki na liście pieśni zmieniają zaznaczenie.
 - Przed testami na prawdziwej bibliotece zrób kopię `~/Library/Application Support/CantatePresenter`, a najlepiej pracuj na kopii przez `CANTATE_DATA_DIR`.
 

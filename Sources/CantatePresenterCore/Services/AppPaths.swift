@@ -140,9 +140,16 @@ public struct AppPaths: Equatable, Sendable {
         }
     }
 
-    /// Stara lokalizacja: `data/` obok pakietu .app, a bez pakietu (`swift run`) w bieżącym katalogu.
+    /// Katalog, w którym `build_app.sh` składa pakiet (poza indeksem Spotlightu).
+    static let buildFolderName = "build.noindex"
+
+    /// Stara lokalizacja: `data/` obok pakietu .app (dla pakietu z `build.noindex` w katalogu repozytorium),
+    /// a bez pakietu (`swift run`) w bieżącym katalogu.
     static func legacyDataDirectory(bundleURL: URL, currentDirectory: URL) -> URL {
-        let projectFolder = bundleURL.pathExtension == "app" ? bundleURL.deletingLastPathComponent() : currentDirectory
+        var projectFolder = bundleURL.pathExtension == "app" ? bundleURL.deletingLastPathComponent() : currentDirectory
+        if projectFolder.lastPathComponent == buildFolderName {
+            projectFolder.deleteLastPathComponent()
+        }
         return projectFolder.appendingPathComponent("data", isDirectory: true)
     }
 
