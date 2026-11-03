@@ -361,7 +361,7 @@ public struct ImportReviewSheet: View {
             .padding(16)
             .background(Color(NSColor.windowBackgroundColor))
         }
-        .frame(minWidth: 780, minHeight: 580)
+        .resizableSheet("importReview", minWidth: 780, minHeight: 580, idealWidth: 900, idealHeight: 660)
         .sheet(isPresented: $isShowingChordsModal) {
             if let targetSong = songForChordsSearch {
                 ChordsSearchSheet(

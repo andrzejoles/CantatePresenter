@@ -44,7 +44,7 @@ public struct ImportExportSheet: View {
         Group {
             if isShowingGoogleDriveBackups {
                 GoogleDriveBackupsSheet(isPresented: $isShowingGoogleDriveBackups)
-                    .frame(minWidth: 700, minHeight: 520)
+                    .resizableSheet("importExportDrive", minWidth: 700, minHeight: 520)
             } else if let report = pendingImportReport {
                 ImportReviewSheet(
                     report: report,
@@ -58,10 +58,10 @@ public struct ImportExportSheet: View {
                         pendingImportReport = nil
                     }
                 )
-                .frame(minWidth: 800, minHeight: 600)
+                .resizableSheet("importExportReview", minWidth: 800, minHeight: 600, idealWidth: 900, idealHeight: 660)
             } else {
                 mainImportExportContent(scale: scale)
-                    .frame(minWidth: 640, minHeight: 520)
+                    .resizableSheet("importExport", minWidth: 640, minHeight: 520, idealWidth: 720, idealHeight: 560)
             }
         }
         .onAppear {

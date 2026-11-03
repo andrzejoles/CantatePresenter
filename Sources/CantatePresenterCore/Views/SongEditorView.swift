@@ -301,7 +301,7 @@ public struct SongEditorView: View {
                 .padding(14)
             }
         }
-        .frame(minWidth: 740, minHeight: 580)
+        .resizableSheet("songEditor", minWidth: 740, minHeight: 580, idealWidth: 900, idealHeight: 700)
         .onAppear {
             if let song = existingSong {
                 self.title = song.title

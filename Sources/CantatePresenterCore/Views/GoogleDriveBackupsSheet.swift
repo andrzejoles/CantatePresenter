@@ -158,7 +158,7 @@ public struct GoogleDriveBackupsSheet: View {
                 }
             }
         }
-        .frame(minWidth: 560, minHeight: 420)
+        .resizableSheet("googleDriveBackups", minWidth: 560, minHeight: 420, idealWidth: 640, idealHeight: 480)
         .task {
             await loadBackups()
         }
