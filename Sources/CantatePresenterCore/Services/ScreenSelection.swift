@@ -66,11 +66,14 @@ public enum ScreenSelection {
     }
     
     /// Gdzie ma być okno projekcji po zmianie konfiguracji ekranów.
-    public static func placement(after screens: [DisplayDescriptor], presentingOn display: DisplayDescriptor) -> Placement {
+    ///
+    /// Po nazwie (projektor wrócił z nowym identyfikatorem) nie pasuje ekran operatora: przy dwóch monitorach
+    /// tego samego modelu okno projekcji (`.screenSaver`) zasłoniłoby mu cały ekran po odłączeniu projektora (R13-03).
+    public static func placement(after screens: [DisplayDescriptor], presentingOn display: DisplayDescriptor, operatorScreen: UInt32? = nil) -> Placement {
         if let index = screens.firstIndex(where: { $0.id == display.id }) {
             return .show(index)
         }
-        if let index = screens.firstIndex(where: { $0.name == display.name }) {
+        if let index = screens.firstIndex(where: { $0.name == display.name && $0.id != operatorScreen }) {
             return .show(index)
         }
         return .hide

@@ -65,6 +65,16 @@ struct ScreenSelectionTests {
         #expect(ScreenSelection.placement(after: [mac, tv], presentingOn: projector) == .hide)
     }
 
+    @Test("Projektor odłączony, a ekran operatora to ten sam model: okno chowane, nie zasłania operatora (R13-03)")
+    func sameModelOperatorScreenDoesNotTakeOver() {
+        let operatorMonitor = DisplayDescriptor(id: 3, name: "DELL P2422H", isPrimary: true)
+        let projectorMonitor = DisplayDescriptor(id: 4, name: "DELL P2422H", isPrimary: false)
+        #expect(ScreenSelection.placement(after: [operatorMonitor], presentingOn: projectorMonitor, operatorScreen: 3) == .hide)
+        // Ten sam model z nowym identyfikatorem, ale nie ekran operatora: projekcja wraca.
+        let replugged = DisplayDescriptor(id: 8, name: "DELL P2422H", isPrimary: false)
+        #expect(ScreenSelection.placement(after: [operatorMonitor, replugged], presentingOn: projectorMonitor, operatorScreen: 3) == .show(1))
+    }
+
     @Test("Tryb jednego ekranu: okno zostaje na ekranie Maca")
     func singleScreenModeStays() {
         #expect(ScreenSelection.placement(after: [mac], presentingOn: mac) == .show(0))
