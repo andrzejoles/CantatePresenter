@@ -197,8 +197,13 @@ public struct Song: Identifiable, Codable, Equatable, Hashable, Sendable {
     )
     
     public static func parseLyrics(_ raw: String) -> [SongSlide] {
+        // Linia z samymi spacjami (także twardymi, np. tekst wklejony ze strony) rozdziela slajdy jak pusta,
+        // tak jak w arkuszu chwytów (`ChordSheet`); wcześniej dwie zwrotki zlewały się w jeden slajd (R13-02).
         let normalized = raw.replacingOccurrences(of: "\r\n", with: "\n")
                             .replacingOccurrences(of: "\r", with: "\n")
+                            .components(separatedBy: "\n")
+                            .map { $0.trimmingCharacters(in: .whitespaces).isEmpty ? "" : $0 }
+                            .joined(separator: "\n")
         
         let blocks = normalized.components(separatedBy: "\n\n")
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }

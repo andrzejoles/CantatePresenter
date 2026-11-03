@@ -217,7 +217,7 @@ public final class ScreenManager: ObservableObject {
     
     func screensDidChange(_ screens: [(descriptor: DisplayDescriptor, frame: CGRect)]) {
         guard isPresentationActive, let display = presentingDisplay else { return }
-        switch ScreenSelection.placement(after: screens.map(\.descriptor), presentingOn: display) {
+        switch ScreenSelection.placement(after: screens.map(\.descriptor), presentingOn: display, operatorScreen: windowHost.operatorScreenID) {
         case .show(let index):
             presentingDisplay = screens[index].descriptor
             windowHost.setFrame(screens[index].frame)

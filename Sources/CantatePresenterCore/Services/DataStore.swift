@@ -95,8 +95,10 @@ public final class DataStore {
     }
     /// Ustawienia w stanie z ostatniego zapisu lub wczytania (`saveSettingsIfChanged`).
     @ObservationIgnored private var lastSavedSettings: AppSettings?
-    /// Ostatnia pieśń z aktywnego planu; po „szybkim tekście” poprzednia/następna pieśń liczy się od niej (N11).
-    @ObservationIgnored private var lastPlanSongId: UUID?
+    /// Pozycja planu, z której pochodzi pieśń na ekranie; po „szybkim tekście” ostatnia pozycja z planu, od której
+    /// liczy się poprzednia/następna pieśń (N11). Pozycja, nie id pieśni: ta sama pieśń może być w planie dwa razy,
+    /// np. na wejście i na zakończenie, a „następna” po drugim wystąpieniu wracała za pierwsze (R13-01).
+    public private(set) var livePlanItemId: UUID?
     private static let logger = Logger(subsystem: "com.cantate.presenter", category: "persistence")
     
     private let dataDirectory: URL
@@ -271,8 +273,8 @@ public final class DataStore {
         if let id = activePlanId, !plans.contains(where: { $0.id == id }) {
             activePlanId = plans.first?.id
         }
-        if let id = lastPlanSongId, !songIds.contains(id) {
-            lastPlanSongId = nil
+        if let id = livePlanItemId, !plans.contains(where: { $0.items.contains { $0.id == id } }) {
+            livePlanItemId = nil
         }
         // Szybki tekst nie jest w bibliotece: zostaje na ekranie.
         if let active = activeSong, active.id != quickTextId {
@@ -470,7 +472,10 @@ public final class DataStore {
             selectedSongId = songs.first?.id
         }
         if activeSong?.id == id {
+            // Usunięta pieśń nie może wrócić na ekran przez „Start” pilota ani wznowienie (R13-04).
             stopLive()
+            activeSong = nil
+            activeSlideIndex = 0
         }
         // Remove from all plans
         for i in 0..<plans.count {
@@ -547,9 +552,11 @@ public final class DataStore {
     }
     
     // MARK: - Presentation Navigation & Controls
-    public func present(song: Song, slideIndex: Int = 0) {
-        if activePlan?.items.contains(where: { $0.songId == song.id }) == true {
-            lastPlanSongId = song.id
+    /// - Parameter planItemId: pozycja planu, z której wybrano pieśń (lista planu, pilot, następna pieśń).
+    ///   Bez niej: bieżąca pozycja, jeśli to ta pieśń, a inaczej pierwsze wystąpienie pieśni w planie.
+    public func present(song: Song, slideIndex: Int = 0, planItemId: UUID? = nil) {
+        if let item = planItem(for: song, requested: planItemId) {
+            livePlanItemId = item
         }
         self.activeSong = song
         self.activeSlideIndex = min(max(0, slideIndex), max(0, song.slides.count - 1))
@@ -640,10 +647,29 @@ public final class DataStore {
         isClearText = false
     }
     
-    /// Pozycja w planie: bieżącej pieśni, a gdy na ekranie jest coś spoza planu (szybki tekst), ostatniej pieśni z planu.
+    /// Pozycja aktywnego planu dla pieśni `song`; `nil`, gdy pieśni nie ma w planie (szybki tekst).
+    private func planItem(for song: Song, requested: UUID?) -> UUID? {
+        guard let items = activePlan?.items.filter({ $0.songId == song.id }), !items.isEmpty else { return nil }
+        if let requested, items.contains(where: { $0.id == requested }) { return requested }
+        if let current = livePlanItemId, items.contains(where: { $0.id == current }) { return current }
+        return items.first?.id
+    }
+
+    /// Pozycja w planie: bieżąca (także po szybkim tekście: ostatnia z planu), a gdy jej w planie nie ma
+    /// (zmiana planu, usunięta pozycja), pierwsze wystąpienie pieśni na ekranie.
     private func currentPlanIndex(in plan: ServicePlan) -> Int? {
-        let anchor = activeSong.flatMap { song in plan.items.contains(where: { $0.songId == song.id }) ? song.id : nil } ?? lastPlanSongId
-        return anchor.flatMap { id in plan.items.firstIndex(where: { $0.songId == id }) }
+        if let id = livePlanItemId, let index = plan.items.firstIndex(where: { $0.id == id }) {
+            return index
+        }
+        return activeSong.flatMap { song in plan.items.firstIndex(where: { $0.songId == song.id }) }
+    }
+
+    /// Pozycja aktywnego planu z pieśnią na ekranie (wyróżnienie na liście planu i w pilocie); przy pieśni
+    /// powtórzonej w planie tylko ta, z której ją wybrano (R13-01).
+    public var currentPlanItemId: UUID? {
+        guard let plan = activePlan, let song = activeSong, let index = currentPlanIndex(in: plan),
+              plan.items[index].songId == song.id else { return nil }
+        return plan.items[index].id
     }
     
     /// Pieśń, która zabrzmi po bieżącej według planu (do podglądu dla muzyków), bez zmiany projekcji.
@@ -656,36 +682,24 @@ public final class DataStore {
     
     public func nextSongInPlan() {
         guard let plan = activePlan, !plan.items.isEmpty else { return }
-        guard let currentIndex = currentPlanIndex(in: plan) else {
-            if let firstId = plan.items.first?.songId,
-               let song = songs.first(where: { $0.id == firstId }) {
-                present(song: song, slideIndex: 0)
-            }
-            return
-        }
-        
-        let nextIndex = currentIndex + 1
-        if nextIndex < plan.items.count {
-            let nextId = plan.items[nextIndex].songId
-            if let nextSong = songs.first(where: { $0.id == nextId }) {
-                present(song: nextSong, slideIndex: 0)
-                selectedSongId = nextSong.id
-            }
-        }
+        let nextIndex = currentPlanIndex(in: plan).map { $0 + 1 } ?? 0
+        presentPlanItem(at: nextIndex, of: plan)
     }
     
     public func prevSongInPlan() {
         guard let plan = activePlan, !plan.items.isEmpty else { return }
         guard let currentIndex = currentPlanIndex(in: plan) else { return }
         
-        let prevIndex = currentIndex - 1
-        if prevIndex >= 0 {
-            let prevId = plan.items[prevIndex].songId
-            if let prevSong = songs.first(where: { $0.id == prevId }) {
-                present(song: prevSong, slideIndex: 0)
-                selectedSongId = prevSong.id
-            }
-        }
+        presentPlanItem(at: currentIndex - 1, of: plan)
+    }
+
+    /// Wyświetla pozycję planu od pierwszego slajdu i zaznacza jej pieśń; indeks spoza planu nic nie zmienia.
+    public func presentPlanItem(at index: Int, of plan: ServicePlan) {
+        guard plan.items.indices.contains(index) else { return }
+        let item = plan.items[index]
+        guard let song = songs.first(where: { $0.id == item.songId }) else { return }
+        present(song: song, slideIndex: 0, planItemId: item.id)
+        selectedSongId = song.id
     }
     
     // MARK: - UI Zoom Scaling (Keyboard & Button actions)

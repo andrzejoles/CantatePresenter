@@ -461,6 +461,7 @@ enum RemoteControlBridge {
         let plan = store.activePlan
         let language = store.settings.appLanguage
         let titles = Dictionary(store.songs.map { ($0.id, $0.title) }, uniquingKeysWith: { first, _ in first })
+        let currentItem = store.currentPlanItemId
         return RemoteState(
             isLive: store.isLive,
             isBlackScreen: store.isBlackScreen,
@@ -473,7 +474,7 @@ enum RemoteControlBridge {
             },
             planName: plan?.name ?? "",
             plan: (plan?.items ?? []).map { item in
-                RemoteState.PlanEntry(title: titles[item.songId] ?? "?", isCurrent: item.songId == song?.id)
+                RemoteState.PlanEntry(title: titles[item.songId] ?? "?", isCurrent: item.id == currentItem)
             },
             labels: labels(language: language),
             canStart: !store.isLive && startCandidate(in: store) != nil,
@@ -506,10 +507,8 @@ enum RemoteControlBridge {
             store.present(song: song)
             store.selectedSongId = song.id
         case .planItem(let index):
-            guard let items = store.activePlan?.items, index < items.count,
-                  let song = store.songs.first(where: { $0.id == items[index].songId }) else { return }
-            store.present(song: song)
-            store.selectedSongId = song.id
+            guard let plan = store.activePlan else { return }
+            store.presentPlanItem(at: index, of: plan)
         }
     }
     

@@ -101,4 +101,13 @@ struct InlineSectionHeaderTests {
         let slide = try #require(Song.parseLyrics("Refren:\nŚpiewaj").first)
         #expect(slide.text == "Śpiewaj")
     }
+
+    @Test("Linia z samymi spacjami lub tabulatorem rozdziela slajdy jak pusta (R13-02)")
+    func whitespaceOnlyLineSeparatesSlides() throws {
+        let slides = Song.parseLyrics("Pierwsza zwrotka\n  \nDruga zwrotka\n\t\u{00A0}\nRefren:\nChwała")
+
+        try #require(slides.count == 3)
+        #expect(slides.map(\.label) == ["Zwrotka 1", "Zwrotka 2", "Refren"])
+        #expect(slides[1].text == "Druga zwrotka")
+    }
 }
