@@ -77,10 +77,8 @@ public struct PlanListView: View {
                     
                     if !activePlanItems.isEmpty {
                         Button(action: {
-                            if let firstId = activePlanItems.first?.songId,
-                               let song = store.songs.first(where: { $0.id == firstId }) {
-                                store.present(song: song, slideIndex: 0)
-                                store.selectedSongId = song.id
+                            if let plan = store.activePlan {
+                                store.presentPlanItem(at: 0, of: plan)
                             }
                         }) {
                             Label(L("Uruchom plan"), systemImage: "play.fill")
@@ -121,7 +119,8 @@ public struct PlanListView: View {
                             index: index + 1,
                             item: item,
                             song: song,
-                            isLive: store.activeSong?.id == item.songId && store.isLive,
+                            // Pozycja, nie pieśń: pieśń powtórzona w planie świeci się raz (R13-01).
+                            isLive: store.currentPlanItemId == item.id && store.isLive,
                             isSelected: store.selectedSongId == item.songId,
                             scale: scale,
                             onMoveUp: {
@@ -141,9 +140,8 @@ public struct PlanListView: View {
                                 }
                             },
                             onPresent: {
-                                if let song = song {
-                                    store.present(song: song, slideIndex: 0)
-                                    store.selectedSongId = song.id
+                                if let plan = store.activePlan {
+                                    store.presentPlanItem(at: index, of: plan)
                                 }
                             }
                         )
