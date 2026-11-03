@@ -12,6 +12,56 @@ public enum WywrotaInsertMode: Sendable {
     case lyricsAndChords
 }
 
+// MARK: - Clean View
+
+/// Czystszy widok serwisu w oknie Wywroty: bez reklam Google (AdSense, Tag Manager, okno zgody na reklamy
+/// Funding Choices) i bez pustego miejsca po banerze nad pieśnią. Na prośbę właściciela (2026-11-03).
+@MainActor
+public enum WywrotaCleanView {
+    public static let identifier = "com.cantate.presenter.wywrota-clean-view"
+
+    /// Domeny reklam i pomiaru, których wczytywanie jest blokowane (wyrażenia WebKit nie mają `|`).
+    static let blockedHosts = [
+        "googlesyndication.com", "doubleclick.net", "googletagmanager.com", "googletagservices.com",
+        "google-analytics.com", "googleadservices.com", "fundingchoicesmessages.google.com",
+        "adservice.google.com", "adservice.google.pl"
+    ]
+
+    /// Wzorzec adresu na hoście `host` i jego subdomenach (np. `pagead2.googlesyndication.com`).
+    static func urlFilter(forHost host: String) -> String {
+        "^https?://([^/]*\\.)?" + host.replacingOccurrences(of: ".", with: "\\.") + "[:/]"
+    }
+
+    /// Elementy ukrywane na stronach serwisu: miejsca na reklamy, okno zgody, baner aplikacji mobilnej.
+    static let hiddenSelector = [
+        "ins.adsbygoogle", ".billboard-google", "iframe[src*=\"googlesyndication\"]", "iframe[id^=\"google_ads\"]",
+        ".fc-consent-root", ".fc-ab-root", "#footer_sticky_banner_app"
+    ].joined(separator: ", ")
+
+    /// JSON budowany przez `JSONSerialization`, żeby ukośniki wzorców i cudzysłowy selektorów były poprawnie zapisane.
+    public static var encodedRules: String {
+        var rules: [[String: Any]] = blockedHosts.map { host in
+            ["trigger": ["url-filter": urlFilter(forHost: host)], "action": ["type": "block"]]
+        }
+        rules.append([
+            "trigger": ["url-filter": ".*", "if-domain": ["*wywrota.pl"]],
+            "action": ["type": "css-display-none", "selector": hiddenSelector]
+        ])
+        let data = (try? JSONSerialization.data(withJSONObject: rules, options: [.sortedKeys, .withoutEscapingSlashes])) ?? Data("[]".utf8)
+        return String(decoding: data, as: UTF8.self)
+    }
+
+    private static let cache = ContentRuleListCache(identifier: identifier, encodedRules: encodedRules, logCategory: "wywrota")
+
+    static func withRuleList(_ completion: @escaping (WKContentRuleList?) -> Void) {
+        cache.withRuleList(completion)
+    }
+
+    static func compile(in store: WKContentRuleListStore?, completion: @escaping @MainActor (WKContentRuleList?) -> Void) {
+        cache.compile(in: store, completion: completion)
+    }
+}
+
 // MARK: - Browser Model
 
 /// Przeglądarka Śpiewnika Wywroty w aplikacji. Strony otwiera i przegląda użytkownik, jak w Safari; aplikacja
@@ -49,6 +99,17 @@ final class WywrotaBrowserModel: NSObject, ObservableObject, WKNavigationDelegat
 
     func open(_ url: URL) {
         webView.load(URLRequest(url: url))
+    }
+
+    /// Pierwsza strona dopiero z regułami czystego widoku; gdy nie dadzą się skompilować, strona i tak się wczyta.
+    func start(_ url: URL) {
+        WywrotaCleanView.withRuleList { [weak self] list in
+            guard let self else { return }
+            if let list {
+                self.webView.configuration.userContentController.add(list)
+            }
+            self.open(url)
+        }
     }
 
     func search(_ query: String) {
@@ -220,16 +281,12 @@ struct WywrotaBrowserSheet: View {
             .buttonStyle(.bordered)
             .padding(10)
         }
-        // Arkusz nad arkuszem edytora (min. 740 × 580): nie może wymuszać większego rozmiaru niż on.
-        .frame(minWidth: 720, idealWidth: 940, minHeight: 540, idealHeight: 680)
+        // Arkusz nad arkuszem edytora (min. 740 × 580): minimum nie większe niż on.
+        .resizableSheet("wywrota", minWidth: 720, minHeight: 540, idealWidth: 940, idealHeight: 680)
         .onAppear {
             query = initialQuery
             let trimmed = initialQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmed.isEmpty {
-                model.open(WywrotaParser.homeURL)
-            } else {
-                model.search(trimmed)
-            }
+            model.start(trimmed.isEmpty ? WywrotaParser.homeURL : (WywrotaParser.searchURL(for: trimmed) ?? WywrotaParser.homeURL))
         }
     }
 

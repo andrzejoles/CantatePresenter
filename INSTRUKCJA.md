@@ -141,7 +141,8 @@ Chwyty możesz też zaimportować z pliku ChordPro (np. z CCLI SongSelect, rozdz
 Przycisk **Śpiewnik Wywroty...** w edytorze pieśni otwiera [Śpiewnik Wywroty](https://spiewnik.wywrota.pl) w oknie programu (na start: wyszukiwanie tytułu z edytora albo kategoria „Piosenki religijne”).
 1. Znajdź pieśń: pole **Szukaj** u góry okna albo nawigacja na stronie.
 2. Na stronie pieśni kliknij **Wstaw tekst**, **Wstaw chwyty** albo **Wstaw tekst i chwyty**. Tekst trafia do pola tekstu (zwrotki numerowane w serwisie dostają nagłówek „[Zwrotka N]”, refren „[Refren]”), chwyty do widoku **Chwyty gitarowe / Taby** jako akordy nad tekstem. Przejrzyj podział na slajdy i kliknij **Zapisz**; adres strony zapisze się jako źródło pieśni.
-3. Bez logowania serwis pokazuje tylko początek opracowania, a przyciski są wtedy nieaktywne. Zaloguj się na stronie (konto w Śpiewniku Wywroty, najlepiej e-mailem i hasłem); logowanie zostaje zapamiętane.
+3. Okno pokazuje stronę bez reklam (bez banera nad pieśnią i bez okna zgody na reklamy).
+4. Bez logowania serwis pokazuje tylko początek opracowania, a przyciski są wtedy nieaktywne. Zaloguj się na stronie (konto w Śpiewniku Wywroty, najlepiej e-mailem i hasłem); logowanie zostaje zapamiętane.
 
 Program nie pobiera niczego z serwisu sam: wstawia tylko pieśń otwartą na ekranie, po kliknięciu (regulamin serwisu zabrania pobierania automatycznego i masowego). Teksty i opracowania należą do ich autorów; za ich wyświetlanie w kościele odpowiada parafia (licencje, np. CCLI).
 
