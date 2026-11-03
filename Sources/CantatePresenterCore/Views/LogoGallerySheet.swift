@@ -69,7 +69,7 @@ public struct LogoGallerySheet: View {
                 .padding(16)
             }
         }
-        .frame(minWidth: 780, minHeight: 600)
+        .resizableSheet("logoGallery", minWidth: 780, minHeight: 600, idealWidth: 860, idealHeight: 660)
     }
 }
 

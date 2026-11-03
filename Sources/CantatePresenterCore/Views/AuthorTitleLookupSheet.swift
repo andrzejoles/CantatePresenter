@@ -107,7 +107,7 @@ public struct AuthorTitleLookupSheet: View {
                 batchSongsView(scale: scale)
             }
         }
-        .frame(minWidth: 760, minHeight: 560)
+        .resizableSheet("authorTitleLookup", minWidth: 760, minHeight: 560, idealWidth: 860, idealHeight: 640)
         .onDisappear {
             batchTask?.cancel()
             batchTask = nil

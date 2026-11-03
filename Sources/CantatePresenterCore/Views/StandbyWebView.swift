@@ -165,41 +165,18 @@ public enum StandbyNetworkBlock {
     {"trigger":{"url-filter":"^wss?://"},"action":{"type":"block"}}]
     """
 
-    private static var ruleList: WKContentRuleList?
-    private static var failed = false
-    private static var waiting: [(WKContentRuleList?) -> Void] = []
+    private static let cache = ContentRuleListCache(identifier: identifier, encodedRules: encodedRules, logCategory: "standby")
 
     /// Wywołuje `completion` z listą reguł (od razu, jeśli jest już skompilowana) albo z `nil`, gdy kompilacja się
     /// nie udała.
     static func withRuleList(_ completion: @escaping (WKContentRuleList?) -> Void) {
-        if let ruleList { return completion(ruleList) }
-        if failed { return completion(nil) }
-        waiting.append(completion)
-        guard waiting.count == 1 else { return }
-        compile(in: WKContentRuleListStore.default()) { list in
-            ruleList = list
-            failed = list == nil
-            let callbacks = waiting
-            waiting = []
-            callbacks.forEach { $0(list) }
-        }
+        cache.withRuleList(completion)
     }
 
     /// Kompiluje listę w podanym magazynie; `nil` przy błędzie (zapisanym w dzienniku).
     static func compile(in store: WKContentRuleListStore?, completion: @escaping @MainActor (WKContentRuleList?) -> Void) {
-        guard let store else {
-            logger.error("Plansza: brak magazynu reguł WebKit")
-            return completion(nil)
-        }
-        store.compileContentRuleList(forIdentifier: identifier, encodedContentRuleList: encodedRules) { list, error in
-            if let error {
-                logger.error("Plansza: nie udało się skompilować blokady sieci: \(String(describing: error), privacy: .public)")
-            }
-            MainActor.assumeIsolated { completion(list) }
-        }
+        cache.compile(in: store, completion: completion)
     }
-
-    private static let logger = Logger(subsystem: "com.cantate.presenter", category: "standby")
 }
 
 // MARK: - Standby Navigation Policy

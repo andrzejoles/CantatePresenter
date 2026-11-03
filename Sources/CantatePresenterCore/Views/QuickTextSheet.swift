@@ -144,7 +144,7 @@ public struct QuickTextSheet: View {
             }
         }
         .padding(18)
-        .frame(minWidth: 460, minHeight: 380)
+        .resizableSheet("quickText", minWidth: 460, minHeight: 380, idealWidth: 540, idealHeight: 440)
         .onAppear {
             isTextFocused = true
         }

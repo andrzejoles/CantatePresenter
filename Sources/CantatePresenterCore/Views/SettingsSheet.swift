@@ -791,7 +791,7 @@ public struct SettingsSheet: View {
                 .padding(16)
             }
         }
-        .frame(minWidth: 620, minHeight: 640)
+        .resizableSheet("settings", minWidth: 620, minHeight: 640, idealWidth: 700, idealHeight: 720)
         .sheet(isPresented: $isShowingLogoGallery) {
             LogoGallerySheet(isPresented: $isShowingLogoGallery)
         }

@@ -239,7 +239,7 @@ public struct ChordsSearchSheet: View {
             }
             .frame(maxHeight: .infinity)
         }
-        .frame(minWidth: 780, minHeight: 560)
+        .resizableSheet("chordsSearch", minWidth: 780, minHeight: 560, idealWidth: 880, idealHeight: 640)
         .onAppear {
             triggerSearch()
         }

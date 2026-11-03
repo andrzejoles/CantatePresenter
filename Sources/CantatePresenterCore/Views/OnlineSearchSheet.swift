@@ -286,7 +286,7 @@ public struct OnlineSearchSheet: View {
                 }
             }
         }
-        .frame(minWidth: 780, minHeight: 520)
+        .resizableSheet("onlineSearch", minWidth: 780, minHeight: 520, idealWidth: 900, idealHeight: 620)
     }
     
     private func performSearch() {

@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import WebKit
 @testable import CantatePresenterCore
 
 // MARK: - Śpiewnik Wywroty: tekst i chwyty z wyświetlonej strony
@@ -109,5 +110,42 @@ struct WywrotaParserTests {
         let json = #"{"html":"<br>","title":"T","truncated":true}"#
         let page = try JSONDecoder().decode(WywrotaParser.Page.self, from: Data(json.utf8))
         #expect(page == WywrotaParser.Page(html: "<br>", title: "T", truncated: true))
+    }
+}
+
+// MARK: - Czysty widok (bez reklam)
+
+@MainActor
+@Suite("Śpiewnik Wywroty: czysty widok")
+struct WywrotaCleanViewTests {
+    @Test("Reguły to poprawny JSON i kompilują się w WebKit")
+    func rulesCompile() async throws {
+        let object = try JSONSerialization.jsonObject(with: Data(WywrotaCleanView.encodedRules.utf8))
+        let rules = try #require(object as? [[String: Any]])
+        #expect(rules.count == WywrotaCleanView.blockedHosts.count + 1)
+
+        // Magazyn w katalogu tymczasowym, nie domyślny w ~/Library/WebKit.
+        let dir = try TestDirectory()
+        defer { dir.remove() }
+        let store = WKContentRuleListStore(url: dir.url)
+        let compiled: Bool = await withCheckedContinuation { continuation in
+            WywrotaCleanView.compile(in: store) { continuation.resume(returning: $0 != nil) }
+        }
+        #expect(compiled)
+    }
+
+    @Test("Blokowane są adresy reklam z subdomenami, a strony serwisu i logowanie Google nie")
+    func filters() throws {
+        let filters = try WywrotaCleanView.blockedHosts.map { try NSRegularExpression(pattern: WywrotaCleanView.urlFilter(forHost: $0)) }
+        func blocked(_ url: String) -> Bool {
+            filters.contains { $0.firstMatch(in: url, range: NSRange(url.startIndex..., in: url)) != nil }
+        }
+        #expect(blocked("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=x"))
+        #expect(blocked("https://www.googletagmanager.com/gtag/js?id=G-1"))
+        #expect(blocked("https://fundingchoicesmessages.google.com/i/pub?ers=1"))
+        #expect(blocked("https://doubleclick.net:443/x"))
+        #expect(!blocked("https://spiewnik.wywrota.pl/piosenki-religijne/abba-ojcze"))
+        #expect(!blocked("https://accounts.google.com/gsi/client"))
+        #expect(!blocked("https://example.com/?u=googlesyndication.com/"))
     }
 }
