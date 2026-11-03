@@ -244,12 +244,18 @@
       {
         "label" : "Zwrotka 1",
         "number" : 1,
-        "text" : "Wcięta linia\nTabulator\n\nPo spacjach",
+        "text" : "Wcięta linia\nTabulator",
+        "type" : "verse"
+      },
+      {
+        "label" : "Zwrotka 2",
+        "number" : 2,
+        "text" : "Po spacjach",
         "type" : "verse"
       }
     ],
     "input" : "  Wcięta linia  \n\tTabulator\n   \nPo spacjach",
-    "name" : "whitespace lines inside block"
+    "name" : "whitespace-only line separates slides"
   },
   {
     "expected" : [
