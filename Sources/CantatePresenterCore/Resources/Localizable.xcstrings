@@ -10613,6 +10613,34 @@
         }
       }
     },
+    "Otwórz stronę pieśni, aby wstawić jej tekst lub chwyty.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open a song page to insert its lyrics or chords."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen Sie die Seite eines Liedes, um Text oder Akkorde einzufügen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abra la página de una canción para insertar su letra o sus acordes."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відкрийте сторінку пісні, щоб вставити її текст або акорди."
+          }
+        }
+      }
+    },
     "Otwórz źródło": {
       "localizations": {
         "en": {
@@ -11033,6 +11061,34 @@
         }
       }
     },
+    "Pieśń gotowa do wstawienia": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Song ready to insert"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lied bereit zum Einfügen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canción lista para insertar"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пісня готова до вставлення"
+          }
+        }
+      }
+    },
     "Pieśń może zawierać chwyty gitarowe (np. D A h G). Przyciski +1 / -1 pozwalają transponować tonację całego utworu jednym kliknięciem.": {
       "localizations": {
         "en": {
@@ -11145,6 +11201,34 @@
         }
       }
     },
+    "Pieśń: {0}": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Song: {0}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lied: {0}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canción: {0}"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пісня: {0}"
+          }
+        }
+      }
+    },
     "Pilot": {
       "localizations": {
         "en": {
@@ -11225,6 +11309,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Пульт зі смартфона"
+          }
+        }
+      }
+    },
+    "Piosenki religijne w Śpiewniku Wywroty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Religious songs in Śpiewnik Wywroty"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Religiöse Lieder in Śpiewnik Wywroty"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canciones religiosas en Śpiewnik Wywroty"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Релігійні пісні в Śpiewnik Wywroty"
           }
         }
       }
@@ -15401,6 +15513,34 @@
         }
       }
     },
+    "Strona pokazuje tylko początek opracowania. Zaloguj się w Śpiewniku Wywroty (u góry strony), aby wstawić całość.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The page shows only the beginning of the arrangement. Sign in to Śpiewnik Wywroty (top of the page) to insert all of it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Seite zeigt nur den Anfang der Bearbeitung. Melden Sie sich bei Śpiewnik Wywroty an (oben auf der Seite), um alles einzufügen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La página solo muestra el comienzo del arreglo. Inicie sesión en Śpiewnik Wywroty (parte superior de la página) para insertarlo completo."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сторінка показує лише початок опрацювання. Увійдіть у Śpiewnik Wywroty (угорі сторінки), щоб вставити все."
+          }
+        }
+      }
+    },
     "Strona projektu na GitHub...": {
       "localizations": {
         "en": {
@@ -16857,6 +16997,34 @@
         }
       }
     },
+    "Tytuł lub fragment tekstu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title or a line of the lyrics"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel oder Textauszug"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Título o fragmento de la letra"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назва або фрагмент тексту"
+          }
+        }
+      }
+    },
     "Tytuł pieśni": {
       "localizations": {
         "en": {
@@ -18117,6 +18285,34 @@
         }
       }
     },
+    "Wczytywanie...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geladen..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завантаження..."
+          }
+        }
+      }
+    },
     "Wersja główna (zachowywana):": {
       "localizations": {
         "en": {
@@ -18789,6 +18985,34 @@
         }
       }
     },
+    "Wstaw chwyty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insert chords"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akkorde einfügen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insertar acordes"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставити акорди"
+          }
+        }
+      }
+    },
     "Wstaw sekcję:": {
       "localizations": {
         "en": {
@@ -18813,6 +19037,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вставити розділ:"
+          }
+        }
+      }
+    },
+    "Wstaw tekst": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insert lyrics"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text einfügen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insertar letra"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставити текст"
+          }
+        }
+      }
+    },
+    "Wstaw tekst i chwyty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insert lyrics and chords"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text und Akkorde einfügen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insertar letra y acordes"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставити текст і акорди"
+          }
+        }
+      }
+    },
+    "Wstawiana jest tylko pieśń otwarta na tej stronie. Teksty i opracowania należą do ich autorów i mogą być chronione prawem autorskim.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the song open on this page is inserted. Lyrics and arrangements belong to their authors and may be protected by copyright."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eingefügt wird nur das auf dieser Seite geöffnete Lied. Texte und Bearbeitungen gehören ihren Urhebern und können urheberrechtlich geschützt sein."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo se inserta la canción abierta en esta página. Las letras y los arreglos pertenecen a sus autores y pueden estar protegidos por derechos de autor."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставляється лише пісня, відкрита на цій сторінці. Тексти й опрацювання належать їхнім авторам і можуть бути захищені авторським правом."
           }
         }
       }
@@ -19793,6 +20101,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Шукати акорди..."
+          }
+        }
+      }
+    },
+    "Wyszukaj pieśń w Śpiewniku Wywroty i wstaw jej tekst, chwyty albo oba": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find a song in Śpiewnik Wywroty and insert its lyrics, chords or both"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lied in Śpiewnik Wywroty suchen und Text, Akkorde oder beides einfügen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar una canción en Śpiewnik Wywroty e insertar su letra, sus acordes o ambos"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Знайти пісню в Śpiewnik Wywroty і вставити текст, акорди або все разом"
           }
         }
       }
@@ -22481,6 +22817,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "{0}: {1}. Спрацює лише перша дія."
+          }
+        }
+      }
+    },
+    "Śpiewnik Wywroty...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Śpiewnik Wywroty..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Śpiewnik Wywroty..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Śpiewnik Wywroty..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Śpiewnik Wywroty..."
           }
         }
       }
