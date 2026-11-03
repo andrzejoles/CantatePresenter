@@ -13,6 +13,7 @@ Pliki w `fixtures/` opisują wejście i oczekiwany wynik kluczowej logiki aplika
 | `autofit.json` | Auto-Fit (dokładnie tylko przypadki `anyMeasurer`; wzorzec: `scripts/make_autofit_fixture.py`) | `AutoFitEngine` |
 | `holyrics-*.mufl`, `holyrics-*.muf`, `holyrics-export.xml`, `holyrics.json` | import Holyrics, wynik w `holyrics.json`. `holyrics-music-list.mufl` i `holyrics-music-list-truncated.mufl` tworzy `scripts/make_holyrics_fixture.py`; `holyrics-tagged.muf` i `holyrics-export.xml` nie mają generatora w `scripts/` | `HolyricsImporter` |
 | `wikisource.json` | odczyt tekstu z Wikiźródeł | `WikisourceParser` |
+| `wywrota-song.html` | tekst i chwyty z opracowania w Śpiewniku Wywroty (sztuczny tekst w układzie strony serwisu) | `WywrotaParser` |
 | `backup-macos.cantatebackup` | kopia zapasowa zrobiona przez `ditto` jak w macOS | `BackupRestorer` |
 
 Zmiana zachowania: popraw implementację, potem zaktualizuj oczekiwane wyniki.

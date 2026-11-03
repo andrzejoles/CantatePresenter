@@ -95,6 +95,7 @@ W oknie **Ustawienia** operator może samodzielnie zdefiniować klawisze dla klu
 - Przeszukiwanie [Wikiźródeł](https://pl.wikisource.org) przez API MediaWiki: tradycyjne pieśni w domenie publicznej lub na wolnej licencji. Adres strony i licencja zapisują się w pieśni.
 - Podgląd znalezionych utworów wraz ze zwrotkami i przycisk **"Importuj do programu"**, który natychmiast dodaje pieśń do lokalnej bazy.
 - Przycisk **„Szukaj w SongSelect”** otwiera wyszukiwarkę CCLI w przeglądarce; pobrane pliki importujesz w oknie Import/Eksport.
+- **Śpiewnik Wywroty** w edytorze pieśni: strona serwisu w oknie programu, a na stronie pieśni przyciski „Wstaw tekst”, „Wstaw chwyty”, „Wstaw tekst i chwyty” (tylko wyświetlona pieśń, po kliknięciu; chwyty jako akordy nad tekstem).
 
 ### 10. 🎨 Konfigurowalny i skalowalny interfejs (UI Zoom)
 - **Przesuwane panele**: Elastyczny `HSplitView` umożliwiający dowolną zmianę szerokości kolumn (Biblioteka / Zwrotki / Panel na żywo).

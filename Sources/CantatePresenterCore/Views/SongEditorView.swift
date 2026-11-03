@@ -17,6 +17,9 @@ public struct SongEditorView: View {
     @State private var ccliNumber: String = ""
     @State private var editorTab: Int = 0 // 0: Tekst & Slajdy, 1: Chwyty gitarowe
     @State private var isShowingChordsSearch: Bool = false
+    @State private var isShowingWywrota: Bool = false
+    /// Skąd pochodzi tekst (`Song.source`); po wstawieniu tekstu ze Śpiewnika Wywroty adres jego strony.
+    @State private var source: String = ""
     
     public init(isPresented: Binding<Bool>, existingSong: Song? = nil) {
         self._isPresented = isPresented
@@ -46,6 +49,15 @@ public struct SongEditorView: View {
                 }
                 .buttonStyle(.bordered)
                 .tint(.orange)
+                
+                Button(action: {
+                    isShowingWywrota = true
+                }) {
+                    Label(L("Śpiewnik Wywroty..."), systemImage: "book")
+                        .font(.scaled(11, weight: .semibold, scale: scale))
+                }
+                .buttonStyle(.bordered)
+                .help(L("Wyszukaj pieśń w Śpiewniku Wywroty i wstaw jej tekst, chwyty albo oba"))
                 
                 Button(L("Anuluj")) {
                     isPresented = false
@@ -298,9 +310,13 @@ public struct SongEditorView: View {
                 self.tagsString = song.tags.joined(separator: ", ")
                 self.rawLyrics = song.rawLyrics
                 self.chords = song.chords ?? ""
+                self.source = song.source ?? ""
                 self.copyright = song.copyright ?? ""
                 self.ccliNumber = song.ccliNumber ?? ""
             }
+        }
+        .sheet(isPresented: $isShowingWywrota) {
+            WywrotaBrowserSheet(isPresented: $isShowingWywrota, initialQuery: title, onInsert: insertFromWywrota)
         }
         .sheet(isPresented: $isShowingChordsSearch) {
             let tempSong = Song(title: title.isEmpty ? L("Nowa pieśń") : title, author: author, rawLyrics: rawLyrics)
@@ -318,6 +334,22 @@ public struct SongEditorView: View {
         }
     }
     
+    /// Wstawienie z otwartej strony Śpiewnika Wywroty; do biblioteki trafia dopiero po „Zapisz”.
+    private func insertFromWywrota(_ song: WywrotaSong, mode: WywrotaInsertMode) {
+        if mode != .chords {
+            rawLyrics = song.lyrics
+            source = song.url
+            editorTab = 0
+        }
+        if mode != .lyrics, let sheet = song.chords {
+            chords = sheet
+            if mode == .chords { editorTab = 1 }
+        }
+        if title.trimmingCharacters(in: .whitespaces).isEmpty {
+            title = song.title
+        }
+    }
+    
     private func saveSong() {
         let cleanTitle = title.trimmingCharacters(in: .whitespaces)
         guard !cleanTitle.isEmpty else { return }
@@ -330,6 +362,7 @@ public struct SongEditorView: View {
         let finalChords = chords.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : chords
         let cleanCopyright = copyright.trimmingCharacters(in: .whitespaces)
         let cleanCCLI = ccliNumber.trimmingCharacters(in: .whitespaces)
+        let cleanSource = source.trimmingCharacters(in: .whitespacesAndNewlines)
         
         if let existing = existingSong {
             var updated = existing
@@ -342,6 +375,7 @@ public struct SongEditorView: View {
             updated.slides = Song.parseLyrics(rawLyrics)
             updated.copyright = cleanCopyright.isEmpty ? nil : cleanCopyright
             updated.ccliNumber = cleanCCLI.isEmpty ? nil : cleanCCLI
+            updated.source = cleanSource.isEmpty ? nil : cleanSource
             store.updateSong(updated)
         } else {
             var newSong = Song(
@@ -354,6 +388,7 @@ public struct SongEditorView: View {
             )
             newSong.copyright = cleanCopyright.isEmpty ? nil : cleanCopyright
             newSong.ccliNumber = cleanCCLI.isEmpty ? nil : cleanCCLI
+            newSong.source = cleanSource.isEmpty ? nil : cleanSource
             store.addSong(newSong)
         }
     }
